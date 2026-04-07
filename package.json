@@ -1,0 +1,33 @@
+{
+  "name": "pasika",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "rm -rf dist AGENTS.md CLAUDE.md && tsc -p tsconfig.json && npx vulyk docs",
+    "check": "npm run lint && npm run typecheck",
+    "fix": "eslint . --fix",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
+  },
+  "bin": {
+    "pasika": "./dist/scripts/pasika.js"
+  },
+  "files": [
+    "claude",
+    "docs",
+    "dist",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "eslint": "^9.39.4",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.2",
+    "vulyk": "^0.6.0",
+    "zirka": "^0.0.28"
+  }
+}

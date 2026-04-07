@@ -1,0 +1,15 @@
+{
+  "extends": "zirka/typescript",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "noEmitOnError": true,
+    "declaration": false,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["scripts/**/*.ts", "claude/scripts/**/*.ts", "eslint.config.ts"]
+}

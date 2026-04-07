@@ -1,0 +1,7 @@
+.DS_Store
+*.log
+*.tgz
+dist/
+node_modules/
+
+claude/.claude/settings.local.json
