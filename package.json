@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/Bredansky/pasika"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "rm -rf dist AGENTS.md CLAUDE.md && tsc -p tsconfig.json && npx vulyk docs",
     "check": "npm run lint && npm run typecheck",
