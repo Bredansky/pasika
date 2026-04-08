@@ -5,9 +5,9 @@
   },
   "docs": {
     "rules": {
-      "root": {
-        "match": ["."],
-        "outputPaths": ["docs"],
+      "claude-hooks": {
+        "match": ["claude/hooks", "claude/hooks/**"],
+        "outputPaths": ["claude/hooks"],
         "also": ["CLAUDE.md"],
         "gitignoreGenerated": false
       }
@@ -15,7 +15,7 @@
     "entries": {
       "claude-hooks": {
         "source": "docs/claude/hooks.md",
-        "targets": ["."],
+        "targets": ["claude/hooks"],
         "description": "Shared Claude hooks shipped by pasika."
       }
     }

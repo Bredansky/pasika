@@ -95,3 +95,5 @@ So the recommended pattern is:
 3. generate or merge into `.claude/settings.json` in the project
 4. point hook commands at `./node_modules/pasika/claude/...`
 5. keep project-specific plugin, skill, and rule decisions in the project repo
+
+`npx pasika claude` also copies the packaged Claude hooks docs into `.claude/hooks/` in the target repo.

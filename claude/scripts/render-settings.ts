@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { constants } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -165,8 +165,10 @@ export const renderClaude = async (targetDir: string, force: boolean, packageRoo
 
   const outputDir = path.join(targetDir, ".claude");
   const outputPath = path.join(outputDir, "settings.json");
+  const hooksOutputDir = path.join(outputDir, "hooks");
 
   await mkdir(outputDir, { recursive: true });
+  await mkdir(hooksOutputDir, { recursive: true });
 
   const finalSettings =
     !force && (await fileExists(outputPath))
@@ -175,7 +177,21 @@ export const renderClaude = async (targetDir: string, force: boolean, packageRoo
 
   await writeFile(outputPath, `${JSON.stringify(finalSettings, null, 2)}\n`, "utf8");
 
-  return [outputPath];
+  const outputs = [outputPath];
+  const hookDocFiles = ["AGENTS.md", "CLAUDE.md"] as const;
+
+  for (const fileName of hookDocFiles) {
+    const sourcePath = path.join(packageRoot, "claude/hooks", fileName);
+    if (!(await fileExists(sourcePath))) {
+      continue;
+    }
+
+    const destinationPath = path.join(hooksOutputDir, fileName);
+    await copyFile(sourcePath, destinationPath);
+    outputs.push(destinationPath);
+  }
+
+  return outputs;
 };
 
 const isDirectRun = process.argv[1] ? path.resolve(process.argv[1]) === __filename : false;
