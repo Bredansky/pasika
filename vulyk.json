@@ -7,22 +7,12 @@
     "rules": {
       "root": {
         "match": ["."],
-        "outputPaths": ["docs/common"],
+        "outputPaths": ["docs"],
         "also": ["CLAUDE.md"],
         "gitignoreGenerated": false
       }
     },
     "entries": {
-      "overview": {
-        "source": "docs/common/overview.md",
-        "targets": ["."],
-        "description": "pasika scope and usage."
-      },
-      "merge-behavior": {
-        "source": "docs/common/merge-behavior.md",
-        "targets": ["."],
-        "description": "How pasika merges into existing Claude settings."
-      },
       "claude-hooks": {
         "source": "docs/claude/hooks.md",
         "targets": ["."],

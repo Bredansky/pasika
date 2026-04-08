@@ -26,9 +26,6 @@ claude/
   scripts/
     render-settings.ts
 docs/
-  common/
-    overview.md
-    merge-behavior.md
   claude/
     hooks.md
 scripts/
@@ -98,14 +95,3 @@ So the recommended pattern is:
 3. generate or merge into `.claude/settings.json` in the project
 4. point hook commands at `./node_modules/pasika/claude/...`
 5. keep project-specific plugin, skill, and rule decisions in the project repo
-
-## Merge Behavior
-
-By default, `pasika` merges its Claude base into an existing `.claude/settings.json`.
-
-That means:
-
-- it updates the portable base pieces shipped by `pasika`
-- it preserves unrelated project-specific settings such as extra hooks, plugin config, and custom permissions
-
-Use `--force` only when you want to replace the existing file with the `pasika` base output.
