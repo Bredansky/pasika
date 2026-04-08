@@ -2,7 +2,7 @@
 
 Reusable base assets for Claude Code setups.
 
-`pasika` stores portable Claude base config assets that individual repos can copy from or adapt.
+`pasika` stores portable Claude base config assets and reusable Claude skills that individual repos can copy from or adapt.
 
 ## Scope
 
@@ -26,6 +26,9 @@ claude/
         index.js
       notification.sh
       protect-files.sh
+    skills/
+      doc-drift-review/
+        SKILL.md
 docs/
   common/
     overview.md
@@ -45,13 +48,14 @@ CLAUDE.md
 
 - portable hook scripts
 - base settings templates
+- shared Claude skills that are not tied to one app
 - shared docs and generated `CLAUDE.md`
 - shared naming and layout conventions
 
 ## What stays in project repos
 
 - final `.claude` folders
-- project-specific skills, rules, agents, and prompts
+- project-specific rules, agents, and prompts
 - repository-specific plugin choices
 - scripts that depend on a specific app, CI setup, or codebase
 
