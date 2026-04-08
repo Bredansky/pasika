@@ -35,7 +35,7 @@
     "eslint": "^9.39.4",
     "prettier": "^3.8.1",
     "typescript": "^5.9.2",
-    "vulyk": "github:Bredansky/vulyk#1ffc64cfa907719b076f0cb4b1a72c5c200f93a4",
+    "vulyk": "github:Bredansky/vulyk#829cac4a244add961304070474db3e978db01d2a",
     "zirka": "^0.0.28"
   }
 }
