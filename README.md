@@ -1,15 +1,15 @@
 # pasika
 
-Reusable base assets for Claude Code setups.
+Reusable agent setup package, starting with Claude.
 
-`pasika` stores portable Claude base config assets and reusable Claude skills that individual repos can copy from or adapt.
+`pasika` stores portable agent setup assets that individual repos can apply or adapt. Today it focuses on Claude, with room for Codex and other agent-specific setup flows later.
 
 ## Scope
 
 This repo intentionally starts narrow:
 
-- Claude only for v1
-- reusable base config only
+- Claude first for v1
+- reusable agent setup assets only
 - shared docs at the repo root
 - no project-specific rules, workflows, or business logic
 
@@ -26,9 +26,6 @@ claude/
         index.js
       notification.sh
       protect-files.sh
-    skills/
-      doc-drift-review/
-        SKILL.md
 docs/
   common/
     overview.md
@@ -46,22 +43,21 @@ CLAUDE.md
 
 ## What belongs here
 
-- portable hook scripts
+- portable setup scripts
 - base settings templates
-- shared Claude skills that are not tied to one app
 - shared docs and generated `CLAUDE.md`
 - shared naming and layout conventions
 
 ## What stays in project repos
 
-- final `.claude` folders
+- final agent config folders in project repos
 - project-specific rules, agents, and prompts
 - repository-specific plugin choices
 - scripts that depend on a specific app, CI setup, or codebase
 
 ## CLI
 
-The main entry point is:
+The current entry point is:
 
 ```bash
 npx pasika claude

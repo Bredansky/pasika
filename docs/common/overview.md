@@ -1,10 +1,10 @@
 # pasika
 
-`pasika` is a reusable Claude Code base package.
+`pasika` is a reusable agent setup package. It starts with Claude and is intended to grow into other agent-specific setup flows over time.
 
 ## Scope
 
-- Claude only for v1
+- Claude first for v1
 - shared hooks and base settings
 - merge-friendly project integration
 - no project-specific skills, rules, or plugin choices
