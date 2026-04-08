@@ -1,8 +1,13 @@
 {
   "name": "pasika",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.1",
+  "description": "Reusable Claude Code base config package",
+  "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bredansky/pasika"
+  },
   "scripts": {
     "build": "rm -rf dist AGENTS.md CLAUDE.md && tsc -p tsconfig.json && npx vulyk docs",
     "check": "npm run lint && npm run typecheck",
@@ -12,7 +17,7 @@
     "prepack": "npm run build"
   },
   "bin": {
-    "pasika": "./dist/scripts/pasika.js"
+    "pasika": "dist/scripts/pasika.js"
   },
   "files": [
     "claude",
@@ -27,7 +32,7 @@
     "eslint": "^9.39.4",
     "prettier": "^3.8.1",
     "typescript": "^5.9.2",
-    "vulyk": "^0.6.0",
+    "vulyk": "^0.6.1",
     "zirka": "^0.0.28"
   }
 }
