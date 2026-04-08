@@ -107,9 +107,9 @@ const mergeClaudeSettings = (
   baseSettings: ClaudeSettings,
   packagePath: string,
 ): ClaudeSettings => {
-  const notificationCommand = `${packagePath}/.claude/hooks/notification.sh`;
-  const protectFilesCommand = `${packagePath}/.claude/hooks/protect-files.sh`;
-  const statusLineCommand = `node ${packagePath}/.claude/hooks/status-line/index.js`;
+  const notificationCommand = `${packagePath}/hooks/notification.sh`;
+  const protectFilesCommand = `${packagePath}/hooks/protect-files.sh`;
+  const statusLineCommand = `node ${packagePath}/hooks/status-line/index.js`;
 
   return {
     ...existingSettings,
@@ -136,18 +136,18 @@ const mergeClaudeSettings = (
 };
 
 export const renderClaude = async (targetDir: string, force: boolean, packageRoot: string): Promise<string[]> => {
-  const templatePath = path.join(packageRoot, "claude/.claude/settings.base.json");
+  const templatePath = path.join(packageRoot, "claude/settings.base.json");
   const baseSettings = await readClaudeSettings(templatePath);
   const packagePath = "./node_modules/pasika/claude";
   const notificationEntries = upsertHookMatcherEntry(
     baseSettings.hooks.Notification,
     "",
-    `${packagePath}/.claude/hooks/notification.sh`,
+    `${packagePath}/hooks/notification.sh`,
   );
   const preToolUseEntries = upsertHookMatcherEntry(
     baseSettings.hooks.PreToolUse,
     "Edit|Write",
-    `${packagePath}/.claude/hooks/protect-files.sh`,
+    `${packagePath}/hooks/protect-files.sh`,
   );
   const settings: ClaudeSettings = {
     ...baseSettings,
@@ -159,7 +159,7 @@ export const renderClaude = async (targetDir: string, force: boolean, packageRoo
     statusLine: {
       ...baseSettings.statusLine,
       type: "command",
-      command: `node ${packagePath}/.claude/hooks/status-line/index.js`,
+      command: `node ${packagePath}/hooks/status-line/index.js`,
     },
   };
 

@@ -17,15 +17,14 @@ This repo intentionally starts narrow:
 
 ```text
 claude/
+  settings.base.json
+  hooks/
+    status-line/
+      index.js
+    notification.sh
+    protect-files.sh
   scripts/
     render-settings.ts
-  .claude/
-    settings.base.json
-    hooks/
-      status-line/
-        index.js
-      notification.sh
-      protect-files.sh
 docs/
   common/
     overview.md
