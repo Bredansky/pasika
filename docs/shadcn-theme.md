@@ -68,23 +68,13 @@ Fresh shadcn components use fixed white foreground on destructive filled surface
 
 ### Borders, form fields, and focus
 
-| Token | Use |
-|---|---|
-| `border` | Default borders and separators |
-| `input` | Form-control borders and shadcn dark input/outline-control surface treatment |
-| `ring` | Focus border, ring, and outline color |
+| Token | shadcn use | Utility examples |
+|---|---|---|
+| `border` | Default borders and separators | `border`, `border-b` |
+| `input` | Form-field border color; also used by shadcn for dark outline/input backgrounds | `border-input`, `dark:bg-input/30`, `dark:border-input`, `dark:hover:bg-input/50` |
+| `ring` | Focus border, ring, and outline color | `focus-visible:border-ring`, `focus-visible:ring-ring/50`, `focus-visible:outline-ring`, `outline-ring/50` |
 
-Use these through the utility that matches the CSS property:
-
-| Need | Class |
-|---|---|
-| Default themed border | `border`, `border-b`, etc. |
-| Form field border | `border-input` |
-| shadcn dark input/outline-control surface | `dark:bg-input/30`, `dark:border-input`, `dark:hover:bg-input/50` |
-| Focus border on controls | `focus-visible:border-ring` |
-| Focus ring on controls | `focus-visible:ring-ring/50` plus a ring width such as `focus-visible:ring-[3px]` |
-| Focus outline on compound controls | `focus-visible:outline-ring` |
-| Base outline color fallback | `outline-ring/50` |
+The base layer already applies `border-border` and `outline-ring/50`; component code usually needs only the structural border utility (`border`, `border-b`, etc.) unless it is using the `input` or `ring` role explicitly.
 
 ### Charts
 
