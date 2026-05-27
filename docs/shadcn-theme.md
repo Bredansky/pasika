@@ -81,29 +81,4 @@ Fresh shadcn includes `destructive` for destructive actions and error emphasis. 
 
 ## Adding tokens
 
-To add a project token that follows shadcn's Tailwind v4 pattern, define it under `:root` and `.dark`, then expose it to Tailwind with `@theme inline`.
-
-```css
-:root {
-  --warning: oklch(0.84 0.16 84);
-  --warning-foreground: oklch(0.28 0.07 46);
-}
-
-.dark {
-  --warning: oklch(0.41 0.11 46);
-  --warning-foreground: oklch(0.99 0.02 95);
-}
-
-@theme inline {
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-}
-```
-
-Then use it by role:
-
-```tsx
-<div className="bg-warning text-warning-foreground" />
-```
-
-Document project-specific tokens separately from this shadcn baseline so agents can tell upstream convention from local extension.
+Treat fresh shadcn tokens as the baseline. Add project-specific tokens only when the project explicitly adopts an extension beyond shadcn defaults, and document that extension outside this baseline profile.
