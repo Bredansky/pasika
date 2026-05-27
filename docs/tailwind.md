@@ -1,72 +1,14 @@
 # Tailwind
 
-## Token system
+## Color utilities
 
-### Three-layer setup
+Use theme tokens for Tailwind color utilities in the app interface. Tokens represent UI roles, not matching color values. Use the same token only when styles should change together with the theme.
 
-```
-oklch(0.205 0 0)                        <- actual value, defined once in :root / .dark
-        |
---primary                               <- semantic CSS var (role, not value)
-        |
---color-primary: var(--primary)         <- registered in @theme inline
-        |
-bg-primary { background-color: var(--color-primary) }  <- Tailwind utility
-```
+When choosing or adding app theme tokens, follow the active theme profile, such as the shadcn theme profile.
 
-```css
-/* globals.css */
+Raw color values should not appear in app interface classes. User-selected colors for exported/story/canvas/media content are data and may stay raw.
 
-/* Layer 1 - values, swapped per theme */
-:root {
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --radius: 0.625rem;
-}
-.dark {
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-}
-
-/* Layer 2 - register as Tailwind tokens */
-@theme inline {
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-}
-```
-
-You never touch layers 2 or 3 when building components. You only write `bg-primary`, `text-primary-foreground`, `rounded-lg` etc.
-
-### Semantic roles
-
-Token names describe **role**, not value. Every color token has a `foreground` pair: the text/icon color safe to use on that surface.
-
-| Token | Role |
-|---|---|
-| `background` / `foreground` | Page canvas + default text |
-| `primary` / `primary-foreground` | Main CTA, selected state |
-| `secondary` / `secondary-foreground` | Supporting action |
-| `muted` / `muted-foreground` | Subtle surface + de-emphasized text |
-| `accent` / `accent-foreground` | Hover state for ghost/outline elements |
-| `destructive` / `destructive-foreground` | Danger, error, irreversible actions |
-| `card` / `card-foreground` | Elevated surface |
-| `popover` / `popover-foreground` | Floating surface (dropdown, tooltip) |
-| `border` | Dividers, input borders |
-| `input` | Input background |
-| `ring` | Focus ring |
-
-Non-color tokens follow the same pattern: `--radius`, `--font-sans`, `--font-mono`.
-
-### Token rule
-
-> Use theme tokens for Tailwind color utilities in the app interface. Tokens represent UI roles, not matching color values. Use the same token only when the styles should change together with the theme. Opacity modifiers on token utilities are OK for interaction states.
-
-The test: open any component. Every color class should be a token name (`bg-primary`, `text-muted-foreground`). If you see `bg-[oklch(...)]`, `text-white`, `text-gray-500`: either a token is missing or it's a genuine one-off.
-
-This applies to all token types: colors, radius, spacing, fonts, shadows, animations.
+Opacity modifiers on token utilities are OK for interaction states: `hover:bg-primary/90`, `outline-ring/50`.
 
 ## When to use @utility
 
@@ -85,7 +27,7 @@ Never use raw CSS on component elements. If Tailwind doesn't cover it, add a `@u
 
 ## Decision checklist
 
-1. Is this a color/value for app interface styling? Use a role token, not a matching raw value.
-2. Should two styles change together with the theme? Use the same token.
+1. Is this app interface color styling? Use the active theme profile's role tokens.
+2. Is this exported/user-created content color? Treat it as data, not a theme token.
 3. Is the variation just an interaction state? Opacity modifiers on token utilities are OK.
 4. Does Tailwind lack the CSS behaviour you need? Add `@utility` to `globals.css`.
