@@ -168,9 +168,9 @@ Token names describe **role**, not value. Every color token has a `foreground` p
 
 Non-color tokens follow the same pattern: `--radius`, `--font-sans`, `--font-mono`.
 
-### Extraction rule — same trigger as non-component files
+### Token rule
 
-> A value is a one-off if only one component uses it — keep it as `bg-[value]`. When a second unrelated component needs the same value → extract to a token in `:root` + `@theme inline`.
+> Use theme tokens for Tailwind color utilities in the app interface. Tokens represent UI roles, not matching color values. Use the same token only when the styles should change together with the theme. Opacity modifiers on token utilities are OK for interaction states.
 
 The test: open any component. Every color class should be a token name (`bg-primary`, `text-muted-foreground`). If you see `bg-[oklch(...)]`, `text-white`, `text-gray-500` — either a token is missing or it's a genuine one-off.
 
