@@ -70,18 +70,21 @@ Fresh shadcn components use fixed white foreground on destructive filled surface
 
 | Token | Use |
 |---|---|
-| `border` | Default themed borders |
-| `input` | Form field border and shadcn primitive input/control background treatment |
-| `ring` | Focus ring and outline color |
+| `border` | Default borders and separators |
+| `input` | Form-control borders and shadcn dark input/outline-control surface treatment |
+| `ring` | Focus border, ring, and outline color |
 
 Use these through the utility that matches the CSS property:
 
 | Need | Class |
 |---|---|
-| Default border | `border`, `border-b`, etc. |
+| Default themed border | `border`, `border-b`, etc. |
 | Form field border | `border-input` |
-| shadcn dark form/control background treatment | `dark:bg-input/30` |
-| Focus ring or outline | `ring-ring`, `outline-ring/50` |
+| shadcn dark input/outline-control surface | `dark:bg-input/30`, `dark:border-input`, `dark:hover:bg-input/50` |
+| Focus border on controls | `focus-visible:border-ring` |
+| Focus ring on controls | `focus-visible:ring-ring/50` plus a ring width such as `focus-visible:ring-[3px]` |
+| Focus outline on compound controls | `focus-visible:outline-ring` |
+| Base outline color fallback | `outline-ring/50` |
 
 ### Charts
 
@@ -118,7 +121,7 @@ shadcn applies default app chrome in `@layer base`:
 }
 ```
 
-That means plain `border` utilities already use the theme's `border` token. Add explicit color utilities only when the element needs a different role, such as `border-input`, `border-primary`, or `border-destructive`.
+The base layer applies `border-border` and `outline-ring/50` globally. Plain `border`, `border-b`, etc. are enough for default themed borders. Add explicit color utilities only for a different role, such as `border-input`, `border-primary`, `border-destructive`, or `focus-visible:border-ring`.
 
 ## Adding tokens
 
