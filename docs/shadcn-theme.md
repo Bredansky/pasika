@@ -2,82 +2,123 @@
 
 Use this profile when a project uses shadcn UI tokens as its theme baseline.
 
-## Token layers
+## File structure
 
-```
-oklch(0.205 0 0)                        <- actual value, defined per theme mode in :root / .dark
-        |
---primary                               <- semantic CSS var (role, not value)
-        |
---color-primary: var(--primary)         <- registered in @theme inline
-        |
-className="bg-primary"                  <- utility authors write in components
-```
+Read the theme file by section:
 
-```css
-/* globals.css */
+1. `@theme inline` exposes CSS variables to Tailwind utilities.
+2. `:root` defines light-mode token values.
+3. `.dark` defines dark-mode token values.
+4. `@layer base` applies default page, border, and outline styling.
 
-/* Layer 1 - values, swapped per theme */
-:root {
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --radius: 0.625rem;
-}
-.dark {
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-}
+Component authors write utilities such as `bg-primary`, `text-primary-foreground`, and `rounded-lg`. Tailwind resolves those utilities through the tokens registered in `@theme inline`. Do not write generated CSS by hand.
 
-/* Layer 2 - register as Tailwind tokens */
-@theme inline {
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-}
-```
+## Registered Tailwind tokens
 
-Tailwind resolves utilities like `bg-primary` to the registered `--color-primary` token. Do not write generated CSS by hand.
+`@theme inline` maps project CSS variables to Tailwind token names. The categories below mirror the groups in a standard shadcn `globals.css`.
 
-When building components, write Tailwind utilities such as `bg-primary`, `text-primary-foreground`, and `rounded-lg`. Change token values in the project's theme CSS, not component classes.
+| Category | CSS variables | Utility examples |
+|---|---|---|
+| Page defaults | `--color-background`, `--color-foreground` | `bg-background`, `text-foreground` |
+| Content surfaces | `--color-card`, `--color-card-foreground`, `--color-popover`, `--color-popover-foreground` | `bg-card text-card-foreground`, `bg-popover text-popover-foreground` |
+| Action and state surfaces | `--color-primary`, `--color-primary-foreground`, `--color-secondary`, `--color-secondary-foreground`, `--color-muted`, `--color-muted-foreground`, `--color-accent`, `--color-accent-foreground`, `--color-destructive` | `bg-primary text-primary-foreground`, `bg-muted text-muted-foreground`, `bg-destructive text-white` |
+| Borders, form fields, focus | `--color-border`, `--color-input`, `--color-ring` | `border`, `border-input`, `ring-ring`, `outline-ring/50` |
+| Charts | `--color-chart-1` through `--color-chart-5` | `bg-chart-1`, `text-chart-2` |
+| Sidebar | `--color-sidebar`, `--color-sidebar-foreground`, `--color-sidebar-primary`, `--color-sidebar-primary-foreground`, `--color-sidebar-accent`, `--color-sidebar-accent-foreground`, `--color-sidebar-border`, `--color-sidebar-ring` | `bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border` |
+| Typography | `--font-sans`, `--font-mono` | `font-sans`, `font-mono` |
+| Radius | `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl` | `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl` |
 
-## Surface tokens
+## Value tokens
 
-shadcn uses semantic background/foreground pairs. The base token controls the surface color; the `-foreground` token controls readable text/icons on that surface.
+`:root` and `.dark` define the actual values for the same semantic tokens. The token names stay stable; only the values change between theme modes.
 
-| Pattern | Use |
+### Page defaults
+
+| Token | Use |
 |---|---|
-| `bg-background text-foreground` | Page canvas and default app text |
-| `bg-card text-card-foreground` | Card or elevated surface content |
-| `bg-popover text-popover-foreground` | Floating surfaces like menus, tooltips, dialogs |
-| `bg-primary text-primary-foreground` | Main action or selected/high-emphasis filled state |
-| `bg-secondary text-secondary-foreground` | Supporting action or lower-emphasis filled state |
-| `bg-muted` with `text-foreground` or `text-muted-foreground` | Subtle surface; use muted foreground only for de-emphasized content |
-| `bg-accent text-accent-foreground` | Transient hover, active, or current-row surface |
-| `bg-destructive text-white` | Destructive action or error surface in fresh shadcn components |
+| `background` | App/page background |
+| `foreground` | Default app text |
 
-## Mark and control tokens
+Use together as `bg-background text-foreground`.
 
-Some shadcn tokens are marks or control styling, not foreground-paired surfaces.
+### Content surfaces
 
-| Need | Class |
+| Token pair | Use |
 |---|---|
-| Default themed border | `border`, `border-b`, etc. |
-| Form-control border | `border-input` |
-| Dark outline/control surface treatment in shadcn primitives | `dark:bg-input/30` |
-| Normal input/control text | `text-foreground` |
-| Placeholder or helper text | `placeholder:text-muted-foreground` |
-| Focus ring or outline | `ring-ring`, `outline-ring/50` |
-| Selected state border/ring | `border-primary`, `ring-primary` |
+| `card` / `card-foreground` | Card or elevated surface content |
+| `popover` / `popover-foreground` | Floating surfaces like menus, tooltips, dialogs |
 
-## Destructive token
+Use as `bg-card text-card-foreground` and `bg-popover text-popover-foreground`.
 
-Fresh shadcn includes `destructive` for destructive actions and error emphasis. Generated shadcn components use fixed white foreground on destructive filled surfaces:
+### Action and state surfaces
+
+| Token pair | Use |
+|---|---|
+| `primary` / `primary-foreground` | Main action or selected/high-emphasis filled state |
+| `secondary` / `secondary-foreground` | Supporting action or lower-emphasis filled state |
+| `muted` / `muted-foreground` | Subtle surface and de-emphasized content |
+| `accent` / `accent-foreground` | Transient hover, active, or current-row surface |
+| `destructive` | Destructive action or error surface |
+
+Fresh shadcn components use fixed white foreground on destructive filled surfaces:
 
 ```tsx
 <Button className="bg-destructive text-white" />
 ```
+
+### Borders, form fields, and focus
+
+| Token | Use |
+|---|---|
+| `border` | Default themed borders |
+| `input` | Form field border and shadcn primitive input/control background treatment |
+| `ring` | Focus ring and outline color |
+
+Use these through the utility that matches the CSS property:
+
+| Need | Class |
+|---|---|
+| Default border | `border`, `border-b`, etc. |
+| Form field border | `border-input` |
+| shadcn dark form/control background treatment | `dark:bg-input/30` |
+| Focus ring or outline | `ring-ring`, `outline-ring/50` |
+
+### Charts
+
+`chart-1` through `chart-5` are palette slots for charts and data visualizations. They are not app surface tokens and do not imply foreground pairs.
+
+### Sidebar
+
+Sidebar tokens are scoped versions of the same shadcn roles for sidebar UI:
+
+- `sidebar` / `sidebar-foreground`
+- `sidebar-primary` / `sidebar-primary-foreground`
+- `sidebar-accent` / `sidebar-accent-foreground`
+- `sidebar-border`
+- `sidebar-ring`
+
+### Radius and fonts
+
+`radius` is the base radius value. `@theme inline` derives Tailwind radius utilities from it.
+
+`font-sans` and `font-mono` expose project font variables to Tailwind.
+
+## Base layer
+
+shadcn applies default app chrome in `@layer base`:
+
+```css
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+```
+
+That means plain `border` utilities already use the theme's `border` token. Add explicit color utilities only when the element needs a different role, such as `border-input`, `border-primary`, or `border-destructive`.
 
 ## Adding tokens
 
