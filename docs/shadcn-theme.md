@@ -25,8 +25,7 @@ Component authors write utilities such as `bg-primary`, `text-primary-foreground
 | Borders, form fields, focus | `--color-border`, `--color-input`, `--color-ring` | `border`, `border-input`, `ring-ring`, `outline-ring/50` |
 | Charts | `--color-chart-1` through `--color-chart-5` | `bg-chart-1`, `text-chart-2` |
 | Sidebar | `--color-sidebar`, `--color-sidebar-foreground`, `--color-sidebar-primary`, `--color-sidebar-primary-foreground`, `--color-sidebar-accent`, `--color-sidebar-accent-foreground`, `--color-sidebar-border`, `--color-sidebar-ring` | `bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border` |
-| Typography | `--font-sans`, `--font-mono` | `font-sans`, `font-mono` |
-| Radius | `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl` | `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl` |
+| Radius | `--radius-sm`, `--radius-md`, `--radius-lg`, `--radius-xl`, `--radius-2xl`, `--radius-3xl`, `--radius-4xl` | `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-4xl` |
 
 ## Value tokens
 
@@ -71,10 +70,10 @@ Fresh shadcn components use fixed white foreground on destructive filled surface
 | Token | shadcn use | Utility examples |
 |---|---|---|
 | `border` | Default borders and separators | `border`, `border-b` |
-| `input` | Form-field border color; also used by shadcn for dark outline/input backgrounds | `border-input`, `dark:bg-input/30`, `dark:border-input`, `dark:hover:bg-input/50` |
+| `input` | Form-control border color and input-like surface treatment | `border-input`, `dark:bg-input/30`, `dark:border-input`, `dark:hover:bg-input/50` |
 | `ring` | Focus border, ring, and outline color | `focus-visible:border-ring`, `focus-visible:ring-ring/50`, `focus-visible:outline-ring`, `outline-ring/50` |
 
-The base layer already applies `border-border` and `outline-ring/50`; component code usually needs only the structural border utility (`border`, `border-b`, etc.) unless it is using the `input` or `ring` role explicitly.
+The base layer already applies `border-border` and `outline-ring/50`; component code usually needs only the structural border utility (`border`, `border-b`, etc.) unless it is using another border role or overriding a competing border-color class.
 
 ### Charts
 
@@ -90,11 +89,9 @@ Sidebar tokens are scoped versions of the same shadcn roles for sidebar UI:
 - `sidebar-border`
 - `sidebar-ring`
 
-### Radius and fonts
+### Radius
 
 `radius` is the base radius value. `@theme inline` derives Tailwind radius utilities from it.
-
-`font-sans` and `font-mono` expose project font variables to Tailwind.
 
 ## Base layer
 
@@ -111,7 +108,7 @@ shadcn applies default app chrome in `@layer base`:
 }
 ```
 
-The base layer applies `border-border` and `outline-ring/50` globally. Plain `border`, `border-b`, etc. are enough for default themed borders. Add explicit color utilities only for a different role, such as `border-input`, `border-primary`, `border-destructive`, or `focus-visible:border-ring`.
+The base layer applies `border-border` and `outline-ring/50` globally. Plain `border`, `border-b`, etc. inherit the default border color when no competing border-color class is present. Add an explicit border color for another role, such as `border-input`, `border-primary`, `border-destructive`, or `focus-visible:border-ring`, or when overriding a component variant such as `border-transparent`.
 
 ## Adding tokens
 
