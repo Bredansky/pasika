@@ -5,13 +5,13 @@ Use this profile when a project uses shadcn UI tokens as its theme baseline.
 ## Token layers
 
 ```
-oklch(0.205 0 0)                        <- actual value, defined once in :root / .dark
+oklch(0.205 0 0)                        <- actual value, defined per theme mode in :root / .dark
         |
 --primary                               <- semantic CSS var (role, not value)
         |
 --color-primary: var(--primary)         <- registered in @theme inline
         |
-bg-primary { background-color: var(--color-primary) }  <- Tailwind utility
+className="bg-primary"                  <- utility authors write in components
 ```
 
 ```css
@@ -38,7 +38,9 @@ bg-primary { background-color: var(--color-primary) }  <- Tailwind utility
 }
 ```
 
-When building components, write Tailwind utilities such as `bg-primary`, `text-primary-foreground`, and `rounded-lg`. Change token values in the theme file, not component classes.
+Tailwind resolves utilities like `bg-primary` to the registered `--color-primary` token. Do not write generated CSS by hand.
+
+When building components, write Tailwind utilities such as `bg-primary`, `text-primary-foreground`, and `rounded-lg`. Change token values in the project's theme CSS, not component classes.
 
 ## Surface tokens
 
@@ -53,6 +55,7 @@ shadcn uses semantic background/foreground pairs. The base token controls the su
 | `bg-secondary text-secondary-foreground` | Supporting action or lower-emphasis filled state |
 | `bg-muted` with `text-foreground` or `text-muted-foreground` | Subtle surface; use muted foreground only for de-emphasized content |
 | `bg-accent text-accent-foreground` | Transient hover, active, or current-row surface |
+| `bg-destructive text-white` | Destructive action or error surface in fresh shadcn components |
 
 ## Mark and control tokens
 
@@ -61,29 +64,24 @@ Some shadcn tokens are marks or control styling, not foreground-paired surfaces.
 | Need | Class |
 |---|---|
 | Default themed border | `border`, `border-b`, etc. |
-| Form-control border or input surface treatment | `border-input`, `bg-input/30` |
+| Form-control border | `border-input` |
+| Dark outline/control surface treatment in shadcn primitives | `dark:bg-input/30` |
 | Normal input/control text | `text-foreground` |
 | Placeholder or helper text | `placeholder:text-muted-foreground` |
 | Focus ring or outline | `ring-ring`, `outline-ring/50` |
 | Selected state border/ring | `border-primary`, `ring-primary` |
 
-## Status tokens
+## Destructive token
 
-shadcn includes `destructive` for destructive actions and error emphasis. Fresh shadcn defaults use `bg-destructive text-white`; a project may extend this to `destructive-foreground` if it wants theme-controlled contrast.
+Fresh shadcn includes `destructive` for destructive actions and error emphasis. Generated shadcn components use fixed white foreground on destructive filled surfaces:
 
-Projects may add semantic status pairs when the app has real reusable status roles:
-
-| Pattern | Use |
-|---|---|
-| `bg-success text-success-foreground` | Success or positive status surface |
-| `bg-warning text-warning-foreground` | Warning or caution status surface |
-| `bg-info text-info-foreground` | Informational status surface, if the project defines it |
-
-Do not add literal color tokens like `green`, `yellow`, or `status-color-1`. Add a role token only when the role should change with the theme.
+```tsx
+<Button className="bg-destructive text-white" />
+```
 
 ## Adding tokens
 
-To add a new shadcn-style token, define it under `:root` and `.dark`, then expose it to Tailwind with `@theme inline`.
+To add a project token that follows shadcn's Tailwind v4 pattern, define it under `:root` and `.dark`, then expose it to Tailwind with `@theme inline`.
 
 ```css
 :root {
@@ -107,3 +105,5 @@ Then use it by role:
 ```tsx
 <div className="bg-warning text-warning-foreground" />
 ```
+
+Document project-specific tokens separately from this shadcn baseline so agents can tell upstream convention from local extension.
