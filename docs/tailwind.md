@@ -4,7 +4,7 @@
 
 Use theme tokens for Tailwind color utilities in the app interface. Tokens represent UI roles, not matching color values. Use the same token only when styles should change together with the theme.
 
-When choosing or adding app theme tokens, follow the active theme profile, such as the shadcn theme profile.
+When choosing or adding app theme tokens, follow the project's active theme profile.
 
 Raw color values should not appear in app interface classes. User-selected colors for exported/story/canvas/media content are data and may stay raw.
 
@@ -27,7 +27,7 @@ Never use raw CSS on component elements. If Tailwind doesn't cover it, add a `@u
 
 ## Decision checklist
 
-1. Is this app interface color styling? Use the active theme profile's role tokens.
+1. Is this app interface color styling? Use the role tokens from the project's active theme profile.
 2. Is this exported/user-created content color? Treat it as data, not a theme token.
 3. Is the variation just an interaction state? Opacity modifiers on token utilities are OK.
 4. Does Tailwind lack the CSS behaviour you need? Add `@utility` to `globals.css`.
