@@ -113,3 +113,9 @@ The base layer applies `border-border` and `outline-ring/50` globally. Plain `bo
 ## Adding tokens
 
 Treat fresh shadcn tokens as the baseline. Add project-specific tokens only when the project explicitly adopts an extension beyond shadcn defaults, and document that extension outside this baseline profile.
+
+## Update trigger
+
+Re-check this document when the [shadcn changelog](https://ui.shadcn.com/docs/changelog) changes the theme token contract, default theme CSS, or generated component styling conventions.
+
+When re-checking, verify the affected claims against current shadcn docs and generated registry components before editing this document.
