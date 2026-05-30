@@ -10,12 +10,12 @@
 | Types | Inline in file | `types/` | Second consumer outside the folder |
 | Schemas | Inline in file | `schemas/` | Second consumer outside the folder |
 | Constants | Inline in file | `constants/` | Second consumer outside the folder |
-| Translations | Inline in file | `translations/` | Second consumer outside the folder |
+| Locales | Inline in file | `constants/locales.ts` | Second consumer outside the folder |
 | Hooks | Inline in component | `hooks/` at nearest common ancestor | Second independent consumer |
 
 ### Bubbling rule
 
-All files follow the same bubbling rule:
+All non-component files except pure utils follow the same bubbling rule:
 
 > Start at the lowest level where it is first needed. When a second consumer appears outside that folder, promote to the nearest common ancestor. Repeat.
 
@@ -26,7 +26,8 @@ All files follow the same bubbling rule:
 | Utils | One function per file or grouped by domain | No |
 | Hooks | One hook per file | No |
 | Types / Schemas | One type per file or grouped by domain | Yes |
-| Constants / Translations | Always grouped by domain | Yes |
+| Constants | Always grouped by domain | Yes |
+| Locales | Single `constants/locales.ts` file, nested under a feature key | No |
 
 ---
 
@@ -79,11 +80,40 @@ types/
   video.ts                     ← grouped by domain
   index.ts                     ← re-exports all
 
-# Constants / Translations — use barrel index
+# Constants — use barrel index
 constants/
   video.ts                     ← grouped by domain
   partnerPortal.ts             ← grouped by domain
   index.ts                     ← re-exports all
+
+# Locales — single feature-keyed file
+constants/
+  locales.ts
+```
+
+### Locales — feature-keyed object in `constants/locales.ts`
+
+All locales live in `constants/locales.ts`. Nest entries under a feature key, use camelCase English keys, and use a short role name when the source text is too long to be a useful key.
+
+```ts
+// constants/locales.ts
+export const locales = {
+  listingFilters: {
+    sort: 'Sorteren',
+    save: 'Opslaan',
+    clearFilters: 'Filters wissen',
+    noResults: "Geen video's gevonden",
+    searchPlaceholder: 'Waar ben je naar op zoek?',
+  },
+  videoCard: {
+    playButton: 'Afspelen',
+  },
+} as const;
+
+// usage
+import { locales } from './constants/locales';
+
+<button aria-label={locales.videoCard.playButton} />;
 ```
 
 ### Hooks — inline first, extract when reused
