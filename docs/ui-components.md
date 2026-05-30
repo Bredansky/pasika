@@ -7,7 +7,7 @@ Every UI primitive follows this exact pattern:
 ```tsx
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from '@radix-ui/react-slot';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/cn';
 
 // 1. cva for variants (omit entirely if no variants)
 const buttonVariants = cva(
