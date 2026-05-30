@@ -75,7 +75,7 @@ Use `asChild` on any primitive that might need to render as a different element:
 
 ### Compound components
 
-For components with subparts (Card, Dialog, etc.), use no `cva`; just `cn`. Every subcomponent gets its own `data-slot`:
+For components with subparts (Card, Dialog, etc.), use no `cva`; just `cn`. Compound UI primitives are the exception to the one-component-per-file rule: the primitive and its documented subcomponents may live in one file. Every subcomponent gets its own `data-slot`:
 
 ```tsx
 function Card({ className, ...props }: React.ComponentProps<'div'>) {

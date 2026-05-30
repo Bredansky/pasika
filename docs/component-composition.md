@@ -6,15 +6,15 @@ How to split JSX into named components.
 
 ### No mixed concerns
 
-1 file = 1 component.
+1 file = 1 component, except compound UI primitives whose documented API is multiple subcomponents from one primitive file.
 
 ### Flatten
 
-**Composition** = elements you can interact with natively (`button`, `a`, `input`, `select`, `textarea`) + custom React components.
+**JSX composition** = elements you can interact with natively (`button`, `a`, `input`, `select`, `textarea`) + custom React components.
 
 **Transparent** = everything else: layout wrappers (`div`, `span`, semantic HTML), conditionals (`&&`, ternary, `.map()`), infrastructure (`Suspense`, `ErrorBoundary`, `lazy()`, `memo()`, `forwardRef()`), fragments (`<>`).
 
-**Rule:** if a composition wraps another composition, extract the pair as a named component.
+**Rule:** if JSX composition wraps another JSX composition, extract the pair as a named component.
 
 ```tsx
 // Bad
