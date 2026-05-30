@@ -4,20 +4,24 @@
 
 ### Co-location and promotion
 
-| Artefact | First home | Promote to | When |
+| Artefact | First home | Extract/promote to | When |
 |---|---|---|---|
-| Utils | Inline in component/hook | `utils/` | Immediately — pure functions with no codebase imports go straight to `utils/` |
+| Utils | Inline in component/hook | `utils/` at nearest useful ancestor | Immediately — pure functions with no codebase imports go straight to `utils/` |
 | Types | Inline in file | `types/` | Second consumer outside the folder |
 | Schemas | Inline in file | `schemas/` | Second consumer outside the folder |
 | Constants | Inline in file | `constants/` | Second consumer outside the folder |
-| Locales | Inline in file | `constants/locales.ts` | Second consumer outside the folder |
+| Locales | Inline in file | `constants/locales.ts` | When text is extracted from JSX |
 | Hooks | Inline in component | `hooks/` at nearest common ancestor | Second independent consumer |
 
 ### Bubbling rule
 
-All non-component files except pure utils follow the same bubbling rule:
+Non-component files follow the bubbling rule after they have been extracted:
 
 > Start at the lowest level where it is first needed. When a second consumer appears outside that folder, promote to the nearest common ancestor. Repeat.
+
+Utils differ only in their extraction rule: pure functions skip the co-location step and go straight to a `utils/` folder. After that, they still bubble like other non-component files.
+
+Locales do not bubble. Extracted text belongs in `constants/locales.ts`, grouped under a feature key.
 
 ### File organisation
 
@@ -33,9 +37,9 @@ All non-component files except pure utils follow the same bubbling rule:
 
 ## Examples
 
-### Utils — straight to `utils/`, no barrel index
+### Utils — extract straight to `utils/`, then bubble
 
-Pure functions with no codebase imports go directly to `utils/` — no co-location step.
+Pure functions with no codebase imports go directly to `utils/` — no co-location step. When a second consumer appears outside that folder, move the util to the nearest common ancestor `utils/`.
 
 ```tsx
 // ❌ Bad — logic mixed inside the component
