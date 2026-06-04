@@ -66,7 +66,7 @@ The promoted component becomes a folder; extracted children live alongside it:
 video/
   index.ts
   VideoListing/
-    index.ts
+    index.ts        ← re-exports VideoListing only, not video-modal or video-controls
     VideoListing.tsx
     video-modal.tsx
     video-controls.tsx
