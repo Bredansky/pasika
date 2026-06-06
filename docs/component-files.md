@@ -102,10 +102,10 @@ components/video/
   genre-filter.tsx
   play-button.tsx
   VideoBrowser/
-    index.ts
-    VideoBrowser.tsx
-    video-modal.tsx
-    video-controls.tsx
+    index.ts                     ← exports ONLY the promoted component
+    VideoBrowser.tsx             ← main implementation, imports siblings directly
+    video-modal.tsx              ← imported directly by VideoBrowser.tsx
+    video-controls.tsx           ← imported directly by VideoBrowser.tsx
 ```
 
 ### Bad: shared when used by one consumer
