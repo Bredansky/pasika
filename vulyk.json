@@ -1,23 +1,20 @@
 {
-  "skills": {
-    "outputPaths": [],
-    "entries": {}
+  "groups": {
+    "docs": {
+      "outputPaths": ["docs/external"],
+      "validate": { "fileExtension": ".md" },
+      "gitIgnore": true
+    }
   },
-  "docs": {
-    "rules": {
-      "claude-hooks": {
-        "match": ["claude/hooks", "claude/hooks/**"],
-        "outputPaths": ["claude/hooks"],
-        "also": ["CLAUDE.md"],
-        "gitignoreGenerated": false
-      }
-    },
-    "entries": {
-      "claude-hooks": {
-        "source": "docs/claude/hooks.md",
-        "targets": ["claude/hooks"],
-        "description": "Shared Claude hooks shipped by pasika."
-      }
+  "entries": {
+    "claude-hooks": {
+      "source": "docs/claude/hooks.md",
+      "group": "docs",
+      "outputPaths": ["claude/hooks"],
+      "targets": ["claude/hooks"],
+      "aliases": ["AGENTS.md", "CLAUDE.md"],
+      "gitIgnore": false,
+      "description": "Shared Claude hooks shipped by pasika."
     }
   }
 }
