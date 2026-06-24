@@ -1,4 +1,4 @@
-# [<Rule Name> Rule]
+# [Rule Name] Rule
 
 [What problem does this rule solve?]
 
