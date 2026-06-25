@@ -6,7 +6,7 @@
 
 [What does this accomplish? When should it run?]
 
-[Keep each numbered step concise. If a step needs detail, add a short paragraph or example after the step.]
+[Keep each numbered step concise, using one sentence per step.]
 
 1. [Step 1]
 2. [Step 2]
@@ -15,7 +15,7 @@
 
 [What does this accomplish? When should it run?]
 
-[Keep each numbered step concise. If a step needs detail, add a short paragraph or example after the step.]
+[Keep each numbered step concise, using one sentence per step.]
 
 1. [Step 1]
 2. [Step 2]
