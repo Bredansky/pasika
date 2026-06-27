@@ -2,28 +2,25 @@
 
 [What problem does this rule solve?]
 
-[Answer at least one: What is required? What is forbidden? What is recommended as a default?]
-
+[What is required? What is forbidden? What is recommended? What is optional?]
 - [Subject MUST ...]
 - [Subject MUST NOT ...]
 - [Subject SHOULD ...]
 - [Subject SHOULD NOT ...]
-- [...]
+- [Subject MAY ...]
 
-[If an example clarifies the rule, keep the Bad/Good sections below. Otherwise delete them.]
-
-## Bad
+## Incorrect
 
 ```[lang]
 // code
 ```
 
-Why: [What makes this bad?]
+Why: [What makes this incorrect?]
 
-## Good
+## Correct
 
 ```[lang]
 // code
 ```
 
-Why: [What makes this good?]
+Why: [What makes this correct?]
