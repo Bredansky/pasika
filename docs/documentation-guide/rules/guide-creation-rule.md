@@ -11,7 +11,6 @@ Guides without a consistent creation process invent their own structure every ti
 - Private Rule files for a Guide MUST live in a `rules/` subfolder inside the Guide's folder.
 - Private Reference files for a Guide MUST live in a `references/` subfolder inside the Guide's folder.
 - Colocated Reference files owned by a Guide MUST NOT contain references to Rules or other References.
-- Guide documents MUST NOT use uppercase RFC 2119 keywords to state rules.
 - Shared Rules and References MUST live at the nearest shared docs level instead of inside one private Guide folder.
 
 ## Incorrect
@@ -80,21 +79,6 @@ Why: a How To section nests inside a step of another How To section.
 
 Why: How To sections stay flat and reference each other via links.
 
-## Incorrect
-
-```markdown
-1. Name the file. The file MUST use kebab-case.
-```
-
-Why: guide states a rule using an uppercase RFC 2119 keyword.
-
-## Correct
-
-```markdown
-1. Name the file in kebab-case.
-```
-
-Why: guide gives instructions without using RFC 2119 keywords.
 
 ## Incorrect
 
