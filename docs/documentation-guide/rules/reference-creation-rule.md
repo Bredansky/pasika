@@ -1,46 +1,26 @@
 # Reference Creation Rule
 
-References without a consistent creation process scatter lookup material across the repository. This rule defines how to create a Reference document.
+References without a consistent creation process scatter lookup material. This rule defines how to create a Reference document.
 
 - Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).
-- A Reference can only have colocated Rule files.
-- A Reference MAY refer only to Rules.
+- A Reference MUST NOT link to Rules, Guides, or other References.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 
 ## Incorrect
 
-```text
-docs/
-└── option-reference.md
-    → [another-reference.md]
-```
-
-Why: reference links to another Reference instead of only to Rules.
-
-## Correct
-
-```text
-docs/
-└── option-reference.md
-```
-
-Why: a Reference has no links to other References.
-
-## Incorrect
-
 ```markdown
-Use kebab-case for file names. Do not use spaces or uppercase letters.
+- See the [Naming Rule](../rules/naming-rule.md) for the file naming conventions.
 ```
 
-Why: reference duplicates rule content that can drift. Linking to the Rule avoids drift and is permitted.
+Why: reference body contains a reference to another Rule.
 
 ## Correct
 
 ```markdown
-Use the [Naming Rule](../rules/naming-rule.md) for file name conventions.
+- File names are kebab-case, match the document title, and have a `-reference` suffix.
 ```
 
-Why: reference links to a Rule, which is permitted and avoids duplicating rule content.
+Why: reference states lookup content directly without linking to its source.
 
 ## Incorrect
 

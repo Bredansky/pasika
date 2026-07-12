@@ -1,7 +1,6 @@
 # Documentation Guide
 
-- A single source of truth for how Markdown documentation is structured in this repository.
-- It matters because predictable shape saves readers and agents from re-learning each doc.
+This guide explains how to create Rules, References, and Guides in this repository.
 
 ## How To Create A Document
 
