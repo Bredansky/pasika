@@ -1,17 +1,16 @@
 # Guide Creation Rule
 
-Guides without a consistent creation process invent their own structure every time. This rule defines how to create a Guide document.
+Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
 
 - Each How To step MUST be concise and use one sentence.
-- Each How To step MUST link at most one Rule or one Reference.
-- When a step links a Rule or Reference, the step MUST name the concrete decision or result the reader will have after reading it.
+- A Guide MAY reference Rules, References, and other Guides.
+- Each How To step MUST link at most one Rule, one Reference, or one Guide.
+- When a step links a Rule, Reference, or Guide, the step MUST name the concrete decision or result the reader will have after reading it.
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
 - A Guide with private support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
 - Private Rule files for a Guide MUST live in a `rules/` subfolder inside the Guide's folder.
 - Private Reference files for a Guide MUST live in a `references/` subfolder inside the Guide's folder.
-- Colocated Reference files owned by a Guide MUST NOT contain references to Rules or other References.
-- Shared Rules and References MUST live at the nearest shared docs level instead of inside one private Guide folder.
 
 ## Incorrect
 
@@ -98,24 +97,16 @@ Why: step is one concise sentence with a concrete action.
 
 ## Incorrect
 
-```text
-docs/
-└── deployment-guide/
-    ├── deployment-guide.md
-    └── references/
-        └── shared-options-reference.md
+```markdown
+1. Build the project. See the [Build Guide](build-guide.md) for details.
 ```
 
-Why: shared reference used by multiple guides is buried inside one guide's private folder.
+Why: link points at a Guide file but does not anchor to a specific How To section, so the reader lands on the guide's introduction and has to search for the relevant workflow.
 
 ## Correct
 
-```text
-docs/
-├── deployment-guide/
-│   └── deployment-guide.md
-└── references/
-    └── shared-options-reference.md
+```markdown
+1. Build the project. See [How To Build](build-guide.md#how-to-build) for details.
 ```
 
-Why: shared reference lives at the nearest shared docs level accessible to all guides.
+Why: link anchors to the specific How To section, so the reader lands directly on the relevant workflow.

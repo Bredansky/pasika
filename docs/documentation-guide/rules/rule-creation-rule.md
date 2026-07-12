@@ -11,7 +11,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - `MAY` MUST mean optional.
 - A Rule MUST contain at least one Incorrect/Correct pair.
 - A Rule MAY contain multiple Incorrect/Correct pairs.
-- A Rule MUST NOT contain references to other Rules or References. A Rule is always a leaf node.
+- A Rule MUST NOT link to References, Guides, or other Rules.
 
 ## Incorrect
 
@@ -37,7 +37,7 @@ Why: uppercase keywords carry their canonical RFC 2119 meaning.
 - Rule bodies MUST follow the guidance in the [Vocabulary Reference](../references/vocabulary-reference.md).
 ```
 
-Why: rule contains a reference to another Reference. Rules are always leaf nodes.
+Why: rule contains a reference to another Reference.
 
 ## Correct
 
