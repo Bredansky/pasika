@@ -4,6 +4,7 @@ References without a consistent creation process scatter lookup material. This r
 
 - Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).
 - A Reference MUST NOT link to Rules, Guides, or other References.
+- A Reference MUST NOT use RFC 2119 vocabulary (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`), because lookup material describes what exists rather than imposing requirements.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 
@@ -22,6 +23,26 @@ Why: reference body contains a reference to another Rule.
 ```
 
 Why: reference states lookup content directly without linking to its source.
+
+## Incorrect
+
+```markdown
+| Layer | Contents                                          |
+| ----- | ------------------------------------------------- |
+| `app` | Routing files only — a route MUST NOT hold a util |
+```
+
+Why: the cell carries RFC 2119 vocabulary, so a Reference asserts a requirement that only a Rule can own, and the same constraint ends up stated in two documents.
+
+## Correct
+
+```markdown
+| Layer | Contents           |
+| ----- | ------------------ |
+| `app` | Routing files only |
+```
+
+Why: the cell describes what the layer holds, leaving the requirement to the Rule that owns it.
 
 ## Incorrect
 
