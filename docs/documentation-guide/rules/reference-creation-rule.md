@@ -5,6 +5,7 @@ References without a consistent creation process scatter lookup material. This r
 - Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).
 - A Reference MUST NOT link to Rules, Guides, or other References.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
+- A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 
 ## Incorrect
 
@@ -33,8 +34,8 @@ Use this reference to choose between the two supported project sizes when starti
 
 Pick the size that matches the team's headcount and timeline.
 
-| Option | Use Case |
-|--------|----------|
+| Option | Use Case       |
+| ------ | -------------- |
 | A      | Small projects |
 | B      | Large projects |
 ```
@@ -48,10 +49,62 @@ Why: section heading is unnecessary and forces a duplicated intro covering what 
 
 Use this reference to choose between the two supported project sizes when starting a new initiative.
 
-| Option | Use Case |
-|--------|----------|
+| Option | Use Case       |
+| ------ | -------------- |
 | A      | Small projects |
 | B      | Large projects |
 ```
 
 Why: single lookup block sits directly under the intro without a heading.
+
+## Incorrect
+
+```markdown
+# Option Reference
+
+Use this reference to look up the supported project sizes and the review gates each one requires.
+
+| Option | Use Case       |
+| ------ | -------------- |
+| A      | Small projects |
+| B      | Large projects |
+
+## Review Gates
+
+Each size carries a different approval bar.
+
+| Option | Approvals |
+| ------ | --------- |
+| A      | 1         |
+| B      | 2         |
+```
+
+Why: the reference has two lookup blocks but only the second is headed, so the first table reads as part of the intro and cannot be scanned or linked as a group of its own.
+
+## Correct
+
+```markdown
+# Option Reference
+
+Use this reference to look up the supported project sizes and the review gates each one requires.
+
+## Project Sizes
+
+Pick the size that matches the team's headcount and timeline.
+
+| Option | Use Case       |
+| ------ | -------------- |
+| A      | Small projects |
+| B      | Large projects |
+
+## Review Gates
+
+Each size carries a different approval bar.
+
+| Option | Approvals |
+| ------ | --------- |
+| A      | 1         |
+| B      | 2         |
+```
+
+Why: both lookup blocks are headed, so they read as peers and each is independently scannable and linkable.
