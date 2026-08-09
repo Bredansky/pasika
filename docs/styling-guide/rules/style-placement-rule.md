@@ -6,6 +6,7 @@ Every reusable style needs one owner. This rule avoids both a global stylesheet 
 - A repeated element-and-content structure MUST become a component instead of a shared class string.
 - A reusable behavior or treatment that Tailwind cannot express with built-in utilities SHOULD become a custom utility in the project's stylesheet.
 - Global CSS MAY own document-level styles, pseudo-element-heavy effects, third-party selectors, keyframes, and browser-specific selectors.
+- Components MAY use inline styles for runtime values that Tailwind cannot discover statically, such as user-selected colors, calculated dimensions, or animation delays.
 
 ## Incorrect
 

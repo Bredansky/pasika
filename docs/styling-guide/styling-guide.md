@@ -11,6 +11,8 @@ Use this workflow when implementing a component or changing one of its visual tr
 3. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
 4. Follow the [Color Role Naming Rule](rules/color-role-naming-rule.md) so color utilities state whether they supply a general color, a background, readable text, or a complete surface.
 5. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS-first theme tokens and custom utilities expose only the intended API.
-6. Follow the [Theme Token Rule](rules/theme-token-rule.md) so shared interface colors and measurements remain semantic and themeable.
-7. Follow the [Style Placement Rule](rules/style-placement-rule.md) so reusable styling has one appropriate owner.
-8. Follow the [Component State Rule](rules/component-state-rule.md) so interaction, disabled, selected, loading, and error states stay coherent.
+6. Follow the [Interface Boundary Rule](rules/interface-boundary-rule.md) so application chrome, content, and external visuals use the right kind of color value.
+7. Follow the [Theme Token Rule](rules/theme-token-rule.md) so shared interface colors and measurements remain semantic and themeable.
+8. Follow the [Global Style System Rule](rules/global-style-system-rule.md) so global CSS has one source of truth and a clear ownership boundary.
+9. Follow the [Style Placement Rule](rules/style-placement-rule.md) so reusable styling has one appropriate owner.
+10. Follow the [Component State Rule](rules/component-state-rule.md) so interaction, disabled, selected, loading, and error states stay coherent.
