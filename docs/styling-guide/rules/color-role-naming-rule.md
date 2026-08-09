@@ -71,3 +71,21 @@ Why: the names are inconsistent, the document defaults can be applied anywhere, 
 ```
 
 Why: general-purpose colors stay suffix-free, property-specific colors reveal their role, the page defaults have one owner, and the reusable primary treatment owns its colors and behavior together.
+
+## Promotion Path
+
+Promote styling only as its reuse or design meaning grows:
+
+```txt
+Tailwind utility -> theme color -> paired color -> surface utility -> component variant
+```
+
+## When To Create a Named Surface
+
+Create a named `surface-*` utility when one or more of these signals applies:
+
+- The combination repeats in multiple places.
+- The combination has a clear product or design meaning.
+- Designers refer to the combination as a named treatment.
+- The combination needs to stay consistent across components.
+- The treatment includes more than color, such as a border, hover state, or shadow.
