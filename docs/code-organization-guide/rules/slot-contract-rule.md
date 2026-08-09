@@ -1,11 +1,10 @@
 # Slot Contract Rule
 
-Primitives need stable styling hooks for relationships between coordinated components. This rule uses semantic slot names instead of selectors coupled to a particular DOM depth or class implementation.
+Reusable components need stable styling hooks for relationships that their public API supports. This rule uses semantic slot names instead of selectors coupled to a particular DOM depth or class implementation.
 
-- Every reusable primitive root MUST expose a stable `data-slot` value.
-- Every documented subpart of a compound primitive MUST expose its own stable `data-slot` value.
-- Slot names SHOULD be kebab-case and describe the component or subpart's role.
-- Components MAY use data-slot selectors for a parent-to-child styling relationship owned by the primitive.
+- Every reusable component root MUST expose a stable `data-slot` value.
+- Slot names SHOULD be kebab-case and describe the component's role.
+- Components MAY use data-slot selectors for a parent-to-child styling relationship owned by the component.
 
 ## Incorrect
 
@@ -13,9 +12,7 @@ Primitives need stable styling hooks for relationships between coordinated compo
 <div className="card-root">
   <div className="header">...</div>
 </div>
-```
 
-```tsx
 <div className="[&_.header]:grid-cols-[1fr_auto]">...</div>
 ```
 
