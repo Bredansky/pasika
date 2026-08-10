@@ -3,8 +3,8 @@
 Without a consistent placement strategy, shared components either end up too high (polluting global scope) or too low (duplicated across consumers). This rule defines where each component belongs in the project, and which folders may import from which.
 
 - A component MUST live in the closest common folder of all its consumers (CCF). This process is also known as bubbling.
-- A component that imports from 2+ distinct feature folders MUST live at `src/compositions/`, whatever its consumers' CCF resolves to. Such a file is, by definition, a composition.
-- If the CCF of every consumer is `src/` itself, or crosses 2+ feature folders under `src/features/`, and the component does not import from 2+ distinct feature folders, the component MUST live at `src/shared/`.
+- A component that imports from two or more feature folders MUST live at `src/compositions/`, whatever its consumers' CCF resolves to. Such a file is, by definition, a composition.
+- If the CCF of every consumer is `src/` itself, or crosses two or more feature folders under `src/features/`, and the component does not import from two or more feature folders, the component MUST live at `src/shared/`.
 - If the CCF of every consumer is `src/app/`, the component MUST live at `src/compositions/`, because `src/app/` holds routing files only.
 - A component that imports from exactly one feature folder other than the one it lives in MUST NOT be promoted to `src/compositions/`, because composing a single feature is not a composition. Instead, either the imported component MUST be lifted to `src/shared/`, or the importing component MUST move into the feature it imports from — whichever its own CCF allows.
 - A Next.js routing file (`page.tsx`, `layout.tsx`, etc.) MUST live at `src/app/`. For route conventions see the [Next.js routing docs](https://nextjs.org/docs/app/building-your-application/routing).
