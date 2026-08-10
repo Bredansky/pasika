@@ -3,6 +3,8 @@
 A flat component that owns exclusive children hides its scope and fragments its children's ownership. This rule nests a flat component into its own folder as soon as it gains any child that no sibling needs.
 
 - A flat component MUST be nested in its own folder when it gains one or more exclusive children that no sibling needs.
+- Support files alone MUST NOT cause a component to be nested.
+- A nested component's private support files MUST live in its folder.
 - The nested folder's `index.ts` MUST re-export only the nested component — its children stay imported directly.
 
 ## Incorrect
@@ -25,6 +27,7 @@ src/features/blog/
     BlogPage.tsx
     blog-header.tsx           # reachable only via its concrete consumer
     blog-footer.tsx           # reachable only via its concrete consumer
+    hooks/                    # private support files
 ```
 
 Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship visible in the filesystem, lets the children stay scoped to their concrete consumer, and gives the folder a barrel that re-exports only the nested component.

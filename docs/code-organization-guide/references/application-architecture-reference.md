@@ -6,6 +6,8 @@ Use this reference to look up the canonical shape of the repository's `src/` tre
 
 `src/` has four layers: `app`, `compositions`, `features`, and `shared`. Layers import from lower layers and within their own layer; features never import other features.
 
+Components live directly in a layer by default. Only exclusive children create a component folder, which then holds its private support files.
+
 | Layer          | Path                      | Permitted contents                                                                                                                                                                                                                                                                                         | Imports from                         |
 | -------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | `app`          | `src/app/<route>/`        | [Next.js App Router Routing Files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files)                                                                                                                                                                                            | compositions, features, shared, root |
