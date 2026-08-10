@@ -2,13 +2,13 @@
 
 Without a consistent placement strategy, shared artefacts either end up too high (polluting global scope) or too low (duplicated across consumers).
 
-- Each artefact MUST live at the closest common parent (CCP): the nearest folder that contains all files that import it.
-- When the CCP is a single feature, composition, or nested component folder, the artefact MUST live in that folder's own `utils/`, `types/`, `schemas/`, `constants/`, or `hooks/` subfolder.
-- When the CCP is `src/compositions/` or `src/shared/` itself — meaning consumers are 2+ flat components of that layer — the artefact MUST live in that layer's own `utils/`, `types/`, `schemas/`, `constants/`, or `hooks/` subfolder.
-- When the CCP is `src/features/` itself — meaning consumers live in 2+ different feature folders — the artefact MUST live in the corresponding `src/shared/` subfolder, because `src/features/` holds one folder per feature and MUST NOT hold support folders of its own.
-- When the CCP is `src/app/` or `src/` itself, the artefact MUST live in the corresponding root folder (`src/utils/`, `src/types/`, `src/schemas/`, `src/constants/`, or `src/hooks/`), because `src/app/` holds routing files only.
-- Configuration values — hardcoded application data, environment parsing, and third-party service settings — MUST live in `src/config/` regardless of CCP, and MUST NOT be duplicated into a layer-scoped or root `constants/` folder.
-- If only some items from a grouped-by-domain file need to follow a new CCP, those items MUST be split into their own file before they are moved.
+- Each artefact MUST live in its closest common folder (CCF): the nearest folder that contains all files that import it.
+- When the CCF is a single feature, composition, or nested component folder, the artefact MUST live in that folder's own `utils/`, `types/`, `schemas/`, `constants/`, or `hooks/` subfolder.
+- When the CCF is `src/compositions/` or `src/shared/` itself — meaning consumers are 2+ flat components of that layer — the artefact MUST live in that layer's own `utils/`, `types/`, `schemas/`, `constants/`, or `hooks/` subfolder.
+- When the CCF is `src/features/` itself — meaning consumers live in 2+ different feature folders — the artefact MUST live in the corresponding `src/shared/` subfolder, because `src/features/` holds one folder per feature and MUST NOT hold support folders of its own.
+- When the CCF is `src/app/` or `src/` itself, the artefact MUST live in the corresponding root folder (`src/utils/`, `src/types/`, `src/schemas/`, `src/constants/`, or `src/hooks/`), because `src/app/` holds routing files only.
+- Configuration values — hardcoded application data, environment parsing, and third-party service settings — MUST live in `src/config/` regardless of CCF, and MUST NOT be duplicated into a layer-scoped or root `constants/` folder.
+- If only some items from a grouped-by-domain file need to follow a new CCF, those items MUST be split into their own file before they are moved.
 
 | Artefact                                               | Start here                                                                                                                 | File structure                      | Export                   |
 | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------------------------ |
@@ -29,9 +29,9 @@ type DateRange = { from: Date; to: Date };
 type DateRange = { from: Date; to: Date };
 ```
 
-Why: `DateRange` is defined in two places. A second consumer appeared — it should have been promoted to `types/` at the CCP.
+Why: `DateRange` is defined in two places. A second consumer appeared — it should have been promoted to `types/` at the CCF.
 
-## Correct — type promoted to `types/` at the CCP
+## Correct — type promoted to `types/` at the CCF
 
 ```ts
 // features/billing/types/date.ts
@@ -47,7 +47,7 @@ import { type DateRange } from "./types";
 import { type DateRange } from "./types";
 ```
 
-Why: promoted to `types/` at the CCP once a second consumer appeared. Single source of truth, re-exported via `index.ts`.
+Why: promoted to `types/` at the CCF once a second consumer appeared. Single source of truth, re-exported via `index.ts`.
 
 ## Incorrect — cross-feature type placed in a `src/features/` support folder
 
@@ -62,7 +62,7 @@ import { type Money } from "../types";
 import { type Money } from "../types";
 ```
 
-Why: the consumers live in 2 different feature folders, so the CCP is `src/features/` itself. `src/features/` holds one folder per feature and no support folders of its own, so `src/features/types/` is not a valid placement.
+Why: the consumers live in 2 different feature folders, so the CCF is `src/features/` itself. `src/features/` holds one folder per feature and no support folders of its own, so `src/features/types/` is not a valid placement.
 
 ## Correct — cross-feature type lifted to `src/shared/types/`
 
@@ -80,7 +80,7 @@ import { type Money } from "@/shared/types";
 import { type Money } from "@/shared/types";
 ```
 
-Why: the CCP is `src/features/`, which cannot hold the artefact, so it bubbles to the corresponding `src/shared/` subfolder. Both features import the single copy from `@/shared/types`.
+Why: the CCF is `src/features/`, which cannot hold the artefact, so it bubbles to the corresponding `src/shared/` subfolder. Both features import the single copy from `@/shared/types`.
 
 ## Incorrect — type inlined when a hook imports it independently
 
@@ -149,4 +149,4 @@ export default function Invoice() {
 }
 ```
 
-Why: only `Invoice.tsx` uses this hook. It stays inline. When a second consumer appears, extract it to `hooks/` at the CCP.
+Why: only `Invoice.tsx` uses this hook. It stays inline. When a second consumer appears, extract it to `hooks/` at the CCF.
