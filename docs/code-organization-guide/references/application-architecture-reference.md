@@ -4,7 +4,7 @@ Use this reference to look up the canonical shape of the repository's `src/` tre
 
 ## Layer Model
 
-`src/` is shaped like a layered cake — `app`, `compositions`, `features`, `shared` — where each layer may import from any layer below it, and from siblings within its own layer. The one exception is `features`: a feature may import its own siblings but never another feature. App-wide support files (`hooks/`, `types/`, `schemas/`, `constants/`, `utils/`, `config/`, `locales/`) sit at the root level and are reachable from every layer.
+`src/` has four layers: `app`, `compositions`, `features`, and `shared`. Layers import from lower layers and within their own layer; features never import other features.
 
 | Layer          | Path                      | Permitted contents                                                                                                                                                                                                                                                                                         | Imports from                         |
 | -------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
