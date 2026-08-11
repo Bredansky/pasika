@@ -10,8 +10,12 @@ Some components need to preserve their treatment while rendering as a link, trig
 ## Incorrect
 
 ```tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button><a href="/dashboard">{children}</a></button>;
+export default function Button({ children }: { children: React.ReactNode }) {
+  return (
+    <button>
+      <a href="/dashboard">{children}</a>
+    </button>
+  );
 }
 ```
 
@@ -20,14 +24,14 @@ Why: the result nests interactive elements and changes both the semantic and lay
 ## Correct
 
 ```tsx
-export function Button({ asChild = false, ...props }: ButtonProps & { asChild?: boolean }) {
+export default function Button({ asChild = false, ...props }: ButtonProps & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "button";
   return <Comp {...props} />;
 }
 
 <Button asChild>
   <a href="/dashboard">Dashboard</a>
-</Button>
+</Button>;
 ```
 
 Why: the consumer receives one styled anchor without an invalid interactive wrapper.

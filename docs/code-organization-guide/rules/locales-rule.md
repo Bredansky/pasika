@@ -3,11 +3,11 @@
 Without a consistent key convention, locale keys become a mix of role names and text content that is hard to search and easy to misread.
 
 - All locales MUST live in `src/locales/index.ts`.
-- Locales MUST be exported as a single `locales` object, with one nested object per `feature` keyed by that feature's name and never flattened into the parent, so two features can reuse the same key without colliding.
+- Locales MUST be default-exported as a single `locales` object, with one nested object per feature keyed by that feature's name and never flattened into the parent, so two features can reuse the same key without colliding.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
-- Locales for shared components MUST land directly in the `locales` object at the top level — no sub-object namespace.
+- Locales for shared and composition components MUST land directly in the `locales` object at the top level — no sub-object namespace.
 - A locale key MUST be camelCase English of the actual text content.
-- A role name MAY be used as a key only when the text content is too long to be a key.
+- A developer MAY use a stable role name when the text-derived key would be unclear or unwieldy; no mechanical length or grammar threshold applies.
 
 ## Incorrect
 
@@ -33,7 +33,7 @@ Why: keys describe element roles, not text content — the key `streamPlayerLive
 
 ```ts
 // src/locales/index.ts
-export const locales = {
+const locales = {
   stream: {
     watchLiveStream: "Дивитись прямий ефір",
     openInWindow: "Відкрити у вікні",
@@ -43,7 +43,10 @@ export const locales = {
     noResultsFound: "Результатів не знайдено",
   },
   acceptAllCookies: "Прийняти всі cookies", // shared — no feature namespace
+  dashboardOverview: "Огляд панелі", // composition — no feature namespace
 };
+
+export default locales;
 ```
 
 ```tsx
@@ -52,6 +55,9 @@ locales.stream.watchLiveStream; // namespaced by feature
 
 // src/shared/cookie-banner.tsx
 locales.acceptAllCookies; // shared — read from the top level
+
+// src/compositions/dashboard-view.tsx
+locales.dashboardOverview; // composition — read from the top level
 ```
 
-Why: each feature domain is a nested object keyed by its own name, so `locales.stream.watchLiveStream` names its owner at the call site and `donation` could reuse `watchLiveStream` without collision. Shared strings sit at the top level because they belong to no feature. All keys are camelCase of the actual text — instantly readable and searchable by content.
+Why: each feature domain is a nested object keyed by its own name, so `locales.stream.watchLiveStream` names its owner at the call site and `donation` could reuse `watchLiveStream` without collision. Shared and composition strings sit at the top level because compositions are not named domains. Text-derived camelCase keys stay readable and searchable, while developer judgment handles copy that would produce an unwieldy key.

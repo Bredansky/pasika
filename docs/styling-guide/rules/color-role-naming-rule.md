@@ -4,17 +4,18 @@ Color names should reveal what a utility is safe to do, while keeping broadly re
 
 - A color that is intentionally reusable across background, text, border, ring, or other CSS properties MUST use its role name without a property suffix.
 - A color intended only for a background MUST use the `-canvas` suffix, and a color intended only for readable text MUST use the `-ink` suffix.
+- A `*-canvas` or `*-ink` value MUST remain a private CSS variable and be exposed only through its matching property-specific custom utility.
 - `base-canvas` and `base-ink` MUST be applied only by the document body or the project's global base layer as the default page pair.
-- A repeated background, foreground, and related treatment MUST become a `surface-*` custom utility that owns the complete treatment.
-- A project with runtime-selectable themes SHOULD map `:root` variables into `@theme` tokens so Tailwind utilities remain stable while values change.
+- A repeated canvas, ink, and related treatment MUST become a `surface-*` custom utility that owns the complete treatment.
+- A general-purpose color backed by runtime-selectable theme variables MUST use `@theme inline` so Tailwind utilities remain stable while values change.
 - A one-off background MAY use a `*-canvas` utility directly when it does not form a repeated named surface.
 
 ## Incorrect
 
 ```css
 @theme {
-  --color-primary-background: var(--primary-background);
-  --color-primary-text: var(--primary-text);
+  --color-primary-background: #d87943;
+  --color-primary-text: #ffffff;
 }
 ```
 
@@ -36,21 +37,44 @@ Why: the names are inconsistent, the document defaults can be applied anywhere, 
   --primary-ink: #ffffff;
 }
 
+.dark {
+  --base-canvas: #111827;
+  --base-ink: #f9fafb;
+  --primary: #f1a06e;
+  --primary-canvas: #f1a06e;
+  --primary-ink: #111827;
+}
+
 @theme {
-  --color-base-canvas: var(--base-canvas);
-  --color-base-ink: var(--base-ink);
+  --*: initial;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.15);
+}
+
+@theme inline {
   --color-primary: var(--primary);
-  --color-primary-canvas: var(--primary-canvas);
-  --color-primary-ink: var(--primary-ink);
+}
+
+@utility bg-base-canvas {
+  @apply bg-(--base-canvas);
+}
+
+@utility text-base-ink {
+  @apply text-(--base-ink);
+}
+
+@utility bg-primary-canvas {
+  @apply bg-(--primary-canvas);
+}
+
+@utility text-primary-ink {
+  @apply text-(--primary-ink);
 }
 
 @utility surface-primary {
-  background-color: var(--primary-canvas);
-  color: var(--primary-ink);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  @apply bg-primary-canvas text-primary-ink shadow-sm;
 
   &:hover {
-    filter: brightness(1.05);
+    @apply brightness-105;
   }
 }
 

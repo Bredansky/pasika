@@ -2,8 +2,8 @@
 
 Logic mixed into JSX `return` blocks makes the render tree hard to scan and obscures the component's structure.
 
-- Math expressions, method chains, custom function calls, nested ternaries, and long `&&` guards MUST be extracted before `return`.
-- Simple conditions (`&&`, single ternary), single built-in method calls, and `cn()` MAY stay inline.
+- Math expressions, method chains, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
+- A condition containing at most one logical operator, a single ternary, a single built-in method call, and `cn()` MAY stay inline.
 - Chained built-in method calls MUST be extracted (they count as computation).
 
 ## Incorrect

@@ -1,6 +1,6 @@
 # Documentation Types Reference
 
-This reference helps authors look up the three Markdown document kinds in this repository. It matters because authors and reviewers can pick a document kind by intent and trust the layout without inventing new shapes for each directory.
+This reference helps authors look up the three standard Markdown document kinds in this repository. It matters because authors and reviewers can pick a document kind by intent and trust the layout without inventing new shapes for each directory. `docs/managed/agent-conventions.md` is an explicit special-case document and does not use one of these standard shapes.
 
 | Kind      | Shape                                                                                           | Template                                         |
 | --------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ |

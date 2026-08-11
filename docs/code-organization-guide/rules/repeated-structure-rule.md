@@ -68,8 +68,22 @@ import Panel from "./panel";
 export default function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
-      <Panel title="Stats">{stats.length} new posts this week</Panel>
-      <Panel title="Recent Activity">{activity.length} recent events</Panel>
+      <Panel title="Stats">
+        <ul>
+          {stats.map((stat) => (
+            <li key={stat.id}>
+              {stat.label}: {stat.value}
+            </li>
+          ))}
+        </ul>
+      </Panel>
+      <Panel title="Recent Activity">
+        <ul>
+          {activity.map((event) => (
+            <li key={event.id}>{event.text}</li>
+          ))}
+        </ul>
+      </Panel>
     </main>
   );
 }

@@ -4,7 +4,6 @@ Components that wrap a native element should preserve that element's behavior an
 
 - A component rooted in a native element MUST extend that element's native component props.
 - A component MUST forward unconsumed native props to its rendered root element.
-- A component SHOULD merge one root `className` through the project's class-composition helper.
 - A component MAY add typed component-specific props in addition to its native props.
 
 ## Incorrect
@@ -15,7 +14,7 @@ type ButtonProps = {
   onClick(): void;
 };
 
-export function Button({ label, onClick }: ButtonProps) {
+export default function Button({ label, onClick }: ButtonProps) {
   return <button onClick={onClick}>{label}</button>;
 }
 ```
@@ -29,14 +28,8 @@ type ButtonProps = React.ComponentProps<"button"> & {
   loading?: boolean;
 };
 
-export function Button({ className, loading, disabled, ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn("inline-flex items-center", className)}
-      disabled={disabled || loading}
-      {...props}
-    />
-  );
+export default function Button({ className, loading, disabled, ...props }: ButtonProps) {
+  return <button className={cn("inline-flex items-center", className)} disabled={disabled || loading} {...props} />;
 }
 ```
 

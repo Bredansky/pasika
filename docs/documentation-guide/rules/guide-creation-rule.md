@@ -4,8 +4,9 @@ Guides without a consistent creation process invent their own structure. This ru
 
 - Each How To step MUST be concise and use one sentence.
 - A Guide MAY reference Rules, References, and other Guides.
-- Each How To step MUST link at most one Rule, one Reference, or one Guide.
+- Each How To step MUST link at most one documentation file total, whether that file is a Rule, Reference, or Guide.
 - When a step links a Rule, Reference, or Guide, the step MUST name the concrete decision or result the reader will have after reading it.
+- A step that links another Guide MUST link directly to the relevant How To section.
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
 - A Guide with private support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
@@ -69,7 +70,7 @@ Why: a How To section nests inside a step of another How To section.
 ```markdown
 ## How To Deploy
 
-1. Build the project. See [How To Build](#how-to-build) below.
+1. Follow [How To Build](#how-to-build) to build the project.
 
 ## How To Build
 
@@ -77,7 +78,6 @@ Why: a How To section nests inside a step of another How To section.
 ```
 
 Why: How To sections stay flat and reference each other via links.
-
 
 ## Incorrect
 
@@ -98,7 +98,7 @@ Why: step is one concise sentence with a concrete action.
 ## Incorrect
 
 ```markdown
-1. Build the project. See the [Build Guide](build-guide.md) for details.
+1. Follow the [Build Guide](build-guide.md) to build the project.
 ```
 
 Why: link points at a Guide file but does not anchor to a specific How To section, so the reader lands on the guide's introduction and has to search for the relevant workflow.
@@ -106,7 +106,7 @@ Why: link points at a Guide file but does not anchor to a specific How To sectio
 ## Correct
 
 ```markdown
-1. Build the project. See [How To Build](build-guide.md#how-to-build) for details.
+1. Follow [How To Build](build-guide.md#how-to-build) to build the project.
 ```
 
 Why: link anchors to the specific How To section, so the reader lands directly on the relevant workflow.

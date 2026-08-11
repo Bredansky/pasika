@@ -10,6 +10,7 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A dumb component MUST NOT define `handle*` callbacks for children.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
 - A dumb component MAY own local UI state.
+- Next.js routing files MUST use the framework's required lowercase or kebab-case file names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
 ## Incorrect
 
@@ -51,15 +52,9 @@ import PlatformCard from "./platform-card";
 export default function SocialStatsPanel(): React.JSX.Element {
   const { stats, isLoading } = useSocialStats();
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
   return (
     <div data-testid="SocialStatsPanel">
-      {stats.map((stat) => (
-        <PlatformCard key={stat.platform} data={stat} />
-      ))}
+      {isLoading ? <p>Loading...</p> : stats.map((stat) => <PlatformCard key={stat.platform} data={stat} />)}
     </div>
   );
 }

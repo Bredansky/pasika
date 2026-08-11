@@ -2,7 +2,7 @@
 
 This guide explains how to create Rules, References, and Guides in this repository.
 
-## How To Create A Document
+## How To Create a Document
 
 Run this whenever you add a new doc to the repository.
 

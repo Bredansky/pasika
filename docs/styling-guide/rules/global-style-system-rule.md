@@ -1,37 +1,56 @@
 # Global Style System Rule
 
-Global CSS is the integration point for a repository's theme values and styles that components cannot own directly. This rule keeps it readable and prevents competing sources of truth.
+Global CSS is the integration point for Tailwind registration, the project theme, base styles, and imported style domains. This rule keeps one active entry point and a predictable ownership order.
 
-- A repository MUST have one active global stylesheet that owns theme registration and imports the global style domains it uses.
-- Theme values MUST be defined in documented selectors such as `:root` or a theme selector and mapped into Tailwind through `@theme` when Tailwind utilities consume them.
-- A repository SHOULD keep global CSS ordered as imports, Tailwind/theme registration, theme selectors, base styles, keyframes and custom utilities, then unavoidable global selectors.
-- A repository SHOULD keep product-specific theme modes, fonts, motion, effects, and content exceptions in a local theme contract when they need documentation.
-- Global selectors MAY target third-party markup, rich content, pseudo-element-heavy effects, document state, and browser behavior that controlled JSX cannot own.
+- A repository MUST have one active global stylesheet that owns Tailwind registration and imports every global style domain it uses.
+- The global stylesheet MUST reset the default Tailwind theme and register the project's explicit theme values.
+- Static theme values MUST live directly in `@theme`, while selector-driven variable mappings MUST live in `@theme inline`.
+- Global CSS MUST be ordered as imports, Tailwind and custom-variant registration, theme definitions and selectors, custom utilities, base styles, keyframes, then unavoidable global selectors.
+- Imported global style domains MUST have one owner and MUST NOT duplicate theme values or utilities defined by another domain.
 
 ## Incorrect
 
 ```css
-/* Component recipes and theme values are scattered across unrelated files. */
-.save-button { background: #7c3aed; }
+/* Theme values and component recipes compete across unrelated files. */
+.save-button {
+  @apply bg-primary;
+}
 
 @theme {
   --color-primary: #7c3aed;
 }
 ```
 
-Why: the button duplicates a theme value in a global selector, and the stylesheet does not establish a clear ownership order.
+Why: a component recipe sits globally beside an unreset theme, and the stylesheet does not establish a clear integration order.
 
 ## Correct
 
 ```css
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-primary: var(--primary);
+  --*: initial;
+  --spacing: 0.25rem;
 }
 
 :root {
-  --primary: #7c3aed;
+  --base-canvas: #ffffff;
+  --base-ink: #111827;
+}
+
+.dark {
+  --base-canvas: #111827;
+  --base-ink: #ffffff;
+}
+
+@utility bg-base-canvas {
+  @apply bg-(--base-canvas);
+}
+
+@utility text-base-ink {
+  @apply text-(--base-ink);
 }
 
 @layer base {
@@ -39,13 +58,6 @@ Why: the button duplicates a theme value in a global selector, and the styleshee
     @apply bg-base-canvas text-base-ink;
   }
 }
-
-@utility surface-primary {
-  background-color: var(--primary);
-}
-
-/* Third-party markup is not controlled by component JSX. */
-.external-player .controls { display: none; }
 ```
 
-Why: theme values, base defaults, custom utilities, and unavoidable external selectors each have an explicit global owner.
+Why: one entry point registers Tailwind, resets the theme, defines selector-driven values, exposes intended utilities, and applies document defaults in a predictable order.
