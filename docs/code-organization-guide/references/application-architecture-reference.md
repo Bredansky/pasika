@@ -29,7 +29,7 @@ src/
 │   ├── <NestedComponent>/                 # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
 │   │   ├── index.ts                       # Default-re-exports only the nested parent
 │   │   ├── <NestedComponent>.tsx          # Smart (PascalCase) — or kebab-case for dumb
-│   │   ├── <nested-part>.tsx              # Private child — not in index.ts
+│   │   ├── <nested-part>.tsx              # Exclusive child — not in index.ts
 │   │   ├── hooks/                         # Nested-scoped support folders
 │   │   ├── types/
 │   │   ├── schemas/
@@ -48,7 +48,7 @@ src/
 │       ├── <NestedComponent>/             # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
 │       │   ├── index.ts                   # Default-re-exports only the nested parent
 │       │   ├── <NestedComponent>.tsx      # Smart (PascalCase) — or kebab-case for dumb
-│       │   ├── <nested-part>.tsx          # Private child — not in index.ts
+│       │   ├── <nested-part>.tsx          # Exclusive child — not in index.ts
 │       │   ├── hooks/                     # Nested-scoped support folders
 │       │   ├── types/
 │       │   ├── schemas/
@@ -66,7 +66,7 @@ src/
 │   ├── <NestedComponent>/                 # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
 │   │   ├── index.ts                       # Default-re-exports only the nested parent
 │   │   ├── <NestedComponent>.tsx          # Smart (PascalCase) — or kebab-case for dumb
-│   │   ├── <nested-part>.tsx              # Private child — not in index.ts
+│   │   ├── <nested-part>.tsx              # Exclusive child — not in index.ts
 │   │   ├── hooks/                         # Nested-scoped support folders
 │   │   ├── types/
 │   │   ├── schemas/
