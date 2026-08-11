@@ -4,7 +4,7 @@ Use this reference to look up the canonical shape of the repository's `src/` tre
 
 ## Layer Model
 
-`src/` has four layers: `app`, `compositions`, `features`, and `shared`. Layers import within themselves and from lower layers, but features never import other features; higher-layer consumption does not change lower-layer ownership, so feature components and artifacts remain in their feature when consumed by a composition or route.
+`src/` has four layers: `app`, `compositions`, `features`, and `shared`. Layers import within themselves and from lower layers, but features never import other features. Feature components and support files remain in their feature when consumed by a composition or route.
 
 | Layer          | Path                      | Permitted contents                                                                                                                                                                     | Imports from                         |
 | -------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
