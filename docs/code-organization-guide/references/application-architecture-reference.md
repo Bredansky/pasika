@@ -1,6 +1,6 @@
 # Application Architecture Reference
 
-Use this reference to look up the canonical shape of the repository's `src/` tree and the directional dependency rule between layers.
+Use this reference to look up the canonical shape of the repository's `src/` tree and the directional dependency concept between layers.
 
 ## Layer Model
 
