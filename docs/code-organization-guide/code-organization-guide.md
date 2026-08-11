@@ -20,12 +20,12 @@ Use this no matter whether you are adding a new component or extracting from exi
 12. Style the component's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
 13. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
 
-## How To Organize a Non-Component Artifact
+## How To Organize a Non-Component File
 
 Use this when organizing a hook, type, utility, schema, constant, or config value.
 
 1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
-2. Decide whether and where to extract the artifact per the [Non-Component Placement Rule](rules/non-component-placement-rule.md).
+2. Decide whether and where to extract the non-component file per the [Non-Component Placement Rule](rules/non-component-placement-rule.md).
 3. Extract custom hooks at the reuse or imperative-complexity threshold per the [Hook Extraction Rule](rules/hook-extraction-rule.md).
 4. Style the file's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
 

@@ -8,7 +8,7 @@ Export style should follow a file's role without forcing import churn when an ag
 - A type, schema, or other aggregation barrel MUST use named re-exports, including when it currently exposes one item.
 - `constants/index.ts` MUST define and expose constants through named exports.
 - `locales/index.ts` MUST default-export its single `locales` object.
-- An ordinary non-component leaf module with one export MUST use a default export unless a more specific artifact rule requires a named export.
+- An ordinary non-component leaf module with one export MUST use a default export unless a more specific non-component file rule requires a named export.
 - An ordinary non-component module with two or more exports MUST use named exports only.
 - Framework and tool entry files MUST follow the export contract required by their framework or tool.
 - A `.tsx` component MAY have companion named exports when no consumer imports them independently of the component.
