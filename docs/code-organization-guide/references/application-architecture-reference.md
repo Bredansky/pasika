@@ -1,12 +1,10 @@
 # Application Architecture Reference
 
-Use this reference to look up the canonical shape of the repository's `src/` tree and the directional dependency concept between layers.
+Use this reference to look up the canonical shape of the repository's `src/` tree and its Layer Model.
 
 ## Layer Model
 
 `src/` has four layers: `app`, `compositions`, `features`, and `shared`. Layers import within themselves and from lower layers, but features never import other features; higher-layer consumption does not change lower-layer ownership, so feature components and artifacts remain in their feature when consumed by a composition or route.
-
-Components live directly in a layer by default. Only exclusive children create a component folder, which then holds its private support files.
 
 | Layer          | Path                      | Permitted contents                                                                                                                                                                     | Imports from                         |
 | -------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
