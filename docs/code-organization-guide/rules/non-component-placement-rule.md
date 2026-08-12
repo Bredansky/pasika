@@ -2,12 +2,12 @@
 
 Without a consistent extraction and placement strategy, shared non-component files either end up too high, too low, or in separate files before they need an independent identity. This rule decides what stays inline and where extracted non-component files belong.
 
-- Extraction MUST be decided before closest-common-parent placement is calculated.
+- Extraction MUST be decided before closest common folder (CCF) placement is calculated.
 - A type or schema MUST stay inline in its component file while no consumer imports it independently of that component.
 - A constant MUST stay inline in its consuming file while no consumer imports it independently.
 - A pure function MUST always live in the nearest valid `utils/` folder, even when it has one consumer.
 - A custom hook MUST follow the repository's reuse and imperative-complexity extraction triggers.
-- Every extracted non-component file MUST live at the closest common parent within the lowest layer or feature domain that owns it.
+- Every extracted non-component file MUST live in the closest common folder (CCF) of its consumers at the same layer or feature domain.
 - A higher-layer consumer in `src/compositions/` or `src/app/` MUST NOT promote a non-component file out of its owning feature or lower layer.
 - A non-component file consumed by two or more feature domains MUST move to the corresponding `src/shared/` support folder.
 - A non-component file shared by two or more flat compositions or shared components MUST live in that layer's corresponding support folder.
