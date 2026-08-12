@@ -6,7 +6,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A component with existing consumers MUST live in the closest common folder (CCF) of its consumers.
 - When calculating a component’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
-- A non-routing component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
+- A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
 - When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
 - `src/app/` MUST contain routing files only.
 - A routing file in `src/app/` MAY import from `src/compositions/`, `src/features/`, `src/shared/`, and root support folders.
