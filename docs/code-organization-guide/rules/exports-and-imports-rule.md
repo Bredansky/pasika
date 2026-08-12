@@ -18,7 +18,7 @@ export default function formatDuration(seconds: number): string {
 }
 ```
 
-Why: ordinary modules use named exports even when they expose one item.
+Why: files use named exports even when they expose one item.
 
 ## Correct — Single-Export Utility Uses a Named Export
 
@@ -31,7 +31,7 @@ export function formatDuration(seconds: number): string {
 }
 ```
 
-Why: the utility has the same named-export form as every other ordinary module.
+Why: the utility uses the same named-export form as every other file that does not have a package-required export contract.
 
 ## Incorrect — Deep Relative Path
 
@@ -63,7 +63,7 @@ export default async function GET(): Promise<Response> {
 }
 ```
 
-Why: the generic single-export convention cannot replace a framework entry file's required contract.
+Why: Next.js requires route handlers to use named HTTP method exports.
 
 ## Correct — Framework Entry Uses Its Required Export
 
@@ -74,4 +74,4 @@ export async function GET(): Promise<Response> {
 }
 ```
 
-Why: framework and tool entry files retain the exact exports their runtime discovers.
+Why: the route handler follows the export contract Next.js requires.
