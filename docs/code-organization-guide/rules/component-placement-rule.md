@@ -4,7 +4,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 
 - A new component with no existing consumers MUST start in the existing feature folder it belongs to, or in a new feature folder when it introduces a new feature.
 - A component with existing consumers MUST live in the closest common folder (CCF) of its consumers.
-- A higher-layer consumer in `src/compositions/` or `src/app/` MUST NOT promote a component out of its owning feature or lower layer.
+- When calculating a component’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - A component used by two or more feature domains MUST live in `src/shared/` unless it imports from two or more feature domains itself.
 - A component that imports from two or more feature domains MUST live in `src/compositions/` and is, by definition, a composition.
 - A route-specific UI component with no feature or shared owner MUST live in `src/compositions/`, because `src/app/` holds routing files only.
