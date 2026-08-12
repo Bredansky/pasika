@@ -5,6 +5,7 @@ References without a consistent creation process scatter lookup material. This r
 - Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).
 - A Reference MUST NOT link to Rules, Guides, or other References.
 - A Reference MUST NOT use RFC 2119 vocabulary (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`), because lookup material describes what exists rather than imposing requirements.
+- A Reference document overview and each section overview MUST contain one or two short sentences.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 
