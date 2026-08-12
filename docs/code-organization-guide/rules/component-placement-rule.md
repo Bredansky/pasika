@@ -10,9 +10,9 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
 - `src/app/` MUST contain [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) only.
 - A routing file in `src/app/` MAY import from `src/compositions/`, `src/features/`, `src/shared/`, and root support folders.
-- A component in `src/compositions/` MAY import from sibling compositions, feature folders, `src/shared/`, and root support folders.
+- A component in `src/compositions/` MAY import from the same folder, feature folders, `src/shared/`, and root support folders.
 - A component in a feature folder MAY import from the same feature folder, `src/shared/`, and root support folders.
-- A component in `src/shared/` MAY import from `src/shared/` and root support folders.
+- A component in `src/shared/` MAY import from the same folder and root support folders.
 - A component outside `src/app/` MUST NOT import from `src/app/`.
 - ESLint MUST enforce this rule’s feature and layer import restrictions.
 
