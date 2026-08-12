@@ -3,10 +3,6 @@
 Without consistent export and import styles, it is harder to tell what a file contains and how other files should import from it. This rule gives each file type a predictable export style and keeps import paths consistent.
 
 - Files MUST use named exports unless a third-party package requires a different export style for a specific file.
-- A type MUST use a named export, including when its leaf file contains one type.
-- A type, schema, or other aggregation barrel MUST use named re-exports, including when it currently exposes one item.
-- `constants/index.ts` MUST define and expose constants through named exports.
-- `locales/index.ts` MUST expose its `locales` object through a named export.
 - Imports MUST use relative paths for the same folder, a direct subfolder, or one folder up.
 - Imports MUST use the `@/*` alias for anything beyond one folder up.
 - ESLint MUST enforce this rule's export and import restrictions.
@@ -36,67 +32,6 @@ export function formatDuration(seconds: number): string {
 ```
 
 Why: the utility has the same named-export form as every other ordinary module.
-
-## Incorrect — Multi-Export Module Mixes Styles
-
-```ts
-// src/utils/date.ts
-export const formatDate = (date: Date): string => date.toLocaleDateString();
-export default function parseDate(value: string): Date {
-  return new Date(value);
-}
-```
-
-Why: ordinary modules use named exports only.
-
-## Correct — Multi-Export Module Uses Named Exports
-
-```ts
-// src/utils/date.ts
-export const formatDate = (date: Date): string => date.toLocaleDateString();
-export const parseDate = (value: string): Date => new Date(value);
-```
-
-Why: every export from the grouped domain module has one predictable import form.
-
-## Incorrect — Type Barrel Changes Shape at One Export
-
-```ts
-// src/features/billing/types/index.ts
-export type { DateRange as default } from "./date-range";
-```
-
-Why: the first additional type would force the barrel and every consumer to switch from default to named imports.
-
-## Correct — Type Leaf and Barrel Stay Named
-
-```ts
-// src/features/billing/types/date-range.ts
-export type DateRange = { from: Date; to: Date };
-
-// src/features/billing/types/index.ts
-export type { DateRange } from "./date-range";
-```
-
-Why: types use named exports and the aggregation barrel keeps the same public shape as it grows.
-
-## Incorrect — Nested Component Folder Uses a Default Re-Export
-
-```ts
-// src/features/blog/BlogPage/index.ts
-export { BlogPage as default } from "./BlogPage";
-```
-
-Why: a nested component folder exposes its component through a named re-export.
-
-## Correct — Nested Component Folder Uses a Named Re-Export
-
-```ts
-// src/features/blog/BlogPage/index.ts
-export { BlogPage } from "./BlogPage";
-```
-
-Why: the folder entry point exposes only its nested component while private children remain direct internal imports.
 
 ## Incorrect — Deep Relative Path
 
