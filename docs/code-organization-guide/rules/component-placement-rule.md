@@ -13,7 +13,6 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A component in `src/compositions/` MAY import from the same folder, feature folders, `src/shared/`, and root support folders.
 - A component in a feature folder MAY import from the same feature folder, `src/shared/`, and root support folders.
 - A component in `src/shared/` MAY import from the same folder and root support folders.
-- A component outside `src/app/` MUST NOT import from `src/app/`.
 - ESLint MUST enforce this rule’s feature and layer import restrictions.
 
 ## Incorrect — Composition Changes a Feature Component's CCF
