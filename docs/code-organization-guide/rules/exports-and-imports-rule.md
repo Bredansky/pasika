@@ -1,6 +1,6 @@
 # Exports and Imports Rule
 
-Export style should follow a file's role without forcing import churn when an aggregation file grows. Import paths should stay short and visually reveal cross-scope dependencies.
+Without consistent export and import styles, it is harder to tell what a file contains and how other files should import from it. This rule gives each file type a predictable export style and keeps import paths consistent.
 
 - A React component MUST be the default export of its `.tsx` file.
 - A component folder's `index.ts` MUST default-re-export only that folder's public component.
