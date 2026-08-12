@@ -14,7 +14,7 @@ type ButtonProps = {
   onClick(): void;
 };
 
-export default function Button({ label, onClick }: ButtonProps) {
+export function Button({ label, onClick }: ButtonProps) {
   return <button onClick={onClick}>{label}</button>;
 }
 ```
@@ -28,7 +28,7 @@ type ButtonProps = React.ComponentProps<"button"> & {
   loading?: boolean;
 };
 
-export default function Button({ className, loading, disabled, ...props }: ButtonProps) {
+export function Button({ className, loading, disabled, ...props }: ButtonProps) {
   return <button className={cn("inline-flex items-center", className)} disabled={disabled || loading} {...props} />;
 }
 ```

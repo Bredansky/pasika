@@ -8,7 +8,7 @@ State owned by a parent but consumed only by a child threads a redundant prop pa
 
 ```tsx
 // src/compositions/dashboard-view.tsx
-export default function DashboardView(): React.JSX.Element {
+export function DashboardView(): React.JSX.Element {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
@@ -42,7 +42,7 @@ src/compositions/
 
 ```tsx
 // src/compositions/dashboard-view/help-button.tsx
-export default function HelpButton(): React.JSX.Element {
+export function HelpButton(): React.JSX.Element {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
@@ -62,9 +62,9 @@ export default function HelpButton(): React.JSX.Element {
 
 ```tsx
 // src/compositions/dashboard-view/dashboard-view.tsx
-import HelpButton from "./help-button";
+import { HelpButton } from "./help-button";
 
-export default function DashboardView(): React.JSX.Element {
+export function DashboardView(): React.JSX.Element {
   return (
     <div>
       <h1>Dashboard</h1>

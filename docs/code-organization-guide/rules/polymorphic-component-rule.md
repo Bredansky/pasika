@@ -10,7 +10,7 @@ Some components need to preserve their treatment while rendering as a link, trig
 ## Incorrect — Nested Interactive Elements
 
 ```tsx
-export default function Button({ children }: { children: React.ReactNode }) {
+export function Button({ children }: { children: React.ReactNode }) {
   return (
     <button>
       <a href="/dashboard">{children}</a>
@@ -24,7 +24,7 @@ Why: the result nests interactive elements and changes both the semantic and lay
 ## Correct — Polymorphic Child Element
 
 ```tsx
-export default function Button({ asChild = false, ...props }: ButtonProps & { asChild?: boolean }) {
+export function Button({ asChild = false, ...props }: ButtonProps & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "button";
   return <Comp {...props} />;
 }

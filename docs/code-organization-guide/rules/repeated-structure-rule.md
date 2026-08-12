@@ -8,7 +8,7 @@ A flat structure duplicated across multiple files turns every change into a mult
 
 ```tsx
 // src/features/dashboard/dashboard-view.tsx
-export default function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
+export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
       <section className="border-3d bg-card w-full p-6">
@@ -51,7 +51,7 @@ src/features/dashboard/
 // src/features/dashboard/dashboard-view/panel.tsx
 import { ReactNode } from "react";
 
-export default function Panel({ title, children }: { title: string; children: ReactNode }): React.JSX.Element {
+export function Panel({ title, children }: { title: string; children: ReactNode }): React.JSX.Element {
   return (
     <section className="border-3d bg-card w-full p-6">
       <h2>{title}</h2>
@@ -63,9 +63,9 @@ export default function Panel({ title, children }: { title: string; children: Re
 
 ```tsx
 // src/features/dashboard/dashboard-view/dashboard-view.tsx
-import Panel from "./panel";
+import { Panel } from "./panel";
 
-export default function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
+export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
       <Panel title="Stats">

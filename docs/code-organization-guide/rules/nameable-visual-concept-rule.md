@@ -8,7 +8,7 @@ Sibling elements that together form a nameable concept but sit unnamed inside a 
 
 ```tsx
 // src/features/feed/feed-view.tsx
-export default function FeedView(): React.JSX.Element {
+export function FeedView(): React.JSX.Element {
   return (
     <main>
       <article>
@@ -36,9 +36,9 @@ src/features/feed/
 
 ```tsx
 // src/features/feed/feed-view/feed-view.tsx
-import MessageHeader from "./message-header";
+import { MessageHeader } from "./message-header";
 
-export default function FeedView(): React.JSX.Element {
+export function FeedView(): React.JSX.Element {
   return (
     <main>
       <article>
@@ -52,7 +52,7 @@ export default function FeedView(): React.JSX.Element {
 
 ```tsx
 // src/features/feed/feed-view/message-header.tsx
-export default function MessageHeader(): React.JSX.Element {
+export function MessageHeader(): React.JSX.Element {
   return (
     <header>
       <Avatar />

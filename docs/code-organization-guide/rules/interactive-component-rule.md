@@ -9,7 +9,7 @@ Interactive HTML elements buried inside unrelated parent components hide ownersh
 ```tsx
 // src/features/layout/header-section.tsx
 
-export default function HeaderSection({
+export function HeaderSection({
   onMenuClick,
   searchPlaceholder,
 }: {
@@ -48,7 +48,7 @@ src/features/layout/
 ```tsx
 // src/features/layout/header-section/menu-button.tsx
 
-export default function MenuButton({ onMenuClick }: { onMenuClick: () => void }): React.JSX.Element {
+export function MenuButton({ onMenuClick }: { onMenuClick: () => void }): React.JSX.Element {
   return (
     <button onClick={onMenuClick} aria-label="Open menu">
       <Icon name="menu" />
@@ -60,7 +60,7 @@ export default function MenuButton({ onMenuClick }: { onMenuClick: () => void })
 ```tsx
 // src/features/layout/header-section/search-field.tsx
 
-export default function SearchField({ placeholder }: { placeholder: string }): React.JSX.Element {
+export function SearchField({ placeholder }: { placeholder: string }): React.JSX.Element {
   return (
     <form>
       <input type="search" placeholder={placeholder} />
@@ -72,10 +72,10 @@ export default function SearchField({ placeholder }: { placeholder: string }): R
 ```tsx
 // src/features/layout/header-section/header-section.tsx — now imports both interactive units instead of inline JSX
 
-import MenuButton from "./menu-button";
-import SearchField from "./search-field";
+import { MenuButton } from "./menu-button";
+import { SearchField } from "./search-field";
 
-export default function HeaderSection({
+export function HeaderSection({
   onMenuClick,
   searchPlaceholder,
 }: {

@@ -79,7 +79,7 @@ Why: billing owns the types, and both its own components and higher-layer compos
 // src/features/billing/Invoice.tsx
 export type DateRange = { from: Date; to: Date };
 
-export default function Invoice({ range }: { range: DateRange }): React.JSX.Element {
+export function Invoice({ range }: { range: DateRange }): React.JSX.Element {
   return <InvoiceView range={range} />;
 }
 ```
@@ -114,7 +114,7 @@ const calculateInvoiceTotal = (items: InvoiceItem[]): number => {
   return items.reduce((total, item) => total + item.amount, 0);
 };
 
-export default function Invoice({ items }: InvoiceProps): React.JSX.Element {
+export function Invoice({ items }: InvoiceProps): React.JSX.Element {
   const total = calculateInvoiceTotal(items);
   return <InvoiceTotal value={total} />;
 }
@@ -126,16 +126,16 @@ Why: a pure function always receives its own utility file, even with one consume
 
 ```ts
 // src/features/billing/utils/calculate-invoice-total.ts
-export default function calculateInvoiceTotal(items: InvoiceItem[]): number {
+export function calculateInvoiceTotal(items: InvoiceItem[]): number {
   return items.reduce((total, item) => total + item.amount, 0);
 }
 ```
 
 ```tsx
 // src/features/billing/invoice.tsx
-import calculateInvoiceTotal from "./utils/calculate-invoice-total";
+import { calculateInvoiceTotal } from "./utils/calculate-invoice-total";
 
-export default function Invoice({ items }: InvoiceProps): React.JSX.Element {
+export function Invoice({ items }: InvoiceProps): React.JSX.Element {
   const total = calculateInvoiceTotal(items);
   return <InvoiceTotal value={total} />;
 }
@@ -147,7 +147,7 @@ Why: the pure function has an independently searchable file at its consumer's ne
 
 ```ts
 // src/features/billing/constants/max-retries.ts
-export default 3;
+export const maxRetries = 3;
 ```
 
 Why: extracted constants are collected directly in their scope's registration index instead of creating one leaf file per value.

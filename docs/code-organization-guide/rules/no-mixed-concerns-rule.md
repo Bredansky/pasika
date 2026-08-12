@@ -3,7 +3,7 @@
 A component file that does too many things becomes hard to find, test, and reuse.
 
 - A `.tsx` file MUST contain exactly one React component.
-- A component MUST be the default export of its `.tsx` file.
+- A component MUST use a named export from its `.tsx` file.
 - A `.tsx` file MAY contain companion types, schemas, constants, or variant definitions when no consumer imports them independently of the component.
 - A companion non-component file that is imported independently of the component MUST be extracted according to its non-component file placement rule.
 - Copied or generated component source MUST follow the same one-component-per-file rule; third-party origin does not create an exception.
@@ -14,7 +14,7 @@ Two components in one file:
 
 ```tsx
 // src/features/nav/menu.tsx
-export default function Menu(): React.JSX.Element {
+export function Menu(): React.JSX.Element {
   return (
     <nav>
       <MenuItem label="Home" />
@@ -44,16 +44,16 @@ src/features/nav/
 
 ```tsx
 // src/features/nav/menu/menu-item.tsx
-export default function MenuItem({ label }: { label: string }): React.JSX.Element {
+export function MenuItem({ label }: { label: string }): React.JSX.Element {
   return <a href="#">{label}</a>;
 }
 ```
 
 ```tsx
 // src/features/nav/menu/menu.tsx
-import MenuItem from "./menu-item";
+import { MenuItem } from "./menu-item";
 
-export default function Menu(): React.JSX.Element {
+export function Menu(): React.JSX.Element {
   return (
     <nav>
       <MenuItem label="Home" />

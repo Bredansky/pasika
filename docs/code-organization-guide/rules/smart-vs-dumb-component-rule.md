@@ -19,9 +19,9 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 "use client";
 
 import { useSocialStats } from "./hooks/use-social-stats";
-import PlatformCard from "./platform-card";
+import { PlatformCard } from "./platform-card";
 
-export default function SocialStatsPanel(): React.JSX.Element {
+export function SocialStatsPanel(): React.JSX.Element {
   const { stats, isLoading } = useSocialStats();
 
   if (isLoading) {
@@ -47,9 +47,9 @@ Why: the file fetches data, which makes it smart, yet it is named `kebab-case.ts
 "use client";
 
 import { useSocialStats } from "./hooks/use-social-stats";
-import PlatformCard from "./platform-card";
+import { PlatformCard } from "./platform-card";
 
-export default function SocialStatsPanel(): React.JSX.Element {
+export function SocialStatsPanel(): React.JSX.Element {
   const { stats, isLoading } = useSocialStats();
 
   return (
@@ -67,7 +67,7 @@ Why: the file fetches data, so it is named `PascalCase.tsx`. Anyone scanning the
 ```tsx
 // src/features/social/PlatformCard.tsx
 
-export default function PlatformCard({
+export function PlatformCard({
   data,
   onFollowClick,
 }: {
@@ -93,7 +93,7 @@ Why: the component fetches no data and defines no `handle*` callbacks for its ch
 ```tsx
 // src/features/social/platform-card.tsx
 
-export default function PlatformCard({
+export function PlatformCard({
   data,
   onFollowClick,
 }: {

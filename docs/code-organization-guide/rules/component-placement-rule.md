@@ -31,10 +31,10 @@ src/
 
 ```tsx
 // src/features/billing/BillingPanel.tsx
-import BillingSummary from "@/shared/BillingSummary";
+import { BillingSummary } from "@/shared/BillingSummary";
 
 // src/compositions/Dashboard.tsx
-import BillingSummary from "@/shared/BillingSummary";
+import { BillingSummary } from "@/shared/BillingSummary";
 ```
 
 Why: the composition import is included in `BillingSummary`'s CCF, moving it from the billing feature to `src/shared/`.
@@ -54,10 +54,10 @@ src/
 
 ```tsx
 // src/features/billing/BillingPanel.tsx
-import BillingSummary from "./BillingSummary";
+import { BillingSummary } from "./BillingSummary";
 
 // src/compositions/Dashboard.tsx
-import BillingSummary from "@/features/billing/BillingSummary";
+import { BillingSummary } from "@/features/billing/BillingSummary";
 ```
 
 Why: the composition import is ignored when calculating `BillingSummary`'s CCF, so it stays in the billing feature folder.
@@ -95,8 +95,8 @@ Why: the component's CCF is `src/features/`, so it lives in `src/shared/`.
 
 ```tsx
 // src/features/billing/BillingAggregateView.tsx
-import BillingPanel from "./BillingPanel";
-import HomeBanner from "@/features/home/HomeBanner";
+import { BillingPanel } from "./BillingPanel";
+import { HomeBanner } from "@/features/home/HomeBanner";
 ```
 
 Why: the component imports from two feature folders, so it cannot live in either feature folder.
@@ -105,8 +105,8 @@ Why: the component imports from two feature folders, so it cannot live in either
 
 ```tsx
 // src/compositions/BillingAggregateView.tsx
-import BillingPanel from "@/features/billing/BillingPanel";
-import HomeBanner from "@/features/home/HomeBanner";
+import { BillingPanel } from "@/features/billing/BillingPanel";
+import { HomeBanner } from "@/features/home/HomeBanner";
 ```
 
 Why: the component imports from two feature folders, so it lives in `src/compositions/`.
@@ -139,10 +139,10 @@ src/
 
 ```tsx
 // src/compositions/contact-page-content.tsx
-import ContactInformation from "@/features/contact/contact-information";
-import OfficeLocation from "@/features/location/office-location";
+import { ContactInformation } from "@/features/contact/contact-information";
+import { OfficeLocation } from "@/features/location/office-location";
 
-export default function ContactPageContent(): React.JSX.Element {
+export function ContactPageContent(): React.JSX.Element {
   return (
     <main>
       <header>
@@ -162,7 +162,7 @@ export default function ContactPageContent(): React.JSX.Element {
 }
 
 // src/app/contact/page.tsx
-import ContactPageContent from "@/compositions/contact-page-content";
+import { ContactPageContent } from "@/compositions/contact-page-content";
 
 export default function Page(): React.JSX.Element {
   return <ContactPageContent />;
@@ -175,10 +175,10 @@ Why: the routing file remains thin while the page composition provides the conta
 
 ```tsx
 // src/compositions/dashboard-page.tsx
-import BillingFeature from "@/features/billing/BillingFeature";
-import StreamFeature from "@/features/stream/StreamFeature";
+import { BillingFeature } from "@/features/billing/BillingFeature";
+import { StreamFeature } from "@/features/stream/StreamFeature";
 
-export default function DashboardPage(): React.JSX.Element {
+export function DashboardPage(): React.JSX.Element {
   return (
     <div>
       <BillingFeature />
@@ -194,8 +194,8 @@ Why: a static wrapper around imports has no behavior or visual purpose of its ow
 
 ```tsx
 // src/app/dashboard/page.tsx
-import BillingFeature from "@/features/billing/BillingFeature";
-import StreamFeature from "@/features/stream/StreamFeature";
+import { BillingFeature } from "@/features/billing/BillingFeature";
+import { StreamFeature } from "@/features/stream/StreamFeature";
 
 export default function Page(): React.JSX.Element {
   return (

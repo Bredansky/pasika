@@ -27,7 +27,7 @@ src/
 │   ├── <component-b>.tsx                  # Dumb component (kebab-case)
 │   ├── <component-part>.tsx               # Dumb component — shared by A and B, so it stays flat too
 │   ├── <NestedComponent>/                 # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
-│   │   ├── index.ts                       # Default-re-exports only the nested parent
+│   │   ├── index.ts                       # Named-re-exports only the nested parent
 │   │   ├── <NestedComponent>.tsx          # Smart (PascalCase) — or kebab-case for dumb
 │   │   ├── <nested-part>.tsx              # Exclusive child — not in index.ts
 │   │   ├── hooks/                         # Nested-scoped support folders
@@ -46,7 +46,7 @@ src/
 │       ├── <component-b>.tsx              # Dumb component (kebab-case)
 │       ├── <component-part>.tsx           # Dumb component — shared by A and B, so it stays flat too
 │       ├── <NestedComponent>/             # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
-│       │   ├── index.ts                   # Default-re-exports only the nested parent
+│       │   ├── index.ts                   # Named-re-exports only the nested parent
 │       │   ├── <NestedComponent>.tsx      # Smart (PascalCase) — or kebab-case for dumb
 │       │   ├── <nested-part>.tsx          # Exclusive child — not in index.ts
 │       │   ├── hooks/                     # Nested-scoped support folders
@@ -64,7 +64,7 @@ src/
 │   ├── <component-b>.tsx                  # Dumb component (kebab-case)
 │   ├── <component-part>.tsx               # Dumb component — shared by A and B, so it stays flat too
 │   ├── <NestedComponent>/                 # Smart (PascalCase) — or kebab-case for dumb; nested only once it gains exclusive children
-│   │   ├── index.ts                       # Default-re-exports only the nested parent
+│   │   ├── index.ts                       # Named-re-exports only the nested parent
 │   │   ├── <NestedComponent>.tsx          # Smart (PascalCase) — or kebab-case for dumb
 │   │   ├── <nested-part>.tsx              # Exclusive child — not in index.ts
 │   │   ├── hooks/                         # Nested-scoped support folders

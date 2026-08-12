@@ -16,7 +16,7 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 
 ```tsx
 // src/features/player/player.tsx
-export default function Player({ src }: PlayerProps): React.JSX.Element {
+export function Player({ src }: PlayerProps): React.JSX.Element {
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
@@ -39,7 +39,7 @@ Why: one coherent player-setup behavior combines subscriptions with resource lif
 
 ```ts
 // src/features/player/hooks/use-player-setup.ts
-export default function usePlayerSetup(src: string): void {
+export function usePlayerSetup(src: string): void {
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
@@ -56,9 +56,9 @@ export default function usePlayerSetup(src: string): void {
 
 ```tsx
 // src/features/player/player.tsx
-import usePlayerSetup from "./hooks/use-player-setup";
+import { usePlayerSetup } from "./hooks/use-player-setup";
 
-export default function Player({ src }: PlayerProps): React.JSX.Element {
+export function Player({ src }: PlayerProps): React.JSX.Element {
   usePlayerSetup(src);
   return <PlayerView />;
 }
@@ -70,7 +70,7 @@ Why: the named hook owns the subscription and resource lifecycle for one coheren
 
 ```ts
 // src/features/billing/hooks/use-invoice-sort.ts
-export default function useInvoiceSort(invoices: Invoice[]): Invoice[] {
+export function useInvoiceSort(invoices: Invoice[]): Invoice[] {
   return useMemo(() => invoices.toSorted(byDate), [invoices]);
 }
 ```
@@ -85,7 +85,7 @@ const useInvoiceSort = (invoices: Invoice[]): Invoice[] => {
   return useMemo(() => invoices.toSorted(byDate), [invoices]);
 };
 
-export default function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
+export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
   const sortedInvoices = useInvoiceSort(invoices);
   return <InvoiceList invoices={sortedInvoices} />;
 }

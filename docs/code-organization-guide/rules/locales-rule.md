@@ -3,7 +3,7 @@
 Without a consistent key convention, locale keys become a mix of role names and text content that is hard to search and easy to misread.
 
 - All locales MUST live in `src/locales/index.ts`.
-- Locales MUST be default-exported as a single `locales` object, with one nested object per feature keyed by that feature's name and never flattened into the parent, so two features can reuse the same key without colliding.
+- Locales MUST be exposed as a single named `locales` object, with one nested object per feature keyed by that feature's name and never flattened into the parent, so two features can reuse the same key without colliding.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
 - Locales for shared and composition components MUST land directly in the `locales` object at the top level — no sub-object namespace.
 - A locale key MUST be camelCase English of the actual text content.
@@ -33,7 +33,7 @@ Why: keys describe element roles, not text content — the key `streamPlayerLive
 
 ```ts
 // src/locales/index.ts
-const locales = {
+export const locales = {
   stream: {
     watchLiveStream: "Дивитись прямий ефір",
     openInWindow: "Відкрити у вікні",
@@ -46,7 +46,6 @@ const locales = {
   dashboardOverview: "Огляд панелі", // composition — no feature namespace
 };
 
-export default locales;
 ```
 
 ```tsx
