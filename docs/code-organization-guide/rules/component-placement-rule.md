@@ -3,7 +3,7 @@
 Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
 - A new component with no existing consumers MUST start in the existing feature folder it belongs to, or in a new feature folder when it introduces a new feature.
-- A component with existing consumers MUST live in the closest common folder (CCF) of its consumers at the same layer or feature domain.
+- A component with existing consumers MUST live in the closest common folder (CCF) of its consumers.
 - A higher-layer consumer in `src/compositions/` or `src/app/` MUST NOT promote a component out of its owning feature or lower layer.
 - A component used by two or more feature domains MUST live in `src/shared/` unless it imports from two or more feature domains itself.
 - A component that imports from two or more feature domains MUST live in `src/compositions/` and is, by definition, a composition.
