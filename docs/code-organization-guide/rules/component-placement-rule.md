@@ -7,7 +7,6 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - When calculating a component’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
-- A UI component used only by one route and not part of a feature or `src/shared/` MUST live in `src/compositions/`, because `src/app/` holds routing files only.
 - A component used by two or more flat components within one feature, `src/compositions/`, or `src/shared/` MUST stay flat in that owning layer or feature.
 - A component used only by one component MUST stay beside that consumer until exclusive children trigger folder nesting.
 - A component inside one feature MUST NOT import from another feature.
@@ -119,26 +118,27 @@ src/app/contact/
 
 Why: the route folder contains ordinary component structure even though `src/app/` is reserved for framework routing files.
 
-## Correct — Thin Route Imports External UI
+## Correct — Thin Route Imports a Feature Component
 
 ```text
 src/
 ├── app/contact/
 │   └── page.tsx
-└── compositions/
-    └── contact-page-content.tsx
+└── features/
+    └── contact/
+        └── contact-page-content.tsx
 ```
 
 ```tsx
 // src/app/contact/page.tsx
-import ContactPageContent from "@/compositions/contact-page-content";
+import ContactPageContent from "@/features/contact/contact-page-content";
 
 export default function Page(): React.JSX.Element {
   return <ContactPageContent />;
 }
 ```
 
-Why: the routing file remains thin while route-specific UI has a valid external owner.
+Why: the routing file remains thin while the contact component lives in its feature folder.
 
 ## Incorrect — Trivial Route Wrapper Forced into a Composition
 
