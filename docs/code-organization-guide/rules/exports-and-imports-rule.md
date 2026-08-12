@@ -2,12 +2,11 @@
 
 Without consistent export and import styles, it is harder to tell what a file contains and how other files should import from it. This rule gives each file type a predictable export style and keeps import paths consistent.
 
-- An ordinary module MUST use named exports only.
+- Files MUST use named exports unless a third-party package requires a different export style for a specific file.
 - A type MUST use a named export, including when its leaf file contains one type.
 - A type, schema, or other aggregation barrel MUST use named re-exports, including when it currently exposes one item.
 - `constants/index.ts` MUST define and expose constants through named exports.
 - `locales/index.ts` MUST expose its `locales` object through a named export.
-- Framework and tool entry files MUST follow the export contract required by their framework or tool.
 - Imports MUST use relative paths for the same folder, a direct subfolder, or one folder up.
 - Imports MUST use the `@/*` alias for anything beyond one folder up.
 - ESLint MUST enforce this rule's export and import restrictions.
