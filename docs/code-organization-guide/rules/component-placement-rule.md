@@ -8,22 +8,13 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A component used only by routing files in `src/app/` MUST live in a feature folder.
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
-- A component used by two or more flat components within one feature, `src/compositions/`, or `src/shared/` MUST stay flat in that owning layer or feature.
+- When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
 - A component used only by one component MUST stay beside that consumer until exclusive children trigger folder nesting.
-- A component inside one feature MUST NOT import from another feature.
-- A component that imports from exactly one foreign feature MUST NOT move to `src/compositions/` merely to bypass the cross-feature restriction; the imported component MUST move to `src/shared/` when it has real cross-feature ownership, or the importing component MUST move into the feature that owns it.
-- Next.js routing files such as `page.tsx`, `layout.tsx`, and `route.ts` MUST live in `src/app/` and follow their framework-required names.
-- Ordinary UI components and support folders MUST NOT live anywhere under `src/app/`.
-- UI routing files MAY import components from `src/compositions/`, `src/features/`, and `src/shared/`.
-- UI routing files MAY contain trivial static layout markup around imported components without creating a composition.
-- Components in `src/compositions/` MAY import from sibling compositions, any feature, and `src/shared/`.
-- Components in `src/features/<feature>/` MAY import from siblings in the same feature and from `src/shared/`.
-- Components in `src/shared/` MAY import only from siblings in `src/shared/`.
-- Components outside `src/app/` MUST NOT import from `src/app/`.
+- A component in a feature folder MUST NOT import from another feature folder.
+- A component that imports from exactly one other feature folder MUST NOT move to `src/compositions/` solely because of that import. If the imported component’s CCF is `src/features/`, it MUST move to `src/shared/`; otherwise, the importing component MUST move into the imported component’s feature folder.
 - Cross-feature and per-layer import constraints MUST be enforced with ESLint rather than code review alone.
-- API-route organization beyond the framework-required `route.ts` location MAY remain unspecified by this rule.
 
-## Incorrect — Composition Affects a Feature Component's CCF
+## Incorrect — Composition Changes a Feature Component's CCF
 
 ```text
 src/
@@ -37,9 +28,14 @@ src/
     └── BillingSummary.tsx
 ```
 
-Why: `BillingSummary` moved to `src/shared/` only because a composition consumes it in addition to its billing sibling, even though both uses still belong to the billing feature.
+```tsx
+// src/features/billing/BillingPanel.tsx
+import BillingSummary from "@/shared/BillingSummary";
+```
 
-## Correct — Feature Component Keeps Directional Ownership
+Why: the composition import is included in `BillingSummary`'s CCF, moving it from the billing feature to `src/shared/`.
+
+## Correct — Composition Does Not Change a Feature Component's CCF
 
 ```text
 src/
@@ -53,11 +49,14 @@ src/
 ```
 
 ```tsx
+// src/features/billing/BillingPanel.tsx
+import BillingSummary from "./BillingSummary";
+
 // src/compositions/Dashboard.tsx
 import BillingSummary from "@/features/billing/BillingSummary";
 ```
 
-Why: the higher composition may consume the billing-owned component without changing its lower-layer ownership.
+Why: the composition import is ignored when calculating `BillingSummary`'s CCF, so it stays in the billing feature folder.
 
 ## Incorrect — Cross-Feature Component Duplicated
 
@@ -86,7 +85,7 @@ src/
     └── status-badge.tsx
 ```
 
-Why: reuse across two feature folders places the component in `src/shared/` without allowing a cross-feature import.
+Why: the component's CCF is `src/features/`, so it lives in `src/shared/`.
 
 ## Incorrect — Multi-Feature Composition Inside One Feature
 
@@ -96,7 +95,7 @@ import BillingPanel from "./BillingPanel";
 import HomeBanner from "@/features/home/HomeBanner";
 ```
 
-Why: the file combines two feature folders, so neither feature can contain it and its cross-feature import is forbidden.
+Why: the component imports from two feature folders, so it cannot live in either feature folder.
 
 ## Correct — Multi-Feature Component in `src/compositions/`
 
@@ -106,9 +105,9 @@ import BillingPanel from "@/features/billing/BillingPanel";
 import HomeBanner from "@/features/home/HomeBanner";
 ```
 
-Why: the component combines two feature folders, so it belongs in the layer allowed to import both.
+Why: the component imports from two feature folders, so it lives in `src/compositions/`.
 
-## Incorrect — Ordinary UI Under `src/app/`
+## Incorrect — Ordinary Component Under `src/app/`
 
 ```text
 src/app/contact/
@@ -158,7 +157,7 @@ export default function DashboardPage(): React.JSX.Element {
 }
 ```
 
-Why: a static wrapper with no behavior or nameable visual meaning adds a file boundary without creating a real composition.
+Why: a static wrapper around imports has no behavior or visual purpose of its own, so it does not need a composition.
 
 ## Correct — Trivial Route Assembly Without a Composition
 
@@ -177,4 +176,4 @@ export default function Page(): React.JSX.Element {
 }
 ```
 
-Why: a static wrapper around imported feature components keeps the route thin and does not require a nameable composition of its own.
+Why: a static wrapper around imported feature components keeps the route thin and does not need a composition.
