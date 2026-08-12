@@ -10,7 +10,7 @@ Without consistent export and import styles, it is harder to tell what a file co
 - Framework and tool entry files MUST follow the export contract required by their framework or tool.
 - Imports MUST use relative paths for the same folder, a direct subfolder, or one folder up.
 - Imports MUST use the `@/*` alias for anything beyond one folder up.
-- The relative-versus-alias boundary MUST be enforced with ESLint rather than code review alone.
+- ESLint MUST enforce this rule's export and import restrictions.
 
 ## Incorrect — Single-Export Utility Uses a Default Export
 
