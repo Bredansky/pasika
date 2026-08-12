@@ -33,7 +33,7 @@ Without a consistent extraction and placement strategy, shared non-component fil
 | Custom hooks   | Inline until a hook extraction trigger applies  | One hook per file in `hooks/`                          | Direct import; no barrel                 |
 | Config         | Always extracted to `src/config/`               | One domain per file                                    | Direct import; no barrel                 |
 
-## Incorrect — Higher-Layer Consumer Promotes a Feature Type
+## Incorrect — Composition Affects a Feature Type's CCF
 
 ```text
 src/

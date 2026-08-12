@@ -23,7 +23,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - Cross-feature and per-layer import constraints MUST be enforced with ESLint rather than code review alone.
 - API-route organization beyond the framework-required `route.ts` location MAY remain unspecified by this rule.
 
-## Incorrect — Higher-Layer Consumer Promotes a Feature Component
+## Incorrect — Composition Affects a Feature Component's CCF
 
 ```text
 src/
