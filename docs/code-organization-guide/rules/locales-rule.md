@@ -60,4 +60,4 @@ locales.acceptAllCookies; // shared — read from the top level
 locales.dashboardOverview; // composition — read from the top level
 ```
 
-Why: each feature domain is a nested object keyed by its own name, so `locales.stream.watchLiveStream` names its owner at the call site and `donation` could reuse `watchLiveStream` without collision. Shared and composition strings sit at the top level because compositions are not named domains. Text-derived camelCase keys stay readable and searchable, while developer judgment handles copy that would produce an unwieldy key.
+Why: each feature folder is a nested object keyed by its own name, so `locales.stream.watchLiveStream` names its owner at the call site and `donation` could reuse `watchLiveStream` without collision. Shared and composition strings sit at the top level because compositions do not have named folders. Text-derived camelCase keys stay readable and searchable, while developer judgment handles copy that would produce an unwieldy key.

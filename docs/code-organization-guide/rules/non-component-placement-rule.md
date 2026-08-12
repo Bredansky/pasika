@@ -7,9 +7,9 @@ Without a consistent extraction and placement strategy, shared non-component fil
 - A constant MUST stay inline in its consuming file while no consumer imports it independently.
 - A pure function MUST always live in the nearest valid `utils/` folder, even when it has one consumer.
 - A custom hook MUST follow the repository's reuse and imperative-complexity extraction triggers.
-- Every extracted non-component file MUST live in the closest common folder (CCF) of its consumers at the same layer or feature domain.
-- A higher-layer consumer in `src/compositions/` or `src/app/` MUST NOT promote a non-component file out of its owning feature or lower layer.
-- A non-component file consumed by two or more feature domains MUST move to the corresponding `src/shared/` support folder.
+- Every extracted non-component file MUST live in the closest common folder (CCF) of its consumers.
+- When calculating a non-component file’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
+- When a non-component file’s CCF is `src/features/`, it MUST move to the corresponding `src/shared/` support folder.
 - A non-component file shared by two or more flat compositions or shared components MUST live in that layer's corresponding support folder.
 - An app-wide non-component file with no lower-layer owner MUST live in the corresponding root folder under `src/`.
 - `src/features/` and `src/app/` MUST NOT contain support folders directly.
