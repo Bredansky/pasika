@@ -13,6 +13,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - `MAY` MUST mean optional.
 - A Rule MUST contain at least one Incorrect/Correct pair.
 - A Rule MAY contain multiple Incorrect/Correct pairs.
+- An Incorrect/Correct pair SHOULD add a concise description after an em dash in both headings, so readers can scan the examples by decision.
 - A Rule MUST NOT link to References, Guides, or other Rules.
 
 ## Incorrect

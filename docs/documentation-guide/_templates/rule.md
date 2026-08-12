@@ -9,7 +9,7 @@
 - [Subject SHOULD NOT ...]
 - [Subject MAY ...]
 
-## Incorrect
+## Incorrect — [Concise example description]
 
 ```[lang]
 // code
@@ -17,7 +17,7 @@
 
 Why: [What makes this incorrect?]
 
-## Correct
+## Correct — [Concise example description]
 
 ```[lang]
 // code
