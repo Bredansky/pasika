@@ -8,7 +8,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
 - When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
-- `src/app/` MUST contain routing files only.
+- `src/app/` MUST contain [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) only.
 - A routing file in `src/app/` MAY import from `src/compositions/`, `src/features/`, `src/shared/`, and root support folders.
 - A component in `src/compositions/` MAY import from sibling compositions, feature folders, `src/shared/`, and root support folders.
 - A component in a feature folder MAY import from the same feature folder, `src/shared/`, and root support folders.
