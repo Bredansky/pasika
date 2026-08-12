@@ -7,7 +7,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - When calculating a component’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
-- A route-specific UI component with no feature or shared owner MUST live in `src/compositions/`, because `src/app/` holds routing files only.
+- A UI component used only by one route and not part of a feature or `src/shared/` MUST live in `src/compositions/`, because `src/app/` holds routing files only.
 - A component used by two or more flat components within one feature, `src/compositions/`, or `src/shared/` MUST stay flat in that owning layer or feature.
 - A component used only by one component MUST stay beside that consumer until exclusive children trigger folder nesting.
 - A component inside one feature MUST NOT import from another feature.
