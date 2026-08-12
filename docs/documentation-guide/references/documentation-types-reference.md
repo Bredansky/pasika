@@ -1,6 +1,6 @@
 # Documentation Types Reference
 
-Use this reference to look up the three standard Markdown document kinds in this repository. It helps authors and reviewers choose a kind by intent and use a consistent layout; Agent Conventions is a special-case document.
+Use this reference to look up the three standard Markdown document kinds in this repository. It helps authors and reviewers choose a kind by intent and use a consistent layout.
 
 | Kind      | Shape                                                                                           | Template                                         |
 | --------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------ |
