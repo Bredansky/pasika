@@ -144,10 +144,20 @@ import OfficeLocation from "@/features/location/office-location";
 
 export default function ContactPageContent(): React.JSX.Element {
   return (
-    <>
-      <ContactInformation />
-      <OfficeLocation />
-    </>
+    <main>
+      <header>
+        <h1>Contact us</h1>
+        <p>Choose how you would like to reach us.</p>
+      </header>
+      <section>
+        <h2>Get in touch</h2>
+        <ContactInformation />
+      </section>
+      <section>
+        <h2>Visit us</h2>
+        <OfficeLocation />
+      </section>
+    </main>
   );
 }
 
@@ -159,7 +169,7 @@ export default function Page(): React.JSX.Element {
 }
 ```
 
-Why: the routing file remains thin while the page composition combines components from two feature folders.
+Why: the routing file remains thin while the page composition provides the contact page layout and combines components from two feature folders.
 
 ## Incorrect — Trivial Route Wrapper Forced into a Composition
 
