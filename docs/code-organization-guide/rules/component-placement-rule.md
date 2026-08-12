@@ -5,11 +5,15 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A new component with no existing consumers MUST start in the existing feature folder it belongs to, or in a new feature folder when it introduces a new feature.
 - A component with existing consumers MUST live in the closest common folder (CCF) of its consumers.
 - When calculating a component’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
-- A component used only by routing files in `src/app/` and not importing from two or more feature folders MUST live in a feature folder.
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
-- A component outside `src/app/` that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
+- A non-routing component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
 - When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
-- A component in a feature folder MUST NOT import from another feature folder.
+- `src/app/` MUST contain routing files only.
+- A routing file in `src/app/` MAY import from `src/compositions/`, `src/features/`, `src/shared/`, and root support folders.
+- A component in `src/compositions/` MAY import from sibling compositions, feature folders, `src/shared/`, and root support folders.
+- A component in a feature folder MAY import from the same feature folder, `src/shared/`, and root support folders.
+- A component in `src/shared/` MAY import from `src/shared/` and root support folders.
+- A component outside `src/app/` MUST NOT import from `src/app/`.
 - ESLint MUST enforce this rule’s feature and layer import restrictions.
 
 ## Incorrect — Composition Changes a Feature Component's CCF
