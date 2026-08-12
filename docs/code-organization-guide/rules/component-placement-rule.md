@@ -113,7 +113,7 @@ Why: the component imports from two feature folders, so it lives in `src/composi
 ```text
 src/app/contact/
 ├── _components/
-│   └── contact-page-content.tsx
+│   └── contact-information.tsx
 └── page.tsx
 ```
 
@@ -127,15 +127,15 @@ src/
 │   └── page.tsx
 └── features/
     └── contact/
-        └── contact-page-content.tsx
+        └── contact-information.tsx
 ```
 
 ```tsx
 // src/app/contact/page.tsx
-import ContactPageContent from "@/features/contact/contact-page-content";
+import ContactInformation from "@/features/contact/contact-information";
 
 export default function Page(): React.JSX.Element {
-  return <ContactPageContent />;
+  return <ContactInformation />;
 }
 ```
 
