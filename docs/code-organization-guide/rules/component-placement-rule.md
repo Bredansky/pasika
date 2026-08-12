@@ -9,7 +9,6 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
 - When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
-- A component used only by one component MUST stay beside that consumer until exclusive children trigger folder nesting.
 - A component in a feature folder MUST NOT import from another feature folder.
 - A component that imports from exactly one other feature folder MUST NOT move to `src/compositions/` solely because of that import. If the imported component’s CCF is `src/features/`, it MUST move to `src/shared/`; otherwise, the importing component MUST move into the imported component’s feature folder.
 - Cross-feature and per-layer import constraints MUST be enforced with ESLint rather than code review alone.
