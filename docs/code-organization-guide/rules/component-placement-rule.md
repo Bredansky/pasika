@@ -29,6 +29,9 @@ src/
 ```tsx
 // src/features/billing/BillingPanel.tsx
 import BillingSummary from "@/shared/BillingSummary";
+
+// src/compositions/Dashboard.tsx
+import BillingSummary from "@/shared/BillingSummary";
 ```
 
 Why: the composition import is included in `BillingSummary`'s CCF, moving it from the billing feature to `src/shared/`.
