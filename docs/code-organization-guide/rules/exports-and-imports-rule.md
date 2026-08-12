@@ -3,7 +3,7 @@
 Without consistent export and import styles, it is harder to tell what a file contains and how other files should import from it. This rule gives each file type a predictable export style and keeps import paths consistent.
 
 - An ordinary module MUST use named exports only.
-- A nested component folder's `index.ts` MUST named-re-export only the nested component.
+- A nested component folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
 - A type MUST use a named export, including when its leaf file contains one type.
 - A type, schema, or other aggregation barrel MUST use named re-exports, including when it currently exposes one item.
 - `constants/index.ts` MUST define and expose constants through named exports.
