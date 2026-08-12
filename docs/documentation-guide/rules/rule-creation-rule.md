@@ -13,10 +13,10 @@ Rules without a consistent creation process invent their own structure and enfor
 - `MAY` MUST mean optional.
 - A Rule MUST contain at least one Incorrect/Correct pair.
 - A Rule MAY contain multiple Incorrect/Correct pairs.
-- An Incorrect/Correct pair SHOULD add a concise description after an em dash in both headings, so readers can scan the examples by decision.
+- An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
 - A Rule MUST NOT link to References, Guides, or other Rules.
 
-## Incorrect
+## Incorrect — Lowercase Requirement Words
 
 ```markdown
 - Authors must remove unused sections.
@@ -25,7 +25,7 @@ Rules without a consistent creation process invent their own structure and enfor
 
 Why: lower-case "must" and "should" do not carry RFC 2119 meaning.
 
-## Correct
+## Correct — RFC 2119 Requirement Words
 
 ```markdown
 - Authors MUST remove unused sections.
@@ -34,7 +34,7 @@ Why: lower-case "must" and "should" do not carry RFC 2119 meaning.
 
 Why: uppercase keywords carry their canonical RFC 2119 meaning.
 
-## Incorrect
+## Incorrect — Rule Links to a Reference
 
 ```markdown
 - Rule bodies MUST follow the guidance in the [Vocabulary Reference](../references/vocabulary-reference.md).
@@ -42,7 +42,7 @@ Why: uppercase keywords carry their canonical RFC 2119 meaning.
 
 Why: rule contains a reference to another Reference.
 
-## Correct
+## Correct — Rule States Its Vocabulary Directly
 
 ```markdown
 - Rule bodies MUST use RFC 2119 vocabulary: MUST, MUST NOT, SHOULD, SHOULD NOT, or MAY.
@@ -50,12 +50,12 @@ Why: rule contains a reference to another Reference.
 
 Why: rule states requirements directly without referencing other docs.
 
-## Incorrect
+## Incorrect — Requirement Repeated in an Explanation
 
 ```markdown
 - A helper file MUST use named exports.
 
-## Incorrect
+## Incorrect — Default Export
 
 // helper.ts
 export default function sum(a, b) {}
@@ -65,12 +65,12 @@ Why: a helper file MUST use named exports, so `export default` is not allowed he
 
 Why: the explanation repeats the bullet's requirement word, so the requirement now lives in two places and a later edit can leave the bullet and the explanation disagreeing about what is required.
 
-## Correct
+## Correct — Requirement Explained in Plain Language
 
 ```markdown
 - A helper file MUST use named exports.
 
-## Incorrect
+## Incorrect — Default Export
 
 // helper.ts
 export default function sum(a, b) {}

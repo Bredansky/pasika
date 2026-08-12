@@ -9,7 +9,7 @@ Every project-owned style needs one implementation owner. This rule decides whet
 - Component recipes MUST NOT become global selectors merely to shorten markup.
 - Literal arbitrary values MUST NOT replace missing project tokens or named utilities in component markup.
 
-## Incorrect
+## Incorrect — Component Recipe Defined Globally
 
 ```css
 /* globals.css */
@@ -20,7 +20,7 @@ Every project-owned style needs one implementation owner. This rule decides whet
 
 Why: a one-off component recipe is separated from the markup that owns it and creates a global selector to maintain.
 
-## Correct
+## Correct — Single-Use Styling Kept with the Component
 
 ```tsx
 <button className="inline-flex rounded-lg px-3 py-2">Save</button>

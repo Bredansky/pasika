@@ -4,7 +4,7 @@ A flat structure duplicated across multiple files turns every change into a mult
 
 - A block of elements MUST be extracted as a named component when the same flat structure appears in two or more places.
 
-## Incorrect
+## Incorrect — Repeated Structure Kept Inline
 
 ```tsx
 // src/features/dashboard/dashboard-view.tsx
@@ -37,7 +37,7 @@ export default function DashboardView({ stats, activity }: DashboardViewProps): 
 
 Why: the `<section>` wrapper plus its `<h2>` + `<ul>` shape appears verbatim in two sibling regions of the same parent. A styling tweak to that wrapper requires editing both call sites and silently breaks if one is missed.
 
-## Correct
+## Correct — Repeated Structure Extracted
 
 ```text
 src/features/dashboard/

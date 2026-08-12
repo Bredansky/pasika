@@ -7,7 +7,7 @@ Some components need to preserve their treatment while rendering as a link, trig
 - A component SHOULD default to its semantically correct native element.
 - A component MAY omit polymorphism when its native element is the only meaningful rendering.
 
-## Incorrect
+## Incorrect — Nested Interactive Elements
 
 ```tsx
 export default function Button({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export default function Button({ children }: { children: React.ReactNode }) {
 
 Why: the result nests interactive elements and changes both the semantic and layout contract.
 
-## Correct
+## Correct — Polymorphic Child Element
 
 ```tsx
 export default function Button({ asChild = false, ...props }: ButtonProps & { asChild?: boolean }) {

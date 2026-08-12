@@ -4,7 +4,7 @@ State owned by a parent but consumed only by a child threads a redundant prop pa
 
 - A block of elements MUST be extracted as a named component and own the state itself when it is the only consumer of that state.
 
-## Incorrect
+## Incorrect — Parent Keeps Child-Only State
 
 ```tsx
 // src/compositions/dashboard-view.tsx
@@ -30,7 +30,7 @@ export default function DashboardView(): React.JSX.Element {
 
 Why: `useState` for `isHelpOpen` lives in `<DashboardView>`, but the only consumer is the inline `<button>` + `<Modal>` block. The block and its state travel together as a unit, so the parent shouldn't carry the state for a block it doesn't own.
 
-## Correct
+## Correct — Child Owns Its State
 
 ```text
 src/compositions/

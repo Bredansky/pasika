@@ -8,7 +8,7 @@ References without a consistent creation process scatter lookup material. This r
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 
-## Incorrect
+## Incorrect — Reference Links to Another Document
 
 ```markdown
 - See the [Naming Rule](../rules/naming-rule.md) for the file naming conventions.
@@ -16,7 +16,7 @@ References without a consistent creation process scatter lookup material. This r
 
 Why: reference body contains a reference to another Rule.
 
-## Correct
+## Correct — Reference States the Lookup Fact Directly
 
 ```markdown
 - File names are kebab-case, match the document title, and have a `-reference` suffix.
@@ -24,7 +24,7 @@ Why: reference body contains a reference to another Rule.
 
 Why: reference states lookup content directly without linking to its source.
 
-## Incorrect
+## Incorrect — Reference Uses Requirement Vocabulary
 
 ```markdown
 | Layer | Contents                                          |
@@ -34,7 +34,7 @@ Why: reference states lookup content directly without linking to its source.
 
 Why: the cell carries RFC 2119 vocabulary, so a Reference asserts a requirement that only a Rule can own, and the same constraint ends up stated in two documents.
 
-## Correct
+## Correct — Reference Describes Existing Content
 
 ```markdown
 | Layer | Contents           |
@@ -44,7 +44,7 @@ Why: the cell carries RFC 2119 vocabulary, so a Reference asserts a requirement 
 
 Why: the cell describes what the layer holds, leaving the requirement to the Rule that owns it.
 
-## Incorrect
+## Incorrect — Single Lookup Block Has a Heading
 
 ```markdown
 # Option Reference
@@ -63,7 +63,7 @@ Pick the size that matches the team's headcount and timeline.
 
 Why: section heading is unnecessary and forces a duplicated intro covering what the reference is for and what the group contains.
 
-## Correct
+## Correct — Single Lookup Block Has No Heading
 
 ```markdown
 # Option Reference
@@ -78,7 +78,7 @@ Use this reference to choose between the two supported project sizes when starti
 
 Why: single lookup block sits directly under the intro without a heading.
 
-## Incorrect
+## Incorrect — First of Multiple Lookup Blocks Has No Heading
 
 ```markdown
 # Option Reference
@@ -102,7 +102,7 @@ Each size carries a different approval bar.
 
 Why: the reference has two lookup blocks but only the second is headed, so the first table reads as part of the intro and cannot be scanned or linked as a group of its own.
 
-## Correct
+## Correct — Every Lookup Block Has a Heading
 
 ```markdown
 # Option Reference

@@ -7,7 +7,7 @@ A flat component that owns exclusive children hides its scope and fragments its 
 - A nested component's private support files MUST live in its folder.
 - The nested folder's `index.ts` MUST default-re-export only the nested component — its children stay imported directly.
 
-## Incorrect
+## Incorrect — Exclusive Children Kept Flat
 
 ```text
 src/features/blog/
@@ -18,7 +18,7 @@ src/features/blog/
 
 Why: `BlogPage` owns children that no sibling uses, but all three files sit as flat siblings. Nothing in the tree shows that `blog-header.tsx` and `blog-footer.tsx` belong to `BlogPage` rather than to any other component in the folder.
 
-## Correct
+## Correct — Exclusive Children Nested
 
 ```text
 src/features/blog/
@@ -32,7 +32,7 @@ src/features/blog/
 
 Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship visible in the filesystem, lets the children stay scoped to their concrete consumer, and gives the folder a barrel that re-exports only the nested component.
 
-## Incorrect
+## Incorrect — Child Re-Exported from the Folder
 
 ```text
 src/features/blog/
@@ -44,7 +44,7 @@ src/features/blog/
 
 Why: the barrel re-exports the child as well as the nested component, so outside consumers can import `blog-header.tsx` through `index.ts` and the child stops being exclusive to `BlogPage`.
 
-## Correct
+## Correct — Only the Parent Re-Exported
 
 ```text
 src/features/blog/

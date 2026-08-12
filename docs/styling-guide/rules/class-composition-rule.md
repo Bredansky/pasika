@@ -11,7 +11,7 @@ Class conditions and caller overrides need one consistent merge point so orderin
 - Components SHOULD group long static class lists by concern inside `cn`.
 - Components MAY keep a short, fully static `className` string inline.
 
-## Incorrect
+## Incorrect — Conditional Classes Concatenated Manually
 
 ```tsx
 <button className={"rounded px-3 " + (active ? "bg-primary" : "bg-muted")} />
@@ -19,7 +19,7 @@ Class conditions and caller overrides need one consistent merge point so orderin
 
 Why: the condition and merge order are embedded in a string expression, which becomes difficult to extend with consumer overrides.
 
-## Correct
+## Correct — Conditional Classes Merged with `cn`
 
 ```tsx
 export default function Card({ className, ...props }: CardProps): React.JSX.Element {

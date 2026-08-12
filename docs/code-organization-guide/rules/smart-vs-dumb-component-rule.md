@@ -12,7 +12,7 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A dumb component MAY own local UI state.
 - Next.js routing files MUST use the framework's required lowercase or kebab-case file names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
-## Incorrect
+## Incorrect — Smart Component Uses a Dumb Name
 
 ```tsx
 // src/features/social/social-stats-panel.tsx
@@ -40,7 +40,7 @@ export default function SocialStatsPanel(): React.JSX.Element {
 
 Why: the file fetches data, which makes it smart, yet it is named `kebab-case.tsx` and its `data-testid` is `social-stats-panel` (kebab) rather than the component name in `PascalCase`. Both the file name and the testid contradict what the file actually does.
 
-## Correct
+## Correct — Smart Component Uses a Smart Name
 
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
@@ -62,7 +62,7 @@ export default function SocialStatsPanel(): React.JSX.Element {
 
 Why: the file fetches data, so it is named `PascalCase.tsx`. Anyone scanning the file tree immediately knows this component owns data-fetching logic, and the `data-testid` on the root element matches the component name in `PascalCase`.
 
-## Incorrect
+## Incorrect — Dumb Component Uses a Smart Name
 
 ```tsx
 // src/features/social/PlatformCard.tsx
@@ -88,7 +88,7 @@ export default function PlatformCard({
 
 Why: the component fetches no data and defines no `handle*` callbacks for its children — it receives the only child callback as an `on*` prop from its parent and holds nothing but local UI state. That makes it dumb, so `PascalCase.tsx` and a `PascalCase` `data-testid` both misname it.
 
-## Correct
+## Correct — Dumb Component Uses a Dumb Name
 
 ```tsx
 // src/features/social/platform-card.tsx

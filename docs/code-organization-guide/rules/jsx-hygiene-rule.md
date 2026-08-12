@@ -6,7 +6,7 @@ Logic mixed into JSX `return` blocks makes the render tree hard to scan and obsc
 - A condition containing at most one logical operator, a single ternary, a single built-in method call, and `cn()` MAY stay inline.
 - Chained built-in method calls MUST be extracted (they count as computation).
 
-## Incorrect
+## Incorrect — Computation in JSX
 
 ```tsx
 return (
@@ -31,7 +31,7 @@ return (
 
 Why: math expressions, chained methods, function calls, nested ternaries, and long guards all belong outside the return.
 
-## Correct
+## Correct — Computation Before `return`
 
 ```tsx
 const daysSinceUpdate = Math.floor((Date.now() - new Date(record.updatedAt).getTime()) / 86400000);

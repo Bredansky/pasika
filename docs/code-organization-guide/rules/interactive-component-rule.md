@@ -4,7 +4,7 @@ Interactive HTML elements buried inside unrelated parent components hide ownersh
 
 - [Interactive HTML elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a named React component.
 
-## Incorrect
+## Incorrect — Interactive Element Kept Inline
 
 ```tsx
 // src/features/layout/header-section.tsx
@@ -34,7 +34,7 @@ export default function HeaderSection({
 
 Why: the `<button>` and the `<input>` are both interactive content per the WHATWG HTML spec, but they sit inside `HeaderSection`'s `<header>` next to elements that have nothing to do with menu activation or searching. Neither interactive element has a name of its own in the file tree, so reviewers and tooling cannot locate "the menu button" or "the search field" as units; any code that toggles or tests them lands inside `header-section.tsx` mixed with header concerns.
 
-## Correct
+## Correct — Interactive Element Extracted
 
 ```text
 src/features/layout/

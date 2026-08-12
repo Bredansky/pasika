@@ -8,7 +8,7 @@ Global CSS is the integration point for Tailwind registration, the project theme
 - Global CSS MUST be ordered as imports, Tailwind and custom-variant registration, theme definitions and selectors, custom utilities, base styles, keyframes, then unavoidable global selectors.
 - Imported global style domains MUST have one owner and MUST NOT duplicate theme values or utilities defined by another domain.
 
-## Incorrect
+## Incorrect — Global Styles Split Across Unrelated Files
 
 ```css
 /* Theme values and component recipes compete across unrelated files. */
@@ -23,7 +23,7 @@ Global CSS is the integration point for Tailwind registration, the project theme
 
 Why: a component recipe sits globally beside an unreset theme, and the stylesheet does not establish a clear integration order.
 
-## Correct
+## Correct — One Global Stylesheet Owns the System
 
 ```css
 @import "tailwindcss";

@@ -9,7 +9,7 @@ Utility classes are most useful when they describe a component's local layout an
 - A missing static design value MUST become an explicit project token or a named custom utility instead of an arbitrary literal in markup.
 - A CSS custom property MAY use Tailwind's custom-property shorthand when a named utility intentionally exposes that property-specific value.
 
-## Incorrect
+## Incorrect — Tailwind Classes Constructed at Runtime
 
 ```tsx
 <div className={`p-${spacing} bg-${tone}`} />
@@ -17,7 +17,7 @@ Utility classes are most useful when they describe a component's local layout an
 
 Why: the class scanner cannot reliably see runtime-built utility names, and the available styles depend on runtime string construction.
 
-## Correct
+## Correct — Static Tailwind Classes
 
 ```tsx
 <div className="bg-muted p-4" />

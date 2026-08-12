@@ -8,7 +8,7 @@ A component file that does too many things becomes hard to find, test, and reuse
 - A companion non-component file that is imported independently of the component MUST be extracted according to its non-component file placement rule.
 - Copied or generated component source MUST follow the same one-component-per-file rule; third-party origin does not create an exception.
 
-## Incorrect
+## Incorrect — Two Components in One File
 
 Two components in one file:
 
@@ -30,7 +30,7 @@ export function MenuItem({ label }: { label: string }): React.JSX.Element {
 
 Why: two components share `menu.tsx`, so a reviewer searching for `MenuItem` cannot find it in the file tree.
 
-## Correct
+## Correct — Extracted Child in Its Own File
 
 One component per file, with the extracted child nested under its owner:
 

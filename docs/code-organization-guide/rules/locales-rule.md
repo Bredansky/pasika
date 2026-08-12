@@ -9,7 +9,7 @@ Without a consistent key convention, locale keys become a mix of role names and 
 - A locale key MUST be camelCase English of the actual text content.
 - A developer MAY use a stable role name when the text-derived key would be unclear or unwieldy; no mechanical length or grammar threshold applies.
 
-## Incorrect
+## Incorrect — Flat Feature Locale Keys
 
 ```ts
 // src/locales/index.ts
@@ -29,7 +29,7 @@ locales.streamPlayerLiveText; // no namespace — collides with any other featur
 
 Why: keys describe element roles, not text content — the key `streamPlayerLiveText` gives no hint what the string says. Spreading `stream` also flattens it away, so the call site cannot tell which feature owns the string and a second feature reusing the key silently overwrites it.
 
-## Correct
+## Correct — Namespaced Feature Locale Keys
 
 ```ts
 // src/locales/index.ts

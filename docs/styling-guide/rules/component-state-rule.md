@@ -7,7 +7,7 @@ Visual state communicates whether a component can be used and what will happen w
 - Components SHOULD use native semantic elements and attributes so browser, keyboard, and assistive-technology behavior matches the visual state.
 - Components MAY accept state props when the state is controlled by their parent.
 
-## Incorrect
+## Incorrect — State Styled Only with Classes
 
 ```tsx
 <Button className={isSaving ? "pointer-events-none opacity-50" : ""}>Save</Button>
@@ -15,7 +15,7 @@ Visual state communicates whether a component can be used and what will happen w
 
 Why: every caller has to reconstruct the saving or disabled treatment, and the button does not receive a semantic disabled state.
 
-## Correct
+## Correct — State Exposed Through Component Props
 
 ```tsx
 <Button disabled={isSaving} loading={isSaving}>

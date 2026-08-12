@@ -10,7 +10,7 @@ Color names should reveal what a utility is safe to do, while keeping broadly re
 - A general-purpose color backed by runtime-selectable theme variables MUST use `@theme inline` so Tailwind utilities remain stable while values change.
 - A one-off background MAY use a `*-canvas` utility directly when it does not form a repeated named surface.
 
-## Incorrect
+## Incorrect — Property-Specific Colors Exposed Broadly
 
 ```css
 @theme {
@@ -26,7 +26,7 @@ Color names should reveal what a utility is safe to do, while keeping broadly re
 
 Why: the names are inconsistent, the document defaults can be applied anywhere, and the repeated button treatment has no single owner.
 
-## Correct
+## Correct — Color Roles Expose Their Intended API
 
 ```css
 :root {

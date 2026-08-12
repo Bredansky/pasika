@@ -4,7 +4,7 @@ Sibling elements that together form a nameable concept but sit unnamed inside a 
 
 - A block of elements SHOULD be extracted as a named component when the elements together form a recognisable, nameable visual concept.
 
-## Incorrect
+## Incorrect — Nameable Visual Block Kept Inline
 
 ```tsx
 // src/features/feed/feed-view.tsx
@@ -24,7 +24,7 @@ export default function FeedView(): React.JSX.Element {
 
 Why: the avatar, username, and timestamp together form the message header concept, but they live as unnamed siblings buried inside `FeedView`, so reviewers cannot find them in the file tree.
 
-## Correct
+## Correct — Nameable Visual Block Extracted
 
 ```text
 src/features/feed/

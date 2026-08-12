@@ -6,7 +6,7 @@ Authoring without a template makes every doc invent its own title, orientation, 
 - Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.
 - Authors MUST delete template branches that do not apply to the document being written.
 
-## Incorrect
+## Incorrect — Template Prompts and Unused Branches Kept
 
 ```markdown
 # Example Guide
@@ -30,7 +30,7 @@ Authoring without a template makes every doc invent its own title, orientation, 
 
 Why: committed doc still contains bracketed prompts, and the unused "Another Workflow" section was not deleted.
 
-## Correct
+## Correct — Template Prompts Replaced and Unused Branches Removed
 
 ```markdown
 # Example Guide

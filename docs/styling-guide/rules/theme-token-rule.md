@@ -10,7 +10,7 @@ Application chrome must remain themeable, while artwork, user content, data, and
 - Content, artwork, user-selected media, data visualization, and faithful third-party visual reproductions MAY use literal colors when color is part of the content itself.
 - Opacity modifiers SHOULD express interaction and layering differences without creating a new semantic token.
 
-## Incorrect
+## Incorrect — Palette Colors Used for Interface Controls
 
 ```tsx
 <Button className="bg-purple-600 text-white hover:bg-purple-500">Save</Button>
@@ -19,7 +19,7 @@ Application chrome must remain themeable, while artwork, user content, data, and
 
 Why: ordinary controls are tied to palette and literal values instead of the project's semantic action, canvas, ink, border, and focus roles.
 
-## Correct
+## Correct — Semantic Tokens Used for Interface Controls
 
 ```tsx
 <Button tone="primary">Save</Button>

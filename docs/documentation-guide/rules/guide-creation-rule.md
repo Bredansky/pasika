@@ -13,7 +13,7 @@ Guides without a consistent creation process invent their own structure. This ru
 - Private Rule files for a Guide MUST live in a `rules/` subfolder inside the Guide's folder.
 - Private Reference files for a Guide MUST live in a `references/` subfolder inside the Guide's folder.
 
-## Incorrect
+## Incorrect — Private Documents Mixed at the Guide Root
 
 ```text
 feature-workflow-guide/
@@ -24,7 +24,7 @@ feature-workflow-guide/
 
 Why: mixed Markdown files turn the doc folder into an undifferentiated list once the doc grows.
 
-## Correct
+## Correct — Private Documents Grouped by Kind
 
 ```text
 feature-workflow-guide/
@@ -37,7 +37,7 @@ feature-workflow-guide/
 
 Why: private support files stay colocated with the entry point while being grouped by document kind.
 
-## Incorrect
+## Incorrect — Step Links to Multiple Documents
 
 ```markdown
 1. Follow the [Naming Rule](rules/naming-rule.md) and the [Layout Rule](rules/layout-rule.md) so the doc looks right.
@@ -45,7 +45,7 @@ Why: private support files stay colocated with the entry point while being group
 
 Why: step links two Rules and does not name a concrete decision or result.
 
-## Correct
+## Correct — Step Links to One Document
 
 ```markdown
 1. Follow the [Naming Rule](rules/naming-rule.md) so the doc has a predictable file name.
@@ -53,7 +53,7 @@ Why: step links two Rules and does not name a concrete decision or result.
 
 Why: step links one Rule and names the concrete result the reader will have.
 
-## Incorrect
+## Incorrect — Nested How To Section
 
 ```markdown
 ## How To Deploy
@@ -65,7 +65,7 @@ Why: step links one Rule and names the concrete result the reader will have.
 
 Why: a How To section nests inside a step of another How To section.
 
-## Correct
+## Correct — Flat How To Sections
 
 ```markdown
 ## How To Deploy
@@ -79,7 +79,7 @@ Why: a How To section nests inside a step of another How To section.
 
 Why: How To sections stay flat and reference each other via links.
 
-## Incorrect
+## Incorrect — Multi-Sentence Step
 
 ```markdown
 1. First, check the configuration file. Then verify all required fields are present. After that, confirm none of the fields contain invalid values.
@@ -87,7 +87,7 @@ Why: How To sections stay flat and reference each other via links.
 
 Why: step uses multiple sentences instead of one concise sentence.
 
-## Correct
+## Correct — Concise Step
 
 ```markdown
 1. Run the config check script.
@@ -95,7 +95,7 @@ Why: step uses multiple sentences instead of one concise sentence.
 
 Why: step is one concise sentence with a concrete action.
 
-## Incorrect
+## Incorrect — Guide Link Omits Its How To Section
 
 ```markdown
 1. Follow the [Build Guide](build-guide.md) to build the project.
@@ -103,7 +103,7 @@ Why: step is one concise sentence with a concrete action.
 
 Why: link points at a Guide file but does not anchor to a specific How To section, so the reader lands on the guide's introduction and has to search for the relevant workflow.
 
-## Correct
+## Correct — Guide Link Targets Its How To Section
 
 ```markdown
 1. Follow [How To Build](build-guide.md#how-to-build) to build the project.

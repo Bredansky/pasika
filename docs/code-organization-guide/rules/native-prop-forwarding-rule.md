@@ -6,7 +6,7 @@ Components that wrap a native element should preserve that element's behavior an
 - A component MUST forward unconsumed native props to its rendered root element.
 - A component MAY add typed component-specific props in addition to its native props.
 
-## Incorrect
+## Incorrect — Native Props Replaced
 
 ```tsx
 type ButtonProps = {
@@ -21,7 +21,7 @@ export default function Button({ label, onClick }: ButtonProps) {
 
 Why: consumers lose native button attributes such as `disabled`, `type`, and accessible labeling because the wrapper invents a smaller interface.
 
-## Correct
+## Correct — Native Props Extended and Forwarded
 
 ```tsx
 type ButtonProps = React.ComponentProps<"button"> & {
