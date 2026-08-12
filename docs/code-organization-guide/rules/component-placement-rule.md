@@ -1,6 +1,6 @@
 # Component Placement Rule
 
-Without a directional placement strategy, higher-layer consumers pull feature components out of their owning domains and cross-feature reuse creates forbidden dependencies. This rule keeps ownership stable while promoting only for real same-level reuse or composition.
+Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
 - A component MUST live in the lowest architectural layer or feature domain that owns its behavior and meaning.
 - A higher-layer consumer in `src/compositions/` or `src/app/` MUST NOT promote a component out of its owning feature or lower layer.
