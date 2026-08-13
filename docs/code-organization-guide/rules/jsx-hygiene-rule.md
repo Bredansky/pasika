@@ -2,9 +2,8 @@
 
 JSX should show the component's structure, not its calculations. This rule moves complex expressions before `return` while keeping simple JSX readable.
 
-- Calculations, method chains, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
+- Calculations, chained built-in method calls, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
 - A condition containing at most one logical operator, a single ternary, a single built-in method call, and `cn()` MAY stay inline.
-- Chained built-in method calls MUST be extracted (they count as computation).
 
 ## Incorrect — Computation in JSX
 
