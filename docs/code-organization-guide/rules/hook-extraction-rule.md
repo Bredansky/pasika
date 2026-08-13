@@ -10,7 +10,6 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 - DOM manipulation MUST include imperative APIs such as `focus()`, `classList`, observers, or imperative rendering.
 - Resource lifecycle MUST include setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, or `getState()`.
 - A single-use custom hook below the two-category threshold MUST stay inline in its consuming component file.
-- An extracted custom hook MUST live in `hooks/` at the owning layer or domain and use one hook per file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
