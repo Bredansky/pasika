@@ -14,6 +14,8 @@ src/features/blog/
   BlogPage.tsx                # owns exclusive children
   blog-header.tsx             # exclusive child — no sibling needs it
   blog-footer.tsx             # exclusive child — no sibling needs it
+  hooks/
+    use-blog-filter.ts        # used only by BlogPage
 ```
 
 Why: `BlogPage` owns children that no sibling uses, but all three files sit as flat siblings. Nothing in the tree shows that `blog-header.tsx` and `blog-footer.tsx` belong to `BlogPage` rather than to any other component in the folder.
@@ -27,9 +29,35 @@ src/features/blog/
     BlogPage.tsx
     blog-header.tsx           # reachable only via its concrete consumer
     blog-footer.tsx           # reachable only via its concrete consumer
+    hooks/
+      use-blog-filter.ts
 ```
 
 Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship visible in the filesystem, lets the children stay scoped to their concrete consumer, and gives the folder a barrel that re-exports only the nested component.
+
+## Incorrect — Support Files Cause Unnecessary Nesting
+
+```text
+src/features/blog/
+  BlogPage/
+    index.ts
+    BlogPage.tsx
+    hooks/
+      use-blog-filter.ts
+```
+
+Why: support files alone do not make `BlogPage` a nested component.
+
+## Correct — Support Files Keep a Component Flat
+
+```text
+src/features/blog/
+  BlogPage.tsx
+  hooks/
+    use-blog-filter.ts
+```
+
+Why: without exclusive children, `BlogPage` stays flat and its support files remain at the feature scope.
 
 ## Incorrect — Exclusive Child Re-Exported
 
