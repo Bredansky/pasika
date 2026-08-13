@@ -30,7 +30,7 @@ export function HeaderSection({
 }
 ```
 
-Why: the `<button>` and the `<input>` are both interactive content per the WHATWG HTML spec, but they sit inside `HeaderSection`'s `<header>` next to elements that have nothing to do with menu activation or searching. Neither interactive element has a name of its own in the file tree, so reviewers and tooling cannot locate "the menu button" or "the search field" as units; any code that toggles or tests them lands inside `header-section.tsx` mixed with header concerns.
+Why: the interactive elements remain mixed into `HeaderSection` instead of having their own components.
 
 ## Correct — Interactive Element Extracted
 
@@ -88,4 +88,4 @@ export function HeaderSection({
 }
 ```
 
-Why: each interactive element now sits inside a named React component whose entire purpose is to own it. `menu-button.tsx` and `search-field.tsx` are the single locations those elements can be found, tested, and refactored from. `HeaderSection` no longer carries their markup inline, so changes to menu interaction don't bleed into search concerns, and a grep for `<button>` no longer returns menu-activation markup mixed in with title and search-input siblings.
+Why: each interactive element now has its own descriptive component, leaving `HeaderSection` to compose them.
