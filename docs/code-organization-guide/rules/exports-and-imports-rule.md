@@ -54,24 +54,24 @@ import { buildSchedule } from "../schedule-builder";
 
 Why: the alias identifies the distant dependency while nearby files keep short relative paths.
 
-## Incorrect — Framework Handler Forced to Default
+## Incorrect — Next.js Page Uses a Named Export
 
-```ts
-// src/app/api/status/route.ts
-export default async function GET(): Promise<Response> {
-  return Response.json({ ok: true });
+```tsx
+// src/app/contact/page.tsx
+export function Page(): React.JSX.Element {
+  return <main>Contact us</main>;
 }
 ```
 
-Why: Next.js requires route handlers to use named HTTP method exports.
+Why: Next.js requires a `page.tsx` file to default-export its page component.
 
-## Correct — Framework Entry Uses Its Required Export
+## Correct — Next.js Page Uses a Default Export
 
-```ts
-// src/app/api/status/route.ts
-export async function GET(): Promise<Response> {
-  return Response.json({ ok: true });
+```tsx
+// src/app/contact/page.tsx
+export default function Page(): React.JSX.Element {
+  return <main>Contact us</main>;
 }
 ```
 
-Why: the route handler follows the export contract Next.js requires.
+Why: the page follows the export contract Next.js requires.
