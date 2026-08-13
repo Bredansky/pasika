@@ -27,7 +27,7 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
         <ul>
           {activity.map((event) => (
             <li key={event.id}>
-              {event.text}
+              {event.label}: {event.value}
             </li>
           ))}
         </ul>
@@ -82,7 +82,9 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
       <Panel title="Recent Activity">
         <ul>
           {activity.map((event) => (
-            <li key={event.id}>{event.text}</li>
+            <li key={event.id}>
+              {event.label}: {event.value}
+            </li>
           ))}
         </ul>
       </Panel>
