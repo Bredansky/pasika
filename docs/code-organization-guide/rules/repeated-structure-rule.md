@@ -11,7 +11,7 @@ Repeated markup can drift when one copy changes and another does not. This rule 
 export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
-      <section className="border-3d bg-card w-full p-6">
+      <section className="w-full rounded border p-6">
         <h2>Stats</h2>
         <ul>
           {stats.map((stat) => (
@@ -22,7 +22,7 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
         </ul>
       </section>
 
-      <section className="border-3d bg-card w-full p-6">
+      <section className="w-full rounded border p-6">
         <h2>Recent Activity</h2>
         <ul>
           {activity.map((event) => (
@@ -53,7 +53,7 @@ import type { ReactNode } from "react";
 
 export function Panel({ title, children }: { title: string; children: ReactNode }): React.JSX.Element {
   return (
-    <section className="border-3d bg-card w-full p-6">
+    <section className="w-full rounded border p-6">
       <h2>{title}</h2>
       {children}
     </section>
