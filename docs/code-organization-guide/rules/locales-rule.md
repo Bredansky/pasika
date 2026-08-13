@@ -14,7 +14,7 @@ When locale strings are scattered across components and constants, they are hard
 // src/locales/index.ts
 export const locales = {
   streamPlayerLiveText: "Дивитись прямий ефір", // role name — gives no hint what the string says
-  ctaButton: "Ви успішно підписалися на оновлення", // role name — gives no hint what the string says
+  ctaButton: "Прийняти всі cookies", // role name — gives no hint what the string says
 };
 ```
 
@@ -33,6 +33,7 @@ export const locales = {
   stream: {
     watchLiveStream: "Дивитись прямий ефір",
   },
+  acceptAllCookies: "Прийняти всі cookies", // shared — direct text-based key
   subscriptionConfirmed: "Ви успішно підписалися на оновлення", // shared — describes the message's purpose
 };
 ```
@@ -41,8 +42,11 @@ export const locales = {
 // src/features/stream/stream-player.tsx
 locales.stream.watchLiveStream; // namespaced by feature
 
+// src/shared/cookie-banner.tsx
+locales.acceptAllCookies; // shared — read from the top level
+
 // src/shared/subscription-form.tsx
 locales.subscriptionConfirmed; // shared — read from the top level
 ```
 
-Why: the stream feature has its own namespace, while the shared string stays at the top level. `subscriptionConfirmed` describes the message's purpose because a direct translation would be unwieldy.
+Why: the stream feature has its own namespace, while shared strings stay at the top level. `acceptAllCookies` is based on the text, while `subscriptionConfirmed` describes the message's purpose because a direct translation would be unwieldy.
