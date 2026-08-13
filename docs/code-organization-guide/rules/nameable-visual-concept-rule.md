@@ -1,8 +1,8 @@
 # Nameable Visual Concept Rule
 
-Sibling elements that together form a nameable concept but sit unnamed inside a parent become unsearchable as a unit and lose their semantic identity. This rule fixes extraction on the nameable-visual-concept trigger.
+Some groups of elements form a clear visual unit but have no name in the file tree. This rule recommends extracting those groups into descriptive components.
 
-- A block of elements SHOULD be extracted as a named component when the elements together form a recognisable, nameable visual concept.
+- A block of elements SHOULD be extracted to a component with a descriptive name when it forms a recognizable visual unit.
 
 ## Incorrect — Nameable Visual Block Kept Inline
 
@@ -22,7 +22,7 @@ export function FeedView(): React.JSX.Element {
 }
 ```
 
-Why: the avatar, username, and timestamp together form the message header concept, but they live as unnamed siblings buried inside `FeedView`, so reviewers cannot find them in the file tree.
+Why: the avatar, username, and timestamp form a message header but remain inline in `FeedView`.
 
 ## Correct — Nameable Visual Block Extracted
 
@@ -63,4 +63,4 @@ export function MessageHeader(): React.JSX.Element {
 }
 ```
 
-Why: the avatar/username/timestamp group now has a name (`MessageHeader`) and its own file, so reviewers can locate the header unit independently of `FeedView`. `MessageHeader` is exclusive to `FeedView`, so `FeedView` becomes a folder whose barrel exposes only the parent.
+Why: `MessageHeader` gives the group a clear name and its own file, while `FeedView` only composes it.
