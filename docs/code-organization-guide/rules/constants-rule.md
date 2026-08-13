@@ -4,7 +4,9 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 
 - A constant MUST stay in the file that uses it until another file imports it.
 - Extracted constants MUST live in a `constants/` folder at the closest common folder (CCF) of their consumers and be named-exported from its `index.ts`.
-- When calculating a constant's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
+- Imports from routing files in `src/app/` MUST NOT affect a constant's CCF.
+- When a constant is imported both inside and outside `src/compositions/`, its CCF MUST be calculated only from imports outside `src/compositions/`.
+- When a constant is imported only in `src/compositions/`, its CCF MUST be calculated from those imports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
 - Constants that describe one concept MAY be grouped in one file and named-re-exported from `constants/index.ts`.
 
@@ -61,4 +63,4 @@ export const overdueLabel = "Overdue";
 import { overdueLabel } from "@/features/billing/constants";
 ```
 
-Why: the composition import is ignored, so the constant stays in the billing feature.
+Why: the constant is also imported outside `src/compositions/`, so only that import determines its CCF.
