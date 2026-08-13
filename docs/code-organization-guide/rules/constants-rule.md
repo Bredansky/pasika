@@ -1,6 +1,6 @@
 # Constants Rule
 
-Constants stay in the file that uses them until another file needs them. This rule gives extracted constants one predictable module at the right scope.
+Duplicated constants are hard to keep in sync, while extracting every single-use value creates unnecessary files. This rule keeps reused constants in one module and leaves single-use values close to their consumer.
 
 - A constant MUST stay inline in its consuming file while no consumer imports it independently.
 - An extracted constant MUST live in the closest common folder (CCF) of its consumers.
