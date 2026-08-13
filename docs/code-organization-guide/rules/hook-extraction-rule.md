@@ -9,7 +9,7 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 - External I/O and persistence MUST include network requests, asynchronous reads or writes, and browser storage.
 - DOM manipulation MUST include imperative APIs such as `focus()`, `classList`, observers, or imperative rendering.
 - Resource lifecycle MUST include setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, or `getState()`.
-- A single-use custom hook below the two-category threshold MUST stay inline in its consuming component file.
+- A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consuming component file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
@@ -64,6 +64,41 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 ```
 
 Why: the named hook owns the subscription and resource lifecycle for one coherent behavior, keeping the component focused on rendering.
+
+## Incorrect — Reused Hook Kept Inline
+
+```tsx
+// src/features/billing/invoice.tsx
+const useInvoiceSort = (invoices: Invoice[]): Invoice[] => {
+  return useMemo(() => invoices.toSorted(byDate), [invoices]);
+};
+
+// src/features/billing/invoice-summary.tsx
+const useInvoiceSort = (invoices: Invoice[]): Invoice[] => {
+  return useMemo(() => invoices.toSorted(byDate), [invoices]);
+};
+```
+
+Why: two components use the same hook behavior, so keeping it inline duplicates it.
+
+## Correct — Reused Hook Extracted
+
+```ts
+// src/features/billing/hooks/use-invoice-sort.ts
+export function useInvoiceSort(invoices: Invoice[]): Invoice[] {
+  return useMemo(() => invoices.toSorted(byDate), [invoices]);
+}
+```
+
+```tsx
+// src/features/billing/invoice.tsx
+import { useInvoiceSort } from "./hooks/use-invoice-sort";
+
+// src/features/billing/invoice-summary.tsx
+import { useInvoiceSort } from "./hooks/use-invoice-sort";
+```
+
+Why: the hook has two consumers, so it has its own file.
 
 ## Incorrect — Simple Single-Use Hook Extracted
 
