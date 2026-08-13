@@ -2,7 +2,7 @@
 
 Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them private to that folder.
 
-- A flat component MUST be nested in its own folder when it gains one or more exclusive children that no sibling needs.
+- A flat component MUST be nested in a folder with the same name when it gains one or more exclusive children that no sibling needs.
 - Support files alone MUST NOT cause a component to be nested.
 - A nested component's private support files MUST live in its folder.
 - The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
