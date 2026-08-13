@@ -1,6 +1,6 @@
 # Interactive Component Rule
 
-Inline interactive elements are easy to miss in review and hard to locate as units. This rule gives each interactive element its own named component.
+Large component files need a clear way to decide what to extract first. This rule treats interactive elements as meaningful component boundaries instead of extracting arbitrary layout elements.
 
 - [Interactive HTML elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.
 
