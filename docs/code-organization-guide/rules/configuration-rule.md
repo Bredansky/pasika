@@ -36,4 +36,4 @@ export const homeFeedConfig = homeFeedConfigSchema.parse({
 });
 ```
 
-Why: the configuration object and its supporting schema are grouped under one dedicated folder.
+Why: the configuration object and its supporting schema are grouped in the same configuration folder.
