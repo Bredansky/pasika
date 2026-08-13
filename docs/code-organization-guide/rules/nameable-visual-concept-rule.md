@@ -1,8 +1,8 @@
 # Nameable Visual Concept Rule
 
-Some groups of elements form a clear visual unit but have no name in the file tree. This rule recommends extracting those groups into descriptive components.
+Some groups of elements can be given a clear component name but have no file of their own. This rule recommends extracting those groups into descriptive components.
 
-- A block of elements SHOULD be extracted to a component with a descriptive name when it forms a recognizable visual unit.
+- A block of elements SHOULD be extracted to a component when one clear name describes the whole block.
 
 ## Incorrect — Nameable Visual Block Kept Inline
 
