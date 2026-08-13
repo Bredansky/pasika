@@ -2,23 +2,16 @@
 
 Non-component files need clear rules for when to leave them inline and where to put them after extraction. This rule places types, schemas, constants, utilities, hooks, and config consistently.
 
-## Extraction
-
+- Extraction MUST be decided before closest common folder (CCF) placement is calculated.
 - A type or schema MUST stay inline in its component file while no consumer imports it independently of that component.
 - A constant MUST stay inline in its consuming file while no consumer imports it independently.
 - A pure function MUST be extracted to `utils/`, even when it has one consumer.
-
-## Placement
-
 - Every extracted non-component file MUST live in the closest common folder (CCF) of its consumers.
 - When calculating a non-component file’s CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a non-component file’s CCF is `src/features/`, it MUST move to the corresponding `src/shared/` support folder.
 - An app-wide non-component file that does not belong to a feature, composition, or shared component MUST live in the corresponding root folder under `src/`.
 - Configuration values — hardcoded application data, environment parsing, and third-party service settings — MUST live in `src/config/` regardless of consumers.
 - Configuration values MUST NOT be duplicated into `constants/`.
-
-## File Structure
-
 - Extracted constants MUST be defined directly in the `constants/index.ts` at their CCF with named exports.
 - Types and schemas MUST use leaf files plus a named-export `index.ts` barrel at their CCF.
 - Pure utilities and custom hooks MUST be imported directly without a barrel.
