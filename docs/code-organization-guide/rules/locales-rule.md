@@ -1,6 +1,6 @@
 # Locales Rule
 
-Without a consistent structure, locale keys can hide which feature owns them and describe UI roles instead of text. This rule keeps feature locales namespaced and keys readable.
+When locale strings are scattered across components and constants, they are hard to find and keep consistent. This rule keeps them in one central file, puts each feature's strings together, and uses readable keys.
 
 - All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
 - A feature's locales MUST live in an object named after its feature folder.
