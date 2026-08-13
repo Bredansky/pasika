@@ -82,7 +82,13 @@ src/
 ├── schemas/                               # App-wide validation schemas
 ├── constants/                             # App-wide constants
 ├── utils/                                 # App-wide pure functions
-├── config/                                # App-wide configuration
+├── config/                                # Configuration objects that centralize application behavior
+│   ├── <config-name>.ts                   # Config object without support files
+│   └── <config-name>/                     # Config object with support files
+│       ├── index.ts                       # Config object
+│       ├── types/                         # Config-only TypeScript types
+│       ├── schemas/                       # Config-only validation schemas
+│       └── utils/                         # Config-only pure functions
 └── locales/                               # App-wide locale strings
     └── index.ts                           # Single locale-registration file
 ```

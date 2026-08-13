@@ -2,8 +2,8 @@
 
 Configuration objects centralize values that control application behavior. This rule keeps each object and the files that only support it together in `src/config/`.
 
-- A configuration object that centralizes values used to control application behavior MUST live in `src/config/`.
-- A configuration object with supporting types, schemas, or utilities MUST use one dedicated folder under `src/config/`.
+- `src/config/` MUST contain configuration objects that centralize values used to control application behavior.
+- A configuration object with supporting types, schemas, or utilities MUST use `src/config/<config-name>/index.ts`; its supporting files MUST live in `src/config/<config-name>/`.
 
 ## Incorrect — Supporting Schema Outside Its Config Folder
 
