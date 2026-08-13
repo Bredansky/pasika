@@ -3,17 +3,19 @@
 Configuration objects centralize values that control application behavior. This rule keeps each object and the files that only support it together in `src/config/`.
 
 - `src/config/` MUST contain configuration objects that centralize values used to control application behavior.
-- A configuration object with supporting types, schemas, or utilities MUST use `src/config/<config-name>/index.ts`; its supporting files MUST live in `src/config/<config-name>/`.
+- A configuration object MUST use `src/config/<config-name>/index.ts`.
+- A configuration object's supporting types, schemas, and utilities MUST live in `src/config/<config-name>/`.
 
 ## Incorrect — Supporting Schema Outside Its Config Folder
 
 ```text
 src/config/
-├── home-feed.ts
+├── home-feed/
+│   └── index.ts
 └── home-feed-schema.ts
 ```
 
-Why: the configuration object and its schema are separate files without a dedicated folder to group them.
+Why: the schema sits outside the `home-feed/` configuration folder.
 
 ## Correct — Configuration Object with Its Supporting Schema
 

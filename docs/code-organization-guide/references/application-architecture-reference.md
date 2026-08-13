@@ -83,8 +83,7 @@ src/
 ├── constants/                             # App-wide constants
 ├── utils/                                 # App-wide pure functions
 ├── config/                                # Configuration objects that centralize application behavior
-│   ├── <config-name>.ts                   # Config object without support files
-│   └── <config-name>/                     # Config object with support files
+│   └── <config-name>/                     # One folder per configuration object
 │       ├── index.ts                       # Config object
 │       ├── types/                         # Config-only TypeScript types
 │       ├── schemas/                       # Config-only validation schemas
