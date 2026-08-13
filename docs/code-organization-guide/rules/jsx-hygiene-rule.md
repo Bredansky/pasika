@@ -1,8 +1,8 @@
 # JSX Hygiene Rule
 
-Logic mixed into JSX `return` blocks makes the render tree hard to scan and obscures the component's structure.
+JSX should show the component's structure, not its calculations. This rule moves complex expressions before `return` while keeping simple JSX readable.
 
-- Math expressions, method chains, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
+- Calculations, method chains, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
 - A condition containing at most one logical operator, a single ternary, a single built-in method call, and `cn()` MAY stay inline.
 - Chained built-in method calls MUST be extracted (they count as computation).
 
@@ -29,7 +29,7 @@ return (
 );
 ```
 
-Why: math expressions, chained methods, function calls, nested ternaries, and long guards all belong outside the return.
+Why: calculations, chained methods, function calls, nested ternaries, and long guards all belong outside the return.
 
 ## Correct — Computation Before `return`
 
@@ -57,7 +57,6 @@ return (
       {updatedLabel} — {total}
     </p>
     {statusView}
-    <span>{video.title.toUpperCase()}</span>
     {items.map((item) => (
       <li>{item.name}</li>
     ))}
@@ -70,4 +69,4 @@ return (
 );
 ```
 
-Why: every math expression, chained method, custom function call, and nested ternary now resolves before the return, so only simple conditions, single method calls, and `cn()` stay inline.
+Why: calculations, chained methods, custom function calls, and nested ternaries now resolve before the return, so only simple conditions, single method calls, and `cn()` stay inline.
