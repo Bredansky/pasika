@@ -1,11 +1,11 @@
 # Locales Rule
 
-Without a consistent key convention, locale keys become a mix of role names and text content that is hard to search and easy to misread.
+Without a consistent structure, locale keys can hide which feature owns them and describe UI roles instead of text. This rule keeps feature locales namespaced and keys readable.
 
-- All locales MUST live in `src/locales/index.ts`.
-- Locales MUST be exposed as a single named `locales` object, with one nested object per feature keyed by that feature's name and never flattened into the parent, so two features can reuse the same key without colliding.
+- All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
+- A feature's locales MUST live in an object named after its feature folder.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
-- Locales for shared and composition components MUST land directly in the `locales` object at the top level — no sub-object namespace.
+- Locales used by `src/shared/` components or `src/compositions/` components MUST live at the top level of `locales`.
 - A locale key MUST be camelCase English of the actual text content.
 - A developer MAY use a stable role name when the text-derived key would be unclear or unwieldy; no mechanical length or grammar threshold applies.
 
@@ -13,11 +13,8 @@ Without a consistent key convention, locale keys become a mix of role names and 
 
 ```ts
 // src/locales/index.ts
-const stream = {
-  streamPlayerLiveText: "Дивитись прямий ефір", // role name — gives no hint what the string says
-};
 export const locales = {
-  ...stream, // spread — the stream namespace is lost
+  streamPlayerLiveText: "Дивитись прямий ефір", // role name — gives no hint what the string says
   ctaButton: "Прийняти всі cookies", // role name — gives no hint what the string says
 };
 ```
@@ -27,7 +24,7 @@ export const locales = {
 locales.streamPlayerLiveText; // no namespace — collides with any other feature that picks this key
 ```
 
-Why: keys describe element roles, not text content — the key `streamPlayerLiveText` gives no hint what the string says. Spreading `stream` also flattens it away, so the call site cannot tell which feature owns the string and a second feature reusing the key silently overwrites it.
+Why: keys describe element roles instead of text, and the flat structure does not show that `streamPlayerLiveText` belongs to the stream feature.
 
 ## Correct — Namespaced Feature Locale Keys
 
@@ -59,4 +56,4 @@ locales.acceptAllCookies; // shared — read from the top level
 locales.dashboardOverview; // composition — read from the top level
 ```
 
-Why: each feature folder is a nested object keyed by its own name, so `locales.stream.watchLiveStream` names its owner at the call site and `donation` could reuse `watchLiveStream` without collision. Shared and composition strings sit at the top level because compositions do not have named folders. Text-derived camelCase keys stay readable and searchable, while developer judgment handles copy that would produce an unwieldy key.
+Why: each feature has its own namespace, while locales used by shared and composition components stay at the top level. Text-derived camelCase keys remain readable, and a stable role name is available when a text-derived key would be unclear.
