@@ -6,7 +6,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - Extracted constants MUST live in a `constants/` folder at the closest common folder (CCF) of their consumers and be named-exported from its `index.ts`.
 - When calculating a constant's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
-- If only some constants from a grouped file need a new placement, those constants MUST be split into their own file before moving.
+- Constants that describe one concept MAY be grouped in one file and named-re-exported from `constants/index.ts`.
 
 ## Incorrect — Constant Imported Without `constants/index.ts`
 
