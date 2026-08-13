@@ -3,7 +3,7 @@
 Configuration objects centralize values that control application behavior. This rule keeps each object and the files that only support it together in `src/config/`.
 
 - A configuration object that centralizes values used to control application behavior MUST live in `src/config/`.
-- A configuration object MAY have a folder under `src/config/` for types, schemas, and utilities that support only that object.
+- A configuration object with supporting types, schemas, or utilities MUST use one dedicated folder under `src/config/`.
 
 ## Incorrect — Platform Settings Stored as Constants
 
