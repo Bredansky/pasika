@@ -1,10 +1,10 @@
 # Native Prop Forwarding Rule
 
-Components that wrap a native element should preserve that element's behavior and attributes instead of recreating a smaller custom interface. This rule keeps native capabilities available to consumers.
+When a component renders a native element, a smaller custom prop interface can hide capabilities that consumers need. This rule preserves native props while allowing focused component-specific props.
 
-- A component rooted in a native element MUST extend that element's native component props.
+- A component that renders a native root element MUST include that element's native props in its props type.
 - A component MUST forward unconsumed native props to its rendered root element.
-- A component MAY add typed component-specific props in addition to its native props.
+- A component MAY add component-specific props alongside its native props.
 
 ## Incorrect — Native Props Replaced
 
@@ -19,7 +19,7 @@ export function Button({ label, onClick }: ButtonProps) {
 }
 ```
 
-Why: consumers lose native button attributes such as `disabled`, `type`, and accessible labeling because the wrapper invents a smaller interface.
+Why: the custom interface leaves out native button props such as `disabled`, `type`, and accessible labels.
 
 ## Correct — Native Props Extended and Forwarded
 
@@ -33,4 +33,4 @@ export function Button({ className, loading, disabled, ...props }: ButtonProps) 
 }
 ```
 
-Why: the component preserves the native button contract while adding a focused component-specific state.
+Why: the component forwards its unused native props while adding the `loading` state it needs.
