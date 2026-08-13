@@ -51,13 +51,23 @@ src/features/dashboard/
 
 ```tsx
 // src/features/dashboard/dashboard-view/panel.tsx
-import type { ReactNode } from "react";
+type PanelItem = {
+  id: string;
+  label: string;
+  value: string | number;
+};
 
-export function Panel({ title, children }: { title: string; children: ReactNode }): React.JSX.Element {
+export function Panel({ title, items }: { title: string; items: PanelItem[] }): React.JSX.Element {
   return (
     <section className="w-full rounded border p-6">
       <h2>{title}</h2>
-      {children}
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            {item.label}: {item.value}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -70,27 +80,11 @@ import { Panel } from "./panel";
 export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
-      <Panel title="Stats">
-        <ul>
-          {stats.map((stat) => (
-            <li key={stat.id}>
-              {stat.label}: {stat.value}
-            </li>
-          ))}
-        </ul>
-      </Panel>
-      <Panel title="Recent Activity">
-        <ul>
-          {activity.map((event) => (
-            <li key={event.id}>
-              {event.label}: {event.value}
-            </li>
-          ))}
-        </ul>
-      </Panel>
+      <Panel title="Stats" items={stats} />
+      <Panel title="Recent Activity" items={activity} />
     </main>
   );
 }
 ```
 
-Why: `Panel` owns the shared section structure, while each call site provides its own title and list.
+Why: `Panel` owns the shared section, heading, and list structure, while each call site supplies only its title and items.
