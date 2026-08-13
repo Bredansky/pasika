@@ -27,7 +27,6 @@ src/features/blog/
     BlogPage.tsx
     blog-header.tsx           # reachable only via its concrete consumer
     blog-footer.tsx           # reachable only via its concrete consumer
-    hooks/                    # private support files
 ```
 
 Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship visible in the filesystem, lets the children stay scoped to their concrete consumer, and gives the folder a barrel that re-exports only the nested component.
