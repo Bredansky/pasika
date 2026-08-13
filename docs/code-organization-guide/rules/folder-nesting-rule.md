@@ -31,26 +31,24 @@ src/features/blog/
 
 Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship visible in the filesystem, lets the children stay scoped to their concrete consumer, and gives the folder a barrel that re-exports only the nested component.
 
-## Incorrect — Child Re-Exported from the Folder
+## Incorrect — Exclusive Child Re-Exported
 
-```text
-src/features/blog/
-  BlogPage/
-    index.ts                  # re-exports BlogPage.tsx and blog-header.tsx
-    BlogPage.tsx
-    blog-header.tsx
+```ts
+// src/features/blog/BlogPage/index.ts
+export { BlogPage } from "./BlogPage";
+export { BlogHeader } from "./blog-header";
 ```
 
 Why: the barrel re-exports the child as well as the nested component, so outside consumers can import `blog-header.tsx` through `index.ts` and the child stops being exclusive to `BlogPage`.
 
-## Correct — Only the Parent Re-Exported
+## Correct — Only the Nested Component Re-Exported
 
-```text
-src/features/blog/
-  BlogPage/
-    index.ts                  # re-exports only BlogPage.tsx
-    BlogPage.tsx
-    blog-header.tsx           # imported directly by BlogPage.tsx
+```tsx
+// src/features/blog/BlogPage/index.ts
+export { BlogPage } from "./BlogPage";
+
+// src/features/blog/BlogPage/BlogPage.tsx
+import { BlogHeader } from "./blog-header";
 ```
 
 Why: the barrel exposes only the nested component, so the child stays private to the folder and is imported by path from its concrete consumer.
