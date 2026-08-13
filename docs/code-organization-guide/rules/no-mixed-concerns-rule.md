@@ -59,4 +59,4 @@ export function Menu(): React.JSX.Element {
 }
 ```
 
-Why: each component owns its file, so `Menu` and `MenuItem` are independently searchable and importable. `MenuItem` is exclusive to `Menu`, so `Menu` becomes a folder whose barrel exposes only the parent.
+Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable and importable.
