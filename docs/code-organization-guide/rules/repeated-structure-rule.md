@@ -26,7 +26,9 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
         <h2>Recent Activity</h2>
         <ul>
           {activity.map((event) => (
-            <li key={event.id}>{event.text}</li>
+            <li key={event.id}>
+              {event.text}
+            </li>
           ))}
         </ul>
       </section>
