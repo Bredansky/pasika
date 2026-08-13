@@ -32,16 +32,9 @@ Why: keys describe element roles instead of text, and the flat structure does no
 export const locales = {
   stream: {
     watchLiveStream: "Дивитись прямий ефір",
-    openInWindow: "Відкрити у вікні",
   },
-  donation: {
-    recentActivity: "Остання активність",
-    noResultsFound: "Результатів не знайдено",
-  },
-  acceptAllCookies: "Прийняти всі cookies", // shared — no feature namespace
-  dashboardOverview: "Огляд панелі", // composition — no feature namespace
+  acceptAllCookies: "Прийняти всі cookies", // shared — top level
 };
-
 ```
 
 ```tsx
@@ -50,9 +43,6 @@ locales.stream.watchLiveStream; // namespaced by feature
 
 // src/shared/cookie-banner.tsx
 locales.acceptAllCookies; // shared — read from the top level
-
-// src/compositions/dashboard-view.tsx
-locales.dashboardOverview; // composition — read from the top level
 ```
 
-Why: each feature has its own namespace, while locales used by shared and composition components stay at the top level. Text-derived camelCase keys remain readable, and a stable role name is available when a text-derived key would be unclear.
+Why: the stream feature has its own namespace, while the shared string stays at the top level. Text-derived camelCase keys remain readable, and a stable role name is available when a text-derived key would be unclear.
