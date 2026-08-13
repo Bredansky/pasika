@@ -4,18 +4,22 @@ Configuration objects centralize values that control application behavior. This 
 
 - A configuration object that centralizes values used to control application behavior MUST live in `src/config/`.
 - A configuration object with supporting types, schemas, or utilities MUST use one dedicated folder under `src/config/`.
+- A consumer of a value defined by a configuration object MUST read that value from the configuration object.
 
-## Incorrect — Platform Settings Stored as Constants
+## Incorrect — Platform Setting Duplicated Outside Its Config
 
-```ts
-// src/constants/platforms.ts
-export const youtubeUrl = "https://www.youtube.com/@karaylo/live";
-export const twitchUrl = "https://www.twitch.tv/karaylo";
+```tsx
+// src/features/stream/components/youtube-button.tsx
+const youtubeUrl = "https://www.youtube.com/@karaylo/live";
+
+export function YouTubeButton(): React.JSX.Element {
+  return <a href={youtubeUrl}>YouTube</a>;
+}
 ```
 
-Why: platform labels and URLs are centralized application settings, not unrelated constants.
+Why: the component creates its own copy instead of using the centralized platform setting.
 
-## Correct — Platform Settings in `src/config/`
+## Correct — Platform Setting Read from Its Config
 
 ```ts
 // src/config/platform-config.ts
@@ -31,4 +35,13 @@ export const PLATFORM_CONFIG = {
 };
 ```
 
-Why: the configuration object keeps application settings together in `src/config/`.
+```tsx
+// src/features/stream/components/youtube-button.tsx
+import { PLATFORM_CONFIG } from "@/config/platform-config";
+
+export function YouTubeButton(): React.JSX.Element {
+  return <a href={PLATFORM_CONFIG.youtube.url}>YouTube</a>;
+}
+```
+
+Why: the component reads the centrally maintained platform setting.
