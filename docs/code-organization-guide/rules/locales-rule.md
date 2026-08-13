@@ -6,8 +6,7 @@ When locale strings are scattered across components and constants, they are hard
 - A feature's locales MUST live in an object named after its feature folder.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
 - Locales used by `src/shared/` components or `src/compositions/` components MUST live at the top level of `locales`.
-- A locale key MUST be camelCase English of the actual text content.
-- A developer MAY use a stable role name when the text-derived key would be unclear or unwieldy; no mechanical length or grammar threshold applies.
+- A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the element's purpose instead.
 
 ## Incorrect — Flat Feature Locale Keys
 
