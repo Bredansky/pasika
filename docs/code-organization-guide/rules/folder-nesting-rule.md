@@ -1,6 +1,6 @@
 # Folder Nesting Rule
 
-A flat component that owns exclusive children hides its scope and fragments its children's ownership. This rule nests a flat component into its own folder as soon as it gains any child that no sibling needs.
+Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them private to that folder.
 
 - A flat component MUST be nested in its own folder when it gains one or more exclusive children that no sibling needs.
 - Support files alone MUST NOT cause a component to be nested.
