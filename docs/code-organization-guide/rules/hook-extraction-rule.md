@@ -109,6 +109,16 @@ export function useInvoiceSort(invoices: Invoice[]): Invoice[] {
 }
 ```
 
+```tsx
+// src/features/billing/invoice.tsx
+import { useInvoiceSort } from "./hooks/use-invoice-sort";
+
+export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
+  const sortedInvoices = useInvoiceSort(invoices);
+  return <InvoiceList invoices={sortedInvoices} />;
+}
+```
+
 Why: the hook has one consumer and no imperative category, so its separate file adds indirection before an extraction trigger exists.
 
 ## Correct — Simple Single-Use Hook Inline
