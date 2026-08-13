@@ -3,6 +3,7 @@
 Pure functions should not be hidden in component files. This rule extracts them to a predictable `utils/` folder and keeps their imports direct.
 
 - A pure function MUST be extracted to `utils/`, even when it has one consumer.
+- A utility used only by a configuration object MUST stay with that object in `src/config/`.
 - An extracted utility MUST live in the closest common folder (CCF) of its consumers.
 - When calculating a utility's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a utility's CCF is `src/features/`, it MUST move to `src/shared/utils/`.

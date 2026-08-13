@@ -1,9 +1,9 @@
 # Configuration Rule
 
-Configuration is application data and settings, not behavior that belongs to a component or feature. This rule keeps it together in one app-wide location.
+Configuration objects centralize values that control application behavior. This rule keeps each object and the files that only support it together in `src/config/`.
 
-- Configuration values — hardcoded application data, environment parsing, and third-party service settings — MUST live in `src/config/` regardless of consumers.
-- Configuration values MUST NOT be duplicated in `constants/`.
+- A configuration object that centralizes values used to control application behavior MUST live in `src/config/`.
+- A configuration object MAY have a folder under `src/config/` for types, schemas, and utilities that support only that object.
 
 ## Incorrect — Platform Settings Stored as Constants
 
@@ -13,7 +13,7 @@ export const youtubeUrl = "https://www.youtube.com/@karaylo/live";
 export const twitchUrl = "https://www.twitch.tv/karaylo";
 ```
 
-Why: platform labels and URLs are application settings, not general constants.
+Why: platform labels and URLs are centralized application settings, not unrelated constants.
 
 ## Correct — Platform Settings in `src/config/`
 
@@ -31,4 +31,4 @@ export const PLATFORM_CONFIG = {
 };
 ```
 
-Why: application settings have one predictable location and stay together.
+Why: the configuration object keeps application settings together in `src/config/`.

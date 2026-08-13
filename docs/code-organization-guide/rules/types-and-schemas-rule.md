@@ -3,6 +3,7 @@
 Types and schemas should stay with the component that uses them until they are needed separately. This rule extracts them at that point and gives them a consistent location and public import path.
 
 - A type or schema MUST stay inline in its component file while no consumer imports it independently of that component.
+- A type or schema used only by a configuration object MUST stay with that object in `src/config/`.
 - An extracted type or schema MUST live in the closest common folder (CCF) of its consumers.
 - When calculating a type or schema's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
 - When a type or schema's CCF is `src/features/`, it MUST move to the matching folder in `src/shared/`.
