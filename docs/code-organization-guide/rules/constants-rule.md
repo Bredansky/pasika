@@ -5,8 +5,6 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MUST stay in the file that uses it until another file imports it.
 - Extracted constants MUST live in a `constants/` folder at the closest common folder (CCF) of their consumers and be named-exported from its `index.ts`.
 - Imports from routing files in `src/app/` MUST NOT affect a constant's CCF.
-- When a constant is imported both inside and outside `src/compositions/`, its CCF MUST be calculated only from imports outside `src/compositions/`.
-- When a constant is imported only in `src/compositions/`, its CCF MUST be calculated from those imports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
 - Constants that describe one concept MAY be grouped in one file and named-re-exported from `constants/index.ts`.
 
@@ -42,25 +40,34 @@ import { maxRetries } from "../constants";
 
 Why: the constants are available through the feature's `constants/index.ts`.
 
-## Incorrect — Composition Makes a Constant Shared
-
-```tsx
-// src/compositions/BillingDashboard.tsx
-import { overdueLabel } from "@/shared/constants";
-```
-
-Why: a composition import changes the constant's location even though the billing feature defines its use.
-
-## Correct — Composition Does Not Change the Constant's Scope
+## Incorrect — Feature and Composition Constant Kept in a Feature
 
 ```ts
 // src/features/billing/constants/index.ts
-export const overdueLabel = "Overdue";
+export const paymentRetryDelayMs = 1_000;
+
+// src/features/billing/hooks/use-retry-payment.ts
+import { paymentRetryDelayMs } from "../constants";
+
+// src/compositions/BillingDashboard.tsx
+import { paymentRetryDelayMs } from "@/features/billing/constants";
+```
+
+Why: the feature and composition have `src/` as their CCF, but the constant remains in the billing feature.
+
+## Correct — Feature and Composition Constant in `src/constants/`
+
+```ts
+// src/constants/index.ts
+export const paymentRetryDelayMs = 1_000;
 ```
 
 ```tsx
+// src/features/billing/hooks/use-retry-payment.ts
+import { paymentRetryDelayMs } from "@/constants";
+
 // src/compositions/BillingDashboard.tsx
-import { overdueLabel } from "@/features/billing/constants";
+import { paymentRetryDelayMs } from "@/constants";
 ```
 
-Why: the constant is also imported outside `src/compositions/`, so only that import determines its CCF.
+Why: the feature and composition have `src/` as their CCF, so the constant lives in `src/constants/`.
