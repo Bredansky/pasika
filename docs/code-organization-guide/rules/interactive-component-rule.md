@@ -1,8 +1,8 @@
 # Interactive Component Rule
 
-Interactive HTML elements buried inside unrelated parent components hide ownership and make them unsearchable as units. This rule fixes interactivity as the mechanical criterion for extraction.
+Inline interactive elements are easy to miss in review and hard to locate as units. This rule gives each interactive element its own named component.
 
-- [Interactive HTML elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a named React component.
+- [Interactive HTML elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.
 
 ## Incorrect — Interactive Element Kept Inline
 
