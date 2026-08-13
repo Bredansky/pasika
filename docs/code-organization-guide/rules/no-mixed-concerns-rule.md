@@ -1,11 +1,8 @@
 # No Mixed Concerns Rule
 
-A component file that does too many things becomes hard to find, test, and reuse.
+One component per file keeps components easy to find and change independently. This rule applies the same requirement to copied and generated source.
 
-- A `.tsx` file MUST contain exactly one React component.
-- A component MUST use a named export from its `.tsx` file.
-- A `.tsx` file MAY contain companion types, schemas, constants, or variant definitions when no consumer imports them independently of the component.
-- A companion non-component file that is imported independently of the component MUST be extracted according to its non-component file placement rule.
+- A `.tsx` file MUST contain exactly one component.
 - Copied or generated component source MUST follow the same one-component-per-file rule; third-party origin does not create an exception.
 
 ## Incorrect — Two Components in One File
