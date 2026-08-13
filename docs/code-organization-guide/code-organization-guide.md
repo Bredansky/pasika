@@ -25,9 +25,12 @@ Use this no matter whether you are adding a new component or extracting from exi
 Use this when organizing a hook, type, utility, schema, constant, or config value.
 
 1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
-2. Decide whether and where to extract the non-component file per the [Non-Component Placement Rule](rules/non-component-placement-rule.md).
-3. Extract custom hooks at the reuse or imperative-complexity threshold per the [Hook Extraction Rule](rules/hook-extraction-rule.md).
-4. Style the file's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
+2. Keep types and schemas inline until they have an independent consumer, then place them per the [Types and Schemas Rule](rules/types-and-schemas-rule.md).
+3. Keep constants inline until they have an independent consumer, then place them per the [Constants Rule](rules/constants-rule.md).
+4. Extract and place pure functions per the [Utilities Rule](rules/utilities-rule.md).
+5. Place application configuration per the [Configuration Rule](rules/configuration-rule.md).
+6. Extract custom hooks at the reuse or imperative-complexity threshold per the [Hook Extraction Rule](rules/hook-extraction-rule.md).
+7. Style the file's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
 
 ## How To Organize a Locale String
 
