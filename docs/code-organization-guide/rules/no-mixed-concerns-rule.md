@@ -3,7 +3,6 @@
 One component per file keeps components easy to find and change independently. This rule applies the same requirement to copied and generated source.
 
 - A `.tsx` file MUST contain exactly one component.
-- Copied or generated component source MUST follow the same one-component-per-file rule; third-party origin does not create an exception.
 
 ## Incorrect — Two Components in One File
 
