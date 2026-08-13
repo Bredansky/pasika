@@ -1,24 +1,34 @@
 # Configuration Rule
 
-Configuration describes how the application runs, not behavior that belongs to a component or feature. This rule keeps those values together in one app-wide location.
+Configuration is application data and settings, not behavior that belongs to a component or feature. This rule keeps it together in one app-wide location.
 
 - Configuration values — hardcoded application data, environment parsing, and third-party service settings — MUST live in `src/config/` regardless of consumers.
 - Configuration values MUST NOT be duplicated in `constants/`.
 
-## Incorrect — Configuration Stored as a Constant
+## Incorrect — Platform Settings Stored as Constants
 
 ```ts
-// src/constants/stripe.ts
-export const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+// src/constants/platforms.ts
+export const youtubeUrl = "https://www.youtube.com/@karaylo/live";
+export const twitchUrl = "https://www.twitch.tv/karaylo";
 ```
 
-Why: an environment setting is application configuration, not a general constant.
+Why: platform labels and URLs are application settings, not general constants.
 
-## Correct — Environment Setting in `src/config/`
+## Correct — Platform Settings in `src/config/`
 
 ```ts
-// src/config/stripe.ts
-export const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+// src/config/platform-config.ts
+export const PLATFORM_CONFIG = {
+  youtube: {
+    label: "YouTube",
+    url: "https://www.youtube.com/@karaylo/live",
+  },
+  twitch: {
+    label: "Twitch",
+    url: "https://www.twitch.tv/karaylo",
+  },
+};
 ```
 
-Why: application configuration has one predictable location.
+Why: application settings have one predictable location and stay together.
