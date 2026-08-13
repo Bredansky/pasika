@@ -1,8 +1,8 @@
 # Repeated Structure Rule
 
-A flat structure duplicated across multiple files turns every change into a multi-site edit that silently drifts out of sync and undermines maintainability. This rule fixes extraction on the repeated-structure trigger.
+Repeated markup can drift when one copy changes and another does not. This rule makes repeated structure a clear extraction trigger.
 
-- A block of elements MUST be extracted as a named component when the same flat structure appears in two or more places.
+- A block of elements MUST be extracted as a named component when the same element structure appears in two or more places.
 
 ## Incorrect — Repeated Structure Kept Inline
 
@@ -35,7 +35,7 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
 }
 ```
 
-Why: the `<section>` wrapper plus its `<h2>` + `<ul>` shape appears verbatim in two sibling regions of the same parent. A styling tweak to that wrapper requires editing both call sites and silently breaks if one is missed.
+Why: the same section, heading, and list structure appears in two places. Changing the shared frame requires editing both copies.
 
 ## Correct — Repeated Structure Extracted
 
@@ -49,7 +49,7 @@ src/features/dashboard/
 
 ```tsx
 // src/features/dashboard/dashboard-view/panel.tsx
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export function Panel({ title, children }: { title: string; children: ReactNode }): React.JSX.Element {
   return (
@@ -89,4 +89,4 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
 }
 ```
 
-Why: the wrapper, the title slot, and the children slot are owned by `<Panel>` now. Each region collapses to a one-line component call, and a styling tweak to the wrapper touches one file and both regions follow. Both call sites live in `dashboard-view.tsx`, which is `Panel`'s only consumer, so `DashboardView` becomes a folder holding `panel.tsx` as its exclusive child.
+Why: `Panel` owns the shared section structure, while each call site provides its own title and list.
