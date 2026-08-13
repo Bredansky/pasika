@@ -24,9 +24,7 @@ export function HeaderSection({
         <Icon name="menu" />
       </button>
 
-      <form>
-        <input type="search" placeholder={searchPlaceholder} />
-      </form>
+      <input type="search" placeholder={searchPlaceholder} />
     </header>
   );
 }
@@ -61,11 +59,7 @@ export function MenuButton({ onMenuClick }: { onMenuClick: () => void }): React.
 // src/features/layout/header-section/search-field.tsx
 
 export function SearchField({ placeholder }: { placeholder: string }): React.JSX.Element {
-  return (
-    <form>
-      <input type="search" placeholder={placeholder} />
-    </form>
-  );
+  return <input type="search" placeholder={placeholder} />;
 }
 ```
 
