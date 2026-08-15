@@ -8,7 +8,7 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A dumb component file name MUST be `kebab-case.tsx`.
 - A smart component MUST set `data-testid` on its root element, and its value MUST match the component name in `PascalCase`.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
-- Next.js routing files MUST use the framework's required lowercase or kebab-case file names and are exempt from smart/dumb file-name and `data-testid` requirements.
+- [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
 ## Incorrect — Smart Component Uses a Dumb Name
 
