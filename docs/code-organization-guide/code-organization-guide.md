@@ -14,7 +14,7 @@ Use this no matter whether you are adding a new component or extracting from exi
 6. Extract interactive elements per the [Interactive Component Rule](rules/interactive-component-rule.md).
 7. Extract sole-state-owner blocks per the [Sole State Owner Rule](rules/sole-state-owner-rule.md).
 8. Extract repeated structures per the [Repeated Structure Rule](rules/repeated-structure-rule.md).
-9. Extract nameable visual concepts per the [Nameable Visual Concept Rule](rules/nameable-visual-concept-rule.md).
+9. Extract a group of elements when one clear component name describes it per the [Nameable Visual Concept Rule](rules/nameable-visual-concept-rule.md).
 10. Nest a component when it gains exclusive children per the [Folder Nesting Rule](rules/folder-nesting-rule.md).
 11. Style the component's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
 12. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
