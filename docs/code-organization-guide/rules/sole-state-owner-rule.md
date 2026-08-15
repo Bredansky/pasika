@@ -1,8 +1,8 @@
 # Sole State Owner Rule
 
-State owned by a parent but consumed only by a child threads a redundant prop pair through the tree and breaks encapsulation. This rule fixes ownership on the sole-state-owner trigger.
+State used by only one part of a component adds unrelated behavior to its parent. This rule keeps that state with the part that uses it.
 
-- A block of elements MUST be extracted as a named component and own the state itself when it is the only consumer of that state.
+- State used only by one block of elements MUST be owned by a named component for that block.
 
 ## Incorrect — Parent Keeps Child-Only State
 
@@ -28,7 +28,7 @@ export function DashboardView(): React.JSX.Element {
 }
 ```
 
-Why: `useState` for `isHelpOpen` lives in `<DashboardView>`, but the only consumer is the inline `<button>` + `<Modal>` block. The block and its state travel together as a unit, so the parent shouldn't carry the state for a block it doesn't own.
+Why: the help button and modal are the only users of `isHelpOpen`, but the state lives in `DashboardView`.
 
 ## Correct — Child Owns Its State
 
@@ -37,12 +37,12 @@ src/compositions/
   dashboard-view/
     index.ts                  # re-exports only dashboard-view.tsx
     dashboard-view.tsx
-    help-button.tsx           # exclusive child — imported directly
+    help-dialog.tsx           # exclusive child — imported directly
 ```
 
 ```tsx
-// src/compositions/dashboard-view/help-button.tsx
-export function HelpButton(): React.JSX.Element {
+// src/compositions/dashboard-view/help-dialog.tsx
+export function HelpDialog(): React.JSX.Element {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
@@ -62,17 +62,17 @@ export function HelpButton(): React.JSX.Element {
 
 ```tsx
 // src/compositions/dashboard-view/dashboard-view.tsx
-import { HelpButton } from "./help-button";
+import { HelpDialog } from "./help-dialog";
 
 export function DashboardView(): React.JSX.Element {
   return (
     <div>
       <h1>Dashboard</h1>
-      <HelpButton />
+      <HelpDialog />
       <DashboardContent />
     </div>
   );
 }
 ```
 
-Why: `useState` for `isHelpOpen` now lives inside `<HelpButton>`, the only component that consumes it. The block and its state live as one unit, and `<DashboardView>` no longer carries state for a block it doesn't own. `HelpButton` is exclusive to `DashboardView`, so `DashboardView` becomes a folder whose barrel exposes only the parent.
+Why: `HelpDialog` owns the help button, modal, and `isHelpOpen` state. `DashboardView` only composes it.
