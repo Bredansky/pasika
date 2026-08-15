@@ -19,20 +19,44 @@ Use this no matter whether you are adding a new component or extracting from exi
 11. Style the component's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
 12. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
 
-## How To Organize a Non-Component File
+## How To Organize a Type or Schema
 
-Use this when organizing a hook, type, utility, schema, constant, or config value.
+Use this when adding or moving a type or schema.
 
 1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
-2. Keep types and schemas inline until they have an independent consumer, then place them per the [Types and Schemas Rule](rules/types-and-schemas-rule.md).
-3. Keep constants inline until they have an independent consumer, then place them per the [Constants Rule](rules/constants-rule.md).
-4. Extract and place pure functions per the [Utilities Rule](rules/utilities-rule.md).
-5. Place application configuration per the [Configuration Rule](rules/configuration-rule.md).
-6. Extract custom hooks at the reuse or imperative-complexity threshold per the [Hook Extraction Rule](rules/hook-extraction-rule.md).
-7. Style the file's exports and imports per the [Exports and Imports Rule](rules/exports-and-imports-rule.md).
+2. Follow the [Types and Schemas Rule](rules/types-and-schemas-rule.md).
+
+## How To Organize a Constant
+
+Use this when adding or moving a constant.
+
+1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
+2. Follow the [Constants Rule](rules/constants-rule.md).
+
+## How To Organize a Utility
+
+Use this when adding or moving a pure function.
+
+1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
+2. Follow the [Utilities Rule](rules/utilities-rule.md).
+
+## How To Organize Configuration
+
+Use this when adding or moving an application configuration object.
+
+1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
+2. Follow the [Configuration Rule](rules/configuration-rule.md).
+
+## How To Organize a Custom Hook
+
+Use this when extracting or moving a custom hook.
+
+1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
+2. Follow the [Hook Extraction Rule](rules/hook-extraction-rule.md).
 
 ## How To Organize a Locale String
 
-Use this when adding or moving user-facing text, which always lives in one registration file rather than at a computed placement.
+Use this when adding or moving user-facing text.
 
-1. Name and place the locale key per the [Locales Rule](rules/locales-rule.md).
+1. Read the [Application Architecture Reference](references/application-architecture-reference.md) so the file lands in the right top-level folder.
+2. Follow the [Locales Rule](rules/locales-rule.md).
