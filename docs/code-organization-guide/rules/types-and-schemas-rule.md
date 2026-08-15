@@ -2,7 +2,7 @@
 
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
-- A type or schema MUST stay in its component file until another file imports it.
+- A type or schema MUST stay in its component file until another file imports it without the component where it is defined. Importing it alongside that component does not trigger extraction.
 - A type or schema used only by a configuration object MUST stay with that object in `src/config/`.
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers and be named-re-exported from its `index.ts`.
 - Types and schemas that describe one concept MAY be grouped in one file and named-re-exported from `index.ts`.
