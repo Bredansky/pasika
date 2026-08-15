@@ -3,7 +3,7 @@
 Pure functions should not be hidden in component files. This rule extracts them to a predictable `utils/` folder and keeps their imports direct.
 
 - A pure function MUST be extracted to `utils/`, even when it has one consumer.
-- An extracted utility MUST live in the closest common folder (CCF) of its consumers.
+- An extracted utility MUST live in the `utils/` folder at the closest common folder (CCF) of its consumers.
 - When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.
 - A utility MUST be imported directly without a barrel.
 - A utility file that exports one function MUST use that function's kebab-case name.
