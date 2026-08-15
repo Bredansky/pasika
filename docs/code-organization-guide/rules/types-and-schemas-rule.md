@@ -5,13 +5,10 @@ Types and schemas are easy to bury in component files or scatter across the proj
 - A type or schema MUST stay in its component file until another file imports it without the component where it is defined. Importing it alongside that component does not trigger extraction.
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers and be named-re-exported from its `index.ts`.
 - Types and schemas that describe one concept MAY be grouped in one file and named-re-exported from `index.ts`.
-- Imports from routing files in `src/app/` MUST NOT affect a type or schema's CCF.
-- When a type or schema is imported both inside and outside `src/compositions/`, its CCF MUST be calculated only from imports outside `src/compositions/`.
-- When a type or schema is imported only in `src/compositions/`, its CCF MUST be calculated from those imports.
-- When a type or schema's CCF is `src/features/`, it MUST move to the matching folder in `src/shared/`.
+- When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
 - A type or schema leaf file MUST use the kebab-case form of its export name; a grouped file MUST use a clear kebab-case name for its exports.
 
-## Incorrect — Composition Changes a Feature Type's CCF
+## Incorrect — Feature and Composition Type Kept in a Feature
 
 ```text
 src/
@@ -19,42 +16,10 @@ src/
 │   └── BillingDashboard.tsx
 ├── features/
 │   └── billing/
-│       └── Invoice.tsx
-└── types/
-    └── billing.ts
-```
-
-```tsx
-// src/features/billing/Invoice.tsx
-import type { InvoiceStatus } from "@/types/billing";
-
-// src/compositions/BillingDashboard.tsx
-import type { InvoiceStatus } from "@/types/billing";
-```
-
-Why: a composition using a billing type does not make that type app-wide.
-
-## Correct — Feature Type Remains in Its Feature
-
-```text
-src/
-├── compositions/
-│   └── BillingDashboard.tsx
-└── features/
-    └── billing/
-        ├── Invoice.tsx
-        └── types/
-            ├── billing.ts
-            └── index.ts
-```
-
-```ts
-// src/features/billing/types/billing.ts
-export type InvoiceStatus = "draft" | "paid";
-export type PaymentMethod = "card" | "bank";
-
-// src/features/billing/types/index.ts
-export type { InvoiceStatus, PaymentMethod } from "./billing";
+│       ├── Invoice.tsx
+│       └── types/
+│           ├── billing.ts
+│           └── index.ts
 ```
 
 ```tsx
@@ -65,7 +30,40 @@ import type { InvoiceStatus } from "./types";
 import type { InvoiceStatus } from "@/features/billing/types";
 ```
 
-Why: the type stays in the billing feature even when a composition imports it.
+Why: the feature and composition have `src/` as their CCF, but the type remains in the billing feature.
+
+## Correct — Feature and Composition Type in `src/types/`
+
+```text
+src/
+├── compositions/
+│   └── BillingDashboard.tsx
+├── features/
+│   └── billing/
+│       └── Invoice.tsx
+└── types/
+    ├── billing.ts
+    └── index.ts
+```
+
+```ts
+// src/types/billing.ts
+export type InvoiceStatus = "draft" | "paid";
+export type PaymentMethod = "card" | "bank";
+
+// src/types/index.ts
+export type { InvoiceStatus, PaymentMethod } from "./billing";
+```
+
+```tsx
+// src/features/billing/Invoice.tsx
+import type { InvoiceStatus } from "@/types";
+
+// src/compositions/BillingDashboard.tsx
+import type { InvoiceStatus } from "@/types";
+```
+
+Why: the feature and composition have `src/` as their CCF, so the type lives in `src/types/`.
 
 ## Incorrect — Type Imported Independently from a Component
 
