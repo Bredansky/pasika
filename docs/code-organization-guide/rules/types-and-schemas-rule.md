@@ -1,16 +1,16 @@
 # Types and Schemas Rule
 
-Types and schemas should stay with the component that uses them until they are needed separately. This rule extracts them at that point and gives them a consistent location and public import path.
+Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
-- A type or schema MUST stay inline in its component file while no consumer imports it independently of that component.
+- A type or schema MUST stay in its component file until another file imports it.
 - A type or schema used only by a configuration object MUST stay with that object in `src/config/`.
-- An extracted type or schema MUST live in the closest common folder (CCF) of its consumers.
-- When calculating a type or schema's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
+- Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers and be named-re-exported from its `index.ts`.
+- Types and schemas that describe one concept MAY be grouped in one file and named-re-exported from `index.ts`.
+- Imports from routing files in `src/app/` MUST NOT affect a type or schema's CCF.
+- When a type or schema is imported both inside and outside `src/compositions/`, its CCF MUST be calculated only from imports outside `src/compositions/`.
+- When a type or schema is imported only in `src/compositions/`, its CCF MUST be calculated from those imports.
 - When a type or schema's CCF is `src/features/`, it MUST move to the matching folder in `src/shared/`.
-- An app-wide type or schema that does not belong to a feature, composition, or shared component MUST live in `src/types/` or `src/schemas/`.
-- Types and schemas MUST use leaf files plus a named-export `index.ts` barrel at their CCF.
 - A type or schema leaf file MUST use the kebab-case form of its export name; a grouped file MUST use a clear kebab-case name for its exports.
-- If only some exports from a grouped type or schema file need a new placement, those exports MUST be split into their own file before moving.
 
 ## Incorrect — Composition Changes a Feature Type's CCF
 
@@ -26,6 +26,9 @@ src/
 ```
 
 ```tsx
+// src/features/billing/Invoice.tsx
+import type { InvoiceStatus } from "@/types/billing";
+
 // src/compositions/BillingDashboard.tsx
 import type { InvoiceStatus } from "@/types/billing";
 ```
@@ -56,6 +59,9 @@ export type { InvoiceStatus, PaymentMethod } from "./billing";
 ```
 
 ```tsx
+// src/features/billing/Invoice.tsx
+import type { InvoiceStatus } from "./types";
+
 // src/compositions/BillingDashboard.tsx
 import type { InvoiceStatus } from "@/features/billing/types";
 ```
@@ -94,3 +100,45 @@ import { type DateRange } from "../types";
 ```
 
 Why: the component and hook can use the billing feature's type barrel independently.
+
+## Incorrect — Schema Imported Independently from a Component
+
+```tsx
+// src/features/billing/InvoiceForm.tsx
+import { z } from "zod";
+
+export const invoiceSchema = z.object({
+  amount: z.number().positive(),
+});
+```
+
+```ts
+// src/features/billing/hooks/use-invoice-draft.ts
+import { invoiceSchema } from "../InvoiceForm";
+```
+
+Why: the hook reaches into a component file for a schema it uses independently.
+
+## Correct — Independently Used Schema Extracted
+
+```ts
+// src/features/billing/schemas/invoice.ts
+import { z } from "zod";
+
+export const invoiceSchema = z.object({
+  amount: z.number().positive(),
+});
+
+// src/features/billing/schemas/index.ts
+export { invoiceSchema } from "./invoice";
+```
+
+```tsx
+// src/features/billing/InvoiceForm.tsx
+import { invoiceSchema } from "./schemas";
+
+// src/features/billing/hooks/use-invoice-draft.ts
+import { invoiceSchema } from "../schemas";
+```
+
+Why: the component and hook can use the billing feature's schema barrel independently.
