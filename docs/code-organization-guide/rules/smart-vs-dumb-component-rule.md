@@ -3,8 +3,7 @@
 Without a file-name convention, a component's smart vs dumb ownership is invisible to reviewers from the tree alone. Without a `data-testid` matching the file's casing, tests hardcode DOM identities that break on rename or restructure.
 
 - A smart component MUST fetch data, or define `handle*` callbacks and pass them to children as `on*` props.
-- A dumb component MUST NOT fetch data.
-- A dumb component MUST NOT define `handle*` callbacks for children.
+- A dumb component MUST NOT fetch data or define `handle*` callbacks for children.
 - A dumb component MAY own local UI state.
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
