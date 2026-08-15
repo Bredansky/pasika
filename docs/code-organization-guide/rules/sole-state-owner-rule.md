@@ -1,8 +1,8 @@
 # Sole State Owner Rule
 
-State used by only one part of a component adds unrelated behavior to its parent. This rule keeps that state with the part that uses it.
+Some blocks of elements are the only consumers of a state hook. This rule extracts those blocks into components that own the hook.
 
-- State used only by one block of elements MUST be owned by a named component for that block.
+- A block of elements that is the only consumer of a state hook MUST be extracted to a named component that owns the hook.
 
 ## Incorrect — Parent Keeps Child-Only State
 
