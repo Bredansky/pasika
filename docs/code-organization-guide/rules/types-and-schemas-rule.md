@@ -3,10 +3,11 @@
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
 - A type or schema MUST stay in its component file until another file imports it without the component where it is defined. Importing it alongside that component does not trigger extraction.
-- Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers and be named-re-exported from its `index.ts`.
-- Types and schemas that describe one concept MAY be grouped in one file and named-re-exported from `index.ts`.
+- Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers.
+- A `types/` or `schemas/` `index.ts` MAY define its exports directly.
+- Types and schemas that describe one concept MAY be grouped in a kebab-case file and named-re-exported from `index.ts`.
+- When a `types/` or `schemas/` folder uses grouped files, its `index.ts` MUST only named-re-export those files.
 - When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
-- A type or schema leaf file MUST use the kebab-case form of its export name; a grouped file MUST use a clear kebab-case name for its exports.
 
 ## Incorrect — Feature and Composition Type Kept in a Feature
 
@@ -86,17 +87,14 @@ Why: the hook reaches into a component file for a type it uses independently.
 ## Correct — Independently Used Type Extracted
 
 ```ts
-// src/features/billing/types/date-range.ts
-export type DateRange = { from: Date; to: Date };
-
 // src/features/billing/types/index.ts
-export type { DateRange } from "./date-range";
+export type DateRange = { from: Date; to: Date };
 
 // src/features/billing/hooks/use-billing-filter.ts
 import { type DateRange } from "../types";
 ```
 
-Why: the component and hook can use the billing feature's type barrel independently.
+Why: the component and hook can use the billing feature's types index independently.
 
 ## Incorrect — Schema Imported Independently from a Component
 
@@ -119,15 +117,12 @@ Why: the hook reaches into a component file for a schema it uses independently.
 ## Correct — Independently Used Schema Extracted
 
 ```ts
-// src/features/billing/schemas/invoice.ts
+// src/features/billing/schemas/index.ts
 import { z } from "zod";
 
 export const invoiceSchema = z.object({
   amount: z.number().positive(),
 });
-
-// src/features/billing/schemas/index.ts
-export { invoiceSchema } from "./invoice";
 ```
 
 ```tsx
@@ -138,4 +133,4 @@ import { invoiceSchema } from "./schemas";
 import { invoiceSchema } from "../schemas";
 ```
 
-Why: the component and hook can use the billing feature's schema barrel independently.
+Why: the component and hook can use the billing feature's schemas index independently.
