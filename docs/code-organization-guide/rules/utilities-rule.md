@@ -3,14 +3,11 @@
 Pure functions should not be hidden in component files. This rule extracts them to a predictable `utils/` folder and keeps their imports direct.
 
 - A pure function MUST be extracted to `utils/`, even when it has one consumer.
-- A utility used only by a configuration object MUST stay with that object in `src/config/`.
 - An extracted utility MUST live in the closest common folder (CCF) of its consumers.
-- When calculating a utility's CCF, imports made by components in `src/compositions/` and routing files in `src/app/` MUST be ignored.
-- When a utility's CCF is `src/features/`, it MUST move to `src/shared/utils/`.
-- An app-wide utility that does not belong to a feature, composition, or shared component MUST live in `src/utils/`.
+- When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.
 - A utility MUST be imported directly without a barrel.
-- A utility file MUST use the kebab-case form of its function name when it exports one function and a clear kebab-case name when it exports multiple functions.
-- If only some exports from a grouped utility file need a new placement, those exports MUST be split into their own file before moving.
+- A utility file that exports one function MUST use that function's kebab-case name.
+- Utilities that describe one concept MAY be grouped in a kebab-case file.
 
 ## Incorrect — Pure Function Left Beside Its Consumer
 
@@ -48,3 +45,41 @@ export function Invoice({ items }: InvoiceProps): React.JSX.Element {
 ```
 
 Why: the function has a focused utility file in the billing feature's `utils/` folder.
+
+## Incorrect — Shared Utility Kept in a Feature
+
+```ts
+// src/features/billing/utils/format-retry-delay.ts
+export function formatRetryDelay(milliseconds: number): string {
+  return `${milliseconds / 1000} seconds`;
+}
+```
+
+```tsx
+// src/features/billing/invoice.tsx
+import { formatRetryDelay } from "./utils/format-retry-delay";
+
+// src/compositions/billing-dashboard.tsx
+import { formatRetryDelay } from "@/features/billing/utils/format-retry-delay";
+```
+
+Why: the utility is imported by both a feature and a composition, so it cannot stay in the billing feature.
+
+## Correct — Shared Utility in `src/utils/`
+
+```ts
+// src/utils/format-retry-delay.ts
+export function formatRetryDelay(milliseconds: number): string {
+  return `${milliseconds / 1000} seconds`;
+}
+```
+
+```tsx
+// src/features/billing/invoice.tsx
+import { formatRetryDelay } from "@/utils/format-retry-delay";
+
+// src/compositions/billing-dashboard.tsx
+import { formatRetryDelay } from "@/utils/format-retry-delay";
+```
+
+Why: the utility's CCF is `src/`, so it lives in `src/utils/`.
