@@ -1,33 +1,21 @@
 {
   "name": "pasika",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Reusable agent setup package",
-  "license": "MIT",
-  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/Bredansky/pasika"
   },
-  "engines": {
-    "node": ">=22"
-  },
-  "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.eslint.json",
-    "check": "npm run lint && npm run typecheck",
-    "docs:generate": "rm -f AGENTS.md CLAUDE.md && npx vulyk docs",
-    "fix": "eslint . --fix",
-    "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepack": "npm run build"
-  },
-  "bin": {
-    "pasika": "dist/scripts/pasika.js"
-  },
+  "license": "MIT",
+  "type": "module",
   "exports": {
     "./eslint": {
       "types": "./dist/eslint/pasika/index.d.ts",
       "import": "./dist/eslint/pasika/index.js"
     }
+  },
+  "bin": {
+    "pasika": "dist/scripts/pasika.js"
   },
   "files": [
     "claude",
@@ -37,6 +25,15 @@
     "CLAUDE.md",
     "README.md"
   ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.eslint.json",
+    "check": "npm run lint && npm run typecheck",
+    "docs:generate": "rm -f AGENTS.md CLAUDE.md && npx vulyk docs",
+    "fix": "eslint . --fix",
+    "lint": "eslint .",
+    "prepack": "npm run build",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.eslint.json --noEmit"
+  },
   "devDependencies": {
     "@types/node": "^24.12.2",
     "eslint": "^9.39.4",
@@ -44,5 +41,8 @@
     "typescript": "^5.9.2",
     "vulyk": "github:Bredansky/vulyk#829cac4a244add961304070474db3e978db01d2a",
     "zirka": "^0.0.28"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -11,5 +11,5 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "claude/scripts/**/*.ts", "eslint.config.ts"]
+  "include": ["eslint/**/*.ts", "scripts/**/*.ts", "claude/scripts/**/*.ts", "eslint.config.ts"]
 }
