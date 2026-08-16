@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Reusable agent setup package",
   "license": "MIT",
   "type": "module",
@@ -12,8 +12,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "rm -rf dist AGENTS.md CLAUDE.md && tsc -p tsconfig.json && npx vulyk docs",
+    "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.eslint.json",
     "check": "npm run lint && npm run typecheck",
+    "docs:generate": "rm -f AGENTS.md CLAUDE.md && npx vulyk docs",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -21,6 +22,12 @@
   },
   "bin": {
     "pasika": "dist/scripts/pasika.js"
+  },
+  "exports": {
+    "./eslint": {
+      "types": "./dist/eslint/pasika/index.d.ts",
+      "import": "./dist/eslint/pasika/index.js"
+    }
   },
   "files": [
     "claude",

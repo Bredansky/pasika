@@ -11,7 +11,7 @@ This repo intentionally starts narrow:
 - Claude first for v1
 - reusable agent setup assets only
 - shared docs at the repo root
-- no project-specific rules, workflows, or business logic
+- no project-specific workflows or business logic
 
 ## Layout
 
@@ -43,6 +43,7 @@ CLAUDE.md
 - base settings templates
 - shared docs and generated `CLAUDE.md`
 - shared naming and layout conventions
+- reusable source-organization lint rules
 
 ## What stays in project repos
 
@@ -97,3 +98,21 @@ So the recommended pattern is:
 5. keep project-specific plugin, skill, and rule decisions in the project repo
 
 `npx pasika claude` also copies the packaged Claude hooks docs into `.claude/hooks/` in the target repo.
+
+## ESLint Pasika Ruleset
+
+Pasika packages its source-organization rules separately from its own Node and TypeScript lint configuration. A consumer composes the exported ruleset with Zirka and enables any framework-specific Zirka blocks it needs.
+
+```ts
+// eslint.config.ts
+import { pasikaConfig } from "pasika/eslint";
+import { RuleSeverity, styleguide } from "zirka";
+
+const { eslintConfig } = styleguide({
+  next: RuleSeverity.Error,
+  node: RuleSeverity.Error,
+  typescript: RuleSeverity.Error,
+});
+
+export default [...((await eslintConfig) ?? []), pasikaConfig];
+```
