@@ -2,11 +2,10 @@
 
 Duplicated constants are hard to keep in sync, while extracting every single-use value creates unnecessary files. This rule keeps reused constants in one module and leaves single-use values close to their consumer.
 
-- A constant MUST stay in the file that uses it until another file imports it.
+- A value MUST remain in its declaring component or module until another file imports it independently; it MUST then be extracted as a constant.
 - Extracted constants MUST live in a `constants/` folder at the closest common folder (CCF) of their consumers.
-- A `constants/index.ts` MAY define its exports directly.
-- Constants that are used together MAY be grouped in a file with a kebab-case name and named-re-exported from `constants/index.ts`.
-- When a `constants/` folder uses grouped files, its `index.ts` MUST only named-re-export those files.
+- Consumers MUST import an extracted constant through the `index.ts` in that constant's `constants/` folder.
+- A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in kebab-case files that `index.ts` named-re-exports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
 
 ## Incorrect — Constant Imported Without `constants/index.ts`
