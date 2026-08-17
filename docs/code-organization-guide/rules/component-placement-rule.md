@@ -2,68 +2,12 @@
 
 Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
-- A new component with no existing consumers MUST start in the existing feature folder it belongs to, or in a new feature folder when it introduces a new feature.
-- A component with existing consumers MUST live in the closest common folder (CCF) of its consumers.
-- Imports from routing files in `src/app/` MUST NOT affect a component's CCF.
-- When a component is imported both inside and outside `src/compositions/`, its CCF MUST be calculated only from imports outside `src/compositions/`.
-- When a component is imported only in `src/compositions/`, its CCF MUST be calculated from those imports.
-- When a component’s CCF is `src/features/`, it MUST live in `src/shared/`.
 - A component that imports from two or more feature folders MUST live in `src/compositions/` and is, by definition, a composition.
-- When a component’s CCF is a feature folder, `src/compositions/`, or `src/shared/`, it MUST stay flat in that folder.
-- `src/app/` MUST contain [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) only.
-- A routing file in `src/app/` MAY import from `src/compositions/`, `src/features/`, `src/shared/`, and root support folders.
-- A component in `src/compositions/` MAY import from the same folder, feature folders, `src/shared/`, and root support folders.
-- A component in a feature folder MAY import from the same feature folder, `src/shared/`, and root support folders.
-- A component in `src/shared/` MAY import from the same folder and root support folders.
-- ESLint MUST enforce this rule’s feature and layer import restrictions.
-
-## Incorrect — Composition Changes a Feature Component's CCF
-
-```text
-src/
-├── compositions/
-│   └── Dashboard.tsx
-├── features/
-│   └── billing/
-│       ├── BillingPanel.tsx
-│       └── Invoice.tsx
-└── shared/
-    └── BillingSummary.tsx
-```
-
-```tsx
-// src/features/billing/BillingPanel.tsx
-import { BillingSummary } from "@/shared/BillingSummary";
-
-// src/compositions/Dashboard.tsx
-import { BillingSummary } from "@/shared/BillingSummary";
-```
-
-Why: the composition import is included in `BillingSummary`'s CCF, moving it from the billing feature to `src/shared/`.
-
-## Correct — Composition Does Not Change a Feature Component's CCF
-
-```text
-src/
-├── compositions/
-│   └── Dashboard.tsx
-└── features/
-    └── billing/
-        ├── BillingPanel.tsx
-        ├── BillingSummary.tsx
-        └── Invoice.tsx
-```
-
-```tsx
-// src/features/billing/BillingPanel.tsx
-import { BillingSummary } from "./BillingSummary";
-
-// src/compositions/Dashboard.tsx
-import { BillingSummary } from "@/features/billing/BillingSummary";
-```
-
-Why: `BillingPanel` imports `BillingSummary` outside `src/compositions/`, so only that import determines its CCF.
-
+- A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
+- A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.
+- When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
+- A component whose CCF is `src/features/` MUST live in `src/shared/`.
+- `src/app/` MUST contain [Next.js App Router framework-convention files and assets](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), plus styles required by routing files, but MUST NOT contain ordinary components or support folders.
 ## Incorrect — Cross-Feature Component Duplicated
 
 ```text
@@ -96,7 +40,7 @@ Why: the component's CCF is `src/features/`, so it lives in `src/shared/`.
 ## Incorrect — Multi-Feature Composition Inside One Feature
 
 ```tsx
-// src/features/billing/BillingAggregateView.tsx
+// src/features/billing/billing-aggregate-view.tsx
 import { BillingPanel } from "./BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
 ```
@@ -106,7 +50,7 @@ Why: the component imports from two feature folders, so it cannot live in either
 ## Correct — Multi-Feature Component in `src/compositions/`
 
 ```tsx
-// src/compositions/BillingAggregateView.tsx
+// src/compositions/billing-aggregate-view.tsx
 import { BillingPanel } from "@/features/billing/BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
 ```
@@ -122,9 +66,9 @@ src/app/contact/
 └── page.tsx
 ```
 
-Why: the route folder contains ordinary component structure even though `src/app/` is reserved for framework routing files.
+Why: the route folder contains ordinary component structure even though `src/app/` is reserved for framework-convention files, assets, and styles.
 
-## Correct — Thin Route Imports a Page Composition
+## Correct — `src/app/` Imports a Page Composition
 
 ```text
 src/
@@ -143,20 +87,21 @@ src/
 // src/compositions/contact-page-content.tsx
 import { ContactInformation } from "@/features/contact/contact-information";
 import { OfficeLocation } from "@/features/location/office-location";
+import { locales } from "@/locales";
 
 export function ContactPageContent(): React.JSX.Element {
   return (
     <main>
       <header>
-        <h1>Contact us</h1>
-        <p>Choose how you would like to reach us.</p>
+        <h1>{locales.contactPageTitle}</h1>
+        <p>{locales.contactPageDescription}</p>
       </header>
       <section>
-        <h2>Get in touch</h2>
+        <h2>{locales.contactInformationHeading}</h2>
         <ContactInformation />
       </section>
       <section>
-        <h2>Visit us</h2>
+        <h2>{locales.officeLocationHeading}</h2>
         <OfficeLocation />
       </section>
     </main>
@@ -171,42 +116,4 @@ export default function Page(): React.JSX.Element {
 }
 ```
 
-Why: the routing file remains thin while the page composition provides the contact page layout and combines components from two feature folders.
-
-## Incorrect — Trivial Route Wrapper Forced into a Composition
-
-```tsx
-// src/compositions/dashboard-page.tsx
-import { BillingFeature } from "@/features/billing/BillingFeature";
-import { StreamFeature } from "@/features/stream/StreamFeature";
-
-export function DashboardPage(): React.JSX.Element {
-  return (
-    <div>
-      <BillingFeature />
-      <StreamFeature />
-    </div>
-  );
-}
-```
-
-Why: a static wrapper around imports has no behavior or visual purpose of its own, so it does not need a composition.
-
-## Correct — Trivial Route Assembly Without a Composition
-
-```tsx
-// src/app/dashboard/page.tsx
-import { BillingFeature } from "@/features/billing/BillingFeature";
-import { StreamFeature } from "@/features/stream/StreamFeature";
-
-export default function Page(): React.JSX.Element {
-  return (
-    <div>
-      <BillingFeature />
-      <StreamFeature />
-    </div>
-  );
-}
-```
-
-Why: a static wrapper around imported feature components keeps the route thin and does not need a composition.
+Why: `src/app/` contains the routing file while the composition provides the contact page layout and combines components from two feature folders.

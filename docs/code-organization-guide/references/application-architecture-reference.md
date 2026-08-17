@@ -27,7 +27,7 @@ CCF: src/features/payments/
 Location: src/features/payments/status-badge.tsx
 ```
 
-For components, imports from route files and configuration modules do not affect the CCF. A component used by a route and a feature therefore stays with the feature.
+For components, imports from `src/app/` and configuration modules do not affect the CCF. A component used by `src/app/` and a feature therefore stays with the feature.
 
 ```text
 src/app/products/page.tsx                ─┐
@@ -36,7 +36,7 @@ src/features/products/product-card.tsx   ─┴─ imports ProductPrice
 CCF and location: src/features/products/product-price.tsx
 ```
 
-A component with only route-file consumers stays in the feature it implements. When no existing feature applies, it creates a feature folder; adding more route-file consumers does not change that placement.
+A component with no consumers outside `src/app/` or configuration modules stays in the feature it represents or supports. When no existing feature applies, it creates a feature folder.
 
 ```text
 src/app/search/page.tsx  → SearchForm  → src/features/search/search-form.tsx
@@ -55,14 +55,14 @@ src/compositions/checkout.tsx ─┐
 src/compositions/receipt.tsx  ─┴→ Total → src/compositions/total.tsx
 ```
 
-A component stays at a nested component folder, feature folder, `src/compositions/`, or `src/shared/`. A CCF of `src/features/` or `src/` places it in `src/shared/`.
+A component stays at a nested component folder, feature folder, `src/compositions/`, or `src/shared/`. A CCF of `src/features/` places it in `src/shared/`.
 
 ```text
 src/features/payments/payment-card.tsx ─┐
 src/features/orders/order-card.tsx     ─┴→ StatusBadge → src/shared/status-badge.tsx
 ```
 
-For a support file imported by a route file, use the matching root support folder, such as `src/hooks/` or `src/utils/`. Otherwise, the CCF passes through a support folder to its parent folder, and the file lives in the matching support folder directly below that parent.
+For a support file imported by a file under `src/app/`, use the matching root support folder, such as `src/hooks/` or `src/utils/`. Otherwise, the CCF passes through a support folder to its parent folder, and the file lives in the matching support folder directly below that parent.
 
 ```text
 src/app/products/page.tsx                    → useSearch    → src/hooks/use-search.ts
