@@ -1,10 +1,13 @@
 # Configuration Rule
 
-Configuration objects centralize values that control application behavior. This rule keeps each object and the files that only support it together in `src/config/`.
+Configuration modules centralize values that control application behavior. This rule keeps each module and the files that only support it together in `src/config/`.
 
-- `src/config/` MUST contain configuration objects that centralize values used to control application behavior.
-- A configuration object MUST use `src/config/<config-name>/index.ts`.
-- A configuration object's supporting types, schemas, and utilities MUST live in their dedicated folders under `src/config/<config-name>/`.
+- A configuration module is an app-wide module that selects or parameterizes application behavior.
+- All configuration modules MUST live in `src/config/`.
+- A configuration module MUST be one `src/config/<config-name>/` folder with `index.ts` as its entry point.
+- A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.
+- An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under `src/config/<config-name>/`.
+- An extracted configuration type, schema, or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.
 
 ## Incorrect — Supporting Schema Outside Its Config Folder
 
@@ -17,7 +20,7 @@ src/config/
 
 Why: the schema sits outside the `home-feed/` configuration folder.
 
-## Correct — Configuration Object with Its Supporting Schema
+## Correct — Configuration Module with Its Supporting Schema
 
 ```text
 src/config/
@@ -36,4 +39,4 @@ export const homeFeedConfig = homeFeedConfigSchema.parse({
 });
 ```
 
-Why: the configuration object and its supporting schema are grouped in the same configuration folder.
+Why: the configuration module and its supporting schema are grouped in the same configuration folder.
