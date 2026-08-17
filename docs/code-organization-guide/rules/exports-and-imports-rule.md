@@ -1,12 +1,15 @@
 # Exports and Imports Rule
 
-Without consistent export and import styles, it is harder to tell what a file contains and how other files should import from it. This rule gives each file type a predictable export style and keeps import paths consistent.
+Without consistent exports, import paths, and layer boundaries, it is harder to tell what a file contains and which files may depend on it. This rule gives each file a predictable export style and keeps imports consistent with the application structure.
 
-- Files MUST use named exports unless a third-party package requires a different export style for a specific file.
+- A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - Imports MUST use relative paths for the same folder, a direct subfolder, or one folder up.
 - Imports MUST use the `@/*` alias for anything beyond one folder up.
-- ESLint MUST enforce this rule's export and import restrictions.
-
+- A file under `src/compositions/` MUST NOT import from `src/app/`.
+- A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.
+- A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
+- A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
+- A configuration module MUST import only from root support folders and its own files.
 ## Incorrect — Single-Export Utility Uses a Default Export
 
 ```ts
@@ -58,8 +61,10 @@ Why: the alias identifies the distant dependency while nearby files keep short r
 
 ```tsx
 // src/app/contact/page.tsx
+import { locales } from "@/locales";
+
 export function Page(): React.JSX.Element {
-  return <main>Contact us</main>;
+  return <main>{locales.contactUs}</main>;
 }
 ```
 
@@ -69,8 +74,10 @@ Why: Next.js requires a `page.tsx` file to default-export its page component.
 
 ```tsx
 // src/app/contact/page.tsx
+import { locales } from "@/locales";
+
 export default function Page(): React.JSX.Element {
-  return <main>Contact us</main>;
+  return <main>{locales.contactUs}</main>;
 }
 ```
 
