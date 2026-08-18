@@ -4,12 +4,15 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 
 - A custom hook MUST be extracted to its own file when two or more consumers use it.
 - A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.
+- An extracted custom hook MUST live in a `hooks/` folder at the closest common folder (CCF) of its consumers.
+- When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
 - The imperative categories MUST be subscriptions, external I/O and persistence, DOM manipulation, or resource lifecycle.
+- Each operation MUST count toward only one imperative category.
 - Subscriptions MUST include event listeners and registration or cleanup APIs such as `on()` and `off()`.
 - External I/O and persistence MUST include network requests, asynchronous reads or writes, and browser storage.
 - DOM manipulation MUST include imperative APIs such as `focus()`, `classList`, observers, or imperative rendering.
-- Resource lifecycle MUST include setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, or `getState()`.
-- A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consuming component file.
+- Resource lifecycle MUST include setup and teardown APIs such as `load()`, `destroy()`, or `dispose()`.
+- A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consumer file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
