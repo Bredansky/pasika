@@ -2,12 +2,14 @@
 
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
-- A type or schema MUST stay in its component file until another file imports it without the component where it is defined. Importing it alongside that component does not trigger extraction.
+- A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.
+- Importing a type or schema alongside the component that defines it MUST NOT require extraction.
+- A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the closest common folder (CCF) of their consumers.
-- A `types/` or `schemas/` `index.ts` MAY define its exports directly.
-- Types and schemas that are used together MAY be grouped in a file with a kebab-case name and named-re-exported from `index.ts`.
-- When a `types/` or `schemas/` folder uses grouped files, its `index.ts` MUST only named-re-export those files.
 - When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
+- A `types/` or `schemas/` folder MUST either define its exports directly in `index.ts` or group related types and schemas in kebab-case files that `index.ts` named-re-exports.
+- Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.
+- A type or schema used only to implement one configuration module MUST live in that module's `types/` or `schemas/` folder.
 
 ## Incorrect — Feature and Composition Type Kept in a Feature
 
@@ -17,14 +19,14 @@ src/
 │   └── BillingDashboard.tsx
 ├── features/
 │   └── billing/
-│       ├── Invoice.tsx
+│       ├── invoice.tsx
 │       └── types/
 │           ├── billing.ts
 │           └── index.ts
 ```
 
 ```tsx
-// src/features/billing/Invoice.tsx
+// src/features/billing/invoice.tsx
 import type { InvoiceStatus } from "./types";
 
 // src/compositions/BillingDashboard.tsx
@@ -41,7 +43,7 @@ src/
 │   └── BillingDashboard.tsx
 ├── features/
 │   └── billing/
-│       └── Invoice.tsx
+│       └── invoice.tsx
 └── types/
     ├── billing.ts
     └── index.ts
@@ -57,7 +59,7 @@ export type { InvoiceStatus, PaymentMethod } from "./billing";
 ```
 
 ```tsx
-// src/features/billing/Invoice.tsx
+// src/features/billing/invoice.tsx
 import type { InvoiceStatus } from "@/types";
 
 // src/compositions/BillingDashboard.tsx
@@ -69,7 +71,7 @@ Why: the feature and composition have `src/` as their CCF, so the type lives in 
 ## Incorrect — Type Imported Independently from a Component
 
 ```tsx
-// src/features/billing/Invoice.tsx
+// src/features/billing/invoice.tsx
 export type DateRange = { from: Date; to: Date };
 
 export function Invoice({ range }: { range: DateRange }): React.JSX.Element {
@@ -79,7 +81,7 @@ export function Invoice({ range }: { range: DateRange }): React.JSX.Element {
 
 ```ts
 // src/features/billing/hooks/use-billing-filter.ts
-import type { DateRange } from "../Invoice";
+import type { DateRange } from "../invoice";
 ```
 
 Why: the hook reaches into a component file for a type it uses independently.
@@ -99,7 +101,7 @@ Why: the component and hook can use the billing feature's types index independen
 ## Incorrect — Schema Imported Independently from a Component
 
 ```tsx
-// src/features/billing/InvoiceForm.tsx
+// src/features/billing/invoice-form.tsx
 import { z } from "zod";
 
 export const invoiceSchema = z.object({
@@ -109,7 +111,7 @@ export const invoiceSchema = z.object({
 
 ```ts
 // src/features/billing/hooks/use-invoice-draft.ts
-import { invoiceSchema } from "../InvoiceForm";
+import { invoiceSchema } from "../invoice-form";
 ```
 
 Why: the hook reaches into a component file for a schema it uses independently.
@@ -126,7 +128,7 @@ export const invoiceSchema = z.object({
 ```
 
 ```tsx
-// src/features/billing/InvoiceForm.tsx
+// src/features/billing/invoice-form.tsx
 import { invoiceSchema } from "./schemas";
 
 // src/features/billing/hooks/use-invoice-draft.ts

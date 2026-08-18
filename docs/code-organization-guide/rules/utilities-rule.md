@@ -8,6 +8,7 @@ Pure functions should not be hidden in component files. This rule extracts them 
 - A utility MUST be imported directly without a barrel.
 - A utility file that exports one function MUST have a name in that function's kebab-case form.
 - Utilities that are used together MAY be grouped in a file with a kebab-case name.
+- A utility used only to implement one configuration module MUST live in that module's `utils/` folder.
 
 ## Incorrect — Pure Function Left Beside Its Consumer
 
