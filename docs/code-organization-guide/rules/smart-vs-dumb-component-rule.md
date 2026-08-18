@@ -6,7 +6,8 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A dumb component MUST NOT fetch data or define `handle*` callbacks for children.
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
-- A smart component MUST set `data-testid` on its root element, and its value MUST match the component name in `PascalCase`.
+- A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.
+- A smart component without one outer DOM element in every rendered result MAY omit `data-testid`.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
 - [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
@@ -18,19 +19,18 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 
 import { useSocialStats } from "./hooks/use-social-stats";
 import { PlatformCard } from "./platform-card";
+import { locales } from "@/locales";
 
 export function SocialStatsPanel(): React.JSX.Element {
   const { stats, isLoading } = useSocialStats();
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
   return (
     <div data-testid="social-stats-panel">
-      {stats.map((stat) => (
-        <PlatformCard key={stat.platform} data={stat} />
-      ))}
+      {isLoading ? (
+        <p>{locales.social.loading}</p>
+      ) : (
+        stats.map((stat) => <PlatformCard key={stat.platform} data={stat} />)
+      )}
     </div>
   );
 }
@@ -46,19 +46,18 @@ Why: fetching data makes the component smart, but its file name and `data-testid
 
 import { useSocialStats } from "./hooks/use-social-stats";
 import { PlatformCard } from "./platform-card";
+import { locales } from "@/locales";
 
 export function SocialStatsPanel(): React.JSX.Element {
   const { stats, isLoading } = useSocialStats();
 
-  if (isLoading) {
-    return <p>Loading...</p>;
-  }
-
   return (
     <div data-testid="SocialStatsPanel">
-      {stats.map((stat) => (
-        <PlatformCard key={stat.platform} data={stat} />
-      ))}
+      {isLoading ? (
+        <p>{locales.social.loading}</p>
+      ) : (
+        stats.map((stat) => <PlatformCard key={stat.platform} data={stat} />)
+      )}
     </div>
   );
 }

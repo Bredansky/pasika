@@ -2,20 +2,22 @@
 
 Some blocks of elements are the only consumers of a state hook. This rule extracts those blocks into components that own the hook.
 
-- A block of elements that is the only consumer of a state hook MUST be extracted to a named component that owns the hook.
+- A component MUST extract a named component when one part of its JSX contains every JSX expression, callback, and effect that reads one state hook's value or calls its updater.
 
 ## Incorrect — Parent Keeps Child-Only State
 
 ```tsx
 // src/compositions/dashboard-view.tsx
+import { locales } from "@/locales";
+
 export function DashboardView(): React.JSX.Element {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1>{locales.dashboard}</h1>
       <button onClick={() => setIsHelpOpen(true)} type="button">
-        Help
+        {locales.help}
       </button>
       {isHelpOpen && (
         <Modal onClose={() => setIsHelpOpen(false)}>
@@ -37,19 +39,22 @@ src/compositions/
   dashboard-view/
     index.ts                  # re-exports only dashboard-view.tsx
     dashboard-view.tsx
-    help-dialog.tsx           # exclusive child — imported directly
+    help-dialog/
+      index.ts                # re-exports only help-dialog.tsx
+      help-dialog.tsx
+      help-trigger.tsx        # exclusive child — imported directly
 ```
 
 ```tsx
-// src/compositions/dashboard-view/help-dialog.tsx
+// src/compositions/dashboard-view/help-dialog/help-dialog.tsx
+import { HelpTrigger } from "./help-trigger";
+
 export function HelpDialog(): React.JSX.Element {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   return (
     <>
-      <button onClick={() => setIsHelpOpen(true)} type="button">
-        Help
-      </button>
+      <HelpTrigger onOpen={() => setIsHelpOpen(true)} />
       {isHelpOpen && (
         <Modal onClose={() => setIsHelpOpen(false)}>
           <HelpContent />
@@ -61,13 +66,31 @@ export function HelpDialog(): React.JSX.Element {
 ```
 
 ```tsx
+// src/compositions/dashboard-view/help-dialog/help-trigger.tsx
+import { locales } from "@/locales";
+
+type HelpTriggerProps = {
+  onOpen: () => void;
+};
+
+export function HelpTrigger({ onOpen }: HelpTriggerProps): React.JSX.Element {
+  return (
+    <button onClick={onOpen} type="button">
+      {locales.help}
+    </button>
+  );
+}
+```
+
+```tsx
 // src/compositions/dashboard-view/dashboard-view.tsx
 import { HelpDialog } from "./help-dialog";
+import { locales } from "@/locales";
 
 export function DashboardView(): React.JSX.Element {
   return (
     <div>
-      <h1>Dashboard</h1>
+      <h1>{locales.dashboard}</h1>
       <HelpDialog />
       <DashboardContent />
     </div>
