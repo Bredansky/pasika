@@ -1,15 +1,12 @@
 # Class Composition Rule
 
-Class conditions and caller overrides need one consistent merge point so ordering stays understandable and conflicting Tailwind utilities resolve correctly.
+Conditional classes and a `className` passed to a component need one consistent merge point so ordering stays understandable and conflicting Tailwind utilities resolve correctly.
 
-- Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a consumer-provided `className`.
+- Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a `className` passed to the component.
 - Components MUST NOT concatenate class strings with template literals or `+` when any part is conditional.
-- A consumer-provided `className` MUST contain only outer-layout utilities: margins, width constraints, permitted height constraints, and flex or grid item placement.
-- Permitted height constraints MUST be limited to `h-full`, `h-auto`, `min-h-*`, and `max-h-*`; fixed component heights MUST use a typed component API or an external wrapper.
-- A consumer-provided `className` MUST NOT change padding, internal gaps, fixed height, colors, typography, borders, radius, shadows, effects, positioning, inset, or z-index.
-- A component MUST expose supported internal appearance and fixed-size choices through typed props rather than consumer classes.
-- Components SHOULD group long static class lists by concern inside `cn`.
-- Components MAY keep a short, fully static `className` string inline.
+- A `className` passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and `z-index`.
+- A component MUST expose its supported appearance and size variants through typed props, not through a passed `className`.
+- A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.
 
 ## Incorrect — Conditional Classes Concatenated Manually
 
@@ -30,3 +27,26 @@ export default function Card({ className, ...props }: CardProps): React.JSX.Elem
 ```
 
 Why: every class source is explicit, and a consumer can add outer layout such as `w-full max-w-lg self-center` without reconstructing the card's internal treatment.
+
+## Incorrect — Long Static Class Literal
+
+```tsx
+<article className="rounded-lg border border-border bg-card px-6 py-4 shadow-sm transition-shadow hover:shadow-md" />
+```
+
+Why: one static literal contains more than five class names, so its styling concerns are difficult to scan.
+
+## Correct — Static Classes Grouped in `cn`
+
+```tsx
+<article
+  className={cn(
+    "rounded-lg border border-border",
+    "bg-card shadow-sm",
+    "px-6 py-4",
+    "transition-shadow hover:shadow-md",
+  )}
+/>
+```
+
+Why: each literal contains at most five class names and groups one styling concern.
