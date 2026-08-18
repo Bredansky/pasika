@@ -3,9 +3,9 @@
 When locale strings are scattered across components and constants, they are hard to find and keep consistent. This rule keeps them in one central file, puts each feature's strings together, and uses readable keys.
 
 - All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
-- A feature's locales MUST live in an object named after its feature folder.
+- Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).
+- Locales read by files in more than one feature folder or by `src/shared/`, `src/compositions/`, `src/app/`, or root support folders MUST live at the top level of `locales`.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
-- Locales used by `src/shared/` components or `src/compositions/` components MUST live at the top level of `locales`.
 - A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.
 
 ## Incorrect — Flat Feature Locale Keys
