@@ -4,6 +4,7 @@ Guides without a consistent creation process invent their own structure. This ru
 
 - Each How To step MUST be concise and use one sentence.
 - A Guide MAY reference Rules, References, and other Guides.
+- A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whether that file is a Rule, Reference, or Guide.
 - When a step links a Rule, Reference, or Guide, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.

@@ -1,6 +1,6 @@
 # [Topic] Guide
 
-[1-2 short sentences explaining the underlying idea behind this guide and why it matters.]
+[1-2 short descriptive sentences explaining this guide's scope, underlying idea, and why it matters.]
 
 ## How To [Workflow]
 

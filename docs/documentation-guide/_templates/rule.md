@@ -2,12 +2,7 @@
 
 [What problem does this rule solve?]
 
-[What is required? What is forbidden? What is recommended? What is optional?]
-- [Subject MUST ...]
-- [Subject MUST NOT ...]
-- [Subject SHOULD ...]
-- [Subject SHOULD NOT ...]
-- [Subject MAY ...]
+- [Requirement using MUST, MUST NOT, SHOULD, SHOULD NOT, or MAY]
 
 ## Incorrect — [Concise example description]
 
