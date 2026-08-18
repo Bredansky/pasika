@@ -2,15 +2,15 @@
 
 JSX should show the component's structure, not its calculations. This rule moves complex expressions before `return` while keeping simple JSX readable.
 
-- Calculations, chained built-in method calls, custom function calls, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`.
-- A condition containing at most one logical operator, a single ternary, a single built-in method call, and `cn()` MAY stay inline.
+- Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`, including in JSX attributes.
+- An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. `cn()` MAY be called inline. An event handler MAY make one call inline.
 
 ## Incorrect — Computation in JSX
 
 ```tsx
 return (
   <div>
-    <span>{Math.floor((Date.now() - new Date(record.updatedAt).getTime()) / 86400000)} days ago</span>
+    <span>{Math.floor((Date.now() - new Date(record.updatedAt).getTime()) / 86400000)} {locales.daysAgo}</span>
     <ul>
       {items
         .filter((x) => x.active)
@@ -50,16 +50,12 @@ if (isLoading) {
 
 return (
   <div>
-    <span>{daysSinceUpdate} days ago</span>
+    <span>{daysSinceUpdate} {locales.daysAgo}</span>
     <ul>{activeItems.map(renderItem)}</ul>
     <p>
       {updatedLabel} — {total}
     </p>
     {statusView}
-    {items.map((item) => (
-      <li>{item.name}</li>
-    ))}
-    {isActive ? "Active" : "Inactive"}
     {scorePercent}%
     <div className={cn("base", isActive && "bg-primary-100")} />
     {canShowAdmin && <AdminPanel />}
