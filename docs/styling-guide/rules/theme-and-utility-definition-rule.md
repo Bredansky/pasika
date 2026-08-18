@@ -6,7 +6,7 @@ Tailwind theme namespaces generate broad utility APIs, while custom utilities ex
 - A static design value intended to generate a Tailwind utility namespace MUST be defined through `@theme`.
 - A static theme value MUST be defined directly in plain `@theme` when it has no runtime variable indirection.
 - A theme value that references a CSS variable changed by a theme selector or custom variant MUST be mapped through `@theme inline`.
-- A property-specific value MUST remain a private CSS variable and be exposed through one named `@utility` rather than a broad theme namespace.
+- A property-specific value MUST remain a CSS variable rather than a broad theme namespace. When it is needed outside a custom `@utility`, it MUST be exposed through one matching named `@utility`.
 - A repeated multi-property treatment MUST be defined through one named `@utility`.
 - Project-owned style declarations inside `@utility` and unavoidable global selectors MUST use `@apply`.
 - A custom utility MUST use Tailwind custom-property or arbitrary-property utility syntax through `@apply` when no named built-in utility represents the property value.
@@ -50,7 +50,7 @@ Why: the default theme remains active, and registering a text-only color in `--c
 <h1 className="text-header">Title</h1>
 ```
 
-Why: only explicitly defined theme values remain available, while the private header color exposes exactly one text utility.
+Why: only explicitly defined theme values remain available, while the header CSS variable exposes exactly one text utility.
 
 ## Incorrect — Runtime Theme Variable Mapped Without `inline`
 
@@ -91,17 +91,17 @@ Why: generated color utilities reference the selector-driven runtime value direc
 ## Incorrect — Treatment Split Across Utilities and Raw Declarations
 
 ```css
-@utility surface-primary {
+@utility primary-surface {
   background-color: var(--primary-canvas);
 }
 
-@utility surface-primary-hover {
+@utility primary-hover-surface {
   background-color: var(--primary-canvas-hover);
 }
 ```
 
 ```tsx
-<button className="surface-primary hover:surface-primary-hover">Save</button>
+<button className="primary-surface hover:primary-hover-surface">Save</button>
 ```
 
 Why: the treatment is split across public utilities, its state is reconstructed in markup, and project-owned declarations bypass Tailwind composition.
@@ -109,7 +109,7 @@ Why: the treatment is split across public utilities, its state is reconstructed 
 ## Correct — Complete Treatment Composed with `@apply`
 
 ```css
-@utility surface-primary {
+@utility primary-surface {
   @apply rounded-md bg-(--primary-canvas) px-3 py-2 text-(--primary-ink);
 
   &:hover {
@@ -123,7 +123,7 @@ Why: the treatment is split across public utilities, its state is reconstructed 
 ```
 
 ```tsx
-<button className="surface-primary">Save</button>
+<button className="primary-surface">Save</button>
 ```
 
 Why: the named utility owns the complete treatment and composes every project-owned declaration through Tailwind.

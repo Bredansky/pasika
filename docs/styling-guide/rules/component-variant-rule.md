@@ -39,8 +39,8 @@ const buttonVariants = cva("inline-flex items-center", {
       lg: "h-11 px-5",
     },
     tone: {
-      primary: "surface-primary",
-      danger: "surface-danger",
+      primary: "primary-surface",
+      danger: "danger-surface",
     },
   },
   defaultVariants: {
@@ -88,8 +88,8 @@ Why: the named appearance choices stay in CVA while the independent boolean rema
   className={cn(
     buttonVariants({ tone }),
     loading && "cursor-wait",
-    loading && tone === "primary" && "surface-primary-loading",
-    loading && tone === "danger" && "surface-danger-loading",
+    loading && tone === "primary" && "primary-loading-surface",
+    loading && tone === "danger" && "danger-loading-surface",
   )}
 />
 ```
@@ -102,8 +102,8 @@ Why: the boolean changes treatment according to another variant, but the styling
 const buttonVariants = cva("inline-flex", {
   variants: {
     tone: {
-      primary: "surface-primary",
-      danger: "surface-danger",
+      primary: "primary-surface",
+      danger: "danger-surface",
     },
     loading: {
       true: "cursor-wait",
@@ -114,12 +114,12 @@ const buttonVariants = cva("inline-flex", {
     {
       tone: "primary",
       loading: true,
-      className: "surface-primary-loading",
+      className: "primary-loading-surface",
     },
     {
       tone: "danger",
       loading: true,
-      className: "surface-danger-loading",
+      className: "danger-loading-surface",
     },
   ],
 });

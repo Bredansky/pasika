@@ -6,6 +6,7 @@ Global CSS is the integration point for Tailwind registration, the project theme
 - The global stylesheet MUST reset the default Tailwind theme and register the project's explicit theme values.
 - Static theme values MUST live directly in `@theme`, while selector-driven variable mappings MUST live in `@theme inline`.
 - Global CSS MUST be ordered as imports, Tailwind and custom-variant registration, theme definitions and selectors, custom utilities, base styles, keyframes, then unavoidable global selectors.
+- The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 - Imported global style domains MUST have one owner and MUST NOT duplicate theme values or utilities defined by another domain.
 
 ## Incorrect — Global Styles Split Across Unrelated Files
