@@ -1,10 +1,10 @@
 # Styling Guide
 
-This guide keeps component styling predictable without making consumers learn a component's DOM or a project's CSS internals. Use it whenever you add or change UI styling.
+This guide keeps component styling predictable without making consumers learn a component's DOM or a project's CSS internals. It applies whenever UI styling is added or changed.
 
 ## How To Style a Component
 
-Use this workflow when implementing a component or changing one of its visual treatments.
+Use this workflow when implementing a component or changing its appearance.
 
 1. Follow the [Tailwind Utility Rule](rules/tailwind-utility-rule.md) so ordinary, local styling stays visible beside the markup it affects.
 2. Follow the [Class Composition Rule](rules/class-composition-rule.md) so conditional and consumer-supplied classes merge predictably.
