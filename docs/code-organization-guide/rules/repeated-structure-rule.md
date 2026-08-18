@@ -2,17 +2,19 @@
 
 Repeated markup can drift when one copy changes and another does not. This rule makes repeated structure a clear extraction trigger.
 
-- A block of elements MUST be extracted as a named component when the same element structure appears in two or more places.
+- A block of elements MUST be extracted as a named component when two or more places use the same arrangement of elements for the same purpose. Different data or labels do not prevent extraction.
 
 ## Incorrect — Repeated Structure Kept Inline
 
 ```tsx
 // src/features/dashboard/dashboard-view.tsx
+import { locales } from "@/locales";
+
 export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
       <section className="w-full rounded border p-6">
-        <h2>Stats</h2>
+        <h2>{locales.dashboard.stats}</h2>
         <ul>
           {stats.map((stat) => (
             <li key={stat.id}>
@@ -23,7 +25,7 @@ export function DashboardView({ stats, activity }: DashboardViewProps): React.JS
       </section>
 
       <section className="w-full rounded border p-6">
-        <h2>Recent Activity</h2>
+        <h2>{locales.dashboard.recentActivity}</h2>
         <ul>
           {activity.map((event) => (
             <li key={event.id}>
@@ -76,12 +78,13 @@ export function Panel({ title, items }: { title: string; items: PanelItem[] }): 
 ```tsx
 // src/features/dashboard/dashboard-view/dashboard-view.tsx
 import { Panel } from "./panel";
+import { locales } from "@/locales";
 
 export function DashboardView({ stats, activity }: DashboardViewProps): React.JSX.Element {
   return (
     <main>
-      <Panel title="Stats" items={stats} />
-      <Panel title="Recent Activity" items={activity} />
+      <Panel title={locales.dashboard.stats} items={stats} />
+      <Panel title={locales.dashboard.recentActivity} items={activity} />
     </main>
   );
 }

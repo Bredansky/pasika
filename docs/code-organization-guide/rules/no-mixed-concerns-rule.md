@@ -2,7 +2,7 @@
 
 One component per file keeps components easy to find and change independently. This rule applies the same requirement to copied and generated source.
 
-- A `.tsx` file MUST contain exactly one component.
+- A `.tsx` file that defines a component MUST contain exactly one component.
 
 ## Incorrect — Two Components in One File
 
@@ -48,15 +48,16 @@ export function MenuItem({ label }: { label: string }): React.JSX.Element {
 ```tsx
 // src/features/nav/menu/menu.tsx
 import { MenuItem } from "./menu-item";
+import { locales } from "@/locales";
 
 export function Menu(): React.JSX.Element {
   return (
     <nav>
-      <MenuItem label="Home" />
-      <MenuItem label="About" />
+      <MenuItem label={locales.nav.home} />
+      <MenuItem label={locales.nav.about} />
     </nav>
   );
 }
 ```
 
-Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable and importable.
+Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable.
