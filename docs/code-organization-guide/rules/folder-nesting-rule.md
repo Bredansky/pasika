@@ -1,8 +1,8 @@
 # Folder Nesting Rule
 
-Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them private to that folder.
+Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them out of the folder's public API.
 
-- A flat component MUST be nested in a folder with the same name when it gains one or more exclusive children that no sibling needs.
+- An exclusive child component is imported only by its parent component. A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
 - A component MUST NOT be nested only because it has support files.
 - A nested component's support files MUST live in its folder.
 - The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
@@ -27,8 +27,8 @@ src/features/blog/
   BlogPage/
     index.ts                  # re-exports only BlogPage.tsx
     BlogPage.tsx
-    blog-header.tsx           # reachable only via its concrete consumer
-    blog-footer.tsx           # reachable only via its concrete consumer
+    blog-header.tsx           # not re-exported from index.ts
+    blog-footer.tsx           # not re-exported from index.ts
     hooks/
       use-blog-filter.ts
 ```
@@ -79,4 +79,4 @@ export { BlogPage } from "./BlogPage";
 import { BlogHeader } from "./blog-header";
 ```
 
-Why: the barrel exposes only the nested component, so the child stays private to the folder and is imported by path from its concrete consumer.
+Why: the barrel exposes only the nested component, so it does not expose the child.
