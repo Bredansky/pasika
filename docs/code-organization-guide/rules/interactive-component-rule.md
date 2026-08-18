@@ -2,12 +2,13 @@
 
 Large component files need a clear way to decide what to extract first. This rule treats interactive elements as meaningful component boundaries instead of extracting arbitrary layout elements.
 
-- [Interactive HTML elements](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.
+- An [interactive HTML element](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.
 
 ## Incorrect — Interactive Element Kept Inline
 
 ```tsx
 // src/features/layout/header-section.tsx
+import { locales } from "@/locales";
 
 export function HeaderSection({
   onMenuClick,
@@ -17,10 +18,10 @@ export function HeaderSection({
   searchPlaceholder: string;
 }): React.JSX.Element {
   return (
-    <header className="flex items-center justify-between px-6 py-4">
-      <h1 className="text-2xl">Page Title</h1>
+    <header>
+      <h1>{locales.layout.headerTitle}</h1>
 
-      <button onClick={onMenuClick} aria-label="Open menu">
+      <button onClick={onMenuClick} aria-label={locales.layout.openMenu}>
         <Icon name="menu" />
       </button>
 
@@ -45,10 +46,11 @@ src/features/layout/
 
 ```tsx
 // src/features/layout/header-section/menu-button.tsx
+type MenuButtonProps = React.ComponentProps<"button">;
 
-export function MenuButton({ onMenuClick }: { onMenuClick: () => void }): React.JSX.Element {
+export function MenuButton({ onClick, ...props }: MenuButtonProps): React.JSX.Element {
   return (
-    <button onClick={onMenuClick} aria-label="Open menu">
+    <button {...props} onClick={onClick}>
       <Icon name="menu" />
     </button>
   );
@@ -57,9 +59,10 @@ export function MenuButton({ onMenuClick }: { onMenuClick: () => void }): React.
 
 ```tsx
 // src/features/layout/header-section/search-field.tsx
+type SearchFieldProps = Omit<React.ComponentProps<"input">, "type">;
 
-export function SearchField({ placeholder }: { placeholder: string }): React.JSX.Element {
-  return <input type="search" placeholder={placeholder} />;
+export function SearchField(props: SearchFieldProps): React.JSX.Element {
+  return <input {...props} type="search" />;
 }
 ```
 
@@ -68,19 +71,22 @@ export function SearchField({ placeholder }: { placeholder: string }): React.JSX
 
 import { MenuButton } from "./menu-button";
 import { SearchField } from "./search-field";
+import { locales } from "@/locales";
+
+type HeaderSectionProps = {
+  onMenuClick: () => void;
+  searchPlaceholder: string;
+};
 
 export function HeaderSection({
   onMenuClick,
   searchPlaceholder,
-}: {
-  onMenuClick: () => void;
-  searchPlaceholder: string;
-}): React.JSX.Element {
+}: HeaderSectionProps): React.JSX.Element {
   return (
-    <header className="flex items-center justify-between px-6 py-4">
-      <h1 className="text-2xl">Page Title</h1>
+    <header>
+      <h1>{locales.layout.headerTitle}</h1>
 
-      <MenuButton onMenuClick={onMenuClick} />
+      <MenuButton onClick={onMenuClick} aria-label={locales.layout.openMenu} />
 
       <SearchField placeholder={searchPlaceholder} />
     </header>
