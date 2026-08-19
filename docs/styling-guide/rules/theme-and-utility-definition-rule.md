@@ -1,11 +1,10 @@
 # Theme and Utility Definition Rule
 
-Tailwind theme namespaces generate broad utility APIs, while CSS variables and custom utilities expose intentional values and treatments. This rule resets unused defaults and chooses the narrowest public API for every project-owned design value, including color roles.
+Tailwind theme namespaces generate broad utility APIs, while CSS variables and custom utilities expose intentional values and treatments. This rule stores project values in `:root`, resets unused defaults, and chooses the narrowest public API for every project-owned design value, including color roles.
 
 - The project MUST reset Tailwind's default theme with `--*: initial` and explicitly define every theme value it uses.
-- A static design value intended to generate a Tailwind utility namespace MUST be defined through `@theme`.
-- A static theme value MUST be defined directly in plain `@theme` when it has no runtime variable indirection.
-- A theme value that references a CSS variable changed by a theme selector or custom variant MUST be mapped through `@theme inline`.
+- Every project-owned design value MUST be defined as a CSS variable in `:root`.
+- A design value intended to generate a Tailwind utility namespace MUST be mapped from its `:root` CSS variable through `@theme inline`.
 - A color reusable across background, text, border, ring, or other CSS properties MUST be registered as a `--color-<role>` Tailwind theme color without a property suffix.
 - A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`.
 - A property-specific value MUST remain a CSS variable rather than a broad theme namespace. When it is needed outside a custom `@utility`, it MUST be exposed through one matching named `@utility`.
@@ -36,12 +35,17 @@ Why: the default theme remains active, and registering a text-only color in `--c
 ```css
 :root {
   --header-ink: #111827;
+  --spacing: 0.25rem;
+  --font-body: Inter, sans-serif;
 }
 
 @theme {
   --*: initial;
-  --spacing: 0.25rem;
-  --font-body: Inter, sans-serif;
+}
+
+@theme inline {
+  --spacing: var(--spacing);
+  --font-body: var(--font-body);
 }
 
 @utility text-header {

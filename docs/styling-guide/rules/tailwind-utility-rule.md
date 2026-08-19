@@ -25,24 +25,28 @@ Why: the class scanner cannot reliably see runtime-built utility names, and the 
 
 Why: the utilities are statically discoverable and show the element's local treatment where it is rendered.
 
-## Incorrect — Literal Arbitrary Design Value
+## Incorrect — Literal Arbitrary Radius
 
 ```tsx
-<div className="top-[13px]" />
+<button className="rounded-[13px]">Save</button>
 ```
 
 Why: the design value is hidden in markup and cannot be tracked as part of the project's explicit token set.
 
-## Correct — Explicit Project Token
+## Correct — Named Radius Token
 
 ```css
-@theme {
-  --spacing-floating-offset: 0.8125rem;
+:root {
+  --radius-md: 0.8125rem;
+}
+
+@theme inline {
+  --radius-md: var(--radius-md);
 }
 ```
 
 ```tsx
-<div className="top-floating-offset" />
+<button className="rounded-md">Save</button>
 ```
 
-Why: the named token makes the static design value searchable and gives every consumer one stable utility.
+Why: the named value makes the radius searchable and exposes a standard Tailwind radius utility.
