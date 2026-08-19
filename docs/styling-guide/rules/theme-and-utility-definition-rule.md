@@ -1,13 +1,16 @@
 # Theme and Utility Definition Rule
 
-Tailwind theme namespaces generate broad utility APIs, while custom utilities expose one intentional treatment. This rule resets unused defaults and chooses the narrowest public API for every project-owned design value.
+Tailwind theme namespaces generate broad utility APIs, while CSS variables and custom utilities expose intentional values and treatments. This rule resets unused defaults and chooses the narrowest public API for every project-owned design value, including color roles.
 
 - The project MUST reset Tailwind's default theme with `--*: initial` and explicitly define every theme value it uses.
 - A static design value intended to generate a Tailwind utility namespace MUST be defined through `@theme`.
 - A static theme value MUST be defined directly in plain `@theme` when it has no runtime variable indirection.
 - A theme value that references a CSS variable changed by a theme selector or custom variant MUST be mapped through `@theme inline`.
+- A color reusable across background, text, border, ring, or other CSS properties MUST be registered as a `--color-<role>` Tailwind theme color without a property suffix.
+- A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`.
 - A property-specific value MUST remain a CSS variable rather than a broad theme namespace. When it is needed outside a custom `@utility`, it MUST be exposed through one matching named `@utility`.
 - A repeated multi-property treatment MUST be defined through one named `@utility`.
+- A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.
 - Project-owned style declarations inside `@utility` and unavoidable global selectors MUST use `@apply`.
 - A custom utility MUST use Tailwind custom-property or arbitrary-property utility syntax through `@apply` when no named built-in utility represents the property value.
 - A custom utility that owns interaction behavior MUST keep its hover, active, focus, and disabled treatments in the same utility block.
@@ -87,6 +90,41 @@ Why: the public token uses runtime variable indirection without the inline mappi
 ```
 
 Why: generated color utilities reference the selector-driven runtime value directly.
+
+## Incorrect — Property-Specific Colors Exposed Broadly
+
+```css
+@theme {
+  --color-primary-canvas: #d87943;
+  --color-primary-ink: #ffffff;
+}
+```
+
+```tsx
+<button className="bg-primary-canvas text-primary-ink">Save</button>
+<button className="bg-primary-canvas text-primary-ink">Continue</button>
+```
+
+Why: property-specific colors are exposed as broad Tailwind colors, and the repeated combination has no named owner.
+
+## Correct — Color Roles Expose Their Intended API
+
+```css
+:root {
+  --primary-canvas: #d87943;
+  --primary-ink: #ffffff;
+}
+
+@utility primary-surface {
+  @apply bg-(--primary-canvas) text-(--primary-ink);
+}
+```
+
+```tsx
+<button className="primary-surface">Save</button>
+```
+
+Why: canvas and ink CSS variables are used only by `primary-surface`, and the repeated combination has one named owner.
 
 ## Incorrect — Treatment Split Across Utilities and Raw Declarations
 

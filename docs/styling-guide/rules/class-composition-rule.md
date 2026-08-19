@@ -19,7 +19,7 @@ Why: the condition and merge order are embedded in a string expression, which be
 ## Correct — Conditional Classes Merged with `cn`
 
 ```tsx
-export default function Card({ className, ...props }: CardProps): React.JSX.Element {
+export function Card({ className, ...props }: CardProps): React.JSX.Element {
   return <article className={cn("card-surface rounded-lg p-4", className)} {...props} />;
 }
 
