@@ -14,4 +14,4 @@ Use this workflow when implementing a component or changing its appearance.
 6. Follow the [Theme Token Rule](rules/theme-token-rule.md) so application chrome, content visuals, and shared measurements use the right kind of value.
 7. Follow the [Global Style System Rule](rules/global-style-system-rule.md) so global CSS has one source of truth and a clear ownership boundary.
 8. Follow the [Style Placement Rule](rules/style-placement-rule.md) so reusable styling has one appropriate owner.
-9. Follow the [Component State Rule](rules/component-state-rule.md) so interaction, disabled, selected, loading, and error states stay coherent.
+9. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.
