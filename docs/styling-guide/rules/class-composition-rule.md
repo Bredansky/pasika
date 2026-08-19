@@ -1,11 +1,11 @@
 # Class Composition Rule
 
-Conditional classes and a `className` passed to a component need one consistent merge point so ordering stays understandable and conflicting Tailwind utilities resolve correctly.
+`cn` is the project's helper for combining conditional classes and resolving conflicting Tailwind utilities. It gives conditional classes and a passed `className` one predictable merge point.
 
 - Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a `className` passed to the component.
 - Components MUST NOT concatenate class strings with template literals or `+` when any part is conditional.
 - A `className` passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and `z-index`.
-- A component MUST expose its supported appearance and size variants through typed props, not through a passed `className`.
+- A component MUST expose its supported appearance and size variants through typed props, not through a passed `className` or separate class-name props for internal elements.
 - A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.
 
 ## Incorrect — Conditional Classes Concatenated Manually
