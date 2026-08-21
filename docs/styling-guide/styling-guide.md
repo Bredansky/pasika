@@ -6,7 +6,7 @@ This guide keeps component styling predictable without making consumers learn a 
 
 Use this workflow when implementing a component or changing its appearance.
 
-1. Follow the [Tailwind Utility Rule](rules/tailwind-utility-rule.md) so ordinary, local styling stays visible beside the markup it affects.
+1. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so project-owned values use named utilities or tokens instead of literal arbitrary classes.
 2. Follow the [Class Composition Rule](rules/class-composition-rule.md) so conditional and consumer-supplied classes merge predictably.
 3. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
 4. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.

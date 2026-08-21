@@ -4,11 +4,12 @@ Tailwind theme namespaces generate broad utility APIs, while CSS variables and c
 
 - The project MUST reset Tailwind's default theme with `--*: initial` and explicitly define every theme value it uses.
 - Every project-owned design value MUST be defined as a CSS variable in `:root`.
+- Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.
+- A set of Tailwind utility classes that two or more components use and should change together MUST become one named custom utility.
 - A design value intended to generate a Tailwind utility namespace MUST be mapped from its `:root` CSS variable through `@theme inline`.
 - A color reusable across background, text, border, ring, or other CSS properties MUST be registered as a `--color-<role>` Tailwind theme color without a property suffix.
 - A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`.
 - A property-specific value MUST remain a CSS variable rather than a broad theme namespace. When it is needed outside a custom `@utility`, it MUST be exposed through one matching named `@utility`.
-- A repeated multi-property treatment MUST be defined through one named `@utility`.
 - A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.
 - Project-owned style declarations inside `@utility` and unavoidable global selectors MUST use `@apply`.
 - A custom utility MUST use Tailwind custom-property or arbitrary-property utility syntax through `@apply` when no named built-in utility represents the property value.
