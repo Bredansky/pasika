@@ -13,6 +13,12 @@ Repo-wide engineering rules and commit hygiene for AI agents.
 - Never use `eslint-disable` directives. Fix issues properly.
 - Never commit with the `--no-verify` flag.
 
+## Browser Verification
+
+- Use `agent-browser` to verify browser behavior when a task requires it.
+- Before using `agent-browser`, run `agent-browser upgrade`.
+- Run `agent-browser --help` for available commands and `agent-browser <command> --help` for command-specific usage.
+
 ## Vulyk
 
 - Make Vulyk registry changes with Vulyk commands, not by editing generated files.
