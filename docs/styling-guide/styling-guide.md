@@ -6,10 +6,9 @@ This guide keeps component styling predictable without making consumers learn a 
 
 Use this workflow when implementing a component or changing its appearance.
 
-1. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so project-owned values use named utilities or tokens instead of literal arbitrary classes.
-2. Follow the [Class Composition Rule](rules/class-composition-rule.md) so conditional and consumer-supplied classes merge predictably.
-3. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
-4. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.
-5. Follow the [Theme Token Rule](rules/theme-token-rule.md) so application chrome, content visuals, and shared measurements use the right kind of value.
-6. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS-first theme tokens, color roles, and custom utilities expose only the intended API.
-7. Follow the [Global Stylesheet Rule](rules/global-stylesheet-rule.md) so one stylesheet entry point owns all project-owned global CSS.
+1. Follow the [Global Stylesheet Rule](rules/global-stylesheet-rule.md) so one stylesheet entry point owns all of the project's global CSS.
+2. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS variables, Tailwind namespaces, and custom utilities expose only the intended API.
+3. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so values used for the project's styling use named utilities or tokens instead of literal arbitrary classes.
+4. Follow the [Class Composition Rule](rules/class-composition-rule.md) so conditional and consumer-supplied classes merge predictably.
+5. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
+6. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.

@@ -1,6 +1,6 @@
 # Arbitrary Value Rule
 
-Literal arbitrary-value classes hide project design values in component code. This rule requires every project-owned value to have a named utility or token.
+Literal arbitrary-value classes hide values used for the project's styling in component code. This rule requires every such value to have a named utility or token.
 
 - Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.
 
