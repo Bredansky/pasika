@@ -3,6 +3,7 @@
 Utility classes are most useful when they describe a component's local layout and appearance directly beside the element they affect. This rule prevents abstractions from hiding simple styling decisions.
 
 - Component markup MUST use static Tailwind utility classes for local layout, spacing, typography, and straightforward visual styling.
+- Styling used by only one component MUST stay in that component's static Tailwind class list and MUST NOT be moved to the global stylesheet.
 - Components MUST NOT construct Tailwind class names from runtime fragments such as `bg-${color}`.
 - Components MUST use the closest project token or built-in utility for a static design value.
 - Components MUST NOT use literal arbitrary-value classes such as `top-[13px]` or `text-[#50d71e]` for project-owned styling.
