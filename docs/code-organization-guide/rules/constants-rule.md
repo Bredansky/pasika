@@ -7,6 +7,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - Consumers MUST import an extracted constant through the `index.ts` in that constant's `constants/` folder.
 - A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in kebab-case files that `index.ts` named-re-exports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
+- A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.
 
 ## Incorrect — Constant Imported Without `constants/index.ts`
 
