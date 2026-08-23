@@ -10,6 +10,7 @@ Types and schemas are easy to bury in component files or scatter across the proj
 - A `types/` or `schemas/` folder MUST either define its exports directly in `index.ts` or group related types and schemas in kebab-case files that `index.ts` named-re-exports.
 - Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.
 - A type or schema used only to implement one configuration module MUST live in that module's `types/` or `schemas/` folder.
+- A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.
 
 ## Incorrect — Feature and Composition Type Kept in a Feature
 
