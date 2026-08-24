@@ -6,7 +6,7 @@ This guide explains how to assess and improve repository documentation without a
 
 Use this workflow before changing an existing document or approving a documentation change.
 
-1. Identify whether the document is a Guide, Rule, or Reference with the [Documentation Types Reference](managed/documentation-guide/references/documentation-types-reference.md).
+1. Identify whether the document is a Guide, Rule, or Reference with the [Documentation Types Reference](references/documentation-types-reference.md).
 2. Read the matching template and its creation rule before judging the document's structure.
 3. Check that the overview states the document's scope and purpose in one or two short sentences, without instructions that belong in its body.
 4. Check that the document uses only the structure for its type: workflows for a Guide, requirements and paired examples for a Rule, or lookup content for a Reference.
