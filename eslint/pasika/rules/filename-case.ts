@@ -26,7 +26,7 @@ const COMPOUND_SUFFIXES = new Set(["example", "test", "spec", "stories"]);
  * Allows lowercase letters, digits, and hyphens (but not leading/trailing/double hyphens).
  */
 function isKebabCase(str: string): boolean {
-  return /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(str);
+  return /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(str);
 }
 
 /**
@@ -75,28 +75,32 @@ export const filenameCaseRule: Rule.RuleModule = {
 
     // .tsx components may be PascalCase (smart) or kebab-case (dumb)
     if (ext === ".tsx") {
-      if (isPascalCase(base) || isKebabCase(base)) {
-        return {};
+      if (!(isPascalCase(base) || isKebabCase(base))) {
+        return report(context, filename, ext);
       }
-    } else {
-      // Everything else must be kebab-case
-      if (isKebabCase(base)) {
-        return {};
-      }
+      return {};
     }
 
-    return {
-      Program(node) {
-        context.report({
-          node,
-          loc: { line: 1, column: 0 },
-          message:
-            `Filename "${path.basename(filename)}" does not match pasika conventions. ` +
-            (ext === ".tsx"
-              ? "Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb)."
-              : "Non-component files must use kebab-case."),
-        });
-      },
-    };
+    // Everything else must be kebab-case
+    if (!isKebabCase(base)) {
+      return report(context, filename, ext);
+    }
+
+    return {};
   },
 };
+
+function report(context: Rule.RuleContext, filename: string, ext: string): Rule.NodeListener {
+  return {
+    Program(node) {
+      const convention = ext === ".tsx"
+        ? "Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb)."
+        : "Non-component files must use kebab-case.";
+      context.report({
+        node,
+        loc: { line: 1, column: 0 },
+        message: `Filename "${path.basename(filename)}" does not match pasika conventions. ${convention}`,
+      });
+    },
+  };
+}
