@@ -42,8 +42,7 @@ export const filenameCaseRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description:
-        "Enforce pasika filename conventions: kebab-case by default, PascalCase for smart .tsx components.",
+      description: "Enforce pasika filename conventions: kebab-case by default, PascalCase for smart .tsx components.",
     },
   },
   create(context) {
@@ -93,9 +92,10 @@ export const filenameCaseRule: Rule.RuleModule = {
 function report(context: Rule.RuleContext, filename: string, ext: string): Rule.NodeListener {
   return {
     Program(node) {
-      const convention = ext === ".tsx"
-        ? "Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb)."
-        : "Non-component files must use kebab-case.";
+      const convention =
+        ext === ".tsx"
+          ? "Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb)."
+          : "Non-component files must use kebab-case.";
       context.report({
         node,
         loc: { line: 1, column: 0 },
