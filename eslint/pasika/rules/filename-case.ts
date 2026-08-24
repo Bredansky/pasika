@@ -1,0 +1,102 @@
+import path from "node:path";
+import type { Rule } from "eslint";
+
+/**
+ * Next.js App Router routing files that are exempt from filename-case checks.
+ * https://nextjs.org/docs/app/getting-started/project-structure#routing-files
+ */
+const NEXT_ROUTING_FILES = new Set([
+  "page",
+  "layout",
+  "loading",
+  "error",
+  "not-found",
+  "route",
+  "template",
+  "default",
+  "middleware",
+  "instrumentation",
+]);
+
+/** Suffixes that form a compound extension with the real extension (e.g. .example.tsx, .test.ts). */
+const COMPOUND_SUFFIXES = new Set(["example", "test", "spec", "stories"]);
+
+/**
+ * Checks whether a string is in kebab-case.
+ * Allows lowercase letters, digits, and hyphens (but not leading/trailing/double hyphens).
+ */
+function isKebabCase(str: string): boolean {
+  return /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(str);
+}
+
+/**
+ * Checks whether a string is in PascalCase.
+ * Starts with an uppercase letter, followed by alphanumeric characters.
+ */
+function isPascalCase(str: string): boolean {
+  return /^[A-Z][A-Za-z0-9]*$/.test(str);
+}
+
+export const filenameCaseRule: Rule.RuleModule = {
+  meta: {
+    schema: [],
+    type: "problem",
+    docs: {
+      description:
+        "Enforce pasika filename conventions: kebab-case by default, PascalCase for smart .tsx components.",
+    },
+  },
+  create(context) {
+    const filename = context.filename;
+
+    if (!filename) {
+      return {};
+    }
+
+    // Only check files under src/
+    const normalized = filename.replace(/\\/g, "/");
+    if (!normalized.includes("/src/")) {
+      return {};
+    }
+
+    const ext = path.extname(filename);
+    let base = path.basename(filename, ext);
+
+    // Strip compound suffix (e.g. ".example", ".test", ".stories", ".spec") to get the real base name
+    const baseExt = path.extname(base);
+    if (baseExt && COMPOUND_SUFFIXES.has(baseExt.slice(1))) {
+      base = path.basename(base, baseExt);
+    }
+
+    // Next.js routing files are exempt
+    if (NEXT_ROUTING_FILES.has(base)) {
+      return {};
+    }
+
+    // .tsx components may be PascalCase (smart) or kebab-case (dumb)
+    if (ext === ".tsx") {
+      if (isPascalCase(base) || isKebabCase(base)) {
+        return {};
+      }
+    } else {
+      // Everything else must be kebab-case
+      if (isKebabCase(base)) {
+        return {};
+      }
+    }
+
+    return {
+      Program(node) {
+        context.report({
+          node,
+          loc: { line: 1, column: 0 },
+          message:
+            `Filename "${path.basename(filename)}" does not match pasika conventions. ` +
+            (ext === ".tsx"
+              ? "Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb)."
+              : "Non-component files must use kebab-case."),
+        });
+      },
+    };
+  },
+};
