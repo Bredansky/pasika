@@ -10,7 +10,7 @@
 
 import type { Rule } from "eslint";
 
-const ARBITRARY_VALUE_RE = /(?:(?:^|(?<!\w))(?:[a-z]+(?:-[a-z]+)*)-\[)/g;
+const ARBITRARY_VALUE_RE = /(?:(?:^|(?<!\w))(?:[a-z]+(?:-[a-z]+)*)-\[[^\]]+\])/g;
 
 export const noArbitraryTailwindRule: Rule.RuleModule = {
   meta: {
@@ -29,7 +29,7 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
           context.report({
             node,
             message:
-              `Tailwind arbitrary-value class "${match[0].slice(0, -1)}" is not allowed. ` +
+              `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
               "Use a named token or custom utility. " +
               "See docs/styling-guide/rules/arbitrary-value-rule.md",
           });
@@ -51,7 +51,7 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
             context.report({
               node,
               message:
-                `Tailwind arbitrary-value class "${match[0].slice(0, -1)}" is not allowed. ` +
+                `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
                 "Use a named token or custom utility. " +
                 "See docs/styling-guide/rules/arbitrary-value-rule.md",
             });
@@ -65,7 +65,7 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
               context.report({
                 node,
                 message:
-                  `Tailwind arbitrary-value class "${match[0].slice(0, -1)}" is not allowed. ` +
+                  `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
                   "Use a named token or custom utility. " +
                   "See docs/styling-guide/rules/arbitrary-value-rule.md",
               });
@@ -89,7 +89,7 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
               context.report({
                 node,
                 message:
-                  `Tailwind arbitrary-value class "${match[0].slice(0, -1)}" is not allowed. ` +
+                  `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
                   "Use a named token or custom utility. " +
                   "See docs/styling-guide/rules/arbitrary-value-rule.md",
               });
