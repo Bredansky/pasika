@@ -10,7 +10,17 @@
 
 import type { Rule } from "eslint";
 
-const ARBITRARY_VALUE_RE = /(?:(?:^|(?<!\w))(?:[a-z]+(?:-[a-z]+)*)-\[[^\]]+\])/g;
+/**
+ * Matches Tailwind arbitrary-value utility classes like rounded-[13px], text-[#fff].
+ *
+ * Does NOT match variant prefixes like min-[400px]:flex-row or md:flex.
+ * The negative lookahead (?![-\w]*:) excludes anything followed by a colon + more.
+ *
+ * Note: Tailwind breakpoint variants (sm:, md:, lg:, etc.) don't use brackets,
+ * so they're never matched. Only bracket-based variants like min-[400px]: need
+ * the lookahead exclusion.
+ */
+const ARBITRARY_VALUE_RE = /(?:^|(?<=\s))(?:[a-z]+(?:-[a-z]+)*)-\[[^\]]+\](?![-\w]*:)/g;
 
 export const noArbitraryTailwindRule: Rule.RuleModule = {
   meta: {
