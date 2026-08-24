@@ -27,12 +27,20 @@ claude/
     render-settings.ts
 docs/
   claude/
-    hooks.md
+  code-organization-guide/
+  documentation-guide/
+  styling-guide/
+  agent-conventions.md
+eslint/
+  pasika/
+    rules/
 scripts/
   pasika.ts
+  generate-vulyk-json.ts
+vulyk.config.ts              # typed config (source of truth)
+vulyk.json                   # generated from vulyk.config.ts
 dist/
   ...
-vulyk.json
 AGENTS.md
 CLAUDE.md
 ```
@@ -75,7 +83,7 @@ npm run typecheck
 npm run build
 ```
 
-`npm run build` uses `vulyk docs` to emit root `AGENTS.md` and `CLAUDE.md`.
+`npm run build` compiles the TypeScript source. `npm run docs:generate` regenerates `vulyk.json` from `vulyk.config.ts`, then runs `vulyk docs` to emit root `AGENTS.md` and `CLAUDE.md`.
 
 ## Recommended Integration
 
@@ -101,7 +109,29 @@ So the recommended pattern is:
 
 ## ESLint Pasika Ruleset
 
-Pasika packages its source-organization rules separately from its own Node and TypeScript lint configuration. A consumer composes the exported ruleset with Zirka and enables any framework-specific Zirka blocks it needs.
+Pasika ships enforceable lint rules derived from its documentation. Each rule carries a `@see` annotation linking to its source doc so future audits can verify rule/doc alignment.
+
+### Usage with Zirka (recommended)
+
+Enable pasika through Zirka's `styleguide`:
+
+```ts
+// eslint.config.ts
+import { RuleSeverity, styleguide } from "zirka";
+
+const { eslintConfig } = styleguide({
+  next: RuleSeverity.Error,
+  node: RuleSeverity.Error,
+  typescript: RuleSeverity.Error,
+  pasika: RuleSeverity.Error,
+});
+
+export default eslintConfig;
+```
+
+### Usage without Zirka
+
+Import the config directly and compose with your own:
 
 ```ts
 // eslint.config.ts
@@ -116,3 +146,28 @@ const { eslintConfig } = styleguide({
 
 export default [...((await eslintConfig) ?? []), pasikaConfig];
 ```
+
+### Rule → Doc Mapping
+
+Every rule's source file declares the documentation it enforces. Use this table to trace a lint hit back to its reasoning:
+
+| Rule | Enforces | Source Doc |
+|---|---|---|
+| `pasika/filename-case` | Smart/PascalCase vs dumb/kebab-case file names | `docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md` |
+| `pasika/organization-imports` | Relative vs `@/*` imports, layer boundaries | `docs/code-organization-guide/rules/exports-and-imports-rule.md` |
+| `pasika/no-mixed-concerns` | One React component per `.tsx` file | `docs/code-organization-guide/rules/no-mixed-concerns-rule.md` |
+| `pasika/no-arbitrary-tailwind` | No arbitrary `-[value]` Tailwind classes | `docs/styling-guide/rules/arbitrary-value-rule.md` |
+| `pasika/enforce-cn-merge` | Use `cn()` not `+`/template literals; ≤5 classes per group | `docs/styling-guide/rules/class-composition-rule.md` |
+| `pasika/enforce-cva-variant-props` | Use `VariantProps<typeof>` not manual union types | `docs/styling-guide/rules/component-variant-rule.md` |
+| `pasika/enforce-barrel-exports` | Nested `index.ts` only re-exports the parent component | `docs/code-organization-guide/rules/folder-nesting-rule.md` |
+
+## Vulyk Config
+
+Pasika declares its tracked documentation entries in a typed `vulyk.config.ts` file. This gives editors intellisense and JSDoc descriptions for every field. The runtime `vulyk.json` is generated from it:
+
+```bash
+npm run config:generate   # vulyk.config.ts → vulyk.json
+npm run docs:generate     # config:generate + vulyk docs
+```
+
+Consumer projects reference pasika's docs through their own `vulyk.json` entries pointing at tagged pasika commits on GitHub.

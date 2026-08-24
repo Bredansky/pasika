@@ -1,3 +1,13 @@
+/**
+ * ESLint rule: pasika/filename-case
+ *
+ * Enforces the naming conventions from the "Smart vs Dumb Component Rule":
+ *  - Smart components: PascalCase.tsx
+ *  - Dumb components: kebab-case.tsx
+ *  - Non-component files: kebab-case
+ *
+ * @see docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
+ */
 import path from "node:path";
 import type { Rule } from "eslint";
 

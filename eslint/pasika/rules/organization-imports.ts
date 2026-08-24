@@ -1,3 +1,13 @@
+/**
+ * ESLint rule: pasika/organization-imports
+ *
+ * Enforces the import conventions from the "Exports and Imports Rule":
+ *  - Relative imports for nearby files (same folder, subfolder, one level up).
+ *  - @/* alias for imports beyond one folder up.
+ *  - Layer boundary enforcement (app → compositions → features → shared → root).
+ *
+ * @see docs/code-organization-guide/rules/exports-and-imports-rule.md
+ */
 import path from "node:path";
 import type { Rule } from "eslint";
 
