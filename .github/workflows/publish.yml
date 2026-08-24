@@ -1,13 +1,13 @@
 name: Publish Package
 
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
 
 permissions:
-  contents: read
   id-token: write
+  contents: read
 
 jobs:
   publish:
@@ -15,23 +15,51 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
+
+      - name: Print publish diagnostics
+        run: |
+          node -v
+          npm -v
+          echo "registry=$(npm config get registry)"
+          echo "oidc_request_url_present=${ACTIONS_ID_TOKEN_REQUEST_URL:+yes}"
+          echo "oidc_request_token_present=${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+yes}"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run checks
-        run: npm run check
-
       - name: Build package
-        run: npm run build
+        run: npm run build --if-present
+
+      - name: Run checks
+        run: npm run check --if-present
 
       - name: Publish to npm
-        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ""
+        run: npm publish
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub release for ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release for $TAG already exists, skipping"
+            exit 0
+          fi
+          gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
