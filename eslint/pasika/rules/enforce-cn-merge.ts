@@ -6,12 +6,42 @@
  * @see docs/styling-guide/rules/class-composition-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- ESLint rule files work with ESTree AST nodes inherently */
 
 import type { Rule } from "eslint";
 
 function classCount(str: string): number {
   return str.split(/\s+/).filter(Boolean).length;
+}
+
+function isComponentName(name: any): boolean {
+  return name?.type === "JSXIdentifier" && /^[A-Z]/.test(String(name.name));
+}
+
+function isOuterLayoutClass(className: string): boolean {
+  const utility = className.split(":").pop() ?? className;
+  return /^(?:-?m[trblsexy]?-.+|(?:min-|max-)?[wh]-.+|size-.+|(?:flex-(?:1|auto|initial|none|grow|shrink|basis-.+)|grow(?:-.+)?|shrink(?:-.+)?|basis-.+|order-.+|(?:col|row)-(?:auto|span-.+|start-.+|end-.+)|(?:self|place-self|justify-self)-.+|z-.+|gap-.+|space-[xy]-.+))$/.test(
+    utility,
+  );
+}
+
+function stringArguments(node: any): string[] {
+  if (node?.type === "Literal" && typeof node.value === "string") {
+    return [String(node.value)];
+  }
+  if (node?.type === "TemplateLiteral") {
+    return node.quasis.map((quasi: any) => String(quasi.value.raw)) as string[];
+  }
+  if (node?.type === "ConditionalExpression") {
+    return [...stringArguments(node.consequent), ...stringArguments(node.alternate)];
+  }
+  if (node?.type === "LogicalExpression") {
+    return [...stringArguments(node.left), ...stringArguments(node.right)];
+  }
+  if (node?.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === "cn") {
+    return node.arguments.flatMap((argument: any) => stringArguments(argument)) as string[];
+  }
+  return [];
 }
 
 export const enforceCnMergeRule: Rule.RuleModule = {
@@ -25,10 +55,41 @@ export const enforceCnMergeRule: Rule.RuleModule = {
   create(context) {
     return {
       JSXAttribute(node: any) {
-        if (node.name.name !== "className" && node.name.name !== "class") return;
+        const attributeName = String(node.name.name);
+        const element = node.parent?.parent;
+        const isComponentProp = isComponentName(element?.openingElement?.name);
+
+        if (isComponentProp && attributeName !== "className" && attributeName.endsWith("ClassName")) {
+          context.report({
+            node,
+            message:
+              "Expose appearance through typed variant props instead of separate internal class-name props. " +
+              "See docs/styling-guide/rules/class-composition-rule.md",
+          });
+          return;
+        }
+
+        if (attributeName !== "className" && attributeName !== "class") return;
 
         const valueNode = node.value;
         if (!valueNode) return;
+
+        if (isComponentProp && attributeName === "className") {
+          const expression = valueNode.type === "JSXExpressionContainer" ? valueNode.expression : valueNode;
+          const classes = stringArguments(expression);
+          const invalidClass = classes
+            .flatMap((value) => value.split(/\s+/).filter(Boolean))
+            .find((className) => !isOuterLayoutClass(className));
+          if (invalidClass) {
+            context.report({
+              node,
+              message:
+                `Passed className contains non-layout utility "${invalidClass}". Expose appearance through typed variant props. ` +
+                "See docs/styling-guide/rules/class-composition-rule.md",
+            });
+          }
+          return;
+        }
 
         if (valueNode.type === "Literal" && typeof valueNode.value === "string") {
           if (classCount(valueNode.value) > 5) {
@@ -97,4 +158,4 @@ export const enforceCnMergeRule: Rule.RuleModule = {
   },
 };
 
-/* eslint-enable  -- re-enable rules disabled for AST access @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */
+/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- re-enable rules disabled for AST access */

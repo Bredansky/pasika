@@ -963,15 +963,15 @@
       "doc": "styling-guide/rules/class-composition-rule.md",
       "text": "A className passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and z-index.",
       "hash": "a84eca1927",
-      "kind": "planned",
-      "note": "eslint: a passed className carries only outer-layout utilities"
+      "kind": "eslint",
+      "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
       "text": "A component MUST expose its supported appearance and size variants through typed props, not through a passed className or separate class-name props for internal elements.",
       "hash": "294fb0dbae",
-      "kind": "planned",
-      "note": "eslint: report class-name props for internal elements"
+      "kind": "eslint",
+      "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",

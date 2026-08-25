@@ -51,6 +51,46 @@ void describe("Components MUST NOT concatenate class strings with template liter
   });
 });
 
+void describe("A className passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and z-index.", () => {
+  ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
+    valid: [
+      {
+        code: '<Card className="w-full max-w-lg self-center mt-4" />',
+        filename: srcFile("features/dashboard/card.tsx"),
+      },
+      {
+        code: '<Card className={cn("w-full", className)} />',
+        filename: srcFile("features/dashboard/card.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: '<Card className="rounded-lg bg-card px-4" />',
+        filename: srcFile("features/dashboard/card.tsx"),
+        errors: 1,
+      },
+    ],
+  });
+});
+
+void describe("A component MUST expose its supported appearance and size variants through typed props, not through a passed className or separate class-name props for internal elements.", () => {
+  ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
+    valid: [
+      {
+        code: '<Card size="lg" tone="primary" />',
+        filename: srcFile("features/dashboard/card.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: '<Card iconClassName="text-muted-foreground" />',
+        filename: srcFile("features/dashboard/card.tsx"),
+        errors: 1,
+      },
+    ],
+  });
+});
+
 void describe("A static class list with more than five class names MUST use cn with multiple string literals, each grouped by styling concern and containing no more than five class names.", () => {
   ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
     valid: [
