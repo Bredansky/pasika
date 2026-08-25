@@ -151,7 +151,8 @@
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders.",
       "hash": "5cc68d9d44",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "the application-structure check must allow support folders in these scopes"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
@@ -270,7 +271,8 @@
       "doc": "code-organization-guide/rules/constants-rule.md",
       "text": "A constant MAY live in src/config/<module>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
       "hash": "57f90aa714",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "pasika/support-file-placement skips the constants/ folder of a configuration module"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
@@ -409,7 +411,8 @@
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
       "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. cn() MAY be called inline. An event handler MAY make one call inline.",
       "hash": "d8f4ceb822",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "the jsx-hygiene check must treat exactly these as the permitted inline set"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
@@ -493,7 +496,8 @@
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "A smart component without one outer DOM element in every rendered result MAY omit data-testid.",
       "hash": "b0dc309f05",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "the data-testid check must exempt a component with no single outer element"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
@@ -527,7 +531,8 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
       "hash": "061a5c0936",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "the extraction check must not fire when the consumer also imports the component from that file"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
@@ -575,7 +580,8 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type MAY stay in src/config/<module>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
       "hash": "091724ed27",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "pasika/support-file-placement skips the types/ folder of a configuration module"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
@@ -693,7 +699,8 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide MAY link Rules, References, Conventions, and other Guides, including a Reference that another Guide owns.",
       "hash": "8495109c38",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "docs-check no-cross-document-link exempts guides"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -803,7 +810,8 @@
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MAY name an RFC 2119 keyword as lookup content, because naming a keyword does not impose a requirement.",
       "hash": "5e3305d40a",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "docs-check reference-no-rfc-vocabulary ignores code spans"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -870,7 +878,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "text": "Prose outside bullet points \u2014 intros, Why: explanations, table cells, and code comments \u2014 MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "kind": "planned",
       "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
@@ -934,7 +942,8 @@
       "doc": "documentation-guide/rules/template-usage-rule.md",
       "text": "Documentation support assets MAY live in folders whose names start with an underscore.",
       "hash": "faeb62c465",
-      "kind": "permission"
+      "kind": "permission",
+      "note": "the documentation parser skips folders whose names start with an underscore"
     },
     {
       "doc": "styling-guide/rules/arbitrary-value-rule.md",
