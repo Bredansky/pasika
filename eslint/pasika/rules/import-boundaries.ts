@@ -2,8 +2,8 @@
  * ESLint rule: pasika/import-boundaries
  *
  * Enforces the import conventions from the "Exports and Imports Rule":
- *  - Relative imports for nearby files (same folder, subfolder, one level up).
- *  - @/* alias for imports beyond one folder up.
+ *  - Whichever of the relative path and the @/* alias has fewer segments, with
+ *    a tie going to the relative path.
  *  - Layer boundary enforcement (app → compositions → features → shared → root).
  *
  * @see docs/code-organization-guide/rules/exports-and-imports-rule.md
@@ -38,13 +38,37 @@ function sourceSegments(absolutePath: string): string[] | undefined {
   return relativePath.split(path.sep);
 }
 
-function isNearbyImport(filename: string, resolvedPath: string): boolean {
-  const relativePath = path.relative(path.dirname(filename), resolvedPath);
-  const segments = relativePath.split(path.sep).filter((segment) => segment !== ".");
-  const parentTraversals = segments.filter((segment) => segment === "..").length;
-  const nonParentSegments = segments.length - parentTraversals;
+/** The relative form of an import, always prefixed so it reads as a path. */
+function relativeSpecifier(filename: string, resolvedPath: string): string {
+  const relativePath = path.relative(path.dirname(filename), resolvedPath).split(path.sep).join("/");
+  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+}
 
-  return (parentTraversals === 0 && nonParentSegments <= 2) || (parentTraversals === 1 && nonParentSegments <= 1);
+/** The `@/*` form of an import. */
+function aliasSpecifier(resolvedPath: string): string {
+  return `@/${(sourceSegments(resolvedPath) ?? []).join("/")}`;
+}
+
+/** Segments in a specifier: one per `../` step and one per name, ignoring a leading `./`. */
+function segmentCount(specifier: string): number {
+  return specifier
+    .replace(/^@\//, "")
+    .split("/")
+    .filter((segment) => segment !== "." && segment !== "").length;
+}
+
+function describeSegments(count: number): string {
+  return `${String(count)} segment${count === 1 ? "" : "s"}`;
+}
+
+/**
+ * Whether the relative form is the one to use. Shorter wins, and a tie goes to
+ * the relative form. Because crossing a layer always costs at least one `../`
+ * while the alias spells the same tail, the alias always wins for a
+ * cross-layer import without this needing to know what a layer is.
+ */
+function prefersRelative(filename: string, resolvedPath: string): boolean {
+  return segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(resolvedPath));
 }
 
 export const importBoundariesRule: Rule.RuleModule = {
@@ -76,20 +100,6 @@ export const importBoundariesRule: Rule.RuleModule = {
 
       if (!importer || !imported || importer.length === 0 || imported.length === 0) {
         return;
-      }
-
-      if (isNearbyImport(filename, resolvedPath) && importPath.startsWith("@/")) {
-        context.report({
-          node: source,
-          message: "Use a relative path for imports in the same folder, a descendant, or one folder up.",
-        });
-      }
-
-      if (!isNearbyImport(filename, resolvedPath) && importPath.startsWith(".")) {
-        context.report({
-          node: source,
-          message: "Use the @/* alias for imports beyond one folder up.",
-        });
       }
 
       const [importerLayer = "", importerFeature] = importer;
@@ -130,6 +140,41 @@ export const importBoundariesRule: Rule.RuleModule = {
         context.report({
           node: source,
           message: "This import violates the src layer boundary.",
+        });
+        // The fix is to move the file, so how the specifier is spelled does not matter yet.
+        return;
+      }
+
+      const relativeForm = relativeSpecifier(filename, resolvedPath);
+      const aliasForm = aliasSpecifier(resolvedPath);
+      const relativeSegments = segmentCount(relativeForm);
+      const aliasSegments = segmentCount(aliasForm);
+
+      function describeChoice(
+        preferred: string,
+        preferredSegments: number,
+        other: string,
+        otherSegments: number,
+      ): string {
+        const tie = preferredSegments === otherSegments ? ", and a tie goes to the relative path" : "";
+        return (
+          `Use "${preferred}" (${describeSegments(preferredSegments)}) ` +
+          `instead of "${other}" (${describeSegments(otherSegments)})${tie}.`
+        );
+      }
+
+      if (prefersRelative(filename, resolvedPath) && importPath.startsWith("@/")) {
+        context.report({
+          node: source,
+          message: describeChoice(relativeForm, relativeSegments, aliasForm, aliasSegments),
+        });
+        return;
+      }
+
+      if (!prefersRelative(filename, resolvedPath) && importPath.startsWith(".")) {
+        context.report({
+          node: source,
+          message: describeChoice(aliasForm, aliasSegments, relativeForm, relativeSegments),
         });
       }
     }
