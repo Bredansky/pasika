@@ -4,7 +4,7 @@ Visual state communicates whether a component can be used and what will happen w
 
 - A component MUST own a distinguishable appearance for every UI state it supports.
 - A component MUST use Tailwind "state variants" when they can express a supported UI state.
-- Components MUST use native semantic elements and attributes and MUST NOT use custom equivalents.
+- A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.
 
 ## Incorrect — State Styled Only with Classes
 

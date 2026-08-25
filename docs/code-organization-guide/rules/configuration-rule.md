@@ -2,7 +2,6 @@
 
 Configuration modules centralize values that control application behavior. This rule keeps each module and the files that only support it together in `src/config/`.
 
-- A configuration module is an app-wide module that selects or parameterizes application behavior.
 - All configuration modules MUST live in `src/config/`.
 - A configuration module MUST be one `src/config/<config-name>/` folder with `index.ts` as its entry point.
 - A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.

@@ -1,6 +1,6 @@
 # Component Variant Rule
 
-`cva` is Class Variance Authority, a helper for defining a component's visual options and deriving their TypeScript API. `cn` handles a standalone boolean choice without creating a variant matrix.
+A component's visual options can be spread across handwritten prop unions and conditional classes, leaving no single owner for the values it accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
 
 - A component that lets callers choose visual options MUST define them with `cva`.
 - A component's variant prop types MUST be derived from its `cva` definition with `VariantProps` rather than manually duplicated unions.

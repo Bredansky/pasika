@@ -3,18 +3,19 @@
 Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
 
 - Each How To step MUST be concise and use one sentence.
-- A Guide MAY reference Rules, References, and other Guides.
+- A Guide MAY link Rules, References, Conventions, and other Guides, including a Reference that another Guide owns.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
-- Each How To step MUST link at most one documentation file total, whether that file is a Rule, Reference, or Guide.
-- When a step links a Rule, Reference, or Guide, the step MUST name the concrete decision or result the reader will have after reading it.
+- Each How To step MUST link at most one documentation file total, whatever kind that file is.
+- When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
-- A Guide with private support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
-- Private Rule files for a Guide MUST live in a `rules/` subfolder inside the Guide's folder.
-- Private Reference files for a Guide MUST live in a `references/` subfolder inside the Guide's folder.
+- A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
+- A Rule file that a Guide owns MUST live in a `rules/` subfolder inside the Guide's folder.
+- A Reference file that a Guide owns MUST live in a `references/` subfolder inside the Guide's folder.
+- A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.
 
-## Incorrect — Private Documents Mixed at the Guide Root
+## Incorrect — Support Documents Mixed at the Guide Root
 
 ```text
 feature-workflow-guide/
@@ -25,7 +26,7 @@ feature-workflow-guide/
 
 Why: mixed Markdown files turn the doc folder into an undifferentiated list once the doc grows.
 
-## Correct — Private Documents Grouped by Kind
+## Correct — Support Documents Grouped by Kind
 
 ```text
 feature-workflow-guide/
@@ -36,7 +37,7 @@ feature-workflow-guide/
     └── option-reference.md
 ```
 
-Why: private support files stay colocated with the entry point while being grouped by document kind.
+Why: support files stay colocated with the entry point while being grouped by document kind.
 
 ## Incorrect — Step Links to Multiple Documents
 
@@ -111,3 +112,26 @@ Why: link points at a Guide file but does not anchor to a specific How To sectio
 ```
 
 Why: link anchors to the specific How To section, so the reader lands directly on the relevant workflow.
+
+## Incorrect — Guide Uses Defined Terms Without Linking the Glossary
+
+```markdown
+## How To Organize a Component
+
+1. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).
+2. Classify the component as smart or dumb per the [Smart vs Dumb Component Rule](rules/smart-vs-dumb-component-rule.md).
+```
+
+Why: the steps ask the reader to classify a component and to place it by its closest common folder, but nothing tells the reader where those terms are defined.
+
+## Correct — First Step Links the Glossary
+
+```markdown
+## How To Organize a Component
+
+1. Read the [Glossary Reference](../framework-adoption-guide/references/glossary-reference.md) to learn the terms these steps use.
+2. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).
+3. Classify the component as smart or dumb per the [Smart vs Dumb Component Rule](rules/smart-vs-dumb-component-rule.md).
+```
+
+Why: the first step points at the one document that defines the terms, so the reader can resolve them before making any decision.

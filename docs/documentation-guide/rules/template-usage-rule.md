@@ -1,6 +1,6 @@
 # Template Usage Rule
 
-Authoring without a template makes every doc invent its own title, orientation, and section shape. This rule keeps new docs predictable. Templates for each document kind live in `../_templates/`.
+Authoring without a template makes every doc invent its own title, orientation, and section shape. This rule keeps new docs predictable by starting every one of them from the templates in `../_templates/`.
 
 - Authors MUST start from the template that matches the chosen document kind and structure.
 - Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.

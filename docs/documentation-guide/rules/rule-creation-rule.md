@@ -3,14 +3,13 @@
 Rules without a consistent creation process invent their own structure and enforcement language. This rule defines how to create a Rule document.
 
 - Rule file names MUST match the document title in kebab-case and use the `-rule` suffix (e.g., `foo-rule.md`).
+- A Rule overview MUST contain one or two short sentences naming the problem the rule solves.
+- A Rule MUST state requirements about one subject.
 - A Rule MUST contain at least one bullet point that uses [RFC 2119 vocabulary](https://datatracker.ietf.org/doc/html/rfc2119) (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`).
 - RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.
+- A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, and `SHOULD` or `SHOULD NOT` only when exceptions are possible.
 - Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.
-- `MUST` MUST mean required.
-- `MUST NOT` MUST mean forbidden.
-- `SHOULD` MUST mean recommended, with exceptions possible.
-- `SHOULD NOT` MUST mean discouraged, with exceptions possible.
-- `MAY` MUST mean optional.
+- A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
 - A Rule MUST contain at least one Incorrect/Correct pair.
 - A Rule MAY contain multiple Incorrect/Correct pairs.
 - An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
@@ -49,6 +48,23 @@ Why: rule contains a reference to another Reference.
 ```
 
 Why: rule states requirements directly without referencing other docs.
+
+## Incorrect — Bullet Defines a Term
+
+```markdown
+- A smart component MUST fetch data or pass `on*` callbacks to children.
+- A smart component file name MUST be `PascalCase.tsx`.
+```
+
+Why: the first bullet describes what makes a component smart rather than asking for anything, so a reader who does not fetch data appears to be violating a requirement by writing a dumb component.
+
+## Correct — Term Defined in a Reference
+
+```markdown
+- A smart component file name MUST be `PascalCase.tsx`.
+```
+
+Why: the classification lives in the glossary, so every bullet in the Rule asks the reader for something.
 
 ## Incorrect — Requirement Repeated in an Explanation
 

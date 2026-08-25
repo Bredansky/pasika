@@ -2,7 +2,7 @@
 
 Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them out of the folder's public API.
 
-- An exclusive child component is imported only by its parent component. A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
+- A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
 - A component MUST NOT be nested only because it has support files.
 - A nested component's support files MUST live in its folder.
 - The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
