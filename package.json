@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -12,7 +12,11 @@
     "./eslint": {
       "types": "./dist/eslint/pasika/index.d.ts",
       "import": "./dist/eslint/pasika/index.js"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "pasika": "dist/cli/index.js"
   },
   "files": [
     "dist",
@@ -20,13 +24,17 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "coverage": "tsx cli/index.ts coverage",
+    "docs": "tsx cli/index.ts docs",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
-    "typecheck": "tsc --noEmit",
-    "coverage": "tsx cli/index.ts coverage",
-    "docs": "tsx cli/index.ts docs",
-    "test": "node --import tsx --test 'eslint/**/*.test.ts' 'enforcement/**/*.test.ts'"
+    "test": "node --import tsx --test 'eslint/**/*.test.ts' 'enforcement/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/estree": "^1.0.9",
@@ -38,17 +46,10 @@
     "typescript": "^5.9.2",
     "zirka": "^0.0.38"
   },
-  "engines": {
-    "node": ">=22"
-  },
-  "dependencies": {
-    "commander": "^12.1.0",
-    "zod": "^4.4.3"
-  },
-  "bin": {
-    "pasika": "dist/cli/index.js"
-  },
   "peerDependencies": {
     "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

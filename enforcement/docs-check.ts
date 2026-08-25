@@ -168,11 +168,14 @@ function checkDoc(doc: ParsedDoc, allDocs: ParsedDoc[]): DocsFinding[] {
  * A folder that holds `rules/` or `references/` is a guide folder, so it needs a
  * guide named after it as its entry point. Other guides may share that folder.
  */
-function checkGuideFolders(docs: ParsedDoc[]): DocsFinding[] {
+function checkGuideFolders(docs: ParsedDoc[], docsRoot: string): DocsFinding[] {
   const guideFolders = new Set(
     docs
       .filter((doc) => ["rules", "references"].includes(path.basename(path.dirname(doc.filePath))))
-      .map((doc) => path.dirname(path.dirname(doc.filePath))),
+      .map((doc) => path.dirname(path.dirname(doc.filePath)))
+      // A rules/ or references/ folder directly under the documentation root
+      // belongs to no guide, and the root is not a guide folder itself.
+      .filter((folder) => path.resolve(folder) !== path.resolve(docsRoot)),
   );
 
   return [...guideFolders]
@@ -197,5 +200,5 @@ function checkGuideFolders(docs: ParsedDoc[]): DocsFinding[] {
 
 export function checkDocs(docsRoot: string): { docs: ParsedDoc[]; findings: DocsFinding[] } {
   const docs = parseDocs(docsRoot);
-  return { docs, findings: [...docs.flatMap((doc) => checkDoc(doc, docs)), ...checkGuideFolders(docs)] };
+  return { docs, findings: [...docs.flatMap((doc) => checkDoc(doc, docs)), ...checkGuideFolders(docs, docsRoot)] };
 }
