@@ -66,8 +66,14 @@ export const enforceCvaVariantPropsRule: Rule.RuleModule = {
             const keyName = String(member.key.name);
             const typeAnn = member.typeAnnotation.typeAnnotation;
 
+            // typescript-eslint emits ESTree `Literal` nodes; other TypeScript
+            // parsers emit `StringLiteral`. Accept both so the rule works
+            // whichever parser the consuming config installs.
             const allStringLiterals = typeAnn.types.every(
-              (t: any) => t.type === "TSLiteralType" && t.literal.type === "StringLiteral",
+              (t: any) =>
+                t.type === "TSLiteralType" &&
+                (t.literal?.type === "StringLiteral" ||
+                  (t.literal?.type === "Literal" && typeof t.literal.value === "string")),
             );
 
             if (allStringLiterals && typeAnn.types.length >= 2) {

@@ -6,9 +6,8 @@
  * @see docs/styling-guide/rules/arbitrary-value-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
 
 /**
  * Matches Tailwind arbitrary-value utility classes like rounded-[13px], text-[#fff].
@@ -22,6 +21,22 @@ import type { Rule } from "eslint";
  */
 const ARBITRARY_VALUE_RE = /(?:^|(?<=\s))(?:[a-z]+(?:-[a-z]+)*)-\[[^\]]+\](?![-\w]*:)/g;
 
+const CLASS_HELPERS = new Set(["cn", "clsx", "twMerge", "twJoin"]);
+
+/**
+ * ESTree carries no JSX types, so the two JSX shapes this rule reads are declared
+ * here. Everything inside a container is an ordinary expression again.
+ */
+interface JsxExpressionContainer {
+  type: "JSXExpressionContainer";
+  expression: ESTree.Expression;
+}
+
+type JsxAttributeNode = Rule.Node & {
+  name?: { name?: unknown };
+  value?: ESTree.Literal | JsxExpressionContainer | null;
+};
+
 export const noArbitraryTailwindRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -31,86 +46,74 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    function checkQuasis(node: Rule.Node, quasis: { value: { raw: string } }[]): void {
-      for (const quasi of quasis) {
-        ARBITRARY_VALUE_RE.lastIndex = 0;
-        const match = ARBITRARY_VALUE_RE.exec(quasi.value.raw);
-        if (match) {
-          context.report({
-            node,
-            message:
-              `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
-              "Use a named token or custom utility. " +
-              "See docs/styling-guide/rules/arbitrary-value-rule.md",
-          });
+    function reportClassString(node: Rule.Node, value: string): void {
+      ARBITRARY_VALUE_RE.lastIndex = 0;
+      const match = ARBITRARY_VALUE_RE.exec(value);
+      if (!match) return;
+      context.report({
+        node,
+        message:
+          `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
+          "Use a named token or custom utility. " +
+          "See docs/styling-guide/rules/arbitrary-value-rule.md",
+      });
+    }
+
+    /** Walks every expression a class name can hide in: conditionals, arrays, and object keys. */
+    function checkExpression(node: Rule.Node, expression: ESTree.Node | null | undefined): void {
+      if (!expression) return;
+
+      if (expression.type === "Literal") {
+        if (typeof expression.value === "string") reportClassString(node, expression.value);
+        return;
+      }
+
+      if (expression.type === "TemplateLiteral") {
+        for (const quasi of expression.quasis) reportClassString(node, quasi.value.raw);
+        return;
+      }
+
+      if (expression.type === "LogicalExpression") {
+        checkExpression(node, expression.left);
+        checkExpression(node, expression.right);
+        return;
+      }
+
+      if (expression.type === "ConditionalExpression") {
+        checkExpression(node, expression.consequent);
+        checkExpression(node, expression.alternate);
+        return;
+      }
+
+      if (expression.type === "ArrayExpression") {
+        for (const element of expression.elements) checkExpression(node, element);
+        return;
+      }
+
+      if (expression.type === "ObjectExpression") {
+        // clsx and cn accept `{ "px-[3px]": isActive }`, so the keys carry classes.
+        for (const property of expression.properties) {
+          if (property.type === "Property") checkExpression(node, property.key);
         }
       }
     }
 
     return {
-      JSXAttribute(node: any) {
-        if (node.name.name !== "className" && node.name.name !== "class") return;
+      JSXAttribute(node: JsxAttributeNode) {
+        const attributeName = node.name?.name;
+        if (attributeName !== "className" && attributeName !== "class") return;
 
-        const valueNode = node.value;
-        if (!valueNode) return;
-
-        if (valueNode.type === "Literal" && typeof valueNode.value === "string") {
-          ARBITRARY_VALUE_RE.lastIndex = 0;
-          const match = ARBITRARY_VALUE_RE.exec(valueNode.value);
-          if (match) {
-            context.report({
-              node,
-              message:
-                `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
-                "Use a named token or custom utility. " +
-                "See docs/styling-guide/rules/arbitrary-value-rule.md",
-            });
-          }
-        } else if (valueNode.type === "JSXExpressionContainer" && valueNode.expression) {
-          const expr = valueNode.expression;
-          if (expr.type === "Literal" && typeof expr.value === "string") {
-            ARBITRARY_VALUE_RE.lastIndex = 0;
-            const match = ARBITRARY_VALUE_RE.exec(expr.value);
-            if (match) {
-              context.report({
-                node,
-                message:
-                  `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
-                  "Use a named token or custom utility. " +
-                  "See docs/styling-guide/rules/arbitrary-value-rule.md",
-              });
-            }
-          } else if (expr.type === "TemplateLiteral") {
-            checkQuasis(node, expr.quasis);
-          }
-        }
+        const value = node.value;
+        if (!value) return;
+        checkExpression(node, value.type === "JSXExpressionContainer" ? value.expression : value);
       },
 
       CallExpression(node) {
-        if (node.callee.type !== "Identifier") return;
-        const calleeName = node.callee.name;
-        if (calleeName !== "cn" && calleeName !== "clsx" && calleeName !== "twMerge" && calleeName !== "twJoin") return;
-
-        for (const arg of node.arguments) {
-          if (arg.type === "Literal" && typeof arg.value === "string") {
-            ARBITRARY_VALUE_RE.lastIndex = 0;
-            const match = ARBITRARY_VALUE_RE.exec(arg.value);
-            if (match) {
-              context.report({
-                node,
-                message:
-                  `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
-                  "Use a named token or custom utility. " +
-                  "See docs/styling-guide/rules/arbitrary-value-rule.md",
-              });
-            }
-          } else if (arg.type === "TemplateLiteral") {
-            checkQuasis(node, arg.quasis);
-          }
+        if (node.callee.type !== "Identifier" || !CLASS_HELPERS.has(node.callee.name)) return;
+        for (const argument of node.arguments) {
+          checkExpression(node, argument);
         }
       },
     };
   },
 };
-
-/* eslint-enable  -- re-enable rules disabled for AST access @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument */

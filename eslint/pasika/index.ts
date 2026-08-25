@@ -1,22 +1,12 @@
 /**
  * Pasika ESLint Ruleset
  *
- * Each rule enforces a specific documentation Rule from the `docs/` tree.
- * Every rule file carries a `@see` annotation linking to the source doc.
- * This mapping is maintained so future agents can audit rule/doc alignment.
- *
- * Rule → Doc mapping:
- *
- *   filename-case          → docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
- *   import-boundaries      → docs/code-organization-guide/rules/exports-and-imports-rule.md
- *   no-mixed-concerns      → docs/code-organization-guide/rules/no-mixed-concerns-rule.md
- *   no-arbitrary-tailwind  → docs/styling-guide/rules/arbitrary-value-rule.md
- *   enforce-cn-merge       → docs/styling-guide/rules/class-composition-rule.md
- *   enforce-cva-variant-props → docs/styling-guide/rules/component-variant-rule.md
- *   enforce-barrel-exports → docs/code-organization-guide/rules/folder-nesting-rule.md
- *                          + docs/code-organization-guide/rules/exports-and-imports-rule.md
+ * Each rule enforces requirements from the `docs/` tree, and each rule file
+ * carries a `@see` annotation naming the document it comes from. Which
+ * documented requirement each rule covers is recorded in
+ * `enforcement/registry.json` and verified by `pasika coverage`.
  */
-import type { Linter } from "eslint";
+import type { Linter, Rule } from "eslint";
 import { filenameCaseRule } from "./rules/filename-case.js";
 import { importBoundariesRule } from "./rules/import-boundaries.js";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns.js";
@@ -24,29 +14,29 @@ import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind.js";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge.js";
 import { enforceCvaVariantPropsRule } from "./rules/enforce-cva-variant-props.js";
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports.js";
+import { componentPlacementRule } from "./rules/component-placement.js";
+import { supportFilePlacementRule } from "./rules/support-file-placement.js";
+
+/** Every rule the plugin provides, keyed by its unprefixed name. */
+export const pasikaRules: Record<string, Rule.RuleModule> = {
+  "component-placement": componentPlacementRule,
+  "support-file-placement": supportFilePlacementRule,
+  "filename-case": filenameCaseRule,
+  "import-boundaries": importBoundariesRule,
+  "no-mixed-concerns": noMixedConcernsRule,
+  "no-arbitrary-tailwind": noArbitraryTailwindRule,
+  "enforce-cn-merge": enforceCnMergeRule,
+  "enforce-cva-variant-props": enforceCvaVariantPropsRule,
+  "enforce-barrel-exports": enforceBarrelExportsRule,
+};
+
+/** Rule ids as they appear in configuration and in lint output. */
+export const pasikaRuleIds = Object.keys(pasikaRules).map((name) => `pasika/${name}`);
 
 export const pasikaConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
   plugins: {
-    pasika: {
-      rules: {
-        "filename-case": filenameCaseRule,
-        "import-boundaries": importBoundariesRule,
-        "no-mixed-concerns": noMixedConcernsRule,
-        "no-arbitrary-tailwind": noArbitraryTailwindRule,
-        "enforce-cn-merge": enforceCnMergeRule,
-        "enforce-cva-variant-props": enforceCvaVariantPropsRule,
-        "enforce-barrel-exports": enforceBarrelExportsRule,
-      },
-    },
+    pasika: { rules: pasikaRules },
   },
-  rules: {
-    "pasika/filename-case": "error",
-    "pasika/import-boundaries": "error",
-    "pasika/no-mixed-concerns": "error",
-    "pasika/no-arbitrary-tailwind": "error",
-    "pasika/enforce-cn-merge": "error",
-    "pasika/enforce-cva-variant-props": "error",
-    "pasika/enforce-barrel-exports": "error",
-  },
+  rules: Object.fromEntries(pasikaRuleIds.map((id) => [id, "error"])),
 };
