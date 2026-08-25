@@ -3,6 +3,6 @@
   "compilerOptions": {
     "declaration": true
   },
-  "include": ["eslint/**/*.ts"],
-  "exclude": ["eslint.config.ts"]
+  "include": ["cli/**/*.ts", "enforcement/**/*.ts", "eslint/**/*.ts"],
+  "exclude": ["eslint.config.ts", "**/*.test.ts", "eslint/pasika/rule-tester.ts"]
 }

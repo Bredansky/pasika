@@ -1,60 +1,74 @@
 # pasika
 
-Reusable agent setup package.
+Documentation, the lint rules derived from it, and the CLI that applies and diagnoses both.
 
-`pasika` stores portable agent setup assets that individual repos can apply or adapt.
-
-## Scope
-
-This repo intentionally starts narrow:
-
-- reusable agent setup assets only
-- shared docs at the repo root
-- no project-specific workflows or business logic
+`pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule, which `pasika` check, or which human judgment covers it — and CI fails when a requirement has no answer.
 
 ## Layout
 
 ```text
 docs/
-  code-organization-guide/
-  documentation-guide/
-  styling-guide/
-  agent-conventions.md
+  agent-conventions.md            # repo-wide requirements (Conventions)
+  code-organization-guide/        # placement, extraction, module conventions
+  documentation-guide/            # how documents themselves are written
+  framework-adoption-guide/       # adopting and updating the framework
+  styling-guide/                  # Tailwind theme, composition, variants, states
+enforcement/
+  registry.json                   # requirement → enforcement, keyed by content hash
+  coverage.ts                     # reconciles the docs against the registry
+  docs-check.ts                   # the documentation guide, mechanically
 eslint/
-  pasika/
-    rules/
-dist/
-  ...
+  pasika/rules/                   # the lint rules, with fixture tests beside them
+cli/
+  index.ts                        # the `pasika` command
 ```
 
-## What belongs here
+## Documentation
 
-- portable setup scripts
-- shared naming and layout conventions
-- reusable source-organization lint rules
+Documents come in four kinds — Guide, Rule, Conventions, and Reference — each with a template and a creation rule under `docs/documentation-guide/`. A Rule owns requirements about one subject and demonstrates them with paired Incorrect/Correct examples; a Reference describes and defines but never constrains; Conventions collect repo-wide requirements that span unrelated subjects; a Guide sequences the others into workflows.
 
-## What stays in project repos
+## Enforcement
 
-- final agent config folders in project repos
-- project-specific rules, agents, and prompts
-- repository-specific plugin choices
-- scripts that depend on a specific app, CI setup, or codebase
+Requirements are identified by a hash of their canonical text, not by a hand-written id, so rewording one is visible:
 
-## Development
+```jsonc
+{
+  "doc": "code-organization-guide/rules/no-mixed-concerns-rule.md",
+  "text": "A .tsx file that defines a component MUST contain exactly one component.",
+  "hash": "b19fe3bd34",
+  "kind": "eslint",
+  "ref": "pasika/no-mixed-concerns",
+  "note": "counts exported components; a second component that is not exported is not detected"
+}
+```
+
+The `note` field is where a check's known gap is recorded, so a partial check never reads as a complete one.
+
+| Kind | Meaning |
+| --- | --- |
+| `eslint` | An ESLint rule reports it, and a fixture test titled with the requirement pins it |
+| `doctor` | A `pasika doctor` check reports it |
+| `docs-check` | A `pasika docs` check reports it |
+| `planned` | Mechanically checkable, not written yet; `note` names the intended check |
+| `judgment` | No mechanical check can decide it; `note` says why |
+| `permission` | The requirement grants permission, so there is nothing to check |
+
+`pasika coverage` fails when a requirement is unclassified, when its text changed, when it disappeared, when its `ref` names a check that does not exist, or when a lint-enforced requirement has no test. Confirm a reworded requirement with `pasika coverage --accept`.
+
+## Commands
 
 ```bash
-npm run lint
-npm run typecheck
-npm run build
+npx pasika docs                # check a docs/ folder against the documentation guide
+npx pasika docs --dir content  # check another folder
+npx pasika coverage            # check that every requirement has recorded enforcement
+npx pasika coverage --accept   # record reworded and removed requirements
 ```
 
-## ESLint Pasika Ruleset
+Both accept `--json` for agent use.
 
-Pasika ships enforceable lint rules derived from its documentation. Each rule carries a `@see` annotation linking to its source doc so future audits can verify rule/doc alignment.
+## ESLint ruleset
 
-### Usage with Zirka (recommended)
-
-Enable pasika through Zirka's `styleguide`:
+### With Zirka (recommended)
 
 ```ts
 // eslint.config.ts
@@ -70,34 +84,36 @@ const { eslintConfig } = styleguide({
 export default eslintConfig;
 ```
 
-### Usage without Zirka
-
-Import the config directly and compose with your own:
+### Without Zirka
 
 ```ts
 // eslint.config.ts
 import { pasikaConfig } from "pasika/eslint";
-import { RuleSeverity, styleguide } from "zirka";
 
-const { eslintConfig } = styleguide({
-  next: RuleSeverity.Error,
-  node: RuleSeverity.Error,
-  typescript: RuleSeverity.Error,
-});
-
-export default [...((await eslintConfig) ?? []), pasikaConfig];
+export default [pasikaConfig];
 ```
 
-### Rule → Doc Mapping
+The ruleset applies to `src/**` only, so a repository without a `src/` tree passes it trivially.
 
-Every rule's source file declares the documentation it enforces. Use this table to trace a lint hit back to its reasoning:
+| Rule | Enforces |
+| --- | --- |
+| `pasika/filename-case` | kebab-case for files that define no component |
+| `pasika/import-boundaries` | Relative vs `@/*` imports, and the layer boundaries |
+| `pasika/no-mixed-concerns` | One exported React component per `.tsx` file |
+| `pasika/no-arbitrary-tailwind` | No arbitrary `-[value]` classes, including inside `cn()` conditionals |
+| `pasika/enforce-cn-merge` | `cn()` instead of `+` or template literals; at most five classes per group |
+| `pasika/enforce-cva-variant-props` | `VariantProps<typeof …>` instead of hand-written unions |
+| `pasika/enforce-barrel-exports` | A nested `index.ts` re-exports only its component |
 
-| Rule | Enforces | Source Doc |
-|---|---|---|
-| `pasika/filename-case` | Smart/PascalCase vs dumb/kebab-case file names | `docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md` |
-| `pasika/import-boundaries` | Relative vs `@/*` imports, layer boundaries | `docs/code-organization-guide/rules/exports-and-imports-rule.md` |
-| `pasika/no-mixed-concerns` | One React component per `.tsx` file | `docs/code-organization-guide/rules/no-mixed-concerns-rule.md` |
-| `pasika/no-arbitrary-tailwind` | No arbitrary `-[value]` Tailwind classes | `docs/styling-guide/rules/arbitrary-value-rule.md` |
-| `pasika/enforce-cn-merge` | Use `cn()` not `+`/template literals; ≤5 classes per group | `docs/styling-guide/rules/class-composition-rule.md` |
-| `pasika/enforce-cva-variant-props` | Use `VariantProps<typeof>` not manual union types | `docs/styling-guide/rules/component-variant-rule.md` |
-| `pasika/enforce-barrel-exports` | Nested `index.ts` only re-exports the parent component | `docs/code-organization-guide/rules/folder-nesting-rule.md` |
+Run `pasika coverage --json` for the exact requirement each rule covers.
+
+## Development
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run docs
+npm run coverage
+npm run build
+```

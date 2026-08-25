@@ -15,23 +15,40 @@
     }
   },
   "files": [
-    "dist/eslint"
+    "dist",
+    "enforcement/registry.json"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "coverage": "tsx cli/index.ts coverage",
+    "docs": "tsx cli/index.ts docs",
+    "test": "node --import tsx --test 'eslint/**/*.test.ts'"
   },
   "devDependencies": {
+    "@types/estree": "^1.0.9",
     "@types/node": "^24.12.2",
+    "@typescript-eslint/parser": "^8.68.0",
     "eslint": "^9.39.4",
     "prettier": "^3.8.1",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.2",
-    "zirka": "^0.0.35"
+    "zirka": "^0.0.38"
   },
   "engines": {
     "node": ">=22"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "zod": "^4.4.3"
+  },
+  "bin": {
+    "pasika": "dist/cli/index.js"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
   }
 }
