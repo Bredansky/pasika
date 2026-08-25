@@ -404,8 +404,8 @@
       "doc": "code-organization-guide/rules/interactive-component-rule.md",
       "text": "An interactive HTML element MUST be extracted to a component with a descriptive name.",
       "hash": "56a186c55b",
-      "kind": "planned",
-      "note": "eslint: report an interactive element beside other content"
+      "kind": "eslint",
+      "ref": "pasika/interactive-component"
     },
     {
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",

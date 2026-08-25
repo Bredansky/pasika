@@ -36,9 +36,9 @@ Karaylo is now the first end-to-end consumer proof. Completed work:
 
 After all Pasika framework requirements below are complete, migrate **shineposter3000**. Its `vulyk.json` still uses the pre-`groups` schema. Zod strips the unknown keys, so the manifest parses to **zero entries** and cleanup can delete every file listed in `.vulyk`. Do not run any Vulyk command there before migrating that manifest.
 
-## Milestone 2 — work down the 54 remaining `planned` requirements
+## Milestone 2 — work down the 53 remaining `planned` requirements
 
-Current progress: `74/162` requirements are mechanically enforced (`48 eslint`, `26 docs-check`), `54` remain planned, `21` are judgment, and `13` are permission. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, and JSX hygiene; full lint, typecheck, tests, docs, and coverage pass.
+Current progress: `75/162` requirements are mechanically enforced (`49 eslint`, `26 docs-check`), `53` remain planned, `21` are judgment, and `13` are permission. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, and JSX hygiene; full lint, typecheck, tests, docs, and coverage pass.
 
 Next batch: interactive-component extraction or the styling rules, followed by the remaining code-focused requirements. Keep shineposter3000 deferred until the Pasika framework work is complete.
 
@@ -55,7 +55,7 @@ npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
 
 | Count | Intended check | Notes |
 | --- | --- | --- |
-| 35 | `eslint` | Single-file rules still to write: interactive-component extraction, class composition, UI state, variants, and related code checks. Application structure, named exports, smart/dumb filename classification, `data-testid`, support-folder shape, import-through-index, utility naming, and JSX hygiene are implemented. |
+| 35 | `eslint` | Single-file rules still to write: class composition, UI state, variants, and related code checks. Application structure, named exports, smart/dumb filename classification, `data-testid`, support-folder shape, import-through-index, utility naming, and JSX hygiene are implemented. |
 | 29 | `doctor` | `pasika doctor` does not exist yet. Scope agreed: **dependencies and docs only** — required packages, exact-version policy, vulyk drift, the `--cache` ban, config baseline. Everything about code and paths belongs in ESLint |
 | 6 | `docs-check` | RFC 2119 vocabulary only in bullets, subject headings in a Policy document, guide link anchors, no nested How To, glossary-term linking. **Write these as ESLint rules — see milestone 3** |
 | 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
@@ -100,7 +100,7 @@ Sequenced third deliberately: it is a port of checks that already pass, so it ad
 
 ## Known gaps
 
-- **21 `judgment` + 13 `permission`** requirements will never be mechanically checked. Permissions are exceptions a future check must honour, each naming that check in its `note`. The smart-component `data-testid` rule preserves the single-outer-element exemption.
+- **21 `judgment` + 13 `permission`** requirements will never be mechanically checked. Permissions are exceptions a future check must honour, each naming that check in its `note`. The smart-component `data-testid` rule preserves the single-outer-element exemption; interactive-component extraction is enforced.
 - **`--kind doctor` accepts any `ref` unvalidated**, because doctor checks have no id list yet. Add that validation with doctor.
 - **A config-owned schema must move to the root support folder while a config-owned type may stay.** That asymmetry is what the docs literally say — the MAY-stay bullets cover types and constants, not schemas. If a schema deriving its shape from the configuration should also stay, it is a one-line doc change plus adding `schemas` to `CONFIG_OWNED_FOLDERS`.
 - **`pasika doctor` is referenced by the adoption guide and by `agent-policy.md` but does not exist.** Those two documents describe a command you cannot run yet.

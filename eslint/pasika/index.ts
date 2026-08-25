@@ -24,6 +24,7 @@ import { importThroughIndexRule } from "./rules/import-through-index.js";
 import { utilFileNameRule } from "./rules/util-file-name.js";
 import { noUtilBarrelRule } from "./rules/no-util-barrel.js";
 import { jsxHygieneRule } from "./rules/jsx-hygiene.js";
+import { interactiveComponentRule } from "./rules/interactive-component.js";
 
 /** Every rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
@@ -37,6 +38,7 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "util-file-name": utilFileNameRule,
   "no-util-barrel": noUtilBarrelRule,
   "jsx-hygiene": jsxHygieneRule,
+  "interactive-component": interactiveComponentRule,
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
   "no-mixed-concerns": noMixedConcernsRule,
