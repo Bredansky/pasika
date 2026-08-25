@@ -418,8 +418,8 @@
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
       "text": "Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before return, including in JSX attributes.",
       "hash": "979a3e96c3",
-      "kind": "planned",
-      "note": "eslint: jsx-hygiene"
+      "kind": "eslint",
+      "ref": "pasika/jsx-hygiene"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",

@@ -36,11 +36,11 @@ Karaylo is now the first end-to-end consumer proof. Completed work:
 
 After all Pasika framework requirements below are complete, migrate **shineposter3000**. Its `vulyk.json` still uses the pre-`groups` schema. Zod strips the unknown keys, so the manifest parses to **zero entries** and cleanup can delete every file listed in `.vulyk`. Do not run any Vulyk command there before migrating that manifest.
 
-## Milestone 2 — work down the 61 remaining `planned` requirements
+## Milestone 2 — work down the 54 remaining `planned` requirements
 
-Current progress: `67/162` requirements are mechanically enforced (`41 eslint`, `26 docs-check`), `61` remain planned, `21` are judgment, and `13` are permission. The latest local rules are `pasika/application-structure`, `pasika/named-exports`, `pasika/filename-case`, and `pasika/data-testid-case`; full lint, typecheck, tests, docs, and coverage pass.
+Current progress: `74/162` requirements are mechanically enforced (`48 eslint`, `26 docs-check`), `54` remain planned, `21` are judgment, and `13` are permission. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, and JSX hygiene; full lint, typecheck, tests, docs, and coverage pass.
 
-Next batch: support-folder shape, import-through-index, and utility-file naming. Keep these as ESLint rules backed by exact-title tests; do not migrate shineposter3000 yet.
+Next batch: interactive-component extraction or the styling rules, followed by the remaining code-focused requirements. Keep shineposter3000 deferred until the Pasika framework work is complete.
 
 Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
 
@@ -55,7 +55,7 @@ npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
 
 | Count | Intended check | Notes |
 | --- | --- | --- |
-| 35 | `eslint` | Single-file rules still to write: jsx-hygiene, support-folder shape, import-through-index, and related code checks. `application-structure`, `named-exports`, smart/dumb filename classification, and `data-testid` casing are implemented. |
+| 35 | `eslint` | Single-file rules still to write: interactive-component extraction, class composition, UI state, variants, and related code checks. Application structure, named exports, smart/dumb filename classification, `data-testid`, support-folder shape, import-through-index, utility naming, and JSX hygiene are implemented. |
 | 29 | `doctor` | `pasika doctor` does not exist yet. Scope agreed: **dependencies and docs only** — required packages, exact-version policy, vulyk drift, the `--cache` ban, config baseline. Everything about code and paths belongs in ESLint |
 | 6 | `docs-check` | RFC 2119 vocabulary only in bullets, subject headings in a Policy document, guide link anchors, no nested How To, glossary-term linking. **Write these as ESLint rules — see milestone 3** |
 | 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
