@@ -31,6 +31,8 @@ const FIXTURE: Record<string, string> = {
     'import { misplacedUtil } from "@/features/orders/utils/misplaced";',
     'import { useMisplaced } from "@/features/orders/hooks/use-misplaced";',
     'import { sharedConfigUtil } from "@/config/home-feed/utils/shared";',
+    'import type { PlayerMode } from "@/config/player/types";',
+    'import { playerDefaults } from "@/config/player/constants";',
     "export function Invoice() { return <span />; }",
     "",
   ].join("\n"),
@@ -80,6 +82,13 @@ const FIXTURE: Record<string, string> = {
   "config/home-feed/utils/build-url.ts": 'export function buildUrl() { return ""; }\n',
   "config/home-feed/utils/shared.ts": "export function sharedConfigUtil() { return 0; }\n",
   "utils/only-config.ts": "export function onlyConfigUtil() { return 0; }\n",
+
+  // A configuration module whose type and constant are read from outside it. Both
+  // may stay, because their meaning comes from the configuration.
+  "config/player/index.ts":
+    'import type { PlayerMode } from "./types";\nimport { playerDefaults } from "./constants";\nexport const playerConfig = { mode: "auto" as PlayerMode, ...playerDefaults };\n',
+  "config/player/types/index.ts": 'export type PlayerMode = "auto" | "manual";\n',
+  "config/player/constants/index.ts": "export const playerDefaults = { volume: 1 };\n",
   "types/only-config.ts": "export type OnlyConfigType = string;\n",
 };
 
@@ -239,9 +248,11 @@ void describe("A utility used only to implement one configuration module MUST li
   });
 });
 
-void describe("An extracted configuration type, schema, or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.", () => {
+void describe("An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [],
+    // A type or constant whose meaning comes from the configuration may stay
+    // with it however widely it is read.
+    valid: [ok("config/player/types/index.ts"), ok("config/player/constants/index.ts")],
     invalid: [
       {
         ...ok("config/home-feed/utils/shared.ts"),

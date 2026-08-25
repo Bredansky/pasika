@@ -19,9 +19,18 @@ import {
   describeConsumers,
   folderSegmentsOf,
   formatFolder,
+  isConfigModule,
   resolveSupportPlacement,
+  segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf.js";
+
+/**
+ * Support folders a configuration module keeps regardless of who imports them: a
+ * constant or type whose meaning is derived from the configuration stays beside
+ * it even when consumers exist outside the module.
+ */
+const CONFIG_OWNED_FOLDERS = new Set(["types", "constants"]);
 
 const REASON_TEXT: Record<string, string> = {
   "app-consumer": "a file under src/app/ imports it, so it belongs to the app-wide support folder",
@@ -51,6 +60,10 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     // Only a file already inside a support folder is placed by this rule; a
     // declaration still sitting beside its consumer is an extraction question.
     if (supportFolder === undefined || !SUPPORT_FOLDERS.has(supportFolder)) return {};
+
+    // A type or constant whose meaning comes from a configuration may stay with
+    // it however widely it is used, so its consumers cannot place it.
+    if (isConfigModule(segmentsOf(supportFile, sourceRoot)) && CONFIG_OWNED_FOLDERS.has(supportFolder)) return {};
 
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};

@@ -6,7 +6,7 @@ Configuration modules centralize values that control application behavior. This 
 - A configuration module MUST be one `src/config/<config-name>/` folder with `index.ts` as its entry point.
 - A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.
 - An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under `src/config/<config-name>/`.
-- An extracted configuration type, schema, or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.
+- An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.
 
 ## Incorrect — Supporting Schema Outside Its Config Folder
 

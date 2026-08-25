@@ -98,14 +98,25 @@ The ruleset applies to `src/**` only, so a repository without a `src/` tree pass
 | Rule | Enforces |
 | --- | --- |
 | `pasika/filename-case` | kebab-case for files that define no component |
-| `pasika/import-boundaries` | Relative vs `@/*` imports, and the layer boundaries |
+| `pasika/import-boundaries` | The shorter of the relative path and the `@/*` alias, and the layer boundaries |
 | `pasika/no-mixed-concerns` | One exported React component per `.tsx` file |
 | `pasika/no-arbitrary-tailwind` | No arbitrary `-[value]` classes, including inside `cn()` conditionals |
 | `pasika/enforce-cn-merge` | `cn()` instead of `+` or template literals; at most five classes per group |
 | `pasika/enforce-cva-variant-props` | `VariantProps<typeof …>` instead of hand-written unions |
 | `pasika/enforce-barrel-exports` | A nested `index.ts` re-exports only its component |
+| `pasika/component-placement` † | The folder a component's consumers imply |
+| `pasika/support-file-placement` † | The folder a hook, type, schema, constant, or utility belongs in |
 
 Run `pasika coverage --json` for the exact requirement each rule covers.
+
+### † Cross-file rules
+
+Where a component or support file belongs depends on which files import it, so these two rules index the whole `src/` tree instead of looking at one file. Two consequences:
+
+- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `agent-conventions.md` requires lint commands to run without it.
+- The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
+
+Both are inert in a repository with no `src/` tree.
 
 ## Development
 

@@ -2,24 +2,10 @@
   "requirements": [
     {
       "doc": "agent-conventions.md",
-      "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
-      "hash": "e765276ded",
+      "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
+      "hash": "b5facfa0c0",
       "kind": "judgment",
-      "note": "recognizing a compatibility shim requires knowing the change's intent"
-    },
-    {
-      "doc": "agent-conventions.md",
-      "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
-      "hash": "27247db8eb",
-      "kind": "planned",
-      "note": "doctor: compare managed files against their pinned sources"
-    },
-    {
-      "doc": "agent-conventions.md",
-      "text": "A commit MUST NOT use the --no-verify flag.",
-      "hash": "e1c615452f",
-      "kind": "judgment",
-      "note": "how git was invoked is not observable from the repository"
+      "note": "whether a value crosses a runtime boundary and needs validation is not decidable from source"
     },
     {
       "doc": "agent-conventions.md",
@@ -27,6 +13,13 @@
       "hash": "b404251c21",
       "kind": "judgment",
       "note": "deciding a field is genuinely optional requires evidence about runtime data"
+    },
+    {
+      "doc": "agent-conventions.md",
+      "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
+      "hash": "e765276ded",
+      "kind": "judgment",
+      "note": "recognizing a compatibility shim requires knowing the change's intent"
     },
     {
       "doc": "agent-conventions.md",
@@ -44,10 +37,10 @@
     },
     {
       "doc": "agent-conventions.md",
-      "text": "A file listed in a .vulyk manifest MUST NOT be edited by hand.",
-      "hash": "2390e57f4f",
+      "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
+      "hash": "628ab4f6a6",
       "kind": "planned",
-      "note": "doctor: compare managed files against their pinned sources"
+      "note": "zirka: enable @eslint-community/eslint-comments/no-use; whether a fix is correct stays judgment"
     },
     {
       "doc": "agent-conventions.md",
@@ -58,9 +51,10 @@
     },
     {
       "doc": "agent-conventions.md",
-      "text": "An agent MAY discover available commands with agent-browser --help and command-specific usage with agent-browser <command> --help.",
-      "hash": "8370ec5f41",
-      "kind": "permission"
+      "text": "A commit MUST NOT use the --no-verify flag.",
+      "hash": "e1c615452f",
+      "kind": "judgment",
+      "note": "how git was invoked is not observable from the repository"
     },
     {
       "doc": "agent-conventions.md",
@@ -71,24 +65,30 @@
     },
     {
       "doc": "agent-conventions.md",
-      "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
-      "hash": "628ab4f6a6",
-      "kind": "planned",
-      "note": "zirka: enable @eslint-community/eslint-comments/no-use; whether a fix is correct stays judgment"
-    },
-    {
-      "doc": "agent-conventions.md",
-      "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
-      "hash": "b5facfa0c0",
+      "text": "agent-browser upgrade MUST run before agent-browser is used in a task.",
+      "hash": "aea9247939",
       "kind": "judgment",
-      "note": "whether a value crosses a runtime boundary and needs validation is not decidable from source"
+      "note": "tool invocation order within a task is not observable"
     },
     {
       "doc": "agent-conventions.md",
-      "text": "Vulyk MUST NOT be added to package.json in order to run its CLI.",
-      "hash": "1061447825",
+      "text": "An agent MAY discover available commands with agent-browser --help and command-specific usage with agent-browser <command> --help.",
+      "hash": "8370ec5f41",
+      "kind": "permission"
+    },
+    {
+      "doc": "agent-conventions.md",
+      "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
+      "hash": "27247db8eb",
       "kind": "planned",
-      "note": "doctor: report a vulyk entry in package.json"
+      "note": "doctor: compare managed files against their pinned sources"
+    },
+    {
+      "doc": "agent-conventions.md",
+      "text": "A file listed in a .vulyk manifest MUST NOT be edited by hand.",
+      "hash": "2390e57f4f",
+      "kind": "planned",
+      "note": "doctor: compare managed files against their pinned sources"
     },
     {
       "doc": "agent-conventions.md",
@@ -99,38 +99,10 @@
     },
     {
       "doc": "agent-conventions.md",
-      "text": "agent-browser upgrade MUST run before agent-browser is used in a task.",
-      "hash": "aea9247939",
-      "kind": "judgment",
-      "note": "tool invocation order within a task is not observable"
-    },
-    {
-      "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders.",
-      "hash": "5cc68d9d44",
-      "kind": "permission"
-    },
-    {
-      "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A file that does not define a component MUST have a kebab-case name.",
-      "hash": "19eb3df87a",
-      "kind": "eslint",
-      "ref": "pasika/filename-case",
-      "note": "a .tsx file that defines no component is treated as a component file"
-    },
-    {
-      "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds.",
-      "hash": "1ea6de0cbf",
+      "text": "Vulyk MUST NOT be added to package.json in order to run its CLI.",
+      "hash": "1061447825",
       "kind": "planned",
-      "note": "eslint: application-structure"
-    },
-    {
-      "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A support folder MUST NOT contain a component.",
-      "hash": "25be7e89ec",
-      "kind": "planned",
-      "note": "eslint: application-structure"
+      "note": "doctor: report a vulyk entry in package.json"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
@@ -154,6 +126,34 @@
       "note": "eslint: application-structure"
     },
     {
+      "doc": "code-organization-guide/rules/application-structure-rule.md",
+      "text": "A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds.",
+      "hash": "1ea6de0cbf",
+      "kind": "planned",
+      "note": "eslint: application-structure"
+    },
+    {
+      "doc": "code-organization-guide/rules/application-structure-rule.md",
+      "text": "A support folder MUST NOT contain a component.",
+      "hash": "25be7e89ec",
+      "kind": "planned",
+      "note": "eslint: application-structure"
+    },
+    {
+      "doc": "code-organization-guide/rules/application-structure-rule.md",
+      "text": "A file that does not define a component MUST have a kebab-case name.",
+      "hash": "19eb3df87a",
+      "kind": "eslint",
+      "ref": "pasika/filename-case",
+      "note": "a .tsx file that defines no component is treated as a component file"
+    },
+    {
+      "doc": "code-organization-guide/rules/application-structure-rule.md",
+      "text": "A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders.",
+      "hash": "5cc68d9d44",
+      "kind": "permission"
+    },
+    {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
       "text": "A component that imports from two or more feature folders MUST live in src/compositions/.",
       "hash": "a00c621fbe",
@@ -162,24 +162,17 @@
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component whose CCF is src/features/ MUST live in src/shared/.",
-      "hash": "b1a3a85205",
+      "text": "A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "b3d12b8551",
       "kind": "eslint",
-      "ref": "pasika/component-placement"
+      "ref": "pasika/component-placement",
+      "note": "checks the component sits under a feature folder; which feature represents it stays judgment"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
       "text": "A component with at least one consumer outside src/app/ and configuration modules MUST live in its CCF, calculated without imports from src/app/ or configuration modules.",
       "hash": "ace1e1e4e0",
       "kind": "eslint",
-      "ref": "pasika/component-placement"
-    },
-    {
-      "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "b3d12b8551",
-      "kind": "eslint",
-      "note": "checks the component sits under a feature folder; which feature represents it stays judgment",
       "ref": "pasika/component-placement"
     },
     {
@@ -191,8 +184,22 @@
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
+      "text": "A component whose CCF is src/features/ MUST live in src/shared/.",
+      "hash": "b1a3a85205",
+      "kind": "eslint",
+      "ref": "pasika/component-placement"
+    },
+    {
+      "doc": "code-organization-guide/rules/component-placement-rule.md",
       "text": "src/app/ MUST contain Next.js App Router framework-convention files and assets, plus styles required by routing files, but MUST NOT contain ordinary components or support folders.",
       "hash": "6a1d1f370e",
+      "kind": "planned",
+      "note": "eslint: application-structure"
+    },
+    {
+      "doc": "code-organization-guide/rules/configuration-rule.md",
+      "text": "All configuration modules MUST live in src/config/.",
+      "hash": "068f9a0a91",
       "kind": "planned",
       "note": "eslint: application-structure"
     },
@@ -212,13 +219,6 @@
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
-      "text": "All configuration modules MUST live in src/config/.",
-      "hash": "068f9a0a91",
-      "kind": "planned",
-      "note": "eslint: application-structure"
-    },
-    {
-      "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under src/config/<config-name>/.",
       "hash": "d931ef91df",
       "kind": "planned",
@@ -226,23 +226,10 @@
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
-      "text": "An extracted configuration type, schema, or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.",
-      "hash": "c0c2873936",
+      "text": "An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.",
+      "hash": "c9a8b972f2",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in src/config/<module>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
-      "hash": "57f90aa714",
-      "kind": "permission"
-    },
-    {
-      "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "A constants/ folder MUST either define its constants directly in index.ts or group related constants in files that index.ts named-re-exports.",
-      "hash": "2d1591194c",
-      "kind": "planned",
-      "note": "eslint: support-folder-shape"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -253,6 +240,13 @@
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
+      "text": "Extracted constants MUST live in a constants/ folder at the CCF of their consumers.",
+      "hash": "34022a9e2b",
+      "kind": "eslint",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "code-organization-guide/rules/constants-rule.md",
       "text": "Consumers MUST import an extracted constant through the index.ts in that constant's constants/ folder.",
       "hash": "0a7bdc1dfe",
       "kind": "planned",
@@ -260,10 +254,10 @@
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "Extracted constants MUST live in a constants/ folder at the CCF of their consumers.",
-      "hash": "34022a9e2b",
-      "kind": "eslint",
-      "ref": "pasika/support-file-placement"
+      "text": "A constants/ folder MUST either define its constants directly in index.ts or group related constants in files that index.ts named-re-exports.",
+      "hash": "2d1591194c",
+      "kind": "planned",
+      "note": "eslint: support-folder-shape"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -273,25 +267,10 @@
       "ref": "pasika/support-file-placement"
     },
     {
-      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A configuration module MUST import only from root support folders and its own files.",
-      "hash": "1ef619154c",
-      "kind": "eslint",
-      "ref": "pasika/import-boundaries"
-    },
-    {
-      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in a feature folder MUST NOT import from another feature folder, src/compositions/, or src/app/.",
-      "hash": "e91ffc37d1",
-      "kind": "eslint",
-      "ref": "pasika/import-boundaries"
-    },
-    {
-      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in the root layer MUST NOT import from src/app/, src/compositions/, a feature folder, or src/shared/.",
-      "hash": "a73db9af2e",
-      "kind": "eslint",
-      "ref": "pasika/import-boundaries"
+      "doc": "code-organization-guide/rules/constants-rule.md",
+      "text": "A constant MAY live in src/config/<module>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
+      "hash": "57f90aa714",
+      "kind": "permission"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
@@ -302,15 +281,8 @@
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file under src/compositions/ MUST NOT import from src/app/.",
-      "hash": "591ad01f1d",
-      "kind": "eslint",
-      "ref": "pasika/import-boundaries"
-    },
-    {
-      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file under src/shared/ MUST NOT import from src/app/, src/compositions/, or a feature folder.",
-      "hash": "901b928be3",
+      "text": "Imports MUST use whichever of the relative path and the @/* alias has fewer segments, counting each ../ step and each name in the path as one segment.",
+      "hash": "47c4ccc7fd",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
@@ -323,22 +295,50 @@
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "Imports MUST use whichever of the relative path and the @/* alias has fewer segments, counting each ../ step and each name in the path as one segment.",
-      "hash": "47c4ccc7fd",
+      "text": "A file under src/compositions/ MUST NOT import from src/app/.",
+      "hash": "591ad01f1d",
+      "kind": "eslint",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
+      "text": "A file in a feature folder MUST NOT import from another feature folder, src/compositions/, or src/app/.",
+      "hash": "e91ffc37d1",
+      "kind": "eslint",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
+      "text": "A file under src/shared/ MUST NOT import from src/app/, src/compositions/, or a feature folder.",
+      "hash": "901b928be3",
+      "kind": "eslint",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
+      "text": "A file in the root layer MUST NOT import from src/app/, src/compositions/, a feature folder, or src/shared/.",
+      "hash": "a73db9af2e",
+      "kind": "eslint",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
+      "text": "A configuration module MUST import only from root support folders and its own files.",
+      "hash": "1ef619154c",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
-      "text": "A component MUST NOT be nested only because it has support files.",
-      "hash": "bd8c041512",
+      "text": "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
+      "hash": "6adf7c4309",
       "kind": "planned",
       "note": "doctor: resolve consumers with the import graph"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
-      "text": "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
-      "hash": "6adf7c4309",
+      "text": "A component MUST NOT be nested only because it has support files.",
+      "hash": "bd8c041512",
       "kind": "planned",
       "note": "doctor: resolve consumers with the import graph"
     },
@@ -372,13 +372,6 @@
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consumer file.",
-      "hash": "fc650f25fd",
-      "kind": "planned",
-      "note": "eslint: count imperative categories"
-    },
-    {
-      "doc": "code-organization-guide/rules/hook-extraction-rule.md",
       "text": "An extracted custom hook MUST live in a hooks/ folder at the CCF of its consumers.",
       "hash": "9b975cbb62",
       "kind": "eslint",
@@ -392,17 +385,18 @@
       "ref": "pasika/support-file-placement"
     },
     {
+      "doc": "code-organization-guide/rules/hook-extraction-rule.md",
+      "text": "A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consumer file.",
+      "hash": "fc650f25fd",
+      "kind": "planned",
+      "note": "eslint: count imperative categories"
+    },
+    {
       "doc": "code-organization-guide/rules/interactive-component-rule.md",
       "text": "An interactive HTML element MUST be extracted to a component with a descriptive name.",
       "hash": "56a186c55b",
       "kind": "planned",
       "note": "eslint: report an interactive element beside other content"
-    },
-    {
-      "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
-      "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. cn() MAY be called inline. An event handler MAY make one call inline.",
-      "hash": "d8f4ceb822",
-      "kind": "permission"
     },
     {
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
@@ -412,18 +406,10 @@
       "note": "eslint: jsx-hygiene"
     },
     {
-      "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.",
-      "hash": "94ea814921",
-      "kind": "judgment",
-      "note": "whether a key reads as its text or its purpose depends on the language"
-    },
-    {
-      "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "A namespaced locale MUST be read through its full dotted path (locales.stream.watchLiveStream).",
-      "hash": "3c10684240",
-      "kind": "planned",
-      "note": "eslint: report a destructured locales namespace"
+      "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
+      "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. cn() MAY be called inline. An event handler MAY make one call inline.",
+      "hash": "d8f4ceb822",
+      "kind": "permission"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
@@ -434,6 +420,13 @@
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
+      "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).",
+      "hash": "66addb15b3",
+      "kind": "planned",
+      "note": "doctor: resolve consumers with the import graph"
+    },
+    {
+      "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",
       "hash": "4f947bf362",
       "kind": "planned",
@@ -441,10 +434,17 @@
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).",
-      "hash": "66addb15b3",
+      "text": "A namespaced locale MUST be read through its full dotted path (locales.stream.watchLiveStream).",
+      "hash": "3c10684240",
       "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "note": "eslint: report a destructured locales namespace"
+    },
+    {
+      "doc": "code-organization-guide/rules/locales-rule.md",
+      "text": "A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.",
+      "hash": "94ea814921",
+      "kind": "judgment",
+      "note": "whether a key reads as its text or its purpose depends on the language"
     },
     {
       "doc": "code-organization-guide/rules/nameable-visual-concept-rule.md",
@@ -470,10 +470,10 @@
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A dumb component MAY set data-testid on its root element, and the value MUST be kebab-case.",
-      "hash": "4c78863697",
+      "text": "A smart component file name MUST be PascalCase.tsx.",
+      "hash": "1ece393f32",
       "kind": "planned",
-      "note": "eslint: data-testid-case"
+      "note": "eslint: classify smart vs dumb, then require PascalCase; filename-case accepts either case today"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
@@ -481,13 +481,6 @@
       "hash": "7639f7df0b",
       "kind": "planned",
       "note": "eslint: classify smart vs dumb, then require kebab-case"
-    },
-    {
-      "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component file name MUST be PascalCase.tsx.",
-      "hash": "1ece393f32",
-      "kind": "planned",
-      "note": "eslint: classify smart vs dumb, then require PascalCase; filename-case accepts either case today"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
@@ -501,6 +494,13 @@
       "text": "A smart component without one outer DOM element in every rendered result MAY omit data-testid.",
       "hash": "b0dc309f05",
       "kind": "permission"
+    },
+    {
+      "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+      "text": "A dumb component MAY set data-testid on its root element, and the value MUST be kebab-case.",
+      "hash": "4c78863697",
+      "kind": "planned",
+      "note": "eslint: data-testid-case"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
@@ -518,16 +518,16 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "A type MAY stay in src/config/<module>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
-      "hash": "091724ed27",
-      "kind": "permission"
-    },
-    {
-      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
       "kind": "planned",
       "note": "doctor: resolve consumers with the import graph"
+    },
+    {
+      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
+      "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
+      "hash": "061a5c0936",
+      "kind": "permission"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
@@ -538,8 +538,15 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema used only to implement one configuration module MUST live in that module's types/ or schemas/ folder.",
-      "hash": "7a5f58f278",
+      "text": "Extracted types and schemas MUST live in their matching types/ or schemas/ folder at the CCF of their consumers.",
+      "hash": "d8f89cd54a",
+      "kind": "eslint",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
+      "text": "When a type or schema's CCF is src/features/, it MUST move to src/types/ or src/schemas/.",
+      "hash": "c8fc7e7374",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
@@ -559,23 +566,16 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "Extracted types and schemas MUST live in their matching types/ or schemas/ folder at the CCF of their consumers.",
-      "hash": "d8f89cd54a",
+      "text": "A type or schema used only to implement one configuration module MUST live in that module's types/ or schemas/ folder.",
+      "hash": "7a5f58f278",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
-      "hash": "061a5c0936",
+      "text": "A type MAY stay in src/config/<module>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
+      "hash": "091724ed27",
       "kind": "permission"
-    },
-    {
-      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "When a type or schema's CCF is src/features/, it MUST move to src/types/ or src/schemas/.",
-      "hash": "c8fc7e7374",
-      "kind": "eslint",
-      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
@@ -583,6 +583,20 @@
       "hash": "d49b4ce49a",
       "kind": "planned",
       "note": "eslint: report a pure function declared in a component file"
+    },
+    {
+      "doc": "code-organization-guide/rules/utilities-rule.md",
+      "text": "An extracted utility MUST live in the utils/ folder at the CCF of its consumers.",
+      "hash": "bb1130ed9d",
+      "kind": "eslint",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "code-organization-guide/rules/utilities-rule.md",
+      "text": "When a utility's CCF is src/features/, it MUST move to src/utils/.",
+      "hash": "ff2b2398f3",
+      "kind": "eslint",
+      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
@@ -600,30 +614,51 @@
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "A utility used only to implement one configuration module MUST live in that module's utils/ folder.",
-      "hash": "c9d890d2d7",
-      "kind": "eslint",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "An extracted utility MUST live in the utils/ folder at the CCF of its consumers.",
-      "hash": "bb1130ed9d",
-      "kind": "eslint",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "code-organization-guide/rules/utilities-rule.md",
       "text": "Utilities that are used together MAY be grouped in one file.",
       "hash": "23f36f077b",
       "kind": "permission"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "When a utility's CCF is src/features/, it MUST move to src/utils/.",
-      "hash": "ff2b2398f3",
+      "text": "A utility used only to implement one configuration module MUST live in that module's utils/ folder.",
+      "hash": "c9d890d2d7",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "documentation-guide/rules/conventions-creation-rule.md",
+      "text": "Conventions file names MUST match the document title in kebab-case and use the -conventions suffix (e.g., foo-conventions.md).",
+      "hash": "4c14df9a3b",
+      "kind": "docs-check",
+      "ref": "title-matches-file-name, doc-kind-suffix"
+    },
+    {
+      "doc": "documentation-guide/rules/conventions-creation-rule.md",
+      "text": "A Conventions overview MUST contain one or two short sentences naming the scope the requirements apply to.",
+      "hash": "c222af17d0",
+      "kind": "docs-check",
+      "ref": "overview-length"
+    },
+    {
+      "doc": "documentation-guide/rules/conventions-creation-rule.md",
+      "text": "A Conventions document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.",
+      "hash": "d66ded0c41",
+      "kind": "judgment",
+      "note": "deciding subjects are unrelated enough to share one document is an editorial call"
+    },
+    {
+      "doc": "documentation-guide/rules/conventions-creation-rule.md",
+      "text": "A Conventions document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
+      "hash": "84802c2531",
+      "kind": "docs-check",
+      "ref": "requirement-present"
+    },
+    {
+      "doc": "documentation-guide/rules/conventions-creation-rule.md",
+      "text": "A Conventions document MUST group its bullets under a heading per subject.",
+      "hash": "7b8aa42fd4",
+      "kind": "planned",
+      "note": "docs-check: every bullet sits under a subject heading"
     },
     {
       "doc": "documentation-guide/rules/conventions-creation-rule.md",
@@ -641,45 +676,18 @@
     },
     {
       "doc": "documentation-guide/rules/conventions-creation-rule.md",
-      "text": "A Conventions document MUST group its bullets under a heading per subject.",
-      "hash": "7b8aa42fd4",
-      "kind": "planned",
-      "note": "docs-check: every bullet sits under a subject heading"
-    },
-    {
-      "doc": "documentation-guide/rules/conventions-creation-rule.md",
-      "text": "A Conventions document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
-      "hash": "84802c2531",
-      "kind": "docs-check",
-      "ref": "requirement-present"
-    },
-    {
-      "doc": "documentation-guide/rules/conventions-creation-rule.md",
-      "text": "A Conventions document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.",
-      "hash": "d66ded0c41",
-      "kind": "judgment",
-      "note": "deciding subjects are unrelated enough to share one document is an editorial call"
-    },
-    {
-      "doc": "documentation-guide/rules/conventions-creation-rule.md",
-      "text": "A Conventions overview MUST contain one or two short sentences naming the scope the requirements apply to.",
-      "hash": "c222af17d0",
-      "kind": "docs-check",
-      "ref": "overview-length"
-    },
-    {
-      "doc": "documentation-guide/rules/conventions-creation-rule.md",
       "text": "A repository MUST NOT have more than one Conventions document per audience.",
       "hash": "f145f6d6a7",
       "kind": "docs-check",
       "ref": "conventions-single-document"
     },
     {
-      "doc": "documentation-guide/rules/conventions-creation-rule.md",
-      "text": "Conventions file names MUST match the document title in kebab-case and use the -conventions suffix (e.g., foo-conventions.md).",
-      "hash": "4c14df9a3b",
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "Each How To step MUST be concise and use one sentence.",
+      "hash": "5992821880",
       "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "ref": "guide-step-single-sentence",
+      "note": "one sentence is checked; whether it is concise is judgment"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -696,31 +704,17 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.",
-      "hash": "caef1018c4",
-      "kind": "planned",
-      "note": "docs-check: compare glossary terms against the guide's steps"
+      "text": "Each How To step MUST link at most one documentation file total, whatever kind that file is.",
+      "hash": "12585da0c8",
+      "kind": "docs-check",
+      "ref": "guide-step-single-link"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Guide with support files MUST become a folder named the same as its entry-point file, without the .md extension.",
-      "hash": "26a4eb93d4",
-      "kind": "docs-check",
-      "ref": "guide-folder-entry-point"
-    },
-    {
-      "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Reference file that a Guide owns MUST live in a references/ subfolder inside the Guide's folder.",
-      "hash": "4efb50f75f",
-      "kind": "docs-check",
-      "ref": "support-document-placement"
-    },
-    {
-      "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Rule file that a Guide owns MUST live in a rules/ subfolder inside the Guide's folder.",
-      "hash": "73d2f1cc23",
-      "kind": "docs-check",
-      "ref": "support-document-placement"
+      "text": "When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.",
+      "hash": "b38e3ef9c9",
+      "kind": "judgment",
+      "note": "whether a step names a concrete result is a reading judgment"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -731,18 +725,10 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Each How To step MUST be concise and use one sentence.",
-      "hash": "5992821880",
-      "kind": "docs-check",
-      "ref": "guide-step-single-sentence",
-      "note": "one sentence is checked; whether it is concise is judgment"
-    },
-    {
-      "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Each How To step MUST link at most one documentation file total, whatever kind that file is.",
-      "hash": "12585da0c8",
-      "kind": "docs-check",
-      "ref": "guide-step-single-link"
+      "text": "How To sections MUST NOT nest inside other How To sections.",
+      "hash": "23415cb949",
+      "kind": "planned",
+      "note": "docs-check: no heading nests inside a How To section"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -753,17 +739,59 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "How To sections MUST NOT nest inside other How To sections.",
-      "hash": "23415cb949",
-      "kind": "planned",
-      "note": "docs-check: no heading nests inside a How To section"
+      "text": "A Guide with support files MUST become a folder named the same as its entry-point file, without the .md extension.",
+      "hash": "26a4eb93d4",
+      "kind": "docs-check",
+      "ref": "guide-folder-entry-point"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.",
-      "hash": "b38e3ef9c9",
+      "text": "A Rule file that a Guide owns MUST live in a rules/ subfolder inside the Guide's folder.",
+      "hash": "73d2f1cc23",
+      "kind": "docs-check",
+      "ref": "support-document-placement"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Reference file that a Guide owns MUST live in a references/ subfolder inside the Guide's folder.",
+      "hash": "4efb50f75f",
+      "kind": "docs-check",
+      "ref": "support-document-placement"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.",
+      "hash": "caef1018c4",
+      "kind": "planned",
+      "note": "docs-check: compare glossary terms against the guide's steps"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "Reference file names MUST match the document title in kebab-case and use the -reference suffix (e.g., foo-reference.md).",
+      "hash": "8aae1d6156",
+      "kind": "docs-check",
+      "ref": "title-matches-file-name, doc-kind-suffix"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Reference MUST NOT link to Rules, Guides, Conventions, or other References.",
+      "hash": "81bfae7c2f",
+      "kind": "docs-check",
+      "ref": "no-cross-document-link"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.",
+      "hash": "b06563ebdb",
+      "kind": "docs-check",
+      "ref": "reference-no-rfc-vocabulary"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.",
+      "hash": "36dfefa25c",
       "kind": "judgment",
-      "note": "whether a step names a concrete result is a reading judgment"
+      "note": "recognizing a constraint stated as description requires reading it as a reader would"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -776,27 +804,6 @@
       "text": "A Reference MAY name an RFC 2119 keyword as lookup content, because naming a keyword does not impose a requirement.",
       "hash": "5e3305d40a",
       "kind": "permission"
-    },
-    {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT link to Rules, Guides, Conventions, or other References.",
-      "hash": "81bfae7c2f",
-      "kind": "docs-check",
-      "ref": "no-cross-document-link"
-    },
-    {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.",
-      "hash": "36dfefa25c",
-      "kind": "judgment",
-      "note": "recognizing a constraint stated as description requires reading it as a reader would"
-    },
-    {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.",
-      "hash": "b06563ebdb",
-      "kind": "docs-check",
-      "ref": "reference-no-rfc-vocabulary"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -820,45 +827,11 @@
       "ref": "reference-block-headings"
     },
     {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "Reference file names MUST match the document title in kebab-case and use the -reference suffix (e.g., foo-reference.md).",
-      "hash": "8aae1d6156",
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "Rule file names MUST match the document title in kebab-case and use the -rule suffix (e.g., foo-rule.md).",
+      "hash": "58b18e4f61",
       "kind": "docs-check",
       "ref": "title-matches-file-name, doc-kind-suffix"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MAY contain multiple Incorrect/Correct pairs.",
-      "hash": "f6d4ce8fa7",
-      "kind": "permission"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST NOT link to References, Guides, or other Rules.",
-      "hash": "bda91d953c",
-      "kind": "docs-check",
-      "ref": "no-cross-document-link"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST contain at least one Incorrect/Correct pair.",
-      "hash": "099da63c35",
-      "kind": "docs-check",
-      "ref": "rule-paired-examples"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST contain at least one bullet point that uses RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).",
-      "hash": "2cfcc88337",
-      "kind": "docs-check",
-      "ref": "requirement-present"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST state requirements about one subject.",
-      "hash": "5385606287",
-      "kind": "judgment",
-      "note": "deciding requirements share one subject is an editorial call"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -869,31 +842,17 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.",
-      "hash": "26f85889e2",
+      "text": "A Rule MUST state requirements about one subject.",
+      "hash": "5385606287",
       "kind": "judgment",
-      "note": "recognizing a bullet as a definition rather than a demand is a reading judgment"
+      "note": "deciding requirements share one subject is an editorial call"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A bullet MUST use MUST or MUST NOT only when the requirement admits no exception, and SHOULD or SHOULD NOT only when exceptions are possible.",
-      "hash": "67e994bec5",
-      "kind": "judgment",
-      "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.",
-      "hash": "001ce1c18c",
+      "text": "A Rule MUST contain at least one bullet point that uses RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).",
+      "hash": "2cfcc88337",
       "kind": "docs-check",
-      "ref": "example-heading-description"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points \u2014 intros, Why: explanations, table cells, and code comments \u2014 MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
-      "hash": "961d7db3b9",
-      "kind": "planned",
-      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
+      "ref": "requirement-present"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -904,17 +863,58 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Rule file names MUST match the document title in kebab-case and use the -rule suffix (e.g., foo-rule.md).",
-      "hash": "58b18e4f61",
+      "text": "A bullet MUST use MUST or MUST NOT only when the requirement admits no exception, and SHOULD or SHOULD NOT only when exceptions are possible.",
+      "hash": "67e994bec5",
+      "kind": "judgment",
+      "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "hash": "961d7db3b9",
+      "kind": "planned",
+      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.",
+      "hash": "26f85889e2",
+      "kind": "judgment",
+      "note": "recognizing a bullet as a definition rather than a demand is a reading judgment"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A Rule MUST contain at least one Incorrect/Correct pair.",
+      "hash": "099da63c35",
       "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "ref": "rule-paired-examples"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A Rule MAY contain multiple Incorrect/Correct pairs.",
+      "hash": "f6d4ce8fa7",
+      "kind": "permission"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.",
+      "hash": "001ce1c18c",
+      "kind": "docs-check",
+      "ref": "example-heading-description"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A Rule MUST NOT link to References, Guides, or other Rules.",
+      "hash": "bda91d953c",
+      "kind": "docs-check",
+      "ref": "no-cross-document-link"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
-      "text": "Authors MUST delete template branches that do not apply to the document being written.",
-      "hash": "dbe2070bf9",
+      "text": "Authors MUST start from the template that matches the chosen document kind and structure.",
+      "hash": "08faa3cb70",
       "kind": "judgment",
-      "note": "an unused branch is only recognizable by comparing against the template"
+      "note": "which template an author started from is not recorded in the result"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
@@ -925,10 +925,10 @@
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
-      "text": "Authors MUST start from the template that matches the chosen document kind and structure.",
-      "hash": "08faa3cb70",
+      "text": "Authors MUST delete template branches that do not apply to the document being written.",
+      "hash": "dbe2070bf9",
       "kind": "judgment",
-      "note": "which template an author started from is not recorded in the result"
+      "note": "an unused branch is only recognizable by comparing against the template"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
@@ -942,6 +942,21 @@
       "hash": "426116116d",
       "kind": "eslint",
       "ref": "pasika/no-arbitrary-tailwind"
+    },
+    {
+      "doc": "styling-guide/rules/class-composition-rule.md",
+      "text": "Components MUST use cn or the project's equivalent class-merging helper for conditional classes and a className passed to the component.",
+      "hash": "ecc15933e6",
+      "kind": "eslint",
+      "ref": "pasika/enforce-cn-merge",
+      "note": "detects + and template literals; a conditional expression without cn is not detected"
+    },
+    {
+      "doc": "styling-guide/rules/class-composition-rule.md",
+      "text": "Components MUST NOT concatenate class strings with template literals or + when any part is conditional.",
+      "hash": "3afbe2697b",
+      "kind": "eslint",
+      "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
@@ -965,28 +980,6 @@
       "ref": "pasika/enforce-cn-merge"
     },
     {
-      "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "Components MUST NOT concatenate class strings with template literals or + when any part is conditional.",
-      "hash": "3afbe2697b",
-      "kind": "eslint",
-      "ref": "pasika/enforce-cn-merge"
-    },
-    {
-      "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "Components MUST use cn or the project's equivalent class-merging helper for conditional classes and a className passed to the component.",
-      "hash": "ecc15933e6",
-      "kind": "eslint",
-      "ref": "pasika/enforce-cn-merge",
-      "note": "detects + and template literals; a conditional expression without cn is not detected"
-    },
-    {
-      "doc": "styling-guide/rules/component-ui-state-rule.md",
-      "text": "A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.",
-      "hash": "bb3c5b82cd",
-      "kind": "planned",
-      "note": "eslint: report a custom state prop without its native attribute"
-    },
-    {
       "doc": "styling-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST own a distinguishable appearance for every UI state it supports.",
       "hash": "fae776da92",
@@ -1001,18 +994,11 @@
       "note": "eslint: report a conditional class a state variant could express"
     },
     {
-      "doc": "styling-guide/rules/component-variant-rule.md",
-      "text": "A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.",
-      "hash": "3393d959ca",
+      "doc": "styling-guide/rules/component-ui-state-rule.md",
+      "text": "A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.",
+      "hash": "bb3c5b82cd",
       "kind": "planned",
-      "note": "eslint: cva-boolean-variants"
-    },
-    {
-      "doc": "styling-guide/rules/component-variant-rule.md",
-      "text": "A boolean prop that changes appearance MUST use conditional cn() when it only adds or removes one standalone class treatment.",
-      "hash": "c1fc4dacbd",
-      "kind": "planned",
-      "note": "eslint: cva-boolean-variants"
+      "note": "eslint: report a custom state prop without its native attribute"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
@@ -1029,9 +1015,37 @@
       "ref": "pasika/enforce-cva-variant-props"
     },
     {
+      "doc": "styling-guide/rules/component-variant-rule.md",
+      "text": "A boolean prop that changes appearance MUST use conditional cn() when it only adds or removes one standalone class treatment.",
+      "hash": "c1fc4dacbd",
+      "kind": "planned",
+      "note": "eslint: cva-boolean-variants"
+    },
+    {
+      "doc": "styling-guide/rules/component-variant-rule.md",
+      "text": "A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.",
+      "hash": "3393d959ca",
+      "kind": "planned",
+      "note": "eslint: cva-boolean-variants"
+    },
+    {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
       "hash": "4f548b26c4",
+      "kind": "planned",
+      "note": "doctor: parse the global stylesheet"
+    },
+    {
+      "doc": "styling-guide/rules/global-stylesheet-rule.md",
+      "text": "The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.",
+      "hash": "dce78502d3",
+      "kind": "planned",
+      "note": "doctor: parse the global stylesheet"
+    },
+    {
+      "doc": "styling-guide/rules/global-stylesheet-rule.md",
+      "text": "The global stylesheet MUST reset Tailwind's default theme with --*: initial.",
+      "hash": "d28608a7a3",
       "kind": "planned",
       "note": "doctor: parse the global stylesheet"
     },
@@ -1051,13 +1065,6 @@
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.",
-      "hash": "a3b7faf6da",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
-    },
-    {
-      "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
       "kind": "planned",
@@ -1065,38 +1072,17 @@
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST reset Tailwind's default theme with --*: initial.",
-      "hash": "d28608a7a3",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
-    },
-    {
-      "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.",
-      "hash": "dce78502d3",
+      "text": "The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.",
+      "hash": "a3b7faf6da",
       "kind": "planned",
       "note": "doctor: parse the global stylesheet"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.",
-      "hash": "0fb98de16d",
+      "text": "Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.",
+      "hash": "50f1692be2",
       "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
-    },
-    {
-      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
-      "hash": "a61de0650b",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
-    },
-    {
-      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.",
-      "hash": "0d965db624",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "note": "doctor: compare per-component styling against shared utilities"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
@@ -1114,10 +1100,24 @@
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.",
-      "hash": "50f1692be2",
+      "text": "A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.",
+      "hash": "0fb98de16d",
       "kind": "planned",
-      "note": "doctor: compare per-component styling against shared utilities"
+      "note": "doctor: parse the global stylesheet"
+    },
+    {
+      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.",
+      "hash": "0d965db624",
+      "kind": "planned",
+      "note": "doctor: parse the global stylesheet"
+    },
+    {
+      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
+      "hash": "a61de0650b",
+      "kind": "planned",
+      "note": "doctor: parse the global stylesheet"
     }
   ],
   "retired": [
