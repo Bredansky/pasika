@@ -1,5 +1,5 @@
 /**
- * ESLint rule: pasika/organization-imports
+ * ESLint rule: pasika/import-boundaries
  *
  * Enforces the import conventions from the "Exports and Imports Rule":
  *  - Relative imports for nearby files (same folder, subfolder, one level up).
@@ -47,7 +47,7 @@ function isNearbyImport(filename: string, resolvedPath: string): boolean {
   return (parentTraversals === 0 && nonParentSegments <= 2) || (parentTraversals === 1 && nonParentSegments <= 1);
 }
 
-export const organizationImportsRule: Rule.RuleModule = {
+export const importBoundariesRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",

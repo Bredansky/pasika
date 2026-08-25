@@ -14,34 +14,22 @@
       "import": "./dist/eslint/pasika/index.js"
     }
   },
-  "bin": {
-    "pasika": "dist/scripts/pasika.js"
-  },
   "files": [
-    "claude",
-    "docs",
-    "dist",
-    "AGENTS.md",
-    "CLAUDE.md",
-    "README.md"
+    "dist/eslint"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json && tsc -p tsconfig.eslint.json",
-    "check": "npm run lint && npm run typecheck",
-    "config:generate": "npx tsx scripts/generate-vulyk-json.ts",
-    "docs:generate": "npm run config:generate && rm -f AGENTS.md CLAUDE.md && npx vulyk docs",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.eslint.json --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/node": "^24.12.2",
     "eslint": "^9.39.4",
     "prettier": "^3.8.1",
     "typescript": "^5.9.2",
-    "vulyk": "github:Bredansky/vulyk#829cac4a244add961304070474db3e978db01d2a",
-    "zirka": "^0.0.28"
+    "zirka": "^0.0.35"
   },
   "engines": {
     "node": ">=22"

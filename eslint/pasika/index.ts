@@ -8,7 +8,7 @@
  * Rule → Doc mapping:
  *
  *   filename-case          → docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
- *   organization-imports   → docs/code-organization-guide/rules/exports-and-imports-rule.md
+ *   import-boundaries      → docs/code-organization-guide/rules/exports-and-imports-rule.md
  *   no-mixed-concerns      → docs/code-organization-guide/rules/no-mixed-concerns-rule.md
  *   no-arbitrary-tailwind  → docs/styling-guide/rules/arbitrary-value-rule.md
  *   enforce-cn-merge       → docs/styling-guide/rules/class-composition-rule.md
@@ -18,7 +18,7 @@
  */
 import type { Linter } from "eslint";
 import { filenameCaseRule } from "./rules/filename-case.js";
-import { organizationImportsRule } from "./rules/organization-imports.js";
+import { importBoundariesRule } from "./rules/import-boundaries.js";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns.js";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind.js";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge.js";
@@ -31,7 +31,7 @@ export const pasikaConfig: Linter.Config = {
     pasika: {
       rules: {
         "filename-case": filenameCaseRule,
-        "organization-imports": organizationImportsRule,
+        "import-boundaries": importBoundariesRule,
         "no-mixed-concerns": noMixedConcernsRule,
         "no-arbitrary-tailwind": noArbitraryTailwindRule,
         "enforce-cn-merge": enforceCnMergeRule,
@@ -42,7 +42,7 @@ export const pasikaConfig: Linter.Config = {
   },
   rules: {
     "pasika/filename-case": "error",
-    "pasika/organization-imports": "error",
+    "pasika/import-boundaries": "error",
     "pasika/no-mixed-concerns": "error",
     "pasika/no-arbitrary-tailwind": "error",
     "pasika/enforce-cn-merge": "error",

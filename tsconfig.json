@@ -5,11 +5,11 @@
     "module": "ES2022",
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
+    "types": ["node"],
     "noEmitOnError": true,
     "declaration": false,
     "outDir": "./dist",
-    "rootDir": ".",
-    "types": ["node"]
+    "rootDir": "."
   },
-  "include": ["eslint/**/*.ts", "scripts/**/*.ts", "claude/scripts/**/*.ts", "eslint.config.ts"]
+  "include": ["eslint/**/*.ts", "eslint.config.ts"]
 }
