@@ -48,8 +48,6 @@ export const requirementSchema = z.object({
 
 export const registrySchema = z.object({
   requirements: z.array(requirementSchema),
-  /** Hashes of requirements that were removed, so a reappearance is reported. */
-  retired: z.array(z.string()),
 });
 
 export type EnforcementKind = z.infer<typeof enforcementKindSchema>;

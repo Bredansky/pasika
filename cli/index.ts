@@ -22,7 +22,6 @@ const ISSUE_LABELS: Record<CoverageIssue["kind"], string> = {
   new: "new       ",
   changed: "changed   ",
   removed: "removed   ",
-  "retired-reappeared": "retired   ",
   "unknown-ref": "bad ref   ",
   "missing-test": "no test   ",
 };
@@ -68,7 +67,7 @@ program
 program
   .command("coverage")
   .description("Check that every documented requirement has recorded enforcement.")
-  .option("--accept", "rehash reworded requirements and retire removed ones")
+  .option("--accept", "rehash reworded requirements and drop removed ones")
   .option("--json", "print the report as JSON")
   .action((options: { accept?: boolean; json?: boolean }) => {
     const root = findRegistryRoot(process.cwd());

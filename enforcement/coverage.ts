@@ -7,7 +7,7 @@ import { parseDocs, type ParsedRequirement } from "./parse-docs.js";
 import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types.js";
 
 export interface CoverageIssue {
-  kind: "new" | "changed" | "removed" | "retired-reappeared" | "unknown-ref" | "missing-test";
+  kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";
   doc: string;
   line?: number;
   text: string;
@@ -21,7 +21,7 @@ export interface CoverageReport {
   total: number;
   mechanical: number;
   issues: CoverageIssue[];
-  /** Registry updated for `--accept`: rehashed changed requirements, retired removed ones. */
+  /** Registry updated for `--accept`: reworded requirements rehashed, removed ones dropped. */
   nextRegistry: Registry;
 }
 
@@ -74,7 +74,6 @@ export function buildCoverageReport(options: {
   const testTitles = collectTestTitles(rulesDir);
 
   const byHash = new Map(registry.requirements.map((requirement) => [requirement.hash, requirement]));
-  const retired = new Set(registry.retired);
   const matched = new Set<string>();
   const issues: CoverageIssue[] = [];
   const counts: Record<EnforcementKind, number> = {
@@ -87,23 +86,12 @@ export function buildCoverageReport(options: {
   };
 
   const nextRequirements: Requirement[] = [];
-  const newlyRetired: string[] = [];
 
   const parsed: { doc: string; requirement: ParsedRequirement }[] = docs.flatMap((doc) =>
     doc.requirements.map((requirement) => ({ doc: doc.doc, requirement })),
   );
 
   for (const { doc, requirement } of parsed) {
-    if (retired.has(requirement.hash)) {
-      issues.push({
-        kind: "retired-reappeared",
-        doc,
-        line: requirement.line,
-        text: requirement.text,
-        detail: `hash ${requirement.hash} was retired`,
-      });
-    }
-
     const recorded = byHash.get(requirement.hash);
     if (recorded) {
       matched.add(requirement.hash);
@@ -165,7 +153,6 @@ export function buildCoverageReport(options: {
       text: entry.text,
       detail: `recorded as ${entry.kind}${entry.ref ? ` ${entry.ref}` : ""} but the bullet is gone`,
     });
-    newlyRetired.push(entry.hash);
   }
 
   const total = parsed.length;
@@ -177,10 +164,7 @@ export function buildCoverageReport(options: {
     total,
     mechanical,
     issues,
-    nextRegistry: {
-      requirements: nextRequirements,
-      retired: [...new Set([...registry.retired, ...newlyRetired])].sort((a, b) => a.localeCompare(b)),
-    },
+    nextRegistry: { requirements: nextRequirements },
   };
 }
 
