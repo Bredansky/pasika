@@ -16,11 +16,25 @@ import { enforceCvaVariantPropsRule } from "./rules/enforce-cva-variant-props.js
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports.js";
 import { componentPlacementRule } from "./rules/component-placement.js";
 import { supportFilePlacementRule } from "./rules/support-file-placement.js";
+import { applicationStructureRule } from "./rules/application-structure.js";
+import { namedExportsRule } from "./rules/named-exports.js";
+import { dataTestIdCaseRule } from "./rules/data-testid-case.js";
+import { supportFolderShapeRule } from "./rules/support-folder-shape.js";
+import { importThroughIndexRule } from "./rules/import-through-index.js";
+import { utilFileNameRule } from "./rules/util-file-name.js";
+import { noUtilBarrelRule } from "./rules/no-util-barrel.js";
 
 /** Every rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
   "component-placement": componentPlacementRule,
   "support-file-placement": supportFilePlacementRule,
+  "application-structure": applicationStructureRule,
+  "named-exports": namedExportsRule,
+  "data-testid-case": dataTestIdCaseRule,
+  "support-folder-shape": supportFolderShapeRule,
+  "import-through-index": importThroughIndexRule,
+  "util-file-name": utilFileNameRule,
+  "no-util-barrel": noUtilBarrelRule,
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
   "no-mixed-concerns": noMixedConcernsRule,

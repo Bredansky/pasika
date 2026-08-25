@@ -1,0 +1,152 @@
+import path from "node:path";
+import ts from "typescript";
+
+export interface ComponentInfo {
+  name: string;
+  declaration: ts.FunctionDeclaration | ts.VariableDeclaration;
+  smart: boolean;
+}
+
+const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
+const isHookCallName = (name: string): boolean => /^use[A-Z]/.test(name);
+
+function isExported(node: ts.Node): boolean {
+  if (!ts.canHaveModifiers(node)) return false;
+  return (ts.getModifiers(node) ?? []).some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword);
+}
+
+function containsJsx(node: ts.Node): boolean {
+  let found = false;
+  const visit = (child: ts.Node): void => {
+    if (found) return;
+    if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+  ts.forEachChild(node, visit);
+  return found;
+}
+
+function containsSmartCall(node: ts.Node): boolean {
+  let found = false;
+  const visit = (child: ts.Node): void => {
+    if (found) return;
+    if (ts.isCallExpression(child)) {
+      const expression = child.expression;
+      let name = "";
+      if (ts.isIdentifier(expression)) {
+        name = expression.text;
+      } else if (ts.isPropertyAccessExpression(expression)) {
+        name = expression.name.text;
+      }
+      if (isHookCallName(name)) {
+        found = true;
+        return;
+      }
+    }
+    ts.forEachChild(child, visit);
+  };
+  ts.forEachChild(node, visit);
+  return found;
+}
+
+function componentFromFunction(node: ts.FunctionDeclaration): ComponentInfo | undefined {
+  const name = node.name?.text;
+  if (!name || !isPascalCase(name) || !containsJsx(node)) return undefined;
+  return { name, declaration: node, smart: containsSmartCall(node) };
+}
+
+function componentFromVariable(node: ts.VariableDeclaration): ComponentInfo | undefined {
+  if (!ts.isIdentifier(node.name) || !isPascalCase(node.name.text)) return undefined;
+  const initializer = node.initializer;
+  if (!initializer || (!ts.isArrowFunction(initializer) && !ts.isFunctionExpression(initializer))) return undefined;
+  if (!containsJsx(initializer)) return undefined;
+  return {
+    name: node.name.text,
+    declaration: node,
+    smart: containsSmartCall(initializer),
+  };
+}
+
+export function parseComponentInfo(text: string, filename: string): ComponentInfo[] {
+  const sourceFile = ts.createSourceFile(path.resolve(filename), text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const components: ComponentInfo[] = [];
+
+  for (const statement of sourceFile.statements) {
+    if (!isExported(statement)) continue;
+    if (ts.isFunctionDeclaration(statement)) {
+      const component = componentFromFunction(statement);
+      if (component) components.push(component);
+      continue;
+    }
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        const component = componentFromVariable(declaration);
+        if (component) components.push(component);
+      }
+    }
+  }
+
+  return components;
+}
+
+export interface SimpleRoot {
+  tagName: string;
+  attributes: ts.JsxAttributeLike[];
+}
+
+function jsxTagName(element: ts.JsxElement | ts.JsxSelfClosingElement): string | undefined {
+  const tagName = ts.isJsxElement(element) ? element.openingElement.tagName : element.tagName;
+  return ts.isIdentifier(tagName) ? tagName.text : undefined;
+}
+
+function rootFromExpression(expression: ts.Expression): SimpleRoot | undefined {
+  if (ts.isJsxSelfClosingElement(expression)) {
+    const tagName = jsxTagName(expression);
+    if (!tagName?.startsWith(tagName[0]?.toLowerCase() ?? "")) return undefined;
+    return { tagName, attributes: [...expression.attributes.properties] };
+  }
+  if (ts.isJsxElement(expression)) {
+    const tagName = jsxTagName(expression);
+    if (!tagName?.startsWith(tagName[0]?.toLowerCase() ?? "")) return undefined;
+    return { tagName, attributes: [...expression.openingElement.attributes.properties] };
+  }
+  return undefined;
+}
+
+export function findSimpleRoot(component: ComponentInfo, _text: string, _filename: string): SimpleRoot | undefined {
+  const declaration = component.declaration;
+  let body: ts.ConciseBody | undefined;
+  if (ts.isFunctionDeclaration(declaration)) body = declaration.body;
+  else if (declaration.initializer && ts.isArrowFunction(declaration.initializer)) body = declaration.initializer.body;
+  else if (declaration.initializer && ts.isFunctionExpression(declaration.initializer)) {
+    body = declaration.initializer.body;
+  }
+  if (!body) return undefined;
+
+  if (!ts.isBlock(body)) return rootFromExpression(body);
+
+  const returns: ts.ReturnStatement[] = [];
+  const visit = (node: ts.Node): void => {
+    if (node !== body && (ts.isFunctionLike(node) || ts.isClassLike(node))) return;
+    if (ts.isReturnStatement(node)) returns.push(node);
+    ts.forEachChild(node, visit);
+  };
+  visit(body);
+  if (returns.length !== 1) return undefined;
+  const expression = returns[0]?.expression;
+  return expression && ts.isExpression(expression) ? rootFromExpression(expression) : undefined;
+}
+
+export function getTestId(root: SimpleRoot): { value?: string; attribute?: ts.JsxAttribute } {
+  const attribute = root.attributes.find(
+    (candidate): candidate is ts.JsxAttribute =>
+      ts.isJsxAttribute(candidate) && ts.isIdentifier(candidate.name) && candidate.name.text === "data-testid",
+  );
+  if (!attribute) return {};
+  const value = attribute.initializer;
+  if (!value || !ts.isStringLiteral(value)) return { attribute };
+  return { value: value.text, attribute };
+}

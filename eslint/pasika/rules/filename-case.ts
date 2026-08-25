@@ -10,6 +10,7 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import { parseComponentInfo } from "./component-conventions.js";
 
 /**
  * Next.js App Router routing files that are exempt from filename-case checks.
@@ -82,12 +83,34 @@ export const filenameCaseRule: Rule.RuleModule = {
       return {};
     }
 
-    // .tsx components may be PascalCase (smart) or kebab-case (dumb)
+    // .tsx components use PascalCase when smart and kebab-case when dumb.
     if (ext === ".tsx") {
-      if (!(isPascalCase(base) || isKebabCase(base))) {
-        return report(context, filename, ext);
-      }
-      return {};
+      return {
+        Program(node) {
+          const components = parseComponentInfo(context.sourceCode.text, filename);
+          const component = components[0];
+          if (component?.smart && !isPascalCase(base)) {
+            context.report({
+              node,
+              message: `Smart component files must use PascalCase.tsx. Filename "${path.basename(filename)}" is not PascalCase.`,
+            });
+            return;
+          }
+          if (component && !component.smart && !isKebabCase(base)) {
+            context.report({
+              node,
+              message: `Dumb component files must use kebab-case.tsx. Filename "${path.basename(filename)}" is not kebab-case.`,
+            });
+            return;
+          }
+          if (!component && !(isPascalCase(base) || isKebabCase(base))) {
+            context.report({
+              node,
+              message: `Filename "${path.basename(filename)}" does not match pasika conventions. Component files must be PascalCase.tsx (smart) or kebab-case.tsx (dumb).`,
+            });
+          }
+        },
+      };
     }
 
     // Everything else must be kebab-case

@@ -1,6 +1,6 @@
 # Next session
 
-Pick up the pasika framework work. Everything below is committed and published; nothing is half-finished.
+Pick up the pasika framework work. Vulyk is released through `0.13.3`; Karaylo's migration is complete and validated but intentionally remains uncommitted for review. The next unfinished consumer migration is shineposter3000.
 
 ## Read first
 
@@ -12,7 +12,7 @@ Pick up the pasika framework work. Everything below is committed and published; 
 
 **vulyk's default branch is `master`.** pasika and zirka use `main`.
 
-**`npx vulyk@latest` can serve a stale cached binary** — it reported `0.11.10` while `0.12.1` was current. Pin the version (`npx vulyk@0.12.1`) or install it locally when the version matters.
+**`npx vulyk@latest` can serve a stale cached binary** — pin the version (`npx vulyk@0.13.3`) or install it locally when the version matters.
 
 ## Published state
 
@@ -20,24 +20,29 @@ Pick up the pasika framework work. Everything below is committed and published; 
 | --- | --- | --- |
 | `pasika` | 0.3.1 | docs + 9 ESLint rules + `pasika docs` / `pasika coverage` |
 | `zirka` | 0.0.39 | depends on `pasika@^0.3.0`; `styleguide({ pasika: Error })` yields all 9 rules |
-| `vulyk` | 0.12.1 | new: `render: "summary" | "embed"` on entry, group, or manifest |
+| `vulyk` | 0.13.3 | typed `vulyk.config.ts`, split local state/cache, linked Markdown resolution, GitHub ref lockfile, `render: "summary" | "embed"` |
 
-Consumers are untouched: karaylo still runs `pasika@^0.1.4` / `zirka@^0.0.33` with `pasika: RuleSeverity.Off`.
+Karaylo now uses `pasika@^0.3.1`, `zirka@^0.0.39`, `vulyk@^0.13.3`, typed `vulyk.config.ts`, `vulyk.lock.json`, and `.vulyk/` local state. Its sync, agents, lint, and typecheck checks pass; its changes remain uncommitted for review.
 
-## Milestone 1 — karaylo consumes the framework
+## Milestone 1 — karaylo consumes the framework (complete)
 
-Prerequisite for everything else: it is the first end-to-end proof, and it will surface defects that fixtures do not. Last session found two such defects within ten minutes of running the rules against real trees.
+Karaylo is now the first end-to-end consumer proof. Completed work:
 
-1. **Manifest.** `karaylo/vulyk.json` still names `agent-conventions`, and that file no longer exists — it is `docs/agent-policy.md` now, so `vulyk update` will 404. Rename the entry, repoint every entry at the current pasika commit, and set `"render": "embed"` on the policy entry so its body lands in `AGENTS.md` while the guides stay pointers. Then `vulyk sync && vulyk agents`.
-2. **Dependencies.** `pasika@^0.3.1`, `zirka@^0.0.39`. Drop `--cache` from the `lint` and `fix` scripts — `agent-policy.md` requires it, because the two cross-file rules need every file in the run.
-3. **Structure migration.** karaylo puts components in `src/features/<feature>/components/`, which `application-structure-rule` does not permit; components sit directly in the feature folder. This is the bulk of the work and blocks a clean lint run.
-4. **Turn the ruleset on.** `pasika: RuleSeverity.Error` in `eslint.config.ts`, then work the findings down. There were ~54 before the structure migration. Use *How To Plan the Work an Adoption or Update Requires* in the adoption guide — group by rule, placement before naming before import paths, one milestone per change set.
+1. Migrated `vulyk.json` to typed `vulyk.config.ts` and added `vulyk.lock.json`.
+2. Updated to `pasika@^0.3.1`, `zirka@^0.0.39`, and `vulyk@^0.13.3`; the pre-commit hook pins Vulyk `0.13.3`.
+3. Migrated the source tree to the application-structure rule and fixed the resulting import-boundary findings.
+4. Enabled `pasika: RuleSeverity.Error`; Karaylo lint and typecheck pass.
+5. Ran `vulyk sync` and `vulyk agents`; generated docs and agent files are current.
 
-Then repeat for **shineposter3000**, but its `vulyk.json` is still the pre-`groups` schema. Zod strips the unknown keys, so the manifest parses to **zero entries** and `cleanupStale` is entitled to delete every file listed in `.vulyk`. Migrate that manifest before running any vulyk command there.
+After all Pasika framework requirements below are complete, migrate **shineposter3000**. Its `vulyk.json` still uses the pre-`groups` schema. Zod strips the unknown keys, so the manifest parses to **zero entries** and cleanup can delete every file listed in `.vulyk`. Do not run any Vulyk command there before migrating that manifest.
 
-## Milestone 2 — work down the 71 `planned` requirements
+## Milestone 2 — work down the 61 remaining `planned` requirements
 
-Each carries a `note` naming the check that should cover it. The loop per requirement:
+Current progress: `67/162` requirements are mechanically enforced (`41 eslint`, `26 docs-check`), `61` remain planned, `21` are judgment, and `13` are permission. The latest local rules are `pasika/application-structure`, `pasika/named-exports`, `pasika/filename-case`, and `pasika/data-testid-case`; full lint, typecheck, tests, docs, and coverage pass.
+
+Next batch: support-folder shape, import-through-index, and utility-file naming. Keep these as ESLint rules backed by exact-title tests; do not migrate shineposter3000 yet.
+
+Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
 
 ```bash
 npx pasika coverage --json          # find the requirement and its hash
@@ -50,7 +55,7 @@ npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
 
 | Count | Intended check | Notes |
 | --- | --- | --- |
-| 35 | `eslint` | Single-file rules: smart/dumb classification, `data-testid` casing, jsx-hygiene, support-folder shape, import-through-index, named exports |
+| 35 | `eslint` | Single-file rules still to write: jsx-hygiene, support-folder shape, import-through-index, and related code checks. `application-structure`, `named-exports`, smart/dumb filename classification, and `data-testid` casing are implemented. |
 | 29 | `doctor` | `pasika doctor` does not exist yet. Scope agreed: **dependencies and docs only** — required packages, exact-version policy, vulyk drift, the `--cache` ban, config baseline. Everything about code and paths belongs in ESLint |
 | 6 | `docs-check` | RFC 2119 vocabulary only in bullets, subject headings in a Policy document, guide link anchors, no nested How To, glossary-term linking. **Write these as ESLint rules — see milestone 3** |
 | 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
@@ -95,7 +100,7 @@ Sequenced third deliberately: it is a port of checks that already pass, so it ad
 
 ## Known gaps
 
-- **19 `judgment` + 13 `permission`** requirements will never be mechanically checked. Nine of the permissions are exceptions a future check must honour, each naming that check in its `note`. Write `data-testid-case` without the single-outer-element exemption and it emits false positives while coverage stays green.
+- **21 `judgment` + 13 `permission`** requirements will never be mechanically checked. Permissions are exceptions a future check must honour, each naming that check in its `note`. The smart-component `data-testid` rule preserves the single-outer-element exemption.
 - **`--kind doctor` accepts any `ref` unvalidated**, because doctor checks have no id list yet. Add that validation with doctor.
 - **A config-owned schema must move to the root support folder while a config-owned type may stay.** That asymmetry is what the docs literally say — the MAY-stay bullets cover types and constants, not schemas. If a schema deriving its shape from the configuration should also stay, it is a one-line doc change plus adding `schemas` to `CONFIG_OWNED_FOLDERS`.
 - **`pasika doctor` is referenced by the adoption guide and by `agent-policy.md` but does not exist.** Those two documents describe a command you cannot run yet.

@@ -1,6 +1,50 @@
 import { describe, ruleTester, srcFile } from "../rule-tester.js";
 import { filenameCaseRule } from "./filename-case.js";
 
+void describe("A smart component file name MUST be PascalCase.tsx.", () => {
+  ruleTester.run("filename-case", filenameCaseRule, {
+    valid: [
+      {
+        code: "export function AccountPanel() { useState(false); return <section />; }",
+        filename: srcFile("features/account/AccountPanel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: "export function AccountPanel() { useState(false); return <section />; }",
+        filename: srcFile("features/account/account-panel.tsx"),
+        errors: [
+          {
+            message: 'Smart component files must use PascalCase.tsx. Filename "account-panel.tsx" is not PascalCase.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A dumb component file name MUST be kebab-case.tsx.", () => {
+  ruleTester.run("filename-case", filenameCaseRule, {
+    valid: [
+      {
+        code: "export function AccountPanel() { return <section />; }",
+        filename: srcFile("features/account/account-panel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: "export function AccountPanel() { return <section />; }",
+        filename: srcFile("features/account/AccountPanel.tsx"),
+        errors: [
+          {
+            message: 'Dumb component files must use kebab-case.tsx. Filename "AccountPanel.tsx" is not kebab-case.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A file that does not define a component MUST have a kebab-case name.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {
     valid: [
