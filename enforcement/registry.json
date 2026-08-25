@@ -999,8 +999,8 @@
       "doc": "styling-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.",
       "hash": "bb3c5b82cd",
-      "kind": "planned",
-      "note": "eslint: report a custom state prop without its native attribute"
+      "kind": "eslint",
+      "ref": "pasika/ui-state"
     },
     {
       "doc": "styling-guide/rules/component-ui-state-rule.md",
@@ -1013,8 +1013,8 @@
       "doc": "styling-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST use Tailwind \"state variants\" when they can express a supported UI state.",
       "hash": "0f6c3bb7ed",
-      "kind": "planned",
-      "note": "eslint: report a conditional class a state variant could express"
+      "kind": "eslint",
+      "ref": "pasika/ui-state"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",

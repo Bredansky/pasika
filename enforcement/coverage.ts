@@ -40,8 +40,10 @@ function collectTestTitles(rulesDir: string): Set<string> {
   for (const entry of readdirSync(rulesDir)) {
     if (!entry.endsWith(".test.ts")) continue;
     const body = readFileSync(path.join(rulesDir, entry), "utf8");
-    for (const match of body.matchAll(/\b(?:describe|test|it)\(\s*"(?<title>(?:[^"\\]|\\.)*)"/g)) {
-      titles.add((match.groups?.title ?? "").replaceAll('\\"', '"'));
+    const titlePattern = /\b(?:describe|test|it)\(\s*(?:"(?<double>(?:[^"\\]|\\.)*)"|'(?<single>(?:[^'\\]|\\.)*)')/g;
+    for (const match of body.matchAll(titlePattern)) {
+      const title = match.groups?.double ?? match.groups?.single ?? "";
+      titles.add(title.replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
     }
   }
   return titles;
