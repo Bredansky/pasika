@@ -39,7 +39,7 @@ jobs:
         run: npm run build --if-present
 
       - name: Run checks
-        run: npm run lint && npm run typecheck
+        run: npm run lint && npm run typecheck && npm test && npm run docs && npm run coverage
 
       - name: Publish to npm
         env:
@@ -62,4 +62,4 @@ jobs:
             echo "Release for $TAG already exists, skipping"
             exit 0
           fi
-          gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
+          gh release create "$TAG" --repo "$REPO" --title "$TAG" --generate-notes
