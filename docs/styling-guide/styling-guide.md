@@ -6,7 +6,7 @@ This guide keeps component styling predictable without making consumers learn a 
 
 Use this workflow when implementing a component or changing its appearance.
 
-1. Read the [Glossary Reference](../framework-adoption-guide/references/glossary-reference.md) to learn the terms these steps use.
+1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these steps use.
 2. Follow the [Global Stylesheet Rule](rules/global-stylesheet-rule.md) so one stylesheet entry point owns all of the project's global CSS.
 3. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS variables, Tailwind namespaces, and custom utilities expose only the intended API.
 4. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so values used for the project's styling use named utilities or tokens instead of literal arbitrary classes.

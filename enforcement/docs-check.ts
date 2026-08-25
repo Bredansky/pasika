@@ -18,8 +18,8 @@ export const DOCS_CHECKS = [
   "requirement-present",
   "rule-paired-examples",
   "example-heading-description",
-  "conventions-no-examples",
-  "conventions-single-document",
+  "policy-no-examples",
+  "policy-single-document",
   "no-cross-document-link",
   "reference-no-rfc-vocabulary",
   "reference-block-headings",
@@ -49,7 +49,7 @@ function checkDoc(doc: ParsedDoc, allDocs: ParsedDoc[]): DocsFinding[] {
   };
 
   if (!doc.kind) {
-    add(1, "doc-kind-suffix", "file name carries no -guide, -rule, -reference, or -conventions suffix");
+    add(1, "doc-kind-suffix", "file name carries no -guide, -rule, -reference, or -policy suffix");
     return findings;
   }
 
@@ -95,7 +95,7 @@ function checkDoc(doc: ParsedDoc, allDocs: ParsedDoc[]): DocsFinding[] {
     }
   }
 
-  if ((doc.kind === "rule" || doc.kind === "conventions") && doc.requirements.length === 0) {
+  if ((doc.kind === "rule" || doc.kind === "policy") && doc.requirements.length === 0) {
     add(1, "requirement-present", `${doc.kind} document states no requirement`);
   }
 
@@ -116,13 +116,13 @@ function checkDoc(doc: ParsedDoc, allDocs: ParsedDoc[]): DocsFinding[] {
     }
   }
 
-  if (doc.kind === "conventions") {
+  if (doc.kind === "policy") {
     for (const heading of doc.exampleHeadings) {
-      add(heading.line, "conventions-no-examples", `conventions document contains an example: ${heading.text}`);
+      add(heading.line, "policy-no-examples", `policy document contains an example: ${heading.text}`);
     }
-    const conventionsDocs = allDocs.filter((other) => other.kind === "conventions");
-    if (conventionsDocs.length > 1 && conventionsDocs[0] === doc) {
-      add(1, "conventions-single-document", `${String(conventionsDocs.length)} conventions documents exist`);
+    const policyDocs = allDocs.filter((other) => other.kind === "policy");
+    if (policyDocs.length > 1 && policyDocs[0] === doc) {
+      add(1, "policy-single-document", `${String(policyDocs.length)} policy documents exist`);
     }
   }
 

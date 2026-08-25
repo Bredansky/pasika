@@ -8,7 +8,7 @@ Documentation, the lint rules derived from it, and the CLI that applies and diag
 
 ```text
 docs/
-  agent-conventions.md            # repo-wide requirements (Conventions)
+  agent-policy.md                 # repo-wide requirements (Policy)
   code-organization-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
   framework-adoption-guide/       # adopting and updating the framework
@@ -25,7 +25,7 @@ cli/
 
 ## Documentation
 
-Documents come in four kinds — Guide, Rule, Conventions, and Reference — each with a template and a creation rule under `docs/documentation-guide/`. A Rule owns requirements about one subject and demonstrates them with paired Incorrect/Correct examples; a Reference describes and defines but never constrains; Conventions collect repo-wide requirements that span unrelated subjects; a Guide sequences the others into workflows.
+Documents come in four kinds — Guide, Rule, Policy, and Reference — each with a template and a creation rule under `docs/documentation-guide/`. A Rule owns requirements about one subject and demonstrates them with paired Incorrect/Correct examples; a Reference describes and defines but never constrains; a Policy document collects repo-wide requirements that span unrelated subjects; a Guide sequences the others into workflows. Each guide owns its own glossary, so a term is defined beside the workflow that uses it.
 
 ## Enforcement
 
@@ -113,7 +113,7 @@ Run `pasika coverage --json` for the exact requirement each rule covers.
 
 Where a component or support file belongs depends on which files import it, so these two rules index the whole `src/` tree instead of looking at one file. Two consequences:
 
-- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `agent-conventions.md` requires lint commands to run without it.
+- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `agent-policy.md` requires lint commands to run without it.
 - The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
 
 Both are inert in a repository with no `src/` tree.

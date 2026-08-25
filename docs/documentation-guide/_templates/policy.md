@@ -1,6 +1,6 @@
-# [Topic] Conventions
+# [Topic] Policy
 
-[1-2 short sentences naming the scope these conventions apply to and why they are collected in one document.]
+[1-2 short sentences naming the scope these requirements apply to and why they are collected in one document.]
 
 ## [Subject Heading]
 

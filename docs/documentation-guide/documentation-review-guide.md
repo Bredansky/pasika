@@ -6,11 +6,11 @@ This guide explains how to assess and improve repository documentation without a
 
 Use this workflow before changing an existing document or approving a documentation change.
 
-1. Identify whether the document is a Guide, Rule, Conventions, or Reference with the [Documentation Types Reference](references/documentation-types-reference.md).
+1. Identify whether the document is a Guide, Rule, Policy document, or Reference with the [Documentation Types Reference](references/documentation-types-reference.md).
 2. Read the matching template and its creation rule before judging the document's structure.
 3. Check that the overview states the document's scope and purpose in one or two short sentences, without instructions that belong in its body.
-4. Check that the document uses only the structure for its type: workflows for a Guide, requirements with paired examples for a Rule, requirements grouped by subject for Conventions, or lookup content for a Reference.
-5. Check that each requirement is stated in exactly one Rule or Conventions document, and that no Reference, example, or explanation contradicts or silently changes it.
+4. Check that the document uses only the structure for its type: workflows for a Guide, requirements with paired examples for a Rule, requirements grouped by subject for a Policy document, or lookup content for a Reference.
+5. Check that each requirement is stated in exactly one Rule or Policy document, and that no Reference, example, or explanation contradicts or silently changes it.
 6. Check that no Reference states a constraint the reader has to satisfy and that no requirement bullet defines a term instead of demanding something.
 7. Check that the document is internally consistent: no bullet contradicts another bullet within the same document, and no example violates a MUST NOT in the same document.
 8. Check that each example demonstrates exactly the decision it claims to demonstrate, including its stated exceptions.
@@ -24,7 +24,7 @@ Use this workflow before changing an existing document or approving a documentat
 Use this workflow after identifying an issue during review.
 
 1. Fix the source document and its matching template or rule first when the finding affects more than one document.
-2. State each requirement once, in the appropriate Rule or Conventions bullet, with RFC 2119 vocabulary that matches its strength.
+2. State each requirement once, in the appropriate Rule or Policy bullet, with RFC 2119 vocabulary that matches its strength.
 3. Move descriptive facts and term definitions to a Reference and workflow actions to a Guide instead of duplicating requirements across document types.
 4. Make related documents agree without duplicating their content whenever a short link or a local summary is sufficient.
 5. Replace vague or invented terminology with plain, established wording, defining a term only when readers need it to make a decision.

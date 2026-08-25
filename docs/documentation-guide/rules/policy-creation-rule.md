@@ -1,20 +1,20 @@
-# Conventions Creation Rule
+# Policy Creation Rule
 
 Some requirements apply to the whole repository and span subjects too unrelated to share one Rule. This rule defines how to collect them in one document without turning it into a dumping ground.
 
-- Conventions file names MUST match the document title in kebab-case and use the `-conventions` suffix (e.g., `foo-conventions.md`).
-- A Conventions overview MUST contain one or two short sentences naming the scope the requirements apply to.
-- A Conventions document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.
-- A Conventions document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
-- A Conventions document MUST group its bullets under a heading per subject.
-- A Conventions document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
-- A Conventions document MUST NOT link to Rules, References, Guides, or other Conventions.
-- A repository MUST NOT have more than one Conventions document per audience.
+- Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).
+- A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.
+- A Policy document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.
+- A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
+- A Policy document MUST group its bullets under a heading per subject.
+- A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
+- A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.
+- A repository MUST NOT have more than one Policy document per audience.
 
-## Incorrect — Conventions Document Carries Examples
+## Incorrect — Policy Document Carries Examples
 
 ```markdown
-# Agent Conventions
+# Agent Policy
 
 ## Code Quality
 
@@ -30,10 +30,10 @@ Why: the violation is hidden instead of fixed.
 
 Why: the document pairs a repo-wide requirement with a worked example, so it competes with the Rule shape and grows one section per requirement.
 
-## Correct — Conventions Document Lists Requirements Only
+## Correct — Policy Document Lists Requirements Only
 
 ```markdown
-# Agent Conventions
+# Agent Policy
 
 ## Code Quality
 
@@ -47,10 +47,10 @@ Why: the document pairs a repo-wide requirement with a worked example, so it com
 
 Why: each requirement is short enough to apply without an example, and unrelated subjects sit under their own headings.
 
-## Incorrect — Single-Subject Conventions Document
+## Incorrect — Single-Subject Policy Document
 
 ```markdown
-# Commit Conventions
+# Commit Policy
 
 ## Commit Messages
 

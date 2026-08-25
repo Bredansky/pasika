@@ -1,4 +1,4 @@
-# Agent Conventions
+# Agent Policy
 
 Repo-wide requirements for AI agents working in this repository. They apply to every task, whichever guide covers the code being changed.
 
@@ -7,11 +7,6 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 - Runtime validation MUST use Zod schemas rather than ad hoc type guards.
 - A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.
 - A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.
-
-## Dependencies
-
-- A dependency MUST be installed at its latest stable version.
-- A dependency version SHOULD use a caret range so patch and minor releases arrive without a manual bump.
 
 ## Code Quality
 
@@ -25,8 +20,14 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 - `agent-browser upgrade` MUST run before `agent-browser` is used in a task.
 - An agent MAY discover available commands with `agent-browser --help` and command-specific usage with `agent-browser <command> --help`.
 
+## Framework
+
+- A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.
+- A change MUST NOT introduce a finding that `npx pasika doctor` or the repository's lint command did not already report.
+
 ## Managed Documentation
 
+- Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.
 - A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.
 - A file listed in a `.vulyk` manifest MUST NOT be edited by hand.
 - Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.

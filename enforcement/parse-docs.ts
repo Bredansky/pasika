@@ -3,13 +3,13 @@ import path from "node:path";
 import { hashRequirement, normalizeRequirement } from "./normalize.js";
 
 /** The four document kinds the documentation guide defines. */
-export type DocKind = "guide" | "rule" | "reference" | "conventions";
+export type DocKind = "guide" | "rule" | "reference" | "policy";
 
 const KIND_BY_SUFFIX: [suffix: string, kind: DocKind][] = [
   ["-rule.md", "rule"],
   ["-guide.md", "guide"],
   ["-reference.md", "reference"],
-  ["-conventions.md", "conventions"],
+  ["-policy.md", "policy"],
 ];
 
 /** Words that carry requirement strength, longest first so `MUST NOT` wins over `MUST`. */

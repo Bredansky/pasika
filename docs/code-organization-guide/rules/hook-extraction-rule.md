@@ -6,7 +6,7 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 - A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.
 - An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.
 - When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
-- A custom hook with one consumer that does not meet the two-category threshold MUST stay inline in its consumer file.
+- A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 

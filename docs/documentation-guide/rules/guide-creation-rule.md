@@ -3,7 +3,7 @@
 Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
 
 - Each How To step MUST be concise and use one sentence.
-- A Guide MAY link Rules, References, Conventions, and other Guides, including a Reference that another Guide owns.
+- A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
 - When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
@@ -129,7 +129,7 @@ Why: the steps ask the reader to classify a component and to place it by its clo
 ```markdown
 ## How To Organize a Component
 
-1. Read the [Glossary Reference](../framework-adoption-guide/references/glossary-reference.md) to learn the terms these steps use.
+1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these steps use.
 2. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).
 3. Classify the component as smart or dumb per the [Smart vs Dumb Component Rule](rules/smart-vs-dumb-component-rule.md).
 ```
