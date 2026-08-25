@@ -168,6 +168,83 @@ export function buildCoverageReport(options: {
   };
 }
 
+export interface ClassifyInput {
+  /** Hash of the requirement, as `coverage` prints it. */
+  hash: string;
+  kind: EnforcementKind;
+  ref?: string;
+  note?: string;
+}
+
+export interface ClassifyResult {
+  registry: Registry;
+  requirement: Requirement;
+  /** The kind this requirement carried before, when it was already classified. */
+  previousKind?: EnforcementKind;
+}
+
+/**
+ * Records how a requirement is checked.
+ *
+ * Validates that the requirement exists in the documentation as written, that a
+ * ref names a check that exists, and that the kinds which are meaningless
+ * without an explanation carry one. Throws with a readable message otherwise, so
+ * the caller can print it and exit.
+ */
+export function classifyRequirement(options: {
+  docsRoot: string;
+  registry: Registry;
+  input: ClassifyInput;
+}): ClassifyResult {
+  const { docsRoot, registry, input } = options;
+
+  const parsed = parseDocs(docsRoot).flatMap((doc) =>
+    doc.requirements.map((requirement) => ({ doc: doc.doc, requirement })),
+  );
+  const match = parsed.find((entry) => entry.requirement.hash === input.hash);
+  if (!match) {
+    throw new Error(`No requirement in the documentation has hash "${input.hash}". Run coverage to list them.`);
+  }
+
+  const refs = refParts(input.ref);
+  if (input.kind === "eslint") {
+    if (refs.length === 0) throw new Error('Kind "eslint" needs --ref naming the rule that reports it.');
+    const unknown = refs.filter((ref) => !pasikaRuleIds.includes(ref));
+    if (unknown.length > 0) {
+      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);
+    }
+  } else if (input.kind === "docs-check") {
+    if (refs.length === 0) throw new Error('Kind "docs-check" needs --ref naming the check that reports it.');
+    const known = new Set<string>(DOCS_CHECKS);
+    const unknown = refs.filter((ref) => !known.has(ref));
+    if (unknown.length > 0) {
+      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a documentation check.`);
+    }
+  } else if (input.kind !== "doctor" && refs.length > 0) {
+    throw new Error(`Kind "${input.kind}" takes no --ref, because nothing reports it.`);
+  }
+
+  if ((input.kind === "judgment" || input.kind === "planned") && (input.note ?? "").trim() === "") {
+    const reason = input.kind === "judgment" ? "why no check can decide it" : "the check that should cover it";
+    throw new Error(`Kind "${input.kind}" needs --note naming ${reason}.`);
+  }
+
+  const requirement: Requirement = {
+    doc: match.doc,
+    text: match.requirement.text,
+    hash: match.requirement.hash,
+    kind: input.kind,
+    ...(refs.length > 0 ? { ref: refs.join(", ") } : {}),
+    ...((input.note ?? "").trim() === "" ? {} : { note: input.note?.trim() }),
+  };
+
+  const existing = registry.requirements.find((entry) => entry.hash === input.hash);
+  const requirements = registry.requirements.filter((entry) => entry.hash !== input.hash);
+  requirements.push(requirement);
+
+  return { registry: { requirements }, requirement, previousKind: existing?.kind };
+}
+
 export function readRegistry(registryPath: string): Registry {
   const parsed: unknown = JSON.parse(readFileSync(registryPath, "utf8"));
   const result = registrySchema.safeParse(parsed);
@@ -177,6 +254,18 @@ export function readRegistry(registryPath: string): Registry {
   return result.data;
 }
 
+/**
+ * Code-point order on doc then text. Deliberately not `localeCompare`, whose
+ * result depends on the host's locale data — a generated file that is committed
+ * has to sort the same way everywhere.
+ */
+function compareRequirements(left: Requirement, right: Requirement): number {
+  if (left.doc !== right.doc) return left.doc < right.doc ? -1 : 1;
+  if (left.text !== right.text) return left.text < right.text ? -1 : 1;
+  return 0;
+}
+
 export function writeRegistry(registryPath: string, registry: Registry): void {
-  writeFileSync(registryPath, `${JSON.stringify(registry, null, 2)}\n`);
+  const sorted: Registry = { requirements: [...registry.requirements].sort(compareRequirements) };
+  writeFileSync(registryPath, `${JSON.stringify(sorted, null, 2)}\n`);
 }

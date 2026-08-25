@@ -905,7 +905,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points \u2014 intros, Why: explanations, table cells, and code comments \u2014 MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "kind": "planned",
       "note": "docs-check: RFC 2119 vocabulary appears only in bullets"

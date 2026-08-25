@@ -66,6 +66,15 @@ npx pasika coverage --accept   # record reworded and removed requirements
 
 Both accept `--json` for agent use.
 
+A requirement `coverage` reports as `new` is classified with the hash it prints:
+
+```bash
+npx pasika coverage --classify d311a1457a --kind eslint --ref pasika/import-boundaries
+npx pasika coverage --classify 041b665bd7 --kind judgment --note "no check can compare against the previous state"
+```
+
+The command refuses a hash no requirement has, a `ref` naming a rule or check that does not exist, a `ref` on a kind that nothing reports, and `judgment` or `planned` without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-classified requirement reclassifies it and reports what it was.
+
 ## ESLint ruleset
 
 ### With Zirka (recommended)
