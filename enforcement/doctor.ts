@@ -8,6 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import { getProjectIndex, symbolKey } from "../eslint/pasika/project/index.js";
 
 export interface DoctorFinding {
@@ -19,32 +20,22 @@ export interface DoctorFinding {
   severity: "error" | "warning";
 }
 
-interface PackageJson {
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  scripts?: Record<string, string>;
-}
+const packageJsonSchema = z.object({
+  dependencies: z.record(z.string(), z.string()).optional(),
+  devDependencies: z.record(z.string(), z.string()).optional(),
+  scripts: z.record(z.string(), z.string()).optional(),
+});
+
+type PackageJson = z.infer<typeof packageJsonSchema>;
 
 function readPackageJson(filePath: string): PackageJson {
   try {
-    const parsed: unknown = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- JSON parse result needs narrowing
-      const obj = parsed as Record<string, unknown>;
-      return {
-        dependencies: isStringRecord(obj.dependencies) ? obj.dependencies : undefined,
-        devDependencies: isStringRecord(obj.devDependencies) ? obj.devDependencies : undefined,
-        scripts: isStringRecord(obj.scripts) ? obj.scripts : undefined,
-      };
-    }
+    const result = packageJsonSchema.safeParse(JSON.parse(fs.readFileSync(filePath, "utf8")));
+    if (result.success) return result.data;
   } catch {
     // missing or unparseable
   }
   return {};
-}
-
-function isStringRecord(value: unknown): value is Record<string, string> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -420,7 +411,7 @@ function checkImportGraph(srcDir: string): DoctorFinding[] {
         if (outsideConsumers.length > 0) {
           findings.push({
             check: "component-nesting",
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- folderName is string after truthiness guard
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- folderName is narrowed to string by the truthiness guard above
             message: `Component in src/features/${featureName}/${folderName}/ is imported outside its folder; consider flattening.`,
             severity: "warning",
           });
@@ -539,19 +530,16 @@ function checkManagedFiles(cwd: string): DoctorFinding[] {
   if (!fs.existsSync(manifestPath)) return findings;
 
   try {
-    const parsed: unknown = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return findings;
+    const manifestEntrySchema = z.looseObject({
+      targets: z.array(z.string()).optional(),
+    });
+    const manifestSchema = z.record(z.string(), manifestEntrySchema);
+    const result = manifestSchema.safeParse(JSON.parse(fs.readFileSync(manifestPath, "utf8")));
+    if (!result.success) return findings;
 
-    for (const [, value] of Object.entries(
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- JSON parse result needs narrowing
-      parsed as Record<string, unknown>,
-    )) {
-      if (typeof value !== "object" || value === null || Array.isArray(value)) continue;
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- JSON parse result needs narrowing
-      const entry = value as Record<string, unknown>;
-      const targets = Array.isArray(entry.targets) ? entry.targets : [];
+    for (const [, entry] of Object.entries(result.data)) {
+      const targets = entry.targets ?? [];
       for (const target of targets) {
-        if (typeof target !== "string") continue;
         const targetPath = path.join(cwd, target);
         if (fs.existsSync(targetPath)) {
           // File exists — check it hasn't been modified since vulyk last wrote it

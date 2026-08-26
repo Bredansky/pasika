@@ -8,8 +8,6 @@
  * @see docs/code-organization-guide/rules/locales-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any -- AST rule uses parser-specific fields */
-
 import path from "node:path";
 import type { Rule } from "eslint";
 
@@ -45,16 +43,14 @@ export const localesLocationRule: Rule.RuleModule = {
     if (folder === "app" || folder === "config") return {};
 
     return {
-      VariableDeclarator(node: any) {
+      VariableDeclarator(node) {
         if (
-          node.id?.type === "Identifier" &&
+          node.id.type === "Identifier" &&
           node.init?.type === "ObjectExpression" &&
-          node.init.properties?.length > 0 &&
-          looksLikeLocaleKey(String(node.id.name))
+          node.init.properties.length > 0 &&
+          looksLikeLocaleKey(node.id.name)
         ) {
-          const hasStringValues = node.init.properties.some(
-            (p: any) => p.type === "Property" && p.value?.type === "Literal",
-          );
+          const hasStringValues = node.init.properties.some((p) => p.type === "Property" && p.value.type === "Literal");
           if (hasStringValues) {
             context.report({
               node,
@@ -66,5 +62,3 @@ export const localesLocationRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any -- re-enable after parser-specific AST access */
