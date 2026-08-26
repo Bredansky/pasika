@@ -1020,15 +1020,15 @@
       "doc": "styling-guide/rules/component-variant-rule.md",
       "text": "A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.",
       "hash": "3393d959ca",
-      "kind": "planned",
-      "note": "eslint: cva-boolean-variants"
+      "kind": "eslint",
+      "ref": "pasika/cva-boolean-variants"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
       "text": "A boolean prop that changes appearance MUST use conditional cn() when it only adds or removes one standalone class treatment.",
       "hash": "c1fc4dacbd",
-      "kind": "planned",
-      "note": "eslint: cva-boolean-variants"
+      "kind": "eslint",
+      "ref": "pasika/cva-boolean-variants"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
