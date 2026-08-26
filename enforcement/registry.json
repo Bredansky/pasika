@@ -446,15 +446,15 @@
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",
       "hash": "4f947bf362",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/locale-placement"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).",
       "hash": "66addb15b3",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/locale-placement"
     },
     {
       "doc": "code-organization-guide/rules/nameable-visual-concept-rule.md",
@@ -538,15 +538,15 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/type-extraction"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.",
       "hash": "e63d1fbcb8",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/type-extraction"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",

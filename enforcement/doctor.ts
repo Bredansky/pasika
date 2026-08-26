@@ -8,7 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { getProjectIndex } from "../eslint/pasika/project/index.js";
+import { getProjectIndex, symbolKey } from "../eslint/pasika/project/index.js";
 
 export interface DoctorFinding {
   /** Which requirement this relates to. */
@@ -425,6 +425,57 @@ function checkImportGraph(srcDir: string): DoctorFinding[] {
             severity: "warning",
           });
         }
+      }
+    }
+  }
+
+  // Check: locales consumed by multiple feature folders must be in the shared locales object
+  // Find files that import locales from @/locales or ../locales
+  const localeConsumers = new Map<string, Set<string>>(); // featureName -> set of locale keys used
+  for (const [file, mod] of index.modules) {
+    for (const imp of mod.imports) {
+      if (!imp.specifier.includes("locales")) continue;
+      const segments = segmentsOf(file);
+      const featureName = segments[0] === "features" ? segments[1] : undefined;
+      if (!featureName) continue;
+      for (const name of imp.names) {
+        if (!localeConsumers.has(name)) localeConsumers.set(name, new Set());
+        localeConsumers.get(name)?.add(featureName);
+      }
+    }
+  }
+  for (const [localeName, features] of localeConsumers) {
+    if (features.size > 1) {
+      findings.push({
+        check: "locale-placement",
+        message: `Locale "${localeName}" is consumed by features ${[...features].join(", ")}. Shared locales must live in the top-level locales object.`,
+        severity: "warning",
+      });
+    }
+  }
+
+  // Check: types/schemas in component files should stay until another file imports them directly
+  for (const [file, mod] of index.modules) {
+    const segments = segmentsOf(file);
+    const isComponentFile =
+      mod.exports.some((e) => e.kind === "component") || (segments[0] === "features" && segments.length >= 3);
+    if (!isComponentFile) continue;
+    for (const exp of mod.exports) {
+      if (exp.kind !== "type" && exp.kind !== "schema") continue;
+      const consumers = index.symbolConsumers.get(symbolKey(file, exp.name));
+      if (!consumers || consumers.size === 0) continue;
+      // If there are consumers outside the same folder, the type should be extracted
+      const sameFolder = segments.slice(0, -1).join(path.sep);
+      const outsideFolder = [...consumers].some((c) => {
+        const cs = segmentsOf(c);
+        return cs.slice(0, -1).join(path.sep) !== sameFolder;
+      });
+      if (outsideFolder) {
+        findings.push({
+          check: "type-extraction",
+          message: `${exp.kind} "${exp.name}" in a component file has consumers outside its folder. Consider extracting it.`,
+          severity: "warning",
+        });
       }
     }
   }
