@@ -286,6 +286,18 @@ function checkGlobalStylesheet(cwd: string): DoctorFinding[] {
       message: "Global stylesheet should define @custom-variant definitions for component props.",
       severity: "warning",
     });
+  } // CSS naming: background variables must be --<role>-canvas, text must be --<role>-ink
+  const cssVarPattern = /--(?<varName>[a-z][a-z0-9-]*)(?=:)/g;
+  let cssVarMatch: RegExpExecArray | null;
+  while ((cssVarMatch = cssVarPattern.exec(content)) !== null) {
+    const name = cssVarMatch.groups?.varName ?? "";
+    if ((name.includes("bg") || name.includes("background")) && !name.endsWith("-canvas")) {
+      findings.push({
+        check: "css-variable-naming",
+        message: `CSS variable "--${name}" looks like a background token; name it --<role>-canvas instead.`,
+        severity: "warning",
+      });
+    }
   }
 
   return findings;

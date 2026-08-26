@@ -1097,8 +1097,8 @@
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.",
       "hash": "0fb98de16d",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
