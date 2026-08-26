@@ -11,6 +11,7 @@ import {
 } from "../enforcement/coverage.js";
 import { enforcementKindSchema } from "../enforcement/types.js";
 import { checkDocs } from "../enforcement/docs-check.js";
+import { runDoctor } from "../enforcement/doctor.js";
 
 const REGISTRY_RELATIVE_PATH = path.join("enforcement", "registry.json");
 
@@ -159,5 +160,25 @@ program
       process.exit(report.issues.length > 0 ? 1 : 0);
     },
   );
+
+program
+  .command("doctor")
+  .description("Diagnose gaps between the repository and the pasika framework baseline.")
+  .option("--json", "print findings as JSON")
+  .action((options: { json?: boolean }) => {
+    const findings = runDoctor(process.cwd());
+
+    if (options.json) {
+      console.log(JSON.stringify({ findings }, undefined, 2));
+      process.exit(findings.some((f) => f.severity === "error") ? 1 : 0);
+    }
+
+    for (const finding of findings) {
+      const icon = finding.severity === "error" ? "✗" : "⚠";
+      console.log(`  ${icon} ${finding.check}  ${finding.message}`);
+    }
+    console.log(findings.length === 0 ? "\n✓ No gaps found" : `\n${String(findings.length)} finding(s)`);
+    process.exit(findings.some((f) => f.severity === "error") ? 1 : 0);
+  });
 
 program.parse();

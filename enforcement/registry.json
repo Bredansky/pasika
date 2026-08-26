@@ -46,8 +46,8 @@
       "doc": "agent-policy.md",
       "text": "A lint command MUST NOT pass ESLint's --cache flag, because rules that compare a file against the rest of the tree need every file in the run.",
       "hash": "2b3f806581",
-      "kind": "planned",
-      "note": "doctor: read the lint scripts from package.json"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "agent-policy.md",
@@ -94,15 +94,15 @@
       "doc": "agent-policy.md",
       "text": "Vulyk MUST NOT be added to package.json in order to run its CLI.",
       "hash": "1061447825",
-      "kind": "planned",
-      "note": "doctor: report a vulyk entry in package.json"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "agent-policy.md",
       "text": "Vulyk MUST run as an ephemeral command such as npx vulyk@latest.",
       "hash": "c8aaf8ce02",
-      "kind": "planned",
-      "note": "doctor: report a vulyk entry in package.json"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "agent-policy.md",
@@ -144,8 +144,8 @@
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "Application source MUST live under src/.",
       "hash": "0a5c03a95d",
-      "kind": "planned",
-      "note": "doctor: report source folders outside src/"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
