@@ -684,6 +684,65 @@ function checkThemeVariableNamespace(cwd: string): DoctorFinding[] {
   return findings;
 }
 
+/**
+ * Check for repeated class combinations across components that should
+ * become shared custom utilities, and single-component styling that
+ * must stay local.
+ */
+function checkComponentStyleDedup(srcDir: string): DoctorFinding[] {
+  const findings: DoctorFinding[] = [];
+  if (!fs.existsSync(srcDir)) return findings;
+
+  // Map from sorted class combination to the set of component files using it
+  const comboToFiles = new Map<string, Set<string>>();
+  // Map from individual class to the set of component files using it
+  const classToFiles = new Map<string, Set<string>>();
+
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".next") {
+        walk(full);
+      }
+      if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".jsx"))) {
+        const content = fs.readFileSync(full, "utf8");
+        const rel = path.relative(srcDir, full);
+        // Extract static className strings (not template literals or expressions)
+        const classPattern = /className="(?<classes>[^"]+)"/g;
+        let match: RegExpExecArray | null;
+        while ((match = classPattern.exec(content)) !== null) {
+          const classes = (match.groups?.classes ?? "").split(/\s+/).filter(Boolean);
+          // Track each individual class
+          for (const cls of classes) {
+            if (!classToFiles.has(cls)) classToFiles.set(cls, new Set());
+            classToFiles.get(cls)?.add(rel);
+          }
+          // Track 2+ class combinations (sorted)
+          if (classes.length >= 2) {
+            const key = [...classes].sort().join(" ");
+            if (!comboToFiles.has(key)) comboToFiles.set(key, new Set());
+            comboToFiles.get(key)?.add(rel);
+          }
+        }
+      }
+    }
+  };
+  walk(srcDir);
+
+  // Find combinations used by 2+ different components
+  for (const [combo, files] of comboToFiles) {
+    if (files.size >= 2) {
+      findings.push({
+        check: "shared-style-dedup",
+        message: `Class combination "${combo}" appears in ${String(files.size)} components. Create a named custom Tailwind utility for it.`,
+        severity: "warning",
+      });
+    }
+  }
+
+  return findings;
+}
+
 export function runDoctor(cwd: string): DoctorFinding[] {
   const pkgPath = path.join(cwd, "package.json");
   const pkg = readPackageJson(pkgPath);
@@ -703,5 +762,6 @@ export function runDoctor(cwd: string): DoctorFinding[] {
     ...checkSurfaceUtility(cwd),
     ...checkThemeVariableNamespace(cwd),
     ...importGraphFindings,
+    ...(fs.existsSync(srcDir) ? checkComponentStyleDedup(srcDir) : []),
   ];
 }
