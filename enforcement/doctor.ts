@@ -300,6 +300,31 @@ function checkGlobalStylesheet(cwd: string): DoctorFinding[] {
     }
   }
 
+  // CSS ordering: imports, @custom-variant, :root, @theme, @utility, @layer base
+  const orderingSections = [
+    { label: "@import", pattern: /@import\s+["']/ },
+    { label: "@custom-variant", pattern: /@custom-variant/ },
+    { label: ":root", pattern: /:root\s*\{/ },
+    { label: "@theme", pattern: /@theme\s*\{/ },
+    { label: "@utility", pattern: /@utility\s+/ },
+    { label: "@layer base", pattern: /@layer\s+base/ },
+  ];
+  let lastPos = -1;
+  for (const section of orderingSections) {
+    const match = content.match(section.pattern);
+    if (match?.index !== undefined && match.index < lastPos) {
+      findings.push({
+        check: "css-ordering",
+        message: `Global stylesheet sections must be ordered: imports before @custom-variant before :root before @theme before @utility before @layer base. Found "${section.label}" after a later section.`,
+        severity: "error",
+      });
+      break;
+    }
+    if (match?.index !== undefined) {
+      lastPos = match.index;
+    }
+  }
+
   return findings;
 }
 

@@ -138,6 +138,21 @@ void describe("runDoctor", () => {
       assert.ok(findings.some((f) => f.check === "base-layer-pair"));
     });
 
+    void it("reports when CSS sections are out of order", () => {
+      const dir = path.join(root, "pkg-bad-order/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n',
+      );
+      writeJson("pkg-bad-order/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-bad-order"));
+      assert.ok(findings.some((f) => f.check === "css-ordering"));
+    });
+
     void it("reports when @theme inline is missing", () => {
       const dir = path.join(root, "pkg-no-theme-inline/src/app");
       mkdirSync(dir, { recursive: true });

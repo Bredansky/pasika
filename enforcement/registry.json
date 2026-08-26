@@ -1090,8 +1090,8 @@
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.",
       "hash": "dce78502d3",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
