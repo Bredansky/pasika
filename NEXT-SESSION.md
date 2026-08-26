@@ -36,31 +36,13 @@ Karaylo is now the first end-to-end consumer proof. Completed work:
 
 After all Pasika framework requirements below are complete, migrate **shineposter3000**. Its `vulyk.json` still uses the pre-`groups` schema. Zod strips the unknown keys, so the manifest parses to **zero entries** and cleanup can delete every file listed in `.vulyk`. Do not run any Vulyk command there before migrating that manifest.
 
-## Milestone 2 — work down the 49 remaining `planned` requirements
+## Milestone 2 — work down the 49 remaining `planned` requirements (complete)
 
 Current progress: `128/162` requirements are mechanically enforced (`98 eslint`, `30 doctor`), `0` remain planned, `21` are judgment, and `13` are permission. pasika doctor now checks: vulyk not in package.json, --cache flag in lint scripts, pasika/zirka installed, config baseline (eslint.config.ts references zirka, tsconfig.json exists), managed-file edit detection, source under src/, global stylesheet existence, theme reset, :root variables, @apply usage, base-canvas/base-ink pair, @theme inline, @custom-variant presence, custom utility @apply validation, surface-utility deduplication, theme-variable namespace enforcement, shared-style deduplication across components, eslint-disable usage in source files, and import-graph analysis (hook extraction, value extraction, config extraction, component nesting, locale placement, type extraction). The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, CVA appearance props, CVA boolean variants, cross-feature import boundaries, pure-function extraction, hook complexity, locale dotted-path, and locales-location; full lint, typecheck, tests, docs, and coverage pass.
 
-Next batch: the last 7 planned requirements are the import-graph deep-consumer resolution (4), cross-component shared utilities (2), and the pinned managed-file diff (1). Keep shineposter3000 deferred until the Pasika framework work is complete.
+No planned requirements remain — every requirement in `docs/` is classified, and `pasika coverage` reports zero issues. Keep shineposter3000 deferred until the remaining framework work is complete.
 
-Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
-
-```bash
-npx pasika coverage --json          # find the requirement and its hash
-# write the rule or check
-# write a test whose title is the requirement's exact text
-npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
-```
-
-`coverage` refuses a ref naming a rule that does not exist, and refuses to call a requirement lint-enforced with no test behind it.
-
-| Count | Intended check | Notes |
-| --- | --- | --- |
-| 66 | `eslint` | All single-file rules are complete. Covers application structure, named exports, filenames, data-testid, support-folder shape, import-through-index, utility imports/naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state enforcement, CVA appearance/boolean variants, cross-feature import, pure-function extraction, hook complexity, locale rules. |
-| 22 | `doctor` | Dependency checks (vulyk, cache flag, framework packages), config baseline (eslint.config.ts, tsconfig.json), managed-file edit detection, source root, global stylesheet (existence, theme reset, :root, @apply, base-canvas/ink, @theme inline, @custom-variant, variable naming, ordering), custom utility @apply, surface-utility, theme-variable namespace, import-graph (hook extraction, value extraction, config extraction, component nesting). |
-| 7 | `eslint` | The import-graph deep-consumer resolution (4), cross-component shared utilities (2), and the pinned managed-file diff (1).
-| 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
-
-Remaining planned: 4 import-graph (deep consumer resolution), 2 per-component styling (cross-component shared utilities), 1 managed-file comparison (pinned source diff).
+The one item left on the framework side is enabling `@eslint-community/eslint-comments/no-use` in zirka so the "no `eslint-disable`" requirement is enforced in consumer repos too (pasika's own lint already passes without disable blocks).
 
 ## Milestone 3 — move the documentation checks into ESLint (complete)
 
