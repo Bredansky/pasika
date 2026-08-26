@@ -384,6 +384,51 @@ function checkImportGraph(srcDir: string): DoctorFinding[] {
     }
   }
 
+  // Check: config types/schemas should be in the config module's support folder
+  for (const [file, mod] of index.modules) {
+    const segments = segmentsOf(file);
+    if (segments[0] !== "config" || segments.length < 3) continue;
+    for (const exp of mod.exports) {
+      if (exp.kind === "type" || exp.kind === "schema") {
+        const consumers = index.symbolConsumers.get(`${file}\u0000${exp.name}`);
+        const allConsumers = [...(consumers ?? [])];
+        const configConsumers = allConsumers.filter((c) => segmentsOf(c)[0] === "config");
+        if (allConsumers.length > 0 && configConsumers.length < allConsumers.length) {
+          findings.push({
+            check: "config-extraction",
+            message: `${exp.kind} "${exp.name}" in config is used outside config; consider moving it to the root support folder.`,
+            severity: "warning",
+          });
+        }
+      }
+    }
+  }
+
+  // Check: component must not be nested only because it has support files
+  for (const [file, consumers] of index.consumers) {
+    const segments = segmentsOf(file);
+    if (segments.length < 3 || segments[0] !== "features") continue;
+    const featureName = segments[1];
+    // Check if the parent feature folder has a component with the same base name
+    if (segments.length >= 3) {
+      const folderName = segments[segments.length - 1];
+      if (folderName && folderName !== featureName) {
+        const outsideConsumers = [...consumers].filter((c) => {
+          const cs = segmentsOf(c);
+          return cs.length < 3 || cs[1] !== featureName || cs[2] !== folderName;
+        });
+        if (outsideConsumers.length > 0) {
+          findings.push({
+            check: "component-nesting",
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- folderName is string after truthiness guard
+            message: `Component in src/features/${featureName}/${folderName}/ is imported outside its folder; consider flattening.`,
+            severity: "warning",
+          });
+        }
+      }
+    }
+  }
+
   return findings;
 }
 

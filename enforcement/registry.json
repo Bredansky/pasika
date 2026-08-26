@@ -215,8 +215,8 @@
       "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.",
       "hash": "9e5da88f2e",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
@@ -341,15 +341,15 @@
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
       "text": "A component MUST NOT be nested only because it has support files.",
       "hash": "bd8c041512",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
       "text": "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
       "hash": "6adf7c4309",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
