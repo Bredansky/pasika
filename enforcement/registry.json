@@ -73,8 +73,8 @@
       "doc": "agent-policy.md",
       "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
       "hash": "628ab4f6a6",
-      "kind": "planned",
-      "note": "agent guideline: discourage AI agents from adding eslint-disable directives; developers may still use them. Whether a fix is correct stays judgment."
+      "kind": "doctor",
+      "ref": "pasika/eslint-disable-usage"
     },
     {
       "doc": "agent-policy.md",

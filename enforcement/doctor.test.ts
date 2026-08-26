@@ -267,4 +267,33 @@ void describe("runDoctor", () => {
       assert.ok(!findings.some((f) => f.check === "custom-utility-apply"));
     });
   });
+
+  void describe("eslint-disable check", () => {
+    void it("reports eslint-disable directives in source files", () => {
+      const dir = path.join(root, "pkg-eslint-disable/src/features/home");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "home-page.tsx"),
+        'export function HomePage() { return <div />; }\n// eslint-disable-next-line no-console\nconsole.log("hi");\n',
+      );
+      writeJson("pkg-eslint-disable/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-eslint-disable"));
+      assert.ok(findings.some((f) => f.check === "eslint-disable-usage"));
+    });
+
+    void it("passes when no eslint-disable directives exist", () => {
+      const dir = path.join(root, "pkg-no-eslint-disable/src/features/home");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, "home-page.tsx"), "export function HomePage() { return <div />; }\n");
+      writeJson("pkg-no-eslint-disable/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-no-eslint-disable"));
+      assert.ok(!findings.some((f) => f.check === "eslint-disable-usage"));
+    });
+  });
 });

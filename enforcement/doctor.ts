@@ -743,6 +743,40 @@ function checkComponentStyleDedup(srcDir: string): DoctorFinding[] {
   return findings;
 }
 
+/**
+ * Scan the codebase for eslint-disable directives.
+ *
+ * AI agents should not add eslint-disable comments. Developers may use them
+ * when genuinely needed, but each occurrence should be reviewed.
+ */
+function checkEslintDisable(cwd: string): DoctorFinding[] {
+  const findings: DoctorFinding[] = [];
+  const srcDir = path.join(cwd, "src");
+  if (!fs.existsSync(srcDir)) return findings;
+
+  const walk = (dir: string): void => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".next") {
+        walk(full);
+      }
+      if (entry.isFile() && (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))) {
+        const content = fs.readFileSync(full, "utf8");
+        if (content.includes("eslint-disable")) {
+          const rel = path.relative(cwd, full);
+          findings.push({
+            check: "eslint-disable-usage",
+            message: `"${rel}" contains an eslint-disable directive. Fix the underlying issue instead when possible.`,
+            severity: "warning",
+          });
+        }
+      }
+    }
+  };
+  walk(srcDir);
+  return findings;
+}
+
 export function runDoctor(cwd: string): DoctorFinding[] {
   const pkgPath = path.join(cwd, "package.json");
   const pkg = readPackageJson(pkgPath);
@@ -763,5 +797,6 @@ export function runDoctor(cwd: string): DoctorFinding[] {
     ...checkThemeVariableNamespace(cwd),
     ...importGraphFindings,
     ...(fs.existsSync(srcDir) ? checkComponentStyleDedup(srcDir) : []),
+    ...checkEslintDisable(cwd),
   ];
 }
