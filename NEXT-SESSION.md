@@ -38,9 +38,9 @@ After all Pasika framework requirements below are complete, migrate **shineposte
 
 ## Milestone 2 — work down the 49 remaining `planned` requirements
 
-Current progress: `109/162` requirements are mechanically enforced (`66 eslint`, `17 doctor`, `26 docs-check`), `19` remain planned, `21` are judgment, and `13` are permission. pasika doctor now checks: vulyk not in package.json, --cache flag in lint scripts, pasika/zirka installed, source under src/, global stylesheet existence, theme reset, :root variables, @apply usage, base-canvas/base-ink pair, @theme inline, and @custom-variant presence. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, CVA appearance props, CVA boolean variants, cross-feature import boundaries, pure-function extraction, hook complexity, locale dotted-path, and locales-location; full lint, typecheck, tests, docs, and coverage pass.
+Current progress: `114/162` requirements are mechanically enforced (`66 eslint`, `22 doctor`, `26 docs-check`), `14` remain planned, `21` are judgment, and `13` are permission. pasika doctor now checks: vulyk not in package.json, --cache flag in lint scripts, pasika/zirka installed, config baseline (eslint.config.ts references zirka, tsconfig.json exists), managed-file edit detection, source under src/, global stylesheet existence, theme reset, :root variables, @apply usage, base-canvas/base-ink pair, @theme inline, @custom-variant presence, custom utility @apply validation, surface-utility deduplication, theme-variable namespace enforcement, and import-graph analysis (hook extraction, value extraction, config extraction, component nesting). The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, CVA appearance props, CVA boolean variants, cross-feature import boundaries, pure-function extraction, hook complexity, locale dotted-path, and locales-location; full lint, typecheck, tests, docs, and coverage pass.
 
-Next batch: remaining code-focused requirements from the planned registry. Keep shineposter3000 deferred until the Pasika framework work is complete.
+Next batch: the 14 remaining planned requirements break down as 6 docs-check (milestone 3 — @eslint/markdown), 1 zirka (eslint-disable ban), 4 import-graph (deep consumer resolution), 2 per-component styling, and 1 managed-file comparison. Keep shineposter3000 deferred until the Pasika framework work is complete.
 
 Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
 
@@ -55,12 +55,12 @@ npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
 
 | Count | Intended check | Notes |
 | --- | --- | --- |
-| 35 | `eslint` | Single-file rules still to write: CVA appearance props, boolean variants, and related code checks. UI-state/native-attribute and state-variant enforcement are implemented. Class composition, outer-layout className restrictions, and internal class-name prop restrictions are implemented. |
-| 29 | `doctor` | `pasika doctor` does not exist yet. Scope agreed: **dependencies and docs only** — required packages, exact-version policy, vulyk drift, the `--cache` ban, config baseline. Everything about code and paths belongs in ESLint |
+| 66 | `eslint` | All single-file rules are complete. Covers application structure, named exports, filenames, data-testid, support-folder shape, import-through-index, utility imports/naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state enforcement, CVA appearance/boolean variants, cross-feature import, pure-function extraction, hook complexity, locale rules. |
+| 22 | `doctor` | Dependency checks (vulyk, cache flag, framework packages), config baseline (eslint.config.ts, tsconfig.json), managed-file edit detection, source root, global stylesheet (existence, theme reset, :root, @apply, base-canvas/ink, @theme inline, @custom-variant, variable naming, ordering), custom utility @apply, surface-utility, theme-variable namespace, import-graph (hook extraction, value extraction, config extraction, component nesting). |
 | 6 | `docs-check` | RFC 2119 vocabulary only in bullets, subject headings in a Policy document, guide link anchors, no nested How To, glossary-term linking. **Write these as ESLint rules — see milestone 3** |
 | 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
 
-13 CSS/stylesheet requirements sit inside the doctor count but need a stylesheet parser rather than the import graph. `@eslint/css` may suit them better than doctor — worth deciding before starting.
+Remaining planned: 4 import-graph (deep consumer resolution), 2 per-component styling (cross-component shared utilities), 1 managed-file comparison (pinned source diff).
 
 ## Milestone 3 — move the documentation checks into ESLint
 
@@ -103,7 +103,6 @@ Sequenced third deliberately: it is a port of checks that already pass, so it ad
 - **21 `judgment` + 13 `permission`** requirements will never be mechanically checked. Permissions are exceptions a future check must honour, each naming that check in its `note`. The smart-component `data-testid` rule preserves the single-outer-element exemption; interactive-component extraction is enforced.
 - **`--kind doctor` accepts any `ref` unvalidated**, because doctor checks have no id list yet. Add that validation with doctor.
 - **A config-owned schema must move to the root support folder while a config-owned type may stay.** That asymmetry is what the docs literally say — the MAY-stay bullets cover types and constants, not schemas. If a schema deriving its shape from the configuration should also stay, it is a one-line doc change plus adding `schemas` to `CONFIG_OWNED_FOLDERS`.
-- **`pasika doctor` is referenced by the adoption guide and by `agent-policy.md` but does not exist.** Those two documents describe a command you cannot run yet.
 
 ## Conventions to keep
 

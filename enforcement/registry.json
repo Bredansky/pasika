@@ -39,8 +39,8 @@
       "doc": "agent-policy.md",
       "text": "A file listed in a .vulyk manifest MUST NOT be edited by hand.",
       "hash": "2390e57f4f",
-      "kind": "planned",
-      "note": "doctor: compare managed files against their pinned sources"
+      "kind": "doctor",
+      "ref": "pasika/managed-file-edit"
     },
     {
       "doc": "agent-policy.md",
@@ -53,8 +53,8 @@
       "doc": "agent-policy.md",
       "text": "A repository MUST take its lint, format, and TypeScript configuration from pasika and zirka rather than restating it locally.",
       "hash": "12553abd17",
-      "kind": "planned",
-      "note": "doctor: compare the repository's configuration against the baseline"
+      "kind": "doctor",
+      "ref": "pasika/config-baseline"
     },
     {
       "doc": "agent-policy.md",
@@ -1104,15 +1104,15 @@
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
       "hash": "a61de0650b",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/custom-utility-apply"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.",
       "hash": "0d965db624",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/surface-utility"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
@@ -1125,8 +1125,8 @@
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A value that needs at least two utility classes from the same Tailwind theme-variable namespace MUST use that namespace and have the same name in :root.",
       "hash": "d9b8eeb83d",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/theme-variable-namespace"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",

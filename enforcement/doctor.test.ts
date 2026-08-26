@@ -176,8 +176,95 @@ void describe("runDoctor", () => {
         '@import "tailwindcss";\n\n:root { --spacing: 0.25rem; --base-canvas: #fff; --base-ink: #111; }\n\n@theme { --*: initial; }\n\n@theme inline {\n  --spacing: var(--spacing);\n}\n\n@utility bg-base-canvas {\n  @apply bg-(--base-canvas);\n}\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n',
       );
       writeJson("pkg-complete/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
+      writeFileSync(
+        path.join(root, "pkg-complete/eslint.config.ts"),
+        'import { zirka } from "zirka"; export default zirka();',
+      );
+      writeFileSync(path.join(root, "pkg-complete/tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
       const findings = runDoctor(path.join(root, "pkg-complete"));
       assert.ok(!findings.some((f) => f.severity === "error"));
+    });
+  });
+
+  void describe("config baseline check", () => {
+    void it("reports when eslint config is missing", () => {
+      mkdirSync(path.join(root, "pkg-no-eslint/src"), { recursive: true });
+      writeJson("pkg-no-eslint/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-no-eslint"));
+      assert.ok(findings.some((f) => f.check === "config-baseline"));
+    });
+
+    void it("reports when eslint config does not reference zirka", () => {
+      mkdirSync(path.join(root, "pkg-no-zirka-ref/src"), { recursive: true });
+      writeFileSync(path.join(root, "pkg-no-zirka-ref/eslint.config.ts"), "export default {};\n");
+      writeFileSync(path.join(root, "pkg-no-zirka-ref/tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
+      writeJson("pkg-no-zirka-ref/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-no-zirka-ref"));
+      assert.ok(findings.some((f) => f.check === "config-baseline" && f.message.includes("zirka")));
+    });
+
+    void it("passes when eslint config references zirka", () => {
+      mkdirSync(path.join(root, "pkg-good-eslint/src"), { recursive: true });
+      writeFileSync(
+        path.join(root, "pkg-good-eslint/eslint.config.ts"),
+        'import { zirka } from "zirka"; export default zirka();',
+      );
+      writeFileSync(path.join(root, "pkg-good-eslint/tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
+      writeJson("pkg-good-eslint/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-good-eslint"));
+      assert.ok(!findings.some((f) => f.check === "config-baseline"));
+    });
+
+    void it("reports when tsconfig is missing", () => {
+      mkdirSync(path.join(root, "pkg-no-tsconfig/src"), { recursive: true });
+      writeFileSync(
+        path.join(root, "pkg-no-tsconfig/eslint.config.ts"),
+        'import { zirka } from "zirka"; export default zirka();',
+      );
+      writeJson("pkg-no-tsconfig/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-no-tsconfig"));
+      assert.ok(findings.some((f) => f.check === "config-baseline" && f.message.includes("tsconfig")));
+    });
+  });
+
+  void describe("custom utility apply check", () => {
+    void it("reports when custom utility uses raw CSS properties", () => {
+      const dir = path.join(root, "pkg-no-apply/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n@theme { --*: initial; }\n\n@utility my-utility {\n  color: red;\n  font-size: 14px;\n}\n',
+      );
+      writeJson("pkg-no-apply/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
+      const findings = runDoctor(path.join(root, "pkg-no-apply"));
+      assert.ok(findings.some((f) => f.check === "custom-utility-apply"));
+    });
+
+    void it("passes when custom utility uses @apply", () => {
+      const dir = path.join(root, "pkg-with-apply/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n@theme { --*: initial; }\n\n@utility my-utility {\n  @apply text-red-500 text-sm;\n}\n',
+      );
+      writeJson("pkg-with-apply/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-with-apply"));
+      assert.ok(!findings.some((f) => f.check === "custom-utility-apply"));
     });
   });
 });
