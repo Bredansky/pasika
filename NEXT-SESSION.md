@@ -38,9 +38,9 @@ After all Pasika framework requirements below are complete, migrate **shineposte
 
 ## Milestone 2 — work down the 49 remaining `planned` requirements
 
-Current progress: `79/162` requirements are mechanically enforced (`53 eslint`, `26 docs-check`), `49` remain planned, `21` are judgment, and `13` are permission. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, and UI-state/native-attribute enforcement; full lint, typecheck, tests, docs, and coverage pass.
+Current progress: `80/162` requirements are mechanically enforced (`54 eslint`, `26 docs-check`), `48` remain planned, `21` are judgment, and `13` are permission. The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, and CVA appearance props; full lint, typecheck, tests, docs, and coverage pass.
 
-Next batch: CVA appearance props and boolean variants, followed by the remaining code-focused requirements. Keep shineposter3000 deferred until the Pasika framework work is complete.
+Next batch: CVA boolean variants, followed by the remaining code-focused requirements. Keep shineposter3000 deferred until the Pasika framework work is complete.
 
 Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
 

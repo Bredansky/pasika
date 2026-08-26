@@ -26,6 +26,7 @@ import { noUtilBarrelRule } from "./rules/no-util-barrel.js";
 import { jsxHygieneRule } from "./rules/jsx-hygiene.js";
 import { interactiveComponentRule } from "./rules/interactive-component.js";
 import { uiStateRule } from "./rules/ui-state.js";
+import { cvaAppearancePropsRule } from "./rules/cva-appearance-props.js";
 
 /** Every rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
@@ -47,6 +48,7 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
   "enforce-cn-merge": enforceCnMergeRule,
   "enforce-cva-variant-props": enforceCvaVariantPropsRule,
+  "cva-appearance-props": cvaAppearancePropsRule,
   "enforce-barrel-exports": enforceBarrelExportsRule,
 };
 

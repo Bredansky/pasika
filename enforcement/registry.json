@@ -1034,8 +1034,8 @@
       "doc": "styling-guide/rules/component-variant-rule.md",
       "text": "A component that lets callers choose visual options MUST define them with cva.",
       "hash": "8162f16933",
-      "kind": "planned",
-      "note": "eslint: report appearance props not defined with cva"
+      "kind": "eslint",
+      "ref": "pasika/cva-appearance-props"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
