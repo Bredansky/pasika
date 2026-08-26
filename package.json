@@ -25,7 +25,6 @@
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "coverage": "tsx cli/index.ts coverage",
-    "docs": "tsx cli/index.ts docs",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
@@ -37,7 +36,9 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/markdown": "^8.0.3",
     "@types/estree": "^1.0.9",
+    "@types/mdast": "^4.0.4",
     "@types/node": "^24.12.2",
     "@typescript-eslint/parser": "^8.68.0",
     "eslint": "^9.39.4",

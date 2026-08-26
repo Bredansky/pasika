@@ -1,0 +1,55 @@
+import { describe, mdRuleTester } from "./rule-tester.js";
+import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary.js";
+
+void describe("A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.", () => {
+  mdRuleTester.run("reference-no-rfc-vocabulary", referenceNoRfcVocabularyRule, {
+    valid: [
+      // Reference with plain prose - no RFC vocabulary
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nThis describes the feature.",
+      },
+      // RFC keyword in a code span is allowed
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nUse the `MUST` keyword in requirements.",
+      },
+      // Non-reference document - rule does not apply
+      {
+        filename: "my-guide.md",
+        code: "# My Guide\n\nThis MUST be followed.",
+      },
+      {
+        filename: "my-rule.md",
+        code: "# My Rule\n\nThis MUST be followed.",
+      },
+    ],
+    invalid: [
+      // RFC vocabulary in prose of a reference document
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nThis MUST be followed.",
+        errors: [{ message: "reference uses RFC 2119 vocabulary: MUST" }],
+      },
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nThis SHOULD NOT be used.",
+        errors: [{ message: "reference uses RFC 2119 vocabulary: SHOULD NOT" }],
+      },
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nThis MAY be optional.",
+        errors: [{ message: "reference uses RFC 2119 vocabulary: MAY" }],
+      },
+      // Multiple keywords in separate paragraphs
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nThis MUST be followed.\n\nThis SHOULD be used.",
+        errors: [
+          { message: "reference uses RFC 2119 vocabulary: MUST" },
+          { message: "reference uses RFC 2119 vocabulary: SHOULD" },
+        ],
+      },
+    ],
+  });
+});

@@ -16,9 +16,9 @@ docs/
 enforcement/
   registry.json                   # requirement → enforcement, keyed by content hash
   coverage.ts                     # reconciles the docs against the registry
-  docs-check.ts                   # the documentation guide, mechanically
 eslint/
   pasika/rules/                   # the lint rules, with fixture tests beside them
+  pasika/rules/md/                # the documentation-guide rules, linting docs/ itself
 cli/
   index.ts                        # the `pasika` command
 ```
@@ -48,7 +48,6 @@ The `note` field is where a check's known gap is recorded, so a partial check ne
 | --- | --- |
 | `eslint` | An ESLint rule reports it, and a fixture test titled with the requirement pins it |
 | `doctor` | A `pasika doctor` check reports it |
-| `docs-check` | A `pasika docs` check reports it |
 | `planned` | Mechanically checkable, not written yet; `note` names the intended check |
 | `judgment` | No mechanical check can decide it; `note` says why |
 | `permission` | The requirement grants permission, so there is nothing to check |
@@ -57,9 +56,9 @@ The `note` field is where a check's known gap is recorded, so a partial check ne
 
 ## Commands
 
+The documentation guide itself is linted: the `pasika/*` markdown rules run over `docs/**/*.md` and report title, overview, structure, example-pairing, and RFC 2119 violations at the exact node.
+
 ```bash
-npx pasika docs                # check a docs/ folder against the documentation guide
-npx pasika docs --dir content  # check another folder
 npx pasika coverage            # check that every requirement has recorded enforcement
 npx pasika coverage --accept   # record reworded and removed requirements
 ```
@@ -116,6 +115,10 @@ The ruleset applies to `src/**` only, so a repository without a `src/` tree pass
 | `pasika/component-placement` † | The folder a component's consumers imply |
 | `pasika/support-file-placement` † | The folder a hook, type, schema, constant, or utility belongs in |
 
+### Documentation rules
+
+The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md`: file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, and template hygiene. They run through `@eslint/markdown` in `eslint.config.ts`; `pasika coverage` verifies each has a test and a registry entry.
+
 Run `pasika coverage --json` for the exact requirement each rule covers.
 
 ### † Cross-file rules
@@ -133,7 +136,6 @@ Both are inert in a repository with no `src/` tree.
 npm run lint
 npm run typecheck
 npm run test
-npm run docs
 npm run coverage
 npm run build
 ```

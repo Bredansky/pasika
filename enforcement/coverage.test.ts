@@ -60,13 +60,6 @@ void describe("classifyRequirement", () => {
     );
   });
 
-  void it("rejects a documentation check that does not exist", () => {
-    assert.throws(
-      () => classify({ hash: mustRequirement.hash, kind: "docs-check", ref: "no-such-check" }),
-      /is not a documentation check/,
-    );
-  });
-
   void it("rejects a ref on a kind that nothing reports", () => {
     assert.throws(
       () => classify({ hash: mayRequirement.hash, kind: "permission", ref: "pasika/filename-case" }),
@@ -104,12 +97,12 @@ void describe("classifyRequirement", () => {
     assert.equal(second.requirement.note, undefined, "the stale note does not survive the new kind");
   });
 
-  void it("accepts several refs for one requirement", () => {
+  void it("accepts several rule refs for one requirement", () => {
     const { requirement } = classify({
       hash: mustRequirement.hash,
-      kind: "docs-check",
-      ref: "overview-length, no-template-prompt",
+      kind: "eslint",
+      ref: "pasika/overview-length, pasika/no-template-prompt",
     });
-    assert.equal(requirement.ref, "overview-length, no-template-prompt");
+    assert.equal(requirement.ref, "pasika/overview-length, pasika/no-template-prompt");
   });
 });

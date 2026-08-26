@@ -649,72 +649,75 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.",
       "hash": "694bfba1ab",
-      "kind": "docs-check",
-      "ref": "overview-length, guide-overview-no-links"
+      "kind": "eslint",
+      "ref": "pasika/overview-length, pasika/guide-overview-no-links"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.",
       "hash": "caef1018c4",
-      "kind": "planned",
-      "note": "docs-check: compare glossary terms against the guide's steps"
+      "kind": "eslint",
+      "note": "docs-check: compare glossary terms against the guide's steps",
+      "ref": "pasika/glossary-term-linking"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide with support files MUST become a folder named the same as its entry-point file, without the .md extension.",
       "hash": "26a4eb93d4",
-      "kind": "docs-check",
-      "ref": "guide-folder-entry-point"
+      "kind": "eslint",
+      "ref": "pasika/guide-folder-entry-point"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Reference file that a Guide owns MUST live in a references/ subfolder inside the Guide's folder.",
       "hash": "4efb50f75f",
-      "kind": "docs-check",
-      "ref": "support-document-placement"
+      "kind": "eslint",
+      "ref": "pasika/support-document-placement"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Rule file that a Guide owns MUST live in a rules/ subfolder inside the Guide's folder.",
       "hash": "73d2f1cc23",
-      "kind": "docs-check",
-      "ref": "support-document-placement"
+      "kind": "eslint",
+      "ref": "pasika/support-document-placement"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A step that links another Guide MUST link directly to the relevant How To section.",
       "hash": "eade3a0166",
-      "kind": "planned",
-      "note": "docs-check: a guide link carries a How To anchor"
+      "kind": "eslint",
+      "note": "docs-check: a guide link carries a How To anchor",
+      "ref": "pasika/guide-link-anchors"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "Each How To step MUST be concise and use one sentence.",
       "hash": "5992821880",
-      "kind": "docs-check",
-      "ref": "guide-step-single-sentence",
+      "kind": "eslint",
+      "ref": "pasika/guide-step-single-sentence",
       "note": "one sentence is checked; whether it is concise is judgment"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "Each How To step MUST link at most one documentation file total, whatever kind that file is.",
       "hash": "12585da0c8",
-      "kind": "docs-check",
-      "ref": "guide-step-single-link"
+      "kind": "eslint",
+      "ref": "pasika/guide-step-single-link"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "Guide file names MUST match the document title in kebab-case and use the -guide suffix (e.g., foo-guide.md).",
       "hash": "e820de2429",
-      "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "kind": "eslint",
+      "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "How To sections MUST NOT nest inside other How To sections.",
       "hash": "23415cb949",
-      "kind": "planned",
-      "note": "docs-check: no heading nests inside a How To section"
+      "kind": "eslint",
+      "note": "docs-check: no heading nests inside a How To section",
+      "ref": "pasika/no-nested-how-to"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -727,29 +730,30 @@
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.",
       "hash": "c1e046ec18",
-      "kind": "docs-check",
-      "ref": "policy-no-examples"
+      "kind": "eslint",
+      "ref": "pasika/policy-no-examples"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.",
       "hash": "483c98a275",
-      "kind": "docs-check",
-      "ref": "no-cross-document-link"
+      "kind": "eslint",
+      "ref": "pasika/no-cross-document-link"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST group its bullets under a heading per subject.",
       "hash": "fa77621dda",
-      "kind": "planned",
-      "note": "docs-check: every bullet sits under a subject heading"
+      "kind": "eslint",
+      "note": "docs-check: every bullet sits under a subject heading",
+      "ref": "pasika/policy-subject-headings"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
       "hash": "eff345fe21",
-      "kind": "docs-check",
-      "ref": "requirement-present"
+      "kind": "eslint",
+      "ref": "pasika/requirement-present"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
@@ -762,22 +766,22 @@
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.",
       "hash": "cd5ad978b1",
-      "kind": "docs-check",
-      "ref": "overview-length"
+      "kind": "eslint",
+      "ref": "pasika/overview-length"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A repository MUST NOT have more than one Policy document per audience.",
       "hash": "74dd5ffc9e",
-      "kind": "docs-check",
-      "ref": "policy-single-document"
+      "kind": "eslint",
+      "ref": "pasika/policy-single-document"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "Policy file names MUST match the document title in kebab-case and use the -policy suffix (e.g., foo-policy.md).",
       "hash": "e83fddcd78",
-      "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "kind": "eslint",
+      "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -796,8 +800,8 @@
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.",
       "hash": "50070e301c",
-      "kind": "docs-check",
-      "ref": "no-cross-document-link"
+      "kind": "eslint",
+      "ref": "pasika/no-cross-document-link"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -810,36 +814,36 @@
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.",
       "hash": "b06563ebdb",
-      "kind": "docs-check",
-      "ref": "reference-no-rfc-vocabulary"
+      "kind": "eslint",
+      "ref": "pasika/reference-no-rfc-vocabulary"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences.",
       "hash": "829df330c7",
-      "kind": "docs-check",
-      "ref": "overview-length"
+      "kind": "eslint",
+      "ref": "pasika/overview-length"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference with a single lookup block MUST NOT add a section heading for it.",
       "hash": "a599ad8306",
-      "kind": "docs-check",
-      "ref": "reference-block-headings"
+      "kind": "eslint",
+      "ref": "pasika/reference-block-headings"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.",
       "hash": "8c8152f907",
-      "kind": "docs-check",
-      "ref": "reference-block-headings"
+      "kind": "eslint",
+      "ref": "pasika/reference-block-headings"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "Reference file names MUST match the document title in kebab-case and use the -reference suffix (e.g., foo-reference.md).",
       "hash": "8aae1d6156",
-      "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "kind": "eslint",
+      "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -851,22 +855,22 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST NOT link to References, Guides, or other Rules.",
       "hash": "bda91d953c",
-      "kind": "docs-check",
-      "ref": "no-cross-document-link"
+      "kind": "eslint",
+      "ref": "pasika/no-cross-document-link"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST contain at least one Incorrect/Correct pair.",
       "hash": "099da63c35",
-      "kind": "docs-check",
-      "ref": "rule-paired-examples"
+      "kind": "eslint",
+      "ref": "pasika/rule-paired-examples"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST contain at least one bullet point that uses RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).",
       "hash": "2cfcc88337",
-      "kind": "docs-check",
-      "ref": "requirement-present"
+      "kind": "eslint",
+      "ref": "pasika/requirement-present"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -879,8 +883,8 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule overview MUST contain one or two short sentences naming the problem the rule solves.",
       "hash": "ab67bac18e",
-      "kind": "docs-check",
-      "ref": "overview-length"
+      "kind": "eslint",
+      "ref": "pasika/overview-length"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -900,29 +904,31 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.",
       "hash": "001ce1c18c",
-      "kind": "docs-check",
-      "ref": "example-heading-description"
+      "kind": "eslint",
+      "ref": "pasika/example-heading-description"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
-      "kind": "planned",
-      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
+      "kind": "eslint",
+      "note": "docs-check: RFC 2119 vocabulary appears only in bullets",
+      "ref": "pasika/rfc-only-in-bullets"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.",
       "hash": "e68233ce8b",
-      "kind": "planned",
-      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
+      "kind": "eslint",
+      "note": "docs-check: RFC 2119 vocabulary appears only in bullets",
+      "ref": "pasika/rfc-only-in-bullets"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "Rule file names MUST match the document title in kebab-case and use the -rule suffix (e.g., foo-rule.md).",
       "hash": "58b18e4f61",
-      "kind": "docs-check",
-      "ref": "title-matches-file-name, doc-kind-suffix"
+      "kind": "eslint",
+      "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
@@ -935,8 +941,8 @@
       "doc": "documentation-guide/rules/template-usage-rule.md",
       "text": "Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.",
       "hash": "7e7db98db0",
-      "kind": "docs-check",
-      "ref": "no-template-prompt"
+      "kind": "eslint",
+      "ref": "pasika/no-template-prompt"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",

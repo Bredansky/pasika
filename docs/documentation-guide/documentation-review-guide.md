@@ -12,7 +12,7 @@ Use this workflow before changing an existing document or approving a documentat
 4. Check that the document uses only the structure for its type: workflows for a Guide, requirements with paired examples for a Rule, requirements grouped by subject for a Policy document, or lookup content for a Reference.
 5. Check that each requirement is stated in exactly one Rule or Policy document, and that no Reference, example, or explanation contradicts or silently changes it.
 6. Check that no Reference states a constraint the reader has to satisfy and that no requirement bullet defines a term instead of demanding something.
-7. Check that the document is internally consistent: no bullet contradicts another bullet within the same document, and no example violates a MUST NOT in the same document.
+7. Check that the document is internally consistent: no bullet contradicts another bullet within the same document, and no example violates a prohibition stated in the same document.
 8. Check that each example demonstrates exactly the decision it claims to demonstrate, including its stated exceptions.
 9. Check that a reader can understand each necessary term from common usage, nearby context, or a definition the documentation provides before the term is used.
 10. Check that every rule, condition, exception, and example has a real decision to support that is both necessary and sufficient, removing anything that merely restates an implication, predicts an unlikely edge case, or introduces a term with no further use.

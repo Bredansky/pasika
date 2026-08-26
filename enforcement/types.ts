@@ -14,8 +14,6 @@ export const enforcementKindSchema = z.enum([
   "eslint",
   /** A `pasika doctor` check reports it. */
   "doctor",
-  /** A `pasika docs` check reports it. */
-  "docs-check",
   /** No mechanical check can decide it; a reviewer or agent applies it. */
   "judgment",
   /** The requirement grants permission, so there is nothing to check. */
@@ -33,8 +31,8 @@ export const requirementSchema = z.object({
   hash: z.string(),
   kind: enforcementKindSchema,
   /**
-   * Identifier of the check that covers this requirement: an ESLint rule id, a
-   * doctor check id, or a docs-check id. Several ids are comma-separated.
+   * Identifier of the check that covers this requirement: an ESLint rule id or
+   * a doctor check id. Several ids are comma-separated.
    * Absent for judgment and permission.
    */
   ref: z.string().optional(),
@@ -55,14 +53,7 @@ export type Requirement = z.infer<typeof requirementSchema>;
 export type Registry = z.infer<typeof registrySchema>;
 
 /** Every kind, in the order the coverage summary prints them. */
-export const ENFORCEMENT_KINDS: EnforcementKind[] = [
-  "eslint",
-  "doctor",
-  "docs-check",
-  "planned",
-  "judgment",
-  "permission",
-];
+export const ENFORCEMENT_KINDS: EnforcementKind[] = ["eslint", "doctor", "planned", "judgment", "permission"];
 
 /** The kinds that count as mechanically enforced today. */
-export const MECHANICAL_KINDS: EnforcementKind[] = ["eslint", "doctor", "docs-check"];
+export const MECHANICAL_KINDS: EnforcementKind[] = ["eslint", "doctor"];

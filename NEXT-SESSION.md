@@ -18,7 +18,7 @@ Pick up the pasika framework work. Vulyk is released through `0.13.3`; Karaylo's
 
 | Package | Version | Notes |
 | --- | --- | --- |
-| `pasika` | 0.3.1 | docs + 9 ESLint rules + `pasika docs` / `pasika coverage` |
+| `pasika` | 0.3.1 | docs + 9 ESLint rules + 24 Markdown rules + `pasika coverage` (docs checks moved into ESLint) |
 | `zirka` | 0.0.39 | depends on `pasika@^0.3.0`; `styleguide({ pasika: Error })` yields all 9 rules |
 | `vulyk` | 0.13.3 | typed `vulyk.config.ts`, split local state/cache, linked Markdown resolution, GitHub ref lockfile, `render: "summary" | "embed"` |
 
@@ -38,9 +38,9 @@ After all Pasika framework requirements below are complete, migrate **shineposte
 
 ## Milestone 2 — work down the 49 remaining `planned` requirements
 
-Current progress: `122/162` requirements are mechanically enforced (`66 eslint`, `30 doctor`, `26 docs-check`), `6` remain planned, `21` are judgment, and `13` are permission. pasika doctor now checks: vulyk not in package.json, --cache flag in lint scripts, pasika/zirka installed, config baseline (eslint.config.ts references zirka, tsconfig.json exists), managed-file edit detection, source under src/, global stylesheet existence, theme reset, :root variables, @apply usage, base-canvas/base-ink pair, @theme inline, @custom-variant presence, custom utility @apply validation, surface-utility deduplication, theme-variable namespace enforcement, shared-style deduplication across components, eslint-disable usage in source files, and import-graph analysis (hook extraction, value extraction, config extraction, component nesting, locale placement, type extraction). The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, CVA appearance props, CVA boolean variants, cross-feature import boundaries, pure-function extraction, hook complexity, locale dotted-path, and locales-location; full lint, typecheck, tests, docs, and coverage pass.
+Current progress: `128/162` requirements are mechanically enforced (`98 eslint`, `30 doctor`), `0` remain planned, `21` are judgment, and `13` are permission. pasika doctor now checks: vulyk not in package.json, --cache flag in lint scripts, pasika/zirka installed, config baseline (eslint.config.ts references zirka, tsconfig.json exists), managed-file edit detection, source under src/, global stylesheet existence, theme reset, :root variables, @apply usage, base-canvas/base-ink pair, @theme inline, @custom-variant presence, custom utility @apply validation, surface-utility deduplication, theme-variable namespace enforcement, shared-style deduplication across components, eslint-disable usage in source files, and import-graph analysis (hook extraction, value extraction, config extraction, component nesting, locale placement, type extraction). The latest local rules include application structure, named exports, smart/dumb filenames, `data-testid`, support-folder shape, import-through-index, direct utility imports, utility naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state/native-attribute enforcement, CVA appearance props, CVA boolean variants, cross-feature import boundaries, pure-function extraction, hook complexity, locale dotted-path, and locales-location; full lint, typecheck, tests, docs, and coverage pass.
 
-Next batch: the 6 remaining planned requirements are all docs-check (milestone 3 — @eslint/markdown): RFC 2119 vocabulary in bullets, subject headings in Policy docs, guide link anchors, no nested How To, and glossary term linking. Keep shineposter3000 deferred until the Pasika framework work is complete.
+Next batch: the last 7 planned requirements are the import-graph deep-consumer resolution (4), cross-component shared utilities (2), and the pinned managed-file diff (1). Keep shineposter3000 deferred until the Pasika framework work is complete.
 
 Each remaining planned requirement carries a `note` naming the check that should cover it. The loop per requirement:
 
@@ -57,14 +57,14 @@ npx pasika coverage --classify <hash> --kind eslint --ref pasika/<rule>
 | --- | --- | --- |
 | 66 | `eslint` | All single-file rules are complete. Covers application structure, named exports, filenames, data-testid, support-folder shape, import-through-index, utility imports/naming, JSX hygiene, interactive-component extraction, className boundaries, UI-state enforcement, CVA appearance/boolean variants, cross-feature import, pure-function extraction, hook complexity, locale rules. |
 | 22 | `doctor` | Dependency checks (vulyk, cache flag, framework packages), config baseline (eslint.config.ts, tsconfig.json), managed-file edit detection, source root, global stylesheet (existence, theme reset, :root, @apply, base-canvas/ink, @theme inline, @custom-variant, variable naming, ordering), custom utility @apply, surface-utility, theme-variable namespace, import-graph (hook extraction, value extraction, config extraction, component nesting). |
-| 6 | `docs-check` | RFC 2119 vocabulary only in bullets, subject headings in a Policy document, guide link anchors, no nested How To, glossary-term linking. **Write these as ESLint rules — see milestone 3** |
+| 7 | `eslint` | The import-graph deep-consumer resolution (4), cross-component shared utilities (2), and the pinned managed-file diff (1).
 | 1 | `zirka` | Enable `@eslint-community/eslint-comments/no-use` so the "no `eslint-disable`" requirement is actually enforced. **It will fail pasika's own lint** until three rule files stop using disable blocks — `enforce-cva-variant-props`, `no-mixed-concerns`, `enforce-cn-merge`. `no-arbitrary-tailwind` shows the pattern for typing the AST without `any` |
 
 Remaining planned: 4 import-graph (deep consumer resolution), 2 per-component styling (cross-component shared utilities), 1 managed-file comparison (pinned source diff).
 
-## Milestone 3 — move the documentation checks into ESLint
+## Milestone 3 — move the documentation checks into ESLint (complete)
 
-Decided, not yet done. Everything derived from files in the repository belongs to ESLint; `pasika doctor` keeps only the environment. That makes `pasika docs` redundant and it gets deleted. `pasika coverage` stays, because reconciling documentation against enforcement is not linting.
+Done: the documentation checks are now ESLint rules under `eslint/pasika/rules/md/`, and `pasika docs` is deleted. Everything derived from files in the repository belongs to ESLint; `pasika doctor` keeps only the environment. That makes `pasika docs` redundant and it gets deleted. `pasika coverage` stays, because reconciling documentation against enforcement is not linting.
 
 The mechanism is proven. `@eslint/markdown` 8.0.3 is the official ESLint language plugin for Markdown, and a custom rule runs over its AST. One of pasika's own checks ported as a probe:
 
@@ -87,16 +87,14 @@ docs/example-reference.md
 
 Note the column: rules over the AST get real ranges, where the current checker computes line numbers by hand.
 
-Do this when the 6 planned `docs-check` requirements come up — write those as ESLint rules and port the existing 19 in the same pass, so the set moves once.
+Done: the 6 planned checks were written as new rules and the 26 docs-check registry entries re-mapped to rule ids; `isRefKnown` lost its `docs-check` branch. `enforcement/docs-check.ts` and the `pasika docs` command (and its `npm run docs` script) are deleted; `pasika coverage` stays. The rules run through `@eslint/markdown` in `eslint.config.ts`'s `docs/**` block, so pasika's own `docs/` is linted by them.
 
-What it costs:
+What it cost:
 
-- The 26 registry entries whose `ref` names a `docs-check` id all need re-mapping to rule ids, and `isRefKnown` loses its `docs-check` branch.
-- zirka gains `@eslint/markdown` and a `markdown` block, installed by every consumer including repos with no docs.
-- `docs/managed/**` must be ignored in consumer repos: those files are vulyk-managed and owned upstream.
-- Three checks are cross-document — `policy-single-document` counts policy documents repo-wide, `guide-folder-entry-point` looks for an entry point in a sibling folder, and the glossary-term check compares a guide against a glossary elsewhere. They need the same memoized project index the code rules use, for the same reason `--cache` stays banned.
-
-Sequenced third deliberately: it is a port of checks that already pass, so it adds ergonomics rather than coverage. karaylo and the code rules come first.
+- `@eslint/markdown` + `@types/mdast` as dev dependencies.
+- The registry migration rewrote the 26 `docs-check` entries (and 6 planned docs entries) to `eslint` refs via a one-off script (since deleted).
+- Three rules are cross-document — `policy-single-document` counts policy documents repo-wide, `guide-folder-entry-point` looks for an entry point in a sibling folder, and `glossary-term-linking` compares a guide against a glossary elsewhere. They share a memoized project index (`project-index.ts`) like the code rules.
+- Still open for consumers: zirka gains `@eslint/markdown` and a `markdown` block, and `docs/managed/**` must be ignored in consumer repos (vulyk-managed files are owned upstream).
 
 ## Known gaps
 
@@ -109,4 +107,4 @@ Sequenced third deliberately: it is a port of checks that already pass, so it ad
 - One requirement is stated in exactly one Rule or Policy document. References describe and define; they never constrain.
 - A rule test's `describe` title is the requirement's exact text. That is how `coverage` proves a test exists.
 - Never hand-edit `enforcement/registry.json`. `--classify` and `--accept` own it, and `writeRegistry` owns its ordering.
-- Run `npm run lint && npm run typecheck && npm test && npm run docs && npm run coverage` before committing. CI runs the same five.
+- Run `npm run lint && npm run typecheck && npm test && npm run build && npm run coverage` before committing. CI runs the same five.

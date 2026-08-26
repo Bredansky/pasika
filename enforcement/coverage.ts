@@ -1,8 +1,7 @@
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { pasikaRuleIds } from "../eslint/pasika/index.js";
-import { DOCS_CHECKS } from "./docs-check.js";
+import { allPasikaRuleIds } from "../eslint/pasika/index.js";
 import { parseDocs, type ParsedRequirement } from "./parse-docs.js";
 import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types.js";
 
@@ -34,18 +33,26 @@ function similarity(left: string, right: string): number {
   return union === 0 ? 0 : shared / union;
 }
 
-/** Titles passed to `describe` or `test` in the rule test files. */
+/** Titles passed to `describe` or `test` in the rule test files, recursing into subfolders. */
 function collectTestTitles(rulesDir: string): Set<string> {
   const titles = new Set<string>();
-  for (const entry of readdirSync(rulesDir)) {
-    if (!entry.endsWith(".test.ts")) continue;
-    const body = readFileSync(path.join(rulesDir, entry), "utf8");
-    const titlePattern = /\b(?:describe|test|it)\(\s*(?:"(?<double>(?:[^"\\]|\\.)*)"|'(?<single>(?:[^'\\]|\\.)*)')/g;
-    for (const match of body.matchAll(titlePattern)) {
-      const title = match.groups?.double ?? match.groups?.single ?? "";
-      titles.add(title.replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
+  const visit = (dir: string): void => {
+    for (const entry of readdirSync(dir)) {
+      const entryPath = path.join(dir, entry);
+      if (statSync(entryPath).isDirectory()) {
+        visit(entryPath);
+        continue;
+      }
+      if (!entry.endsWith(".test.ts")) continue;
+      const body = readFileSync(entryPath, "utf8");
+      const titlePattern = /\b(?:describe|test|it)\(\s*(?:"(?<double>(?:[^"\\]|\\.)*)"|'(?<single>(?:[^'\\]|\\.)*)')/g;
+      for (const match of body.matchAll(titlePattern)) {
+        const title = match.groups?.double ?? match.groups?.single ?? "";
+        titles.add(title.replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
+      }
     }
-  }
+  };
+  visit(rulesDir);
   return titles;
 }
 
@@ -57,10 +64,9 @@ function refParts(ref: string | undefined): string[] {
     .filter(Boolean);
 }
 
-function isRefKnown(requirement: Requirement, docsChecks: Set<string>): boolean {
+function isRefKnown(requirement: Requirement): boolean {
   const parts = refParts(requirement.ref);
-  if (requirement.kind === "eslint") return parts.length > 0 && parts.every((part) => pasikaRuleIds.includes(part));
-  if (requirement.kind === "docs-check") return parts.length > 0 && parts.every((part) => docsChecks.has(part));
+  if (requirement.kind === "eslint") return parts.length > 0 && parts.every((part) => allPasikaRuleIds.includes(part));
   // Doctor checks do not exist yet, so a `doctor` entry is a forward reference.
   return true;
 }
@@ -72,7 +78,6 @@ export function buildCoverageReport(options: {
 }): CoverageReport {
   const { docsRoot, registry, rulesDir } = options;
   const docs = parseDocs(docsRoot);
-  const docsChecks = new Set<string>(DOCS_CHECKS);
   const testTitles = collectTestTitles(rulesDir);
 
   const byHash = new Map(registry.requirements.map((requirement) => [requirement.hash, requirement]));
@@ -81,10 +86,9 @@ export function buildCoverageReport(options: {
   const counts: Record<EnforcementKind, number> = {
     eslint: 0,
     doctor: 0,
-    "docs-check": 0,
+    planned: 0,
     judgment: 0,
     permission: 0,
-    planned: 0,
   };
 
   const nextRequirements: Requirement[] = [];
@@ -100,7 +104,7 @@ export function buildCoverageReport(options: {
       counts[recorded.kind] += 1;
       nextRequirements.push({ ...recorded, doc });
 
-      if (!isRefKnown(recorded, docsChecks)) {
+      if (!isRefKnown(recorded)) {
         issues.push({
           kind: "unknown-ref",
           doc,
@@ -211,16 +215,9 @@ export function classifyRequirement(options: {
   const refs = refParts(input.ref);
   if (input.kind === "eslint") {
     if (refs.length === 0) throw new Error('Kind "eslint" needs --ref naming the rule that reports it.');
-    const unknown = refs.filter((ref) => !pasikaRuleIds.includes(ref));
+    const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
     if (unknown.length > 0) {
       throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);
-    }
-  } else if (input.kind === "docs-check") {
-    if (refs.length === 0) throw new Error('Kind "docs-check" needs --ref naming the check that reports it.');
-    const known = new Set<string>(DOCS_CHECKS);
-    const unknown = refs.filter((ref) => !known.has(ref));
-    if (unknown.length > 0) {
-      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a documentation check.`);
     }
   } else if (input.kind !== "doctor" && refs.length > 0) {
     throw new Error(`Kind "${input.kind}" takes no --ref, because nothing reports it.`);

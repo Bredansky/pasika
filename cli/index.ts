@@ -10,7 +10,6 @@ import {
   type CoverageIssue,
 } from "../enforcement/coverage.js";
 import { enforcementKindSchema } from "../enforcement/types.js";
-import { checkDocs } from "../enforcement/docs-check.js";
 import { runDoctor } from "../enforcement/doctor.js";
 import { log, error, json } from "./output.js";
 
@@ -42,36 +41,6 @@ function truncate(text: string, width: number): string {
 const program = new Command();
 
 program.name("pasika").description("Applies and diagnoses the pasika framework.");
-
-program
-  .command("docs")
-  .description("Check documentation against the documentation guide.")
-  .option("--dir <path>", "documentation folder to check", "docs")
-  .option("--json", "print findings as JSON")
-  .action((options: { dir: string; json?: boolean }) => {
-    const docsRoot = path.resolve(options.dir);
-    if (!existsSync(docsRoot)) {
-      error(`No documentation folder at ${docsRoot}`);
-      process.exit(1);
-    }
-
-    const { docs, findings } = checkDocs(docsRoot);
-
-    if (options.json) {
-      json({ documents: docs.length, findings });
-      process.exit(findings.length > 0 ? 1 : 0);
-    }
-
-    for (const finding of findings) {
-      log(`  ✗ ${finding.doc}:${String(finding.line)}  ${finding.check}  ${finding.message}`);
-    }
-    log(
-      findings.length === 0
-        ? `\n✓ ${String(docs.length)} documents pass`
-        : `\n${String(docs.length)} documents checked · ${String(findings.length)} findings`,
-    );
-    process.exit(findings.length > 0 ? 1 : 0);
-  });
 
 program
   .command("coverage")
@@ -144,7 +113,7 @@ program
         [
           "",
           `${String(report.total)} requirements · ${String(report.mechanical)} mechanically enforced`,
-          `  eslint ${String(counts.eslint)} · doctor ${String(counts.doctor)} · docs-check ${String(counts["docs-check"])}`,
+          `  eslint ${String(counts.eslint)} · doctor ${String(counts.doctor)}`,
           `  planned ${String(counts.planned)} · judgment ${String(counts.judgment)} · permission ${String(counts.permission)}`,
           `  unclassified ${String(report.issues.filter((issue) => issue.kind === "new").length)}`,
         ].join("\n"),

@@ -33,8 +33,9 @@ import { pureFunctionExtractRule } from "./rules/pure-function-extract.js";
 import { hookComplexityRule } from "./rules/hook-complexity.js";
 import { localeDottedPathRule } from "./rules/locale-dotted-path.js";
 import { localesLocationRule } from "./rules/locales-location.js";
+import { mdRules } from "./rules/md/index.js";
 
-/** Every rule the plugin provides, keyed by its unprefixed name. */
+/** Every code rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
   "component-placement": componentPlacementRule,
   "support-file-placement": supportFilePlacementRule,
@@ -64,8 +65,17 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "locales-location": localesLocationRule,
 };
 
+/** All markdown rules, keyed by unprefixed name. */
+export const pasikaMdRules: Record<string, Rule.RuleModule> = mdRules;
+
 /** Rule ids as they appear in configuration and in lint output. */
 export const pasikaRuleIds = Object.keys(pasikaRules).map((name) => `pasika/${name}`);
+
+/** Markdown rule ids as they appear in configuration and in lint output. */
+export const pasikaMdRuleIds = Object.keys(pasikaMdRules).map((name) => `pasika/${name}`);
+
+/** Every rule id, code and markdown, as they appear in configuration and in lint output. */
+export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaMdRuleIds];
 
 export const pasikaConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
