@@ -165,8 +165,8 @@
       "doc": "code-organization-guide/rules/component-placement-rule.md",
       "text": "A component that imports from two or more feature folders MUST live in src/compositions/.",
       "hash": "a00c621fbe",
-      "kind": "planned",
-      "note": "eslint: report a non-composition file importing two feature folders"
+      "kind": "eslint",
+      "ref": "pasika/cross-feature-import"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
@@ -376,15 +376,15 @@
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
       "text": "A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.",
       "hash": "b057015bf3",
-      "kind": "planned",
-      "note": "eslint: count imperative categories; one coherent behavior stays judgment"
+      "kind": "eslint",
+      "ref": "pasika/hook-complexity"
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
       "text": "A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.",
       "hash": "fb12bb6002",
-      "kind": "planned",
-      "note": "eslint: count imperative categories"
+      "kind": "eslint",
+      "ref": "pasika/hook-complexity"
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
@@ -594,8 +594,8 @@
       "doc": "code-organization-guide/rules/utilities-rule.md",
       "text": "A pure function MUST be extracted to utils/, even when it has one consumer.",
       "hash": "d49b4ce49a",
-      "kind": "planned",
-      "note": "eslint: report a pure function declared in a component file"
+      "kind": "eslint",
+      "ref": "pasika/pure-function-extract"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",

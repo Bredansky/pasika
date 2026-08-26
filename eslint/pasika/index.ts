@@ -28,6 +28,9 @@ import { interactiveComponentRule } from "./rules/interactive-component.js";
 import { uiStateRule } from "./rules/ui-state.js";
 import { cvaAppearancePropsRule } from "./rules/cva-appearance-props.js";
 import { cvaBooleanVariantsRule } from "./rules/cva-boolean-variants.js";
+import { crossFeatureImportRule } from "./rules/cross-feature-import.js";
+import { pureFunctionExtractRule } from "./rules/pure-function-extract.js";
+import { hookComplexityRule } from "./rules/hook-complexity.js";
 
 /** Every rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
@@ -52,6 +55,9 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "cva-appearance-props": cvaAppearancePropsRule,
   "cva-boolean-variants": cvaBooleanVariantsRule,
   "enforce-barrel-exports": enforceBarrelExportsRule,
+  "cross-feature-import": crossFeatureImportRule,
+  "pure-function-extract": pureFunctionExtractRule,
+  "hook-complexity": hookComplexityRule,
 };
 
 /** Rule ids as they appear in configuration and in lint output. */
