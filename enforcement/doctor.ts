@@ -8,6 +8,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { getProjectIndex } from "../eslint/pasika/project/index.js";
 
 export interface DoctorFinding {
   /** Which requirement this relates to. */
@@ -331,9 +332,67 @@ function checkGlobalStylesheet(cwd: string): DoctorFinding[] {
 /**
  * Run all doctor checks against a repository.
  */
+/**
+ * Check import-graph-based requirements.
+ */
+function checkImportGraph(srcDir: string): DoctorFinding[] {
+  const findings: DoctorFinding[] = [];
+  const index = getProjectIndex(srcDir);
+  if (!index) return findings;
+
+  const segmentsOf = (file: string): string[] => {
+    const relative = path.relative(srcDir, file);
+    return relative.startsWith("..") ? [] : relative.split(path.sep);
+  };
+
+  // Check: a custom hook must be extracted to its own file when two or more consumers use it
+  for (const [file, mod] of index.modules) {
+    for (const exp of mod.exports) {
+      if (exp.kind === "hook") {
+        const consumers = index.symbolConsumers.get(`${file}\u0000${exp.name}`);
+        if (consumers && consumers.size >= 2) {
+          const segments = segmentsOf(file);
+          // If the hook is in a feature folder (not in hooks/), it should be extracted
+          if (segments.length >= 2 && segments[0] === "features" && segments[1] !== "hooks") {
+            findings.push({
+              check: "hook-extraction",
+              message: `Hook "${exp.name}" has ${String(consumers.size)} consumers and should be extracted to its own file in a hooks/ folder.`,
+              severity: "warning",
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Check: a value must remain in its declaring file until another file imports it
+  for (const [file, consumers] of index.consumers) {
+    const segments = segmentsOf(file);
+    // If the file is in src/app/ and has consumers outside src/app/, warn
+    if (segments[0] === "app" && consumers.size > 0) {
+      const outsideApp = [...consumers].filter((c) => {
+        const cs = segmentsOf(c);
+        return cs[0] !== "app";
+      });
+      if (outsideApp.length > 0) {
+        findings.push({
+          check: "value-extraction",
+          message: `File in src/app/ has consumers outside src/app/; values should be extracted to shared or feature folders.`,
+          severity: "warning",
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
 export function runDoctor(cwd: string): DoctorFinding[] {
   const pkgPath = path.join(cwd, "package.json");
   const pkg = readPackageJson(pkgPath);
+
+  const srcDir = path.join(cwd, "src");
+  const importGraphFindings = fs.existsSync(srcDir) ? checkImportGraph(srcDir) : [];
 
   return [
     ...checkVulykDependency(pkg),
@@ -341,5 +400,6 @@ export function runDoctor(cwd: string): DoctorFinding[] {
     ...checkFrameworkPackages(pkg),
     ...checkSourceRoot(cwd),
     ...checkGlobalStylesheet(cwd),
+    ...importGraphFindings,
   ];
 }

@@ -257,8 +257,8 @@
       "doc": "code-organization-guide/rules/constants-rule.md",
       "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
       "hash": "e779f5ec6f",
-      "kind": "planned",
-      "note": "doctor: resolve consumers with the import graph"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -369,8 +369,8 @@
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
       "text": "A custom hook MUST be extracted to its own file when two or more consumers use it.",
       "hash": "f7a5d6663d",
-      "kind": "planned",
-      "note": "doctor: report the same hook name defined in two files"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
