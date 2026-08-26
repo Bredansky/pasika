@@ -12,6 +12,7 @@ import {
 import { enforcementKindSchema } from "../enforcement/types.js";
 import { checkDocs } from "../enforcement/docs-check.js";
 import { runDoctor } from "../enforcement/doctor.js";
+import { log, error, json } from "./output.js";
 
 const REGISTRY_RELATIVE_PATH = path.join("enforcement", "registry.json");
 
@@ -50,21 +51,21 @@ program
   .action((options: { dir: string; json?: boolean }) => {
     const docsRoot = path.resolve(options.dir);
     if (!existsSync(docsRoot)) {
-      console.error(`No documentation folder at ${docsRoot}`);
+      error(`No documentation folder at ${docsRoot}`);
       process.exit(1);
     }
 
     const { docs, findings } = checkDocs(docsRoot);
 
     if (options.json) {
-      console.log(JSON.stringify({ documents: docs.length, findings }, undefined, 2));
+      json({ documents: docs.length, findings });
       process.exit(findings.length > 0 ? 1 : 0);
     }
 
     for (const finding of findings) {
-      console.log(`  ✗ ${finding.doc}:${String(finding.line)}  ${finding.check}  ${finding.message}`);
+      log(`  ✗ ${finding.doc}:${String(finding.line)}  ${finding.check}  ${finding.message}`);
     }
-    console.log(
+    log(
       findings.length === 0
         ? `\n✓ ${String(docs.length)} documents pass`
         : `\n${String(docs.length)} documents checked · ${String(findings.length)} findings`,
@@ -85,13 +86,13 @@ program
     (options: { accept?: boolean; classify?: string; kind?: string; ref?: string; note?: string; json?: boolean }) => {
       const root = findRegistryRoot(process.cwd());
       if (!root) {
-        console.error(`No ${REGISTRY_RELATIVE_PATH} found in this directory or any parent.`);
+        error(`No ${REGISTRY_RELATIVE_PATH} found in this directory or any parent.`);
         process.exit(1);
       }
 
       const docsRoot = path.join(root, "docs");
       if (!existsSync(docsRoot)) {
-        console.error(`No documentation folder at ${docsRoot}. Run coverage inside the pasika repository.`);
+        error(`No documentation folder at ${docsRoot}. Run coverage inside the pasika repository.`);
         process.exit(1);
       }
 
@@ -100,7 +101,7 @@ program
       if (options.classify !== undefined) {
         const kind = enforcementKindSchema.safeParse(options.kind);
         if (!kind.success) {
-          console.error(`✗ --kind must be one of ${enforcementKindSchema.options.join(", ")}.`);
+          error(`✗ --kind must be one of ${enforcementKindSchema.options.join(", ")}.`);
           process.exit(1);
         }
         try {
@@ -114,9 +115,9 @@ program
             result.previousKind === undefined
               ? `recorded as ${result.requirement.kind}`
               : `reclassified from ${result.previousKind} to ${result.requirement.kind}`;
-          console.log(`✓ ${change}: ${result.requirement.text}`);
-        } catch (error) {
-          console.error(`✗ ${error instanceof Error ? error.message : String(error)}`);
+          log(`✓ ${change}: ${result.requirement.text}`);
+        } catch (err) {
+          error(`✗ ${err instanceof Error ? err.message : String(err)}`);
           process.exit(1);
         }
       }
@@ -128,18 +129,18 @@ program
       });
 
       if (options.json) {
-        console.log(JSON.stringify(report, undefined, 2));
+        json(report);
         process.exit(report.issues.length > 0 ? 1 : 0);
       }
 
       for (const issue of report.issues) {
         const where = issue.line === undefined ? issue.doc : `${issue.doc}:${String(issue.line)}`;
-        console.log(`  ✗ ${ISSUE_LABELS[issue.kind]} ${truncate(issue.text, 76)}`);
-        console.log(`              ${where}${issue.detail ? `\n              ${issue.detail}` : ""}`);
+        log(`  ✗ ${ISSUE_LABELS[issue.kind]} ${truncate(issue.text, 76)}`);
+        log(`              ${where}${issue.detail ? `\n              ${issue.detail}` : ""}`);
       }
 
       const { counts } = report;
-      console.log(
+      log(
         [
           "",
           `${String(report.total)} requirements · ${String(report.mechanical)} mechanically enforced`,
@@ -152,8 +153,8 @@ program
       if (options.accept) {
         writeRegistry(registryPath, report.nextRegistry);
         const accepted = report.issues.filter((issue) => issue.kind === "changed" || issue.kind === "removed");
-        console.log(`\nAccepted ${String(accepted.length)} change(s) into ${REGISTRY_RELATIVE_PATH}.`);
-        console.log("Requirements reported as new still need a classification.");
+        log(`\nAccepted ${String(accepted.length)} change(s) into ${REGISTRY_RELATIVE_PATH}.`);
+        log("Requirements reported as new still need a classification.");
         process.exit(report.issues.some((issue) => issue.kind === "new") ? 1 : 0);
       }
 
@@ -169,15 +170,15 @@ program
     const findings = runDoctor(process.cwd());
 
     if (options.json) {
-      console.log(JSON.stringify({ findings }, undefined, 2));
+      json({ findings });
       process.exit(findings.some((f) => f.severity === "error") ? 1 : 0);
     }
 
     for (const finding of findings) {
       const icon = finding.severity === "error" ? "✗" : "⚠";
-      console.log(`  ${icon} ${finding.check}  ${finding.message}`);
+      log(`  ${icon} ${finding.check}  ${finding.message}`);
     }
-    console.log(findings.length === 0 ? "\n✓ No gaps found" : `\n${String(findings.length)} finding(s)`);
+    log(findings.length === 0 ? "\n✓ No gaps found" : `\n${String(findings.length)} finding(s)`);
     process.exit(findings.some((f) => f.severity === "error") ? 1 : 0);
   });
 
