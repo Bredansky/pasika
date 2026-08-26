@@ -108,4 +108,34 @@ void describe("runDoctor", () => {
       assert.ok(!findings.some((f) => f.check === "source-under-src" && f.severity === "error"));
     });
   });
+
+  void describe("global stylesheet check", () => {
+    void it("reports when no global stylesheet exists", () => {
+      mkdirSync(path.join(root, "pkg-no-css/src/app"), { recursive: true });
+      writeJson("pkg-no-css/package.json", { name: "test" });
+      const findings = runDoctor(path.join(root, "pkg-no-css"));
+      assert.ok(findings.some((f) => f.check === "global-stylesheet"));
+    });
+
+    void it("reports when theme reset is missing", () => {
+      const dir = path.join(root, "pkg-no-reset/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, "globals.css"), '@import "tailwindcss";\n');
+      writeJson("pkg-no-reset/package.json", { name: "test" });
+      const findings = runDoctor(path.join(root, "pkg-no-reset"));
+      assert.ok(findings.some((f) => f.check === "theme-reset"));
+    });
+
+    void it("passes with a complete global stylesheet", () => {
+      const dir = path.join(root, "pkg-complete/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-base-canvas; }\n}\n',
+      );
+      writeJson("pkg-complete/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
+      const findings = runDoctor(path.join(root, "pkg-complete"));
+      assert.ok(!findings.some((f) => f.severity === "error"));
+    });
+  });
 });

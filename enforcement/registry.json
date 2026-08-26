@@ -1048,22 +1048,22 @@
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
       "hash": "4f548b26c4",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.",
       "hash": "d89d54996c",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "Style declarations added by the project inside global selectors MUST use @apply.",
       "hash": "9799ce3761",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
@@ -1083,8 +1083,8 @@
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST reset Tailwind's default theme with --*: initial.",
       "hash": "d28608a7a3",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",

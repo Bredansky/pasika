@@ -182,6 +182,88 @@ function checkSourceRoot(cwd: string): DoctorFinding[] {
 /**
  * Run all doctor checks against a repository.
  */
+/**
+ * Find the global CSS file that registers Tailwind.
+ */
+function findGlobalStylesheet(cwd: string): string | undefined {
+  const candidates = ["src/app/globals.css", "src/styles/globals.css", "src/globals.css"];
+  for (const candidate of candidates) {
+    const full = path.join(cwd, candidate);
+    if (fs.existsSync(full)) return full;
+  }
+  // Search for any CSS file containing @import "tailwindcss"
+  const srcDir = path.join(cwd, "src");
+  if (!fs.existsSync(srcDir)) return undefined;
+  const walk = (dir: string): string | undefined => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name !== "node_modules" && entry.name !== ".next") {
+        const found = walk(full);
+        if (found) return found;
+      }
+      if (entry.isFile() && entry.name.endsWith(".css")) {
+        const content = fs.readFileSync(full, "utf8");
+        if (content.includes('@import "tailwindcss"') || content.includes("@import 'tailwindcss'")) {
+          return full;
+        }
+      }
+    }
+    return undefined;
+  };
+  return walk(srcDir);
+}
+
+/**
+ * Check that exactly one global stylesheet exists and it contains expected patterns.
+ */
+function checkGlobalStylesheet(cwd: string): DoctorFinding[] {
+  const findings: DoctorFinding[] = [];
+  const stylesheet = findGlobalStylesheet(cwd);
+
+  if (!stylesheet) {
+    findings.push({
+      check: "global-stylesheet",
+      message: 'No global stylesheet found. Create src/app/globals.css with @import "tailwindcss".',
+      severity: "error",
+    });
+    return findings;
+  }
+
+  const content = fs.readFileSync(stylesheet, "utf8");
+
+  // Theme reset: --*: initial
+  if (!content.includes("--*: initial")) {
+    findings.push({
+      check: "theme-reset",
+      message: `Global stylesheet must reset Tailwind's default theme with "--*: initial".`,
+      severity: "error",
+    });
+  }
+
+  // CSS variables in :root
+  if (!content.includes(":root")) {
+    findings.push({
+      check: "root-variables",
+      message: "Global stylesheet must define CSS variables in :root.",
+      severity: "error",
+    });
+  }
+
+  // @apply usage
+  if (content.includes("@layer base") && !content.includes("@apply")) {
+    findings.push({
+      check: "apply-usage",
+      message: "Style declarations inside global selectors must use @apply.",
+      severity: "error",
+    });
+  }
+
+  return findings;
+}
+
+/**
+ * Run all doctor checks against a repository.
+ */
 export function runDoctor(cwd: string): DoctorFinding[] {
   const pkgPath = path.join(cwd, "package.json");
   const pkg = readPackageJson(pkgPath);
@@ -191,5 +273,6 @@ export function runDoctor(cwd: string): DoctorFinding[] {
     ...checkCacheFlag(pkg),
     ...checkFrameworkPackages(pkg),
     ...checkSourceRoot(cwd),
+    ...checkGlobalStylesheet(cwd),
   ];
 }
