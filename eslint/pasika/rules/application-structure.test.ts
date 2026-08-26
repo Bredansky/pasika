@@ -19,6 +19,7 @@ write("utils/format-date.ts", 'export function formatDate() { return ""; }\n');
 write("app/invoices/page.tsx", "export default function Page() { return <span />; }\n");
 write("config/home-feed/index.ts", "export const homeFeedConfig = {};\n");
 write("features/billing/helpers/format-date.ts", 'export function formatDate() { return ""; }\n');
+write("config/home-feed/helpers/build-url.ts", 'export function buildUrl() { return ""; }\n');
 write("features/billing/utils/invoice-row.tsx", "export function InvoiceRow() { return <div />; }\n");
 process.chdir(root);
 
@@ -83,6 +84,57 @@ void describe("A support folder MUST NOT contain a component.", () => {
         errors: [
           {
             message: "A support folder must not contain a component; move invoice-row.tsx beside utils/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("All configuration modules MUST live in src/config/.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [valid("config/home-feed/index.ts")],
+    invalid: [
+      {
+        code: "export const homeFeedConfig = {} as Record<string, unknown>;",
+        filename: file("lib/home-feed-config.ts"),
+        errors: [
+          {
+            message:
+              'Move this source file under an allowed src/ folder; "src/lib/" is not part of the application structure.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A configuration module MUST be one src/config/<config-name>/ folder with index.ts as its entry point.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [valid("config/home-feed/index.ts")],
+    invalid: [
+      {
+        ...valid("config/home-feed.ts"),
+        errors: [
+          {
+            message:
+              "A configuration module must be a src/config/<config-name>/ folder with index.ts as its entry point.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under src/config/<config-name>/.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [valid("config/home-feed/utils/build-url.ts")],
+    invalid: [
+      {
+        ...valid("config/home-feed/helpers/build-url.ts"),
+        errors: [
+          {
+            message: "Move this file to a utils/ folder; helpers/ is not a recognized support folder.",
           },
         ],
       },

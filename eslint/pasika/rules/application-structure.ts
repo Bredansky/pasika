@@ -165,6 +165,8 @@ export const applicationStructureRule: Rule.RuleModule = {
 
     const currentFolder = path.basename(path.dirname(filename));
     const kinds = exportedKinds(filename);
+    const isConfigModuleRoot = topLevel === "config" && segments.length === 3 && path.basename(filename) === "index.ts";
+    if (isConfigModuleRoot) return {};
     if (!SUPPORT_FOLDERS.has(currentFolder)) {
       const expected = expectedSupportFolder(kinds);
       if (expected !== undefined && segments.length > 2) {

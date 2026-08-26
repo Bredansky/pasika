@@ -31,6 +31,8 @@ import { cvaBooleanVariantsRule } from "./rules/cva-boolean-variants.js";
 import { crossFeatureImportRule } from "./rules/cross-feature-import.js";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract.js";
 import { hookComplexityRule } from "./rules/hook-complexity.js";
+import { localeDottedPathRule } from "./rules/locale-dotted-path.js";
+import { localesLocationRule } from "./rules/locales-location.js";
 
 /** Every rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
@@ -58,6 +60,8 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,
   "hook-complexity": hookComplexityRule,
+  "locale-dotted-path": localeDottedPathRule,
+  "locales-location": localesLocationRule,
 };
 
 /** Rule ids as they appear in configuration and in lint output. */

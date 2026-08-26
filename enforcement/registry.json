@@ -208,8 +208,8 @@
       "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "A configuration module MUST be one src/config/<config-name>/ folder with index.ts as its entry point.",
       "hash": "2f17655f6f",
-      "kind": "planned",
-      "note": "eslint: application-structure"
+      "kind": "eslint",
+      "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
@@ -222,8 +222,8 @@
       "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "All configuration modules MUST live in src/config/.",
       "hash": "068f9a0a91",
-      "kind": "planned",
-      "note": "eslint: application-structure"
+      "kind": "eslint",
+      "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
@@ -236,8 +236,8 @@
       "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under src/config/<config-name>/.",
       "hash": "d931ef91df",
-      "kind": "planned",
-      "note": "eslint: application-structure"
+      "kind": "eslint",
+      "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -432,15 +432,15 @@
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "A namespaced locale MUST be read through its full dotted path (locales.stream.watchLiveStream).",
       "hash": "3c10684240",
-      "kind": "planned",
-      "note": "eslint: report a destructured locales namespace"
+      "kind": "eslint",
+      "ref": "pasika/locale-dotted-path"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "All locales MUST live in the named locales object exported from src/locales/index.ts.",
       "hash": "2469d743da",
-      "kind": "planned",
-      "note": "eslint: report user-facing text outside the locales object"
+      "kind": "eslint",
+      "ref": "pasika/locales-location"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
