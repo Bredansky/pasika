@@ -11,6 +11,19 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions.js";
 
+const NEXT_ROUTING_FILES = new Set([
+  "page",
+  "layout",
+  "loading",
+  "error",
+  "not-found",
+  "route",
+  "template",
+  "default",
+  "middleware",
+  "instrumentation",
+]);
+
 const isPascalCase = (value: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(value);
 const isKebabCase = (value: string): boolean => /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value);
 
@@ -25,6 +38,8 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
   create(context) {
     const filename = path.resolve(context.filename);
     if (!filename.endsWith(".tsx")) return {};
+    const base = path.basename(filename, path.extname(filename));
+    if (NEXT_ROUTING_FILES.has(base)) return {};
     const text = context.sourceCode.text;
     const components = parseComponentInfo(text, filename);
 

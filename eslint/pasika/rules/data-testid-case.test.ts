@@ -69,3 +69,19 @@ void describe("A smart component without one outer DOM element in every rendered
     invalid: [],
   });
 });
+
+void describe("Next.js App Router routing files MUST use their required kebab-case names and are exempt from smart/dumb file-name and data-testid requirements.", () => {
+  ruleTester.run("data-testid-case", dataTestIdCaseRule, {
+    valid: [
+      {
+        code: `export default function Page() {\n  return <main>Hello</main>;\n}`,
+        filename: srcFile("app/page.tsx"),
+      },
+      {
+        code: `export default function Layout({ children }: { children: React.ReactNode }) {\n  return <div>{children}</div>;\n}`,
+        filename: srcFile("app/layout.tsx"),
+      },
+    ],
+    invalid: [],
+  });
+});

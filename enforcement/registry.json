@@ -517,8 +517,8 @@
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "Next.js App Router routing files MUST use their required kebab-case names and are exempt from smart/dumb file-name and data-testid requirements.",
       "hash": "fb2c9ab370",
-      "kind": "planned",
-      "note": "eslint: report a src/app file whose name differs only in case from a routing-file name; filename-case only avoids conflicting with the exemption"
+      "kind": "eslint",
+      "ref": "pasika/data-testid-case"
     },
     {
       "doc": "code-organization-guide/rules/sole-state-owner-rule.md",
