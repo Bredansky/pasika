@@ -4,7 +4,7 @@ Pick up the pasika framework work. Vulyk is released through `0.13.3`; Karaylo's
 
 ## Read first
 
-- `README.md` — the enforcement model: registry, `pasika coverage`, `pasika docs`
+- `README.md` — the enforcement model: registry, `pasika coverage`
 - `enforcement/registry.json` — every documented requirement and how it is checked
 - `docs/framework-adoption-guide/framework-adoption-guide.md` — the adopt / update / plan workflows
 
@@ -94,7 +94,7 @@ What it cost:
 - `@eslint/markdown` + `@types/mdast` as dev dependencies.
 - The registry migration rewrote the 26 `docs-check` entries (and 6 planned docs entries) to `eslint` refs via a one-off script (since deleted).
 - Three rules are cross-document — `policy-single-document` counts policy documents repo-wide, `guide-folder-entry-point` looks for an entry point in a sibling folder, and `glossary-term-linking` compares a guide against a glossary elsewhere. They share a memoized project index (`project-index.ts`) like the code rules.
-- Still open for consumers: zirka gains `@eslint/markdown` and a `markdown` block, and `docs/managed/**` must be ignored in consumer repos (vulyk-managed files are owned upstream).
+- Decided: the markdown rules are **not** distributed to consumers. Docs are enforced where they are authored (pasika lints its own `docs/`); consumer repos receive conforming copies via vulyk, pinned to a pasika commit that passed lint and coverage. Consumer-side enforcement is the **managed-file diff check** (a planned requirement) — it catches stale copies, which is the only failure a consumer can actually act on (its `docs/managed/**` is owned upstream, so linting it there would flag files the consumer cannot fix). zirka gains no `@eslint/markdown` block; repos that author their own framework-convention docs can enable the rules directly, but no consumer does today.
 
 ## Known gaps
 
