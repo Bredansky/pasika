@@ -126,12 +126,39 @@ void describe("runDoctor", () => {
       assert.ok(findings.some((f) => f.check === "theme-reset"));
     });
 
+    void it("reports when base layer is missing base-canvas or base-ink", () => {
+      const dir = path.join(root, "pkg-no-base/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-canvas; }\n}\n',
+      );
+      writeJson("pkg-no-base/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
+      const findings = runDoctor(path.join(root, "pkg-no-base"));
+      assert.ok(findings.some((f) => f.check === "base-layer-pair"));
+    });
+
+    void it("reports when @theme inline is missing", () => {
+      const dir = path.join(root, "pkg-no-theme-inline/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        path.join(dir, "globals.css"),
+        '@import "tailwindcss";\n\n:root { --spacing: 0.25rem; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n',
+      );
+      writeJson("pkg-no-theme-inline/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(path.join(root, "pkg-no-theme-inline"));
+      assert.ok(findings.some((f) => f.check === "theme-inline"));
+    });
+
     void it("passes with a complete global stylesheet", () => {
       const dir = path.join(root, "pkg-complete/src/app");
       mkdirSync(dir, { recursive: true });
       writeFileSync(
         path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-base-canvas; }\n}\n',
+        '@import "tailwindcss";\n\n:root { --spacing: 0.25rem; --base-canvas: #fff; --base-ink: #111; }\n\n@theme { --*: initial; }\n\n@theme inline {\n  --spacing: var(--spacing);\n}\n\n@utility bg-base-canvas {\n  @apply bg-(--base-canvas);\n}\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n',
       );
       writeJson("pkg-complete/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
       const findings = runDoctor(path.join(root, "pkg-complete"));

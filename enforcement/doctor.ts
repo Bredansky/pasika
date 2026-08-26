@@ -258,6 +258,36 @@ function checkGlobalStylesheet(cwd: string): DoctorFinding[] {
     });
   }
 
+  // Base layer with base-canvas and base-ink
+  const hasBaseLayer = content.includes("@layer base") || content.includes("@layer base {");
+  const hasBaseCanvas = content.includes("base-canvas");
+  const hasBaseInk = content.includes("base-ink");
+  if (hasBaseLayer && (!hasBaseCanvas || !hasBaseInk)) {
+    findings.push({
+      check: "base-layer-pair",
+      message: "The global base layer must apply base-canvas and base-ink to the document body.",
+      severity: "error",
+    });
+  }
+
+  // @theme inline for CSS variables
+  if (content.includes(":root") && content.includes("@theme") && !content.includes("@theme inline")) {
+    findings.push({
+      check: "theme-inline",
+      message: 'CSS variables in :root must be referenced through "@theme inline".',
+      severity: "error",
+    });
+  }
+
+  // @custom-variant definitions
+  if (content.includes("@theme") && !content.includes("@custom-variant")) {
+    findings.push({
+      check: "custom-variants",
+      message: "Global stylesheet should define @custom-variant definitions for component props.",
+      severity: "warning",
+    });
+  }
+
   return findings;
 }
 

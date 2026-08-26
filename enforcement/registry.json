@@ -1069,15 +1069,15 @@
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.",
       "hash": "a3b7faf6da",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
-      "kind": "planned",
-      "note": "doctor: parse the global stylesheet"
+      "kind": "doctor",
+      "ref": "pasika/doctor"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
