@@ -18,8 +18,8 @@
       "doc": "agent-policy.md",
       "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
       "hash": "27247db8eb",
-      "kind": "planned",
-      "note": "doctor: compare managed files against their pinned sources"
+      "kind": "doctor",
+      "ref": "pasika/managed-file-edit"
     },
     {
       "doc": "agent-policy.md",

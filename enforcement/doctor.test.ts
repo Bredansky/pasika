@@ -1,4 +1,4 @@
-import { mkdtempSync, realpathSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, realpathSync, writeFileSync, mkdirSync, utimesSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -294,6 +294,28 @@ void describe("runDoctor", () => {
       });
       const findings = runDoctor(path.join(root, "pkg-no-eslint-disable"));
       assert.ok(!findings.some((f) => f.check === "eslint-disable-usage"));
+    });
+  });
+
+  void describe("managed file check", () => {
+    void it("warns when a managed file is newer than the manifest", () => {
+      const pkgDir = path.join(root, "pkg-managed-edit");
+      mkdirSync(path.join(pkgDir, ".vulyk"), { recursive: true });
+      writeJson("pkg-managed-edit/.vulyk/manifest.json", {
+        "agent-policy": { targets: ["docs/agent-policy.md"] },
+      });
+      // Write manifest first, sleep to ensure a mtime gap, then write the target
+      const manifestPath = path.join(pkgDir, ".vulyk", "manifest.json");
+      const now = Date.now();
+      utimesSync(manifestPath, new Date(now - 5000), new Date(now - 5000));
+      mkdirSync(path.join(pkgDir, "docs"), { recursive: true });
+      writeFileSync(path.join(pkgDir, "docs/agent-policy.md"), "# Policy\n");
+      writeJson("pkg-managed-edit/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      const findings = runDoctor(pkgDir);
+      assert.ok(findings.some((f) => f.check === "managed-file-edit"));
     });
   });
 });
