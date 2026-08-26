@@ -74,7 +74,7 @@
       "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
       "hash": "628ab4f6a6",
       "kind": "planned",
-      "note": "zirka: enable @eslint-community/eslint-comments/no-use; whether a fix is correct stays judgment"
+      "note": "agent guideline: discourage AI agents from adding eslint-disable directives; developers may still use them. Whether a fix is correct stays judgment."
     },
     {
       "doc": "agent-policy.md",
