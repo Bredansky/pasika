@@ -6,8 +6,6 @@
  * @see docs/code-organization-guide/rules/no-mixed-concerns-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
 
 /**
@@ -18,26 +16,34 @@ import type { Rule } from "eslint";
  *   export const Foo = function () { }
  *   export default function Foo() { }
  *   export default () => { }
+ *
+ * The parameter is a loose structural type because ESLint types export
+ * declarations with several shapes (named and anonymous default exports).
  */
-// biome-ignore lint/suspicious/noExplicitAny: AST node type from ESLint with dynamic property access
-function getExportName(declaration: any): string | null {
-  if (declaration.type === "FunctionDeclaration" && declaration.id) {
-    return declaration.id.name;
+interface ExportDeclarationShape {
+  type?: string;
+  id?: { name?: string } | null;
+  declarations?: { id?: { type?: string; name?: string }; init?: { type?: string } | null }[];
+}
+
+function getExportName(declaration: ExportDeclarationShape | null | undefined): string | null {
+  if (declaration?.type === "FunctionDeclaration" && declaration.id) {
+    return declaration.id.name ?? null;
   }
-  if (declaration.type === "VariableDeclaration") {
-    const declarator = declaration.declarations[0];
+  if (declaration?.type === "VariableDeclaration") {
+    const declarator = declaration.declarations?.[0];
     if (
-      declarator?.id.type === "Identifier" &&
+      declarator?.id?.type === "Identifier" &&
       (declarator.init?.type === "ArrowFunctionExpression" || declarator.init?.type === "FunctionExpression")
     ) {
-      return declarator.id.name;
+      return declarator.id.name ?? null;
     }
   }
-  if (declaration.type === "ArrowFunctionExpression") {
+  if (declaration?.type === "ArrowFunctionExpression") {
     return "default";
   }
-  if (declaration.type === "FunctionExpression" && declaration.id) {
-    return declaration.id.name;
+  if (declaration?.type === "FunctionExpression" && declaration.id) {
+    return declaration.id.name ?? null;
   }
   return null;
 }
@@ -64,13 +70,12 @@ export const noMixedConcernsRule: Rule.RuleModule = {
     }
 
     return {
-      ExportNamedDeclaration(node: any) {
-        if (!node.declaration) return;
+      ExportNamedDeclaration(node) {
         const name = getExportName(node.declaration);
         if (name) registerExport(name);
       },
 
-      ExportDefaultDeclaration(node: any) {
+      ExportDefaultDeclaration(node) {
         const name = getExportName(node.declaration);
         if (name) registerExport(name);
       },
@@ -91,5 +96,3 @@ export const noMixedConcernsRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-explicit-any -- re-enable after AST node access block */

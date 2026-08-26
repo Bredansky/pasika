@@ -8,17 +8,16 @@
  * @see docs/styling-guide/rules/component-variant-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
 
 interface CvaInfo {
   variantNames: Set<string>;
   compoundVariants: Set<string>;
 }
 
-function extractCvaInfo(node: any): CvaInfo | undefined {
-  if (node.type !== "CallExpression" || node.callee?.type !== "Identifier" || node.callee.name !== "cva") {
+function extractCvaInfo(node: ESTree.CallExpression): CvaInfo | undefined {
+  if (node.callee.type !== "Identifier" || node.callee.name !== "cva") {
     return undefined;
   }
 
@@ -30,22 +29,22 @@ function extractCvaInfo(node: any): CvaInfo | undefined {
 
   for (const prop of options.properties) {
     if (prop.type !== "Property") continue;
-    const keyName: string | undefined = prop.key?.type === "Identifier" ? prop.key.name : undefined;
+    const keyName: string | undefined = prop.key.type === "Identifier" ? prop.key.name : undefined;
 
-    if (keyName === "variants" && prop.value?.type === "ObjectExpression") {
+    if (keyName === "variants" && prop.value.type === "ObjectExpression") {
       for (const vProp of prop.value.properties) {
         if (vProp.type !== "Property") continue;
-        const vName: string | undefined = vProp.key?.type === "Identifier" ? vProp.key.name : undefined;
+        const vName: string | undefined = vProp.key.type === "Identifier" ? vProp.key.name : undefined;
         if (vName) variantNames.add(vName);
       }
     }
 
-    if (keyName === "compoundVariants" && prop.value?.type === "ArrayExpression") {
+    if (keyName === "compoundVariants" && prop.value.type === "ArrayExpression") {
       for (const entry of prop.value.elements) {
         if (entry?.type !== "ObjectExpression") continue;
         for (const cvProp of entry.properties) {
           if (cvProp.type !== "Property") continue;
-          const cvName: string | undefined = cvProp.key?.type === "Identifier" ? cvProp.key.name : undefined;
+          const cvName: string | undefined = cvProp.key.type === "Identifier" ? cvProp.key.name : undefined;
           if (cvName && variantNames.has(cvName)) {
             compoundVariants.add(cvName);
           }
@@ -70,25 +69,26 @@ export const cvaBooleanVariantsRule: Rule.RuleModule = {
 
     return {
       // Collect all cva() calls in the file
-      CallExpression(node: any) {
+      CallExpression(node) {
         const info = extractCvaInfo(node);
         if (info) cvaInfos.push(info);
       },
 
       // Detect boolean && "class" patterns anywhere inside a className attribute
-      "JSXAttribute[name.name='className'] LogicalExpression[operator='&&']"(node: any) {
+      "JSXAttribute[name.name='className'] LogicalExpression[operator='&&']"(node: Rule.Node) {
         if (cvaInfos.length === 0) return;
+        if (node.type !== "LogicalExpression") return;
 
         const left = node.left;
         const right = node.right;
 
         // Right side should be a string literal (class name)
-        if (right?.type !== "Literal" || typeof right.value !== "string") {
+        if (right.type !== "Literal" || typeof right.value !== "string") {
           return;
         }
 
         // Left side should be an identifier (boolean prop)
-        if (left?.type !== "Identifier") return;
+        if (left.type !== "Identifier") return;
 
         const propName: string = left.name;
 
@@ -109,5 +109,3 @@ export const cvaBooleanVariantsRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- re-enable after AST node access block */

@@ -7,9 +7,8 @@
  * @see docs/code-organization-guide/rules/interactive-component-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- parser-specific JSX fields are required for this AST rule */
-
 import type { Rule } from "eslint";
+import type { JsxElementNode, MaybeJsxElement } from "../ast-types.js";
 
 const INTERACTIVE_TAGS = new Set([
   "a",
@@ -24,28 +23,26 @@ const INTERACTIVE_TAGS = new Set([
   "video",
 ]);
 
-function isJsxElement(node: any): boolean {
-  return node?.type === "JSXElement";
+function tagName(node: MaybeJsxElement): string | undefined {
+  const name = node.openingElement?.name;
+  if (name?.type !== "JSXIdentifier") return undefined;
+  return name.name;
 }
 
-function tagName(node: any): string | undefined {
-  if (!isJsxElement(node) || node.openingElement?.name?.type !== "JSXIdentifier") return undefined;
-  return String(node.openingElement.name.name);
-}
-
-function isInteractive(node: any): boolean {
+function isInteractive(node: MaybeJsxElement): boolean {
   const name = tagName(node);
   return name !== undefined && INTERACTIVE_TAGS.has(name);
 }
 
-function isComponentElement(node: any): boolean {
+function isComponentElement(node: MaybeJsxElement): boolean {
   const name = tagName(node);
   return name !== undefined && /^[A-Z]/.test(name);
 }
-function isComponentReturn(node: any): boolean {
-  const parent = node?.parent;
-  if (parent?.type === "ReturnStatement") return true;
-  return parent?.type === "ArrowFunctionExpression" && parent.body === node;
+
+function isComponentReturn(node: JsxElementNode): boolean {
+  const parent = node.parent;
+  if (parent.type === "ReturnStatement") return true;
+  return parent.type === "ArrowFunctionExpression" && parent.body === node;
 }
 
 export const interactiveComponentRule: Rule.RuleModule = {
@@ -60,7 +57,7 @@ export const interactiveComponentRule: Rule.RuleModule = {
     if (!context.filename.endsWith(".tsx") && !context.filename.endsWith(".jsx")) return {};
 
     return {
-      JSXElement(node: any) {
+      JSXElement(node: JsxElementNode) {
         if (!isInteractive(node)) return;
         if (isComponentElement(node.parent)) {
           return;
@@ -72,15 +69,15 @@ export const interactiveComponentRule: Rule.RuleModule = {
           return;
         }
 
+        const name = tagName(node);
+        if (name === undefined) return;
         context.report({
           node,
           message:
-            `Extract the interactive <${String(node.openingElement.name.name)}> into a descriptive component. ` +
+            `Extract the interactive <${name}> into a descriptive component. ` +
             "See docs/code-organization-guide/rules/interactive-component-rule.md",
         });
       },
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- parser-specific JSX fields are required only within this AST rule */

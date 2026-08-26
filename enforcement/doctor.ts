@@ -400,6 +400,7 @@ function checkImportGraph(srcDir: string): DoctorFinding[] {
     const segments = segmentsOf(file);
     if (segments.length < 3 || segments[0] !== "features") continue;
     const featureName = segments[1];
+    if (!featureName) continue;
     // Check if the parent feature folder has a component with the same base name
     if (segments.length >= 3) {
       const folderName = segments[segments.length - 1];
@@ -411,7 +412,6 @@ function checkImportGraph(srcDir: string): DoctorFinding[] {
         if (outsideConsumers.length > 0) {
           findings.push({
             check: "component-nesting",
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions -- folderName is narrowed to string by the truthiness guard above
             message: `Component in src/features/${featureName}/${folderName}/ is imported outside its folder; consider flattening.`,
             severity: "warning",
           });

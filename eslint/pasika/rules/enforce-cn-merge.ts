@@ -6,16 +6,16 @@
  * @see docs/styling-guide/rules/class-composition-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import type { JsxAttributeNode, JsxIdentifier, JsxMemberExpression } from "../ast-types.js";
 
 function classCount(str: string): number {
   return str.split(/\s+/).filter(Boolean).length;
 }
 
-function isComponentName(name: any): boolean {
-  return name?.type === "JSXIdentifier" && /^[A-Z]/.test(String(name.name));
+function isComponentName(name: JsxIdentifier | JsxMemberExpression | undefined): boolean {
+  return name?.type === "JSXIdentifier" && /^[A-Z]/.test(name.name);
 }
 
 function isOuterLayoutClass(className: string): boolean {
@@ -25,12 +25,12 @@ function isOuterLayoutClass(className: string): boolean {
   );
 }
 
-function stringArguments(node: any): string[] {
+function stringArguments(node: ESTree.Node | null | undefined): string[] {
   if (node?.type === "Literal" && typeof node.value === "string") {
-    return [String(node.value)];
+    return [node.value];
   }
   if (node?.type === "TemplateLiteral") {
-    return node.quasis.map((quasi: any) => String(quasi.value.raw)) as string[];
+    return node.quasis.map((quasi) => quasi.value.raw);
   }
   if (node?.type === "ConditionalExpression") {
     return [...stringArguments(node.consequent), ...stringArguments(node.alternate)];
@@ -39,7 +39,7 @@ function stringArguments(node: any): string[] {
     return [...stringArguments(node.left), ...stringArguments(node.right)];
   }
   if (node?.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === "cn") {
-    return node.arguments.flatMap((argument: any) => stringArguments(argument)) as string[];
+    return node.arguments.flatMap((argument) => stringArguments(argument));
   }
   return [];
 }
@@ -54,10 +54,10 @@ export const enforceCnMergeRule: Rule.RuleModule = {
   },
   create(context) {
     return {
-      JSXAttribute(node: any) {
-        const attributeName = String(node.name.name);
-        const element = node.parent?.parent;
-        const isComponentProp = isComponentName(element?.openingElement?.name);
+      JSXAttribute(node: JsxAttributeNode) {
+        const attributeName = String(node.name?.name);
+        const element = node.parent.parent;
+        const isComponentProp = isComponentName(element.openingElement?.name);
 
         if (isComponentProp && attributeName !== "className" && attributeName.endsWith("ClassName")) {
           context.report({
@@ -103,7 +103,7 @@ export const enforceCnMergeRule: Rule.RuleModule = {
           return;
         }
 
-        if (valueNode.type !== "JSXExpressionContainer" || !valueNode.expression) return;
+        if (valueNode.type !== "JSXExpressionContainer") return;
         const expr = valueNode.expression;
 
         if (expr.type === "BinaryExpression" && expr.operator === "+") {
@@ -157,5 +157,3 @@ export const enforceCnMergeRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- re-enable rules disabled for AST access */

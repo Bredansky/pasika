@@ -9,10 +9,11 @@
  * @see docs/code-organization-guide/rules/hook-extraction-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions, @typescript-eslint/restrict-template-expressions -- ESLint rule files work with ESTree AST nodes inherently */
-
 import path from "node:path";
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import ts from "typescript";
+import type { FunctionDeclarationNode } from "../ast-types.js";
 
 const REACT_HOOKS = new Set([
   "useState",
@@ -36,37 +37,29 @@ function isHookName(name: string): boolean {
   return /^use[A-Z]/.test(name);
 }
 
-function countImperativeCategories(body: any): number {
+/**
+ * Counts the distinct React hook categories called anywhere inside a hook body.
+ * Re-parses just the body's source slice with the TypeScript compiler so the
+ * walk stays fully typed instead of unrolling ESTree unions by hand.
+ */
+function countImperativeCategories(body: ESTree.BlockStatement, sourceText: string): number {
+  const start = body.range?.[0] ?? 0;
+  const end = body.range?.[1] ?? sourceText.length;
+  const sourceFile = ts.createSourceFile(
+    "hook.ts",
+    sourceText.slice(start, end),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
   const categories = new Set<string>();
-  if (!body || typeof body !== "object") return 0;
-
-  const block = body as { type?: string; body?: any[] };
-  if (block.type !== "BlockStatement" || !Array.isArray(block.body)) return 0;
-
-  function walk(node: any): void {
-    if (!node || typeof node !== "object") return;
-
-    if (node.type === "CallExpression" && node.callee) {
-      const callee = node.callee as { type?: string; name?: string };
-      if (callee.type === "Identifier" && callee.name && REACT_HOOKS.has(callee.name)) {
-        categories.add(callee.name);
-      }
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && REACT_HOOKS.has(node.expression.text)) {
+      categories.add(node.expression.text);
     }
-
-    for (const key of Object.keys(node)) {
-      if (key === "type" || key === "loc" || key === "range" || key === "parent") continue;
-      const val = node[key];
-      if (Array.isArray(val)) {
-        for (const item of val) {
-          if (item && typeof item === "object" && "type" in item) walk(item);
-        }
-      } else if (val && typeof val === "object" && "type" in val) {
-        walk(val);
-      }
-    }
-  }
-
-  walk(block);
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
   return categories.size;
 }
 
@@ -85,14 +78,19 @@ export const hookComplexityRule: Rule.RuleModule = {
     if (relative.startsWith("..")) return {};
 
     const segments = relative.split(path.sep);
+    const sourceText = context.sourceCode.text;
 
-    function checkHook(node: any, exported: boolean): void {
+    function checkHook(
+      node: Rule.Node,
+      name: string | undefined,
+      body: ESTree.BlockStatement | undefined,
+      exported: boolean,
+    ): void {
       if (!exported) return;
-      const name = node.id?.name;
       if (!name || !isHookName(name)) return;
-      if (node.body === undefined) return;
+      if (!body) return;
 
-      const imperativeCount = countImperativeCategories(node.body);
+      const imperativeCount = countImperativeCategories(body, sourceText);
       const parentFolder = segments.length >= 2 ? segments[segments.length - 2] : undefined;
       const inSupportFolder = parentFolder === "hooks";
 
@@ -114,26 +112,24 @@ export const hookComplexityRule: Rule.RuleModule = {
     }
 
     return {
-      FunctionDeclaration(node: any) {
+      FunctionDeclaration(node: FunctionDeclarationNode) {
         const exported = node.parent?.type === "ExportNamedDeclaration";
-        checkHook(node, exported);
+        checkHook(node, node.id?.name, node.body, exported);
       },
 
-      VariableDeclarator(node: any) {
+      VariableDeclarator(node) {
         if (node.id.type !== "Identifier") return;
-        const parent = node.parent?.parent;
-        const exported = parent?.type === "ExportNamedDeclaration";
+        const exported = node.parent.parent?.type === "ExportNamedDeclaration";
         if (!exported) return;
 
         const init = node.init;
-        if (init?.type !== "ArrowFunctionExpression" && init?.type !== "FunctionExpression") {
+        if (!init || (init.type !== "ArrowFunctionExpression" && init.type !== "FunctionExpression")) {
           return;
         }
+        if (init.body.type !== "BlockStatement") return;
 
-        checkHook({ ...init, id: { name: node.id.name } }, true);
+        checkHook(node, node.id.name, init.body, true);
       },
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions, @typescript-eslint/restrict-template-expressions -- re-enable after AST node access block */

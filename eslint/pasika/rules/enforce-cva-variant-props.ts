@@ -6,9 +6,9 @@
  * @see docs/styling-guide/rules/component-variant-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import type { TsTypeAliasDeclarationNode } from "../ast-types.js";
 
 export const enforceCvaVariantPropsRule: Rule.RuleModule = {
   meta: {
@@ -23,71 +23,78 @@ export const enforceCvaVariantPropsRule: Rule.RuleModule = {
 
     return {
       VariableDeclarator(node) {
+        const init = node.init;
         if (
-          node.init?.type === "CallExpression" &&
-          node.init.callee.type === "Identifier" &&
-          node.init.callee.name === "cva" &&
-          node.id.type === "Identifier"
+          init?.type !== "CallExpression" ||
+          init.callee.type !== "Identifier" ||
+          init.callee.name !== "cva" ||
+          node.id.type !== "Identifier"
         ) {
-          const args = node.init.arguments;
-          if (args.length < 2) return;
+          return;
+        }
 
-          const options = args[1];
-          if (options?.type === "ObjectExpression") {
-            for (const prop of options.properties) {
-              if (
-                prop.type === "Property" &&
-                prop.key.type === "Identifier" &&
-                prop.key.name === "variants" &&
-                prop.value.type === "ObjectExpression"
-              ) {
-                const variantNames = prop.value.properties
-                  .filter((p) => p.type === "Property" && p.key.type === "Identifier")
-                  .map((p) => (p as { key: { name: string } }).key.name);
-                if (variantNames.length > 0) {
-                  cvaDefinitions.set(node.id.name, variantNames);
-                }
-              }
-            }
+        const args = init.arguments;
+        if (args.length < 2) return;
+
+        const options = args[1];
+        if (options?.type !== "ObjectExpression") return;
+
+        for (const prop of options.properties) {
+          if (
+            prop.type !== "Property" ||
+            prop.key.type !== "Identifier" ||
+            prop.key.name !== "variants" ||
+            prop.value.type !== "ObjectExpression"
+          ) {
+            continue;
+          }
+
+          const variantNames = prop.value.properties
+            .filter(
+              (p): p is ESTree.Property & { key: ESTree.Identifier } =>
+                p.type === "Property" && p.key.type === "Identifier",
+            )
+            .map((p) => p.key.name);
+          if (variantNames.length > 0) {
+            cvaDefinitions.set(node.id.name, variantNames);
           }
         }
       },
 
-      TSTypeAliasDeclaration(node: any) {
-        if (!node.id.name.endsWith("Props")) return;
-        if (node.typeAnnotation.type !== "TSTypeLiteral") return;
+      TSTypeAliasDeclaration(node: TsTypeAliasDeclarationNode) {
+        const aliasName = node.id?.name;
+        if (!aliasName?.endsWith("Props")) return;
+        if (node.typeAnnotation?.type !== "TSTypeLiteral") return;
 
-        for (const member of node.typeAnnotation.members) {
-          if (
-            member.type === "TSPropertySignature" &&
-            member.key.type === "Identifier" &&
-            member.typeAnnotation?.typeAnnotation?.type === "TSUnionType"
-          ) {
-            const keyName = String(member.key.name);
-            const typeAnn = member.typeAnnotation.typeAnnotation;
+        for (const member of node.typeAnnotation.members ?? []) {
+          if (member.type !== "TSPropertySignature") continue;
+          const keyName = member.key?.type === "Identifier" ? member.key.name : undefined;
+          if (!keyName) continue;
 
-            // typescript-eslint emits ESTree `Literal` nodes; other TypeScript
-            // parsers emit `StringLiteral`. Accept both so the rule works
-            // whichever parser the consuming config installs.
-            const allStringLiterals = typeAnn.types.every(
-              (t: any) =>
-                t.type === "TSLiteralType" &&
-                (t.literal?.type === "StringLiteral" ||
-                  (t.literal?.type === "Literal" && typeof t.literal.value === "string")),
-            );
+          const typeAnn = member.typeAnnotation?.typeAnnotation;
+          if (typeAnn?.type !== "TSUnionType") continue;
 
-            if (allStringLiterals && typeAnn.types.length >= 2) {
-              for (const [, variantNames] of cvaDefinitions) {
-                if (variantNames.includes(keyName)) {
-                  context.report({
-                    node: member as never,
-                    message:
-                      `Variant prop "${keyName}" duplicates CVA variant values. ` +
-                      "Use VariantProps<typeof variants> instead of manually writing union types. " +
-                      "See docs/styling-guide/rules/component-variant-rule.md",
-                  });
-                  return;
-                }
+          // typescript-eslint emits ESTree `Literal` nodes; other TypeScript
+          // parsers emit `StringLiteral`. Accept both so the rule works
+          // whichever parser the consuming config installs.
+          const allStringLiterals = (typeAnn.types ?? []).every(
+            (t) =>
+              t.type === "TSLiteralType" &&
+              (t.literal?.type === "StringLiteral" ||
+                (t.literal?.type === "Literal" && typeof t.literal.value === "string")),
+          );
+
+          if (allStringLiterals && (typeAnn.types?.length ?? 0) >= 2) {
+            for (const variantNames of cvaDefinitions.values()) {
+              if (variantNames.includes(keyName)) {
+                context.report({
+                  node,
+                  message:
+                    `Variant prop "${keyName}" duplicates CVA variant values. ` +
+                    "Use VariantProps<typeof variants> instead of manually writing union types. " +
+                    "See docs/styling-guide/rules/component-variant-rule.md",
+                });
+                return;
               }
             }
           }
@@ -96,5 +103,3 @@ export const enforceCvaVariantPropsRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- re-enable after AST node access block */

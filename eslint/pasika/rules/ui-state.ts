@@ -6,9 +6,9 @@
  * @see docs/styling-guide/rules/component-ui-state-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- parser-specific JSX fields are required for this AST rule */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import type { JsxElementNode } from "../ast-types.js";
 
 const STATE_PROPS = new Set([
   "disabled",
@@ -33,14 +33,16 @@ const STATE_ATTRIBUTES = new Set([
 ]);
 const STATE_CLASS_RE = /^(?:disabled|aria-(?:busy|selected|expanded|pressed|checked|invalid)|data-\[state)/;
 
-function isComponentElement(node: any): boolean {
-  const name = node?.openingElement?.name;
-  return name?.type === "JSXIdentifier" && /^[A-Z]/.test(String(name.name));
+function isComponentElement(node: JsxElementNode): boolean {
+  const name = node.openingElement?.name;
+  return name?.type === "JSXIdentifier" && /^[A-Z]/.test(name.name);
 }
 
-function expressionName(node: any): string | undefined {
+function expressionName(
+  node: { type?: string; expression?: { type?: string; name?: string } } | null | undefined,
+): string | undefined {
   if (node?.type !== "JSXExpressionContainer") return undefined;
-  if (node.expression?.type === "Identifier") return String(node.expression.name);
+  if (node.expression?.type === "Identifier") return node.expression.name;
   return undefined;
 }
 
@@ -54,10 +56,10 @@ export const uiStateRule: Rule.RuleModule = {
   },
   create(context) {
     return {
-      JSXElement(node: any) {
+      JSXElement(node: JsxElementNode) {
         if (!isComponentElement(node)) return;
 
-        const attributes = node.openingElement.attributes ?? [];
+        const attributes = node.openingElement?.attributes ?? [];
         const names = new Set<string>();
         for (const attribute of attributes) {
           names.add(String(attribute.name?.name));
@@ -82,12 +84,15 @@ export const uiStateRule: Rule.RuleModule = {
           if (String(attribute.name?.name) !== "className") continue;
           const value = attribute.value;
           const text = value?.type === "Literal" ? String(value.value) : "";
-          if (value?.type === "JSXExpressionContainer" && value.expression?.type === "ConditionalExpression") {
+          if (value?.type === "JSXExpressionContainer" && value.expression.type === "ConditionalExpression") {
             const consequent = value.expression.consequent;
             const alternate = value.expression.alternate;
             const classes = [consequent, alternate]
-              .filter((branch: any) => branch?.type === "Literal" && typeof branch.value === "string")
-              .flatMap((branch: any) => String(branch.value).split(/\s+/));
+              .filter(
+                (branch): branch is ESTree.Literal & { value: string } =>
+                  branch.type === "Literal" && typeof branch.value === "string",
+              )
+              .flatMap((branch) => String(branch.value).split(/\s+/));
             if (classes.length > 0 && !classes.some((className) => STATE_CLASS_RE.test(className))) {
               context.report({
                 node: attribute,
@@ -105,5 +110,3 @@ export const uiStateRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- re-enable after parser-specific AST access */

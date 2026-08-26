@@ -6,10 +6,10 @@
  * @see docs/code-organization-guide/rules/utilities-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- ESLint rule files work with ESTree AST nodes inherently */
-
 import path from "node:path";
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import type { FunctionDeclarationNode } from "../ast-types.js";
 
 function isComponentLikeName(name: string): boolean {
   return /^[A-Z]/.test(name);
@@ -19,19 +19,11 @@ function isHookName(name: string): boolean {
   return /^use[A-Z]/.test(name);
 }
 
-function hasHookUsage(body: any): boolean {
-  if (!body || typeof body !== "object") return false;
-  const block = body as { type?: string; body?: any[] };
-  if (block.type !== "BlockStatement" || !Array.isArray(block.body)) return false;
-
-  for (const stmt of block.body) {
-    const expr = stmt?.expression;
-    if (
-      expr?.type === "CallExpression" &&
-      expr.callee?.type === "Identifier" &&
-      typeof expr.callee.name === "string" &&
-      isHookName(expr.callee.name)
-    ) {
+function hasHookUsage(body: ESTree.BlockStatement): boolean {
+  for (const stmt of body.body) {
+    if (stmt.type !== "ExpressionStatement") continue;
+    const expr = stmt.expression;
+    if (expr.type === "CallExpression" && expr.callee.type === "Identifier" && isHookName(expr.callee.name)) {
       return true;
     }
   }
@@ -62,7 +54,7 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     const supportFolders = new Set(["hooks", "types", "schemas", "constants", "utils"]);
     if (segments.length >= 2 && supportFolders.has(segments[segments.length - 1] ?? "")) return {};
 
-    function report(node: any, name: string): void {
+    function report(node: Rule.Node, name: string): void {
       context.report({
         node,
         message: `Extract pure function "${name}" to utils/. See docs/code-organization-guide/rules/utilities-rule.md`,
@@ -70,37 +62,32 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     }
 
     return {
-      FunctionDeclaration(node: any) {
+      FunctionDeclaration(node: FunctionDeclarationNode) {
         const exported = node.parent?.type === "ExportNamedDeclaration";
         if (!exported) return;
         const name = node.id?.name;
         if (!name) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
-        if (node.body === undefined) return;
-        if (hasHookUsage(node.body)) return;
+        if (!node.body || hasHookUsage(node.body)) return;
         report(node, name);
       },
 
-      VariableDeclarator(node: any) {
+      VariableDeclarator(node) {
         if (node.id.type !== "Identifier") return;
         const name = node.id.name;
         if (!name) return;
 
-        const parent = node.parent?.parent;
-        const exported = parent?.type === "ExportNamedDeclaration";
+        const exported = node.parent.parent?.type === "ExportNamedDeclaration";
         if (!exported) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
 
         const init = node.init;
-        if (init?.type !== "ArrowFunctionExpression" && init?.type !== "FunctionExpression") {
+        if (!init || (init.type !== "ArrowFunctionExpression" && init.type !== "FunctionExpression")) {
           return;
         }
-
-        if (hasHookUsage(init)) return;
+        if (init.body.type === "BlockStatement" && hasHookUsage(init.body)) return;
         report(node, name);
       },
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/consistent-type-assertions -- re-enable after AST node access block */

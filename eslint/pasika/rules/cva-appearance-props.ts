@@ -7,9 +7,9 @@
  * @see docs/styling-guide/rules/component-variant-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- ESLint rule files work with ESTree AST nodes inherently */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import type { TsTypeAliasDeclarationNode } from "../ast-types.js";
 
 const VISUAL_OPTION_NAMES = new Set([
   "size",
@@ -23,15 +23,12 @@ const VISUAL_OPTION_NAMES = new Set([
   "theme",
 ]);
 
-function hasCvaCall(body: readonly unknown[]): boolean {
+function hasCvaCall(body: readonly (ESTree.Directive | ESTree.Statement | ESTree.ModuleDeclaration)[]): boolean {
   for (const stmt of body) {
-    const node = stmt as { type?: string; declarations?: unknown[] };
-    if (node.type !== "VariableDeclaration") continue;
-    for (const decl of node.declarations ?? []) {
-      const d = decl as {
-        init?: { type?: string; callee?: { name?: string } };
-      };
-      if (d.init?.type === "CallExpression" && d.init.callee?.name === "cva") {
+    if (stmt.type !== "VariableDeclaration") continue;
+    for (const decl of stmt.declarations) {
+      const init = decl.init;
+      if (init?.type === "CallExpression" && init.callee.type === "Identifier" && init.callee.name === "cva") {
         return true;
       }
     }
@@ -57,11 +54,11 @@ export const cvaAppearancePropsRule: Rule.RuleModule = {
     if (hasCva) return {};
 
     return {
-      TSTypeAliasDeclaration(node: any) {
-        if (node.id?.type !== "Identifier" || !node.id.name.endsWith("Props")) return;
+      TSTypeAliasDeclaration(node: TsTypeAliasDeclarationNode) {
+        if (node.id?.type !== "Identifier" || !node.id.name?.endsWith("Props")) return;
         if (node.typeAnnotation?.type !== "TSTypeLiteral") return;
 
-        for (const member of node.typeAnnotation.members) {
+        for (const member of node.typeAnnotation.members ?? []) {
           if (member.type !== "TSPropertySignature") continue;
           const keyName: string | undefined = member.key?.type === "Identifier" ? member.key.name : undefined;
           if (!keyName || !VISUAL_OPTION_NAMES.has(keyName)) continue;
@@ -73,7 +70,7 @@ export const cvaAppearancePropsRule: Rule.RuleModule = {
           // Accept both TSUnionType and TSTypeLiteral
           if (typeAnnotation.type === "TSUnionType" || typeAnnotation.type === "TSTypeLiteral") {
             context.report({
-              node: member,
+              node,
               message:
                 `Visual option prop "${keyName}" must be defined through a cva() call ` +
                 "rather than a manual union type. See docs/styling-guide/rules/component-variant-rule.md",
@@ -84,5 +81,3 @@ export const cvaAppearancePropsRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/consistent-type-assertions, @typescript-eslint/no-explicit-any -- re-enable after AST node access block */

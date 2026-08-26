@@ -7,10 +7,9 @@
  * @see docs/code-organization-guide/rules/locales-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- AST rule uses parser-specific fields */
-
 import path from "node:path";
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
 
 function isInLocalesDir(filename: string): boolean {
   const segments = path.resolve(filename).split(path.sep);
@@ -18,15 +17,15 @@ function isInLocalesDir(filename: string): boolean {
   return srcIdx !== -1 && segments[srcIdx + 1] === "locales";
 }
 
-function isLocalesAccess(node: any): boolean {
-  if (node?.type === "Identifier" && node.name === "locales") {
+function isLocalesAccess(node: ESTree.Expression): boolean {
+  if (node.type === "Identifier" && node.name === "locales") {
     return true;
   }
   if (
-    node?.type === "MemberExpression" &&
-    node.object?.type === "Identifier" &&
+    node.type === "MemberExpression" &&
+    node.object.type === "Identifier" &&
     node.object.name === "locales" &&
-    node.property?.type === "Identifier"
+    node.property.type === "Identifier"
   ) {
     return true;
   }
@@ -45,16 +44,17 @@ export const localeDottedPathRule: Rule.RuleModule = {
     if (isInLocalesDir(context.filename)) return {};
 
     return {
-      VariableDeclarator(node: any) {
-        if (node.id?.type !== "ObjectPattern") return;
-        if (!node.init || !isLocalesAccess(node.init)) return;
+      VariableDeclarator(node) {
+        if (node.id.type !== "ObjectPattern") return;
+        const init = node.init;
+        if (!init || !isLocalesAccess(init)) return;
 
-        for (const prop of node.id.properties ?? []) {
+        for (const prop of node.id.properties) {
           if (prop.type !== "Property") continue;
           let valueName: string | undefined;
-          if (prop.value?.type === "Identifier") {
+          if (prop.value.type === "Identifier") {
             valueName = prop.value.name;
-          } else if (prop.key?.type === "Identifier") {
+          } else if (prop.key.type === "Identifier") {
             valueName = prop.key.name;
           }
           if (valueName) {
@@ -68,5 +68,3 @@ export const localeDottedPathRule: Rule.RuleModule = {
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- re-enable after parser-specific AST access */

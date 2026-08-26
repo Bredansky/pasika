@@ -6,73 +6,87 @@
  * @see docs/code-organization-guide/rules/jsx-hygiene-rule.md
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- ESTree JSX nodes expose parser-specific fields */
-
 import type { Rule } from "eslint";
+import type * as ESTree from "estree";
+import ts from "typescript";
 
 const ARITHMETIC_OPERATORS = new Set(["+", "-", "*", "/", "%"]);
 
-function isNode(value: unknown): value is { type: string; [key: string]: any } {
-  return typeof value === "object" && value !== null && "type" in value;
+function isCallExpression(node: ESTree.Node): node is ESTree.CallExpression {
+  return node.type === "CallExpression";
 }
 
-function isCallExpression(node: unknown): boolean {
-  return isNode(node) && node.type === "CallExpression";
+function isMemberExpression(node: ESTree.Node): node is ESTree.MemberExpression {
+  return ["MemberExpression", "OptionalMemberExpression"].includes(node.type);
 }
 
-function isMemberExpression(node: unknown): boolean {
-  return isNode(node) && (node.type === "MemberExpression" || node.type === "OptionalMemberExpression");
-}
-
-function logicalOperatorCount(node: any): number {
-  if (!isNode(node) || node.type !== "LogicalExpression") return 0;
+function logicalOperatorCount(node: ESTree.Node): number {
+  if (node.type !== "LogicalExpression") return 0;
   return 1 + logicalOperatorCount(node.left) + logicalOperatorCount(node.right);
 }
 
-function hasNestedTernary(node: any): boolean {
-  if (!isNode(node) || node.type !== "ConditionalExpression") return false;
-  return (
-    containsNode(node.consequent, "ConditionalExpression") || containsNode(node.alternate, "ConditionalExpression")
+/**
+ * Whether the parsed text of a node's subtree contains a conditional expression
+ * anywhere. Re-parses just the node's source slice with the TypeScript compiler
+ * so the walk stays fully typed, including inside JSX children.
+ */
+function containsConditionalIn(node: ESTree.Expression, sourceText: string): boolean {
+  const start = node.range?.[0] ?? 0;
+  const end = node.range?.[1] ?? sourceText.length;
+  const sourceFile = ts.createSourceFile(
+    "fragment.tsx",
+    sourceText.slice(start, end),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
   );
+  let found = false;
+  const visit = (child: ts.Node): void => {
+    if (found) return;
+    if (ts.isConditionalExpression(child)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+  visit(sourceFile);
+  return found;
 }
 
-function containsNode(node: any, type: string, visited = new Set<object>()): boolean {
-  if (!isNode(node) || visited.has(node)) return false;
-  visited.add(node);
-  if (node.type === type) return true;
-  for (const [key, value] of Object.entries(node)) {
-    if (["parent", "loc", "range", "tokens", "comments"].includes(key)) continue;
-    if (isNode(value) && containsNode(value, type, visited)) return true;
-    if (Array.isArray(value) && value.some((item) => containsNode(item, type, visited))) return true;
-  }
-  return false;
+function hasNestedTernary(node: ESTree.Node, sourceText: string): boolean {
+  if (node.type !== "ConditionalExpression") return false;
+  return containsConditionalIn(node.consequent, sourceText) || containsConditionalIn(node.alternate, sourceText);
 }
 
-function hasChainedCall(node: any): boolean {
+function hasChainedCall(node: ESTree.Node): boolean {
   if (!isCallExpression(node) || !isMemberExpression(node.callee)) return false;
   return isCallExpression(node.callee.object) || isMemberExpression(node.callee.object);
 }
 
-function hasExternalCall(node: any): boolean {
+function hasExternalCall(node: ESTree.Node): boolean {
   if (!isCallExpression(node)) return false;
-  if (node.callee?.type === "Identifier" && node.callee.name === "cn") return false;
-  if (isMemberExpression(node.callee)) return false;
-  return node.callee?.type === "Identifier";
+  const callee = node.callee;
+  if (callee.type === "Identifier" && callee.name === "cn") return false;
+  if (isMemberExpression(callee)) return false;
+  return callee.type === "Identifier";
 }
 
-function findViolation(node: any): string | undefined {
-  if (!isNode(node)) return undefined;
-
+function findViolation(node: ESTree.Node, sourceText: string): string | undefined {
   if (node.type === "BinaryExpression" && ARITHMETIC_OPERATORS.has(node.operator)) {
     return "arithmetic";
   }
   if (hasChainedCall(node)) return "chained built-in method calls";
   if (hasExternalCall(node)) return "calls to functions declared outside the component";
-  if (hasNestedTernary(node)) return "nested ternaries";
+  if (hasNestedTernary(node, sourceText)) return "nested ternaries";
   if (logicalOperatorCount(node) >= 2) return "conditions containing two or more logical operators";
 
   return undefined;
 }
+
+/** JSXExpressionContainer plus the parser-specific JSXEmptyExpression shape. */
+type JsxExpressionContainerNode = Rule.Node & {
+  expression?: ESTree.Expression | { type: "JSXEmptyExpression" };
+};
 
 export const jsxHygieneRule: Rule.RuleModule = {
   meta: {
@@ -84,9 +98,10 @@ export const jsxHygieneRule: Rule.RuleModule = {
   },
   create(context) {
     if (!context.filename.endsWith(".tsx") && !context.filename.endsWith(".jsx")) return {};
+    const sourceText = context.sourceCode.text;
 
-    function checkExpression(node: any): void {
-      const violation = findViolation(node);
+    function checkExpression(node: ESTree.Expression): void {
+      const violation = findViolation(node, sourceText);
       if (!violation) return;
       context.report({
         node,
@@ -97,12 +112,11 @@ export const jsxHygieneRule: Rule.RuleModule = {
     }
 
     return {
-      JSXExpressionContainer(node: any) {
-        if (node.expression?.type === "JSXEmptyExpression") return;
-        checkExpression(node.expression);
+      JSXExpressionContainer(node: JsxExpressionContainerNode) {
+        const expression = node.expression;
+        if (!expression || expression.type === "JSXEmptyExpression") return;
+        checkExpression(expression);
       },
     };
   },
 };
-
-/* eslint-enable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any -- AST access is limited to the rule implementation above */
