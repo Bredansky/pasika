@@ -82,7 +82,7 @@ Markdown lint rules enforcing the documentation guide over `docs/**/*.md`.
 - [x] Markdown project index (`eslint/pasika/rules/md/project-index.ts`)
 - [x] All tests passing
 
-## M4 — Doctor → ESLint Migration 🔄
+## M4 — Doctor → ESLint Migration ✅
 
 ### Recovery Plan (2026-08-27)
 
@@ -113,20 +113,14 @@ The previous release attempt introduced a circular dependency and misleading loc
 - Record every completed verification item here before creating a tag.
 - Never mark a release complete until the corresponding GitHub Actions publish job and npm version are both confirmed.
 
-
-
 **Scope update (2026-08-27):** This milestone spans both repositories. Pasika
 owns and exports the rules; zirka owns the consumer-facing `styleguide()`
-configuration and must provide compatible ESLint/plugin dependencies. ESLint
-10 adoption is in progress in both packages. No milestone item is complete
-until pasika and zirka typecheck and their relevant runtime checks pass.
-
-**Current blockers:** zirka's old ESLint/plugin dependency graph is being
-upgraded for ESLint 10. Pasika's own lint is self-contained (imports
-`pasikaConfig` directly, no zirka import), per the recovery plan. The CSS/JSON
-rules use the official native `CSSRuleDefinition`, `JSONRuleDefinition`, and
-`MarkdownRuleDefinition` types; no cross-package type assertions are intended.
-
+configuration and must provide compatible ESLint/plugin dependencies. Both
+packages are now released (pasika 0.3.2, zirka 0.0.41) and pasika's own
+`eslint.config.ts` uses the zirka styleguide exactly like a consumer would.
+The CSS/JSON rules use the official native `CSSRuleDefinition`,
+`JSONRuleDefinition`, and `MarkdownRuleDefinition` types; no cross-package
+type assertions are intended.
 
 Move file-content checks from `pasika doctor` to ESLint rules so they run in
 CI rather than on-demand. Doctor keeps only **environment checks** (config
@@ -206,44 +200,38 @@ These doctor checks use `getProjectIndex()` and are now ESLint rules.
 - [x] Zirka typecheck — clean
 - [x] Zirka consumer configuration includes Markdown, CSS, and JSON language blocks
 - [x] `npx tsx cli/index.ts coverage` — zero issues
-- [ ] Commit and push both repositories
+- [x] Commit and push both repositories (pasika v0.3.2, zirka v0.0.40 + v0.0.41; pasika phase-3 config switch committed and pushed)
 
 ## M5 — Documentation Cleanup
 
 - [x] Reword `agent-policy.md` finding requirement to name both lint and doctor sources
 - [ ] Update `README.md` with new CSS/JSON rules in the ruleset table
 
-## M6 — Future
-
-Items identified but not yet scoped:
-
-- [ ] `eslint-comments/no-use` in zirka config (enforce no-`eslint-disable` via plugin)
-- [ ] Doc lint rules run on consumer repos' docs (currently only pasika's own docs)
-- [ ] Consider `@eslint/css` for consumer-level CSS validation beyond globals.css
-- [ ] Doctor output JSON mode for agent consumption
-- [ ] Doctor `--fix` for auto-applying safe remediations
-
 ---
 
 ## Session Log
 
-| Date       | What happened                                                                                                                                                                            |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-27 | Started M4: CSS + JSON rules written and tested; typecheck clean. Registry shows 98 eslint, 30 doctor, 21 judgment, 13 permission (162 total). `NEXT-SESSION.md` deleted during session. |
-| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources. |
-| 2026-08-27 | Created MILESTONES.md to track progress across sessions. |
-| 2026-08-27 | Wired CSS/JSON configs into zirka `styleguide.ts`; consumers now get CSS/JSON rules through the pasika styleguide option. Fixed pasika lint error in helpers.ts (`no-unnecessary-condition`). |
-| 2026-08-27 | Expanded M4 to explicitly cover both pasika and zirka. Researched native language rule-definition types; ESLint 10/plugin compatibility and final verification remain open. |
-| 2026-08-27 | Standardized zirka plugin-object names as `pasikaJsTs`, `pasikaCss`, and `pasikaJson`; all are ESLint plugins, with language names distinguishing their rule sets. |
-| 2026-08-27 | Corrected dependency ownership: `@babel/core` belongs to zirka because zirka directly uses `@babel/eslint-parser`; it is not a pasika dependency. |
-| 2026-08-27 | Decided to internalize pasika's Markdown config: pasika owns its docs linting; zirka owns only consumer JS/TS/CSS/JSON composition. |
-| 2026-08-27 | Confirmed `jiti` remains a direct dev dependency for TypeScript ESLint config loading; removed reliance on transitive hoisting. |
-| 2026-08-27 | Recorded recovery plan: undo the circular release dependency, remove generated artifacts, require clean-install CI gates, and restore progress from this file at the start of each session. |
-| 2026-08-27 | Wrote 9 TS/TSX rules completing the doctor→ESLint migration: hook-extraction, value-extraction, config-extraction, component-nesting, stay-flat, locale-placement, type-extraction, shared-style-dedup, no-eslint-disable. Each cross-file rule reads the project index and reports like component-placement. |
-| 2026-08-27 | Reclassified 25 registry entries doctor → eslint (3 JSON, 10 CSS, 12 TS/TSX); doctor now holds only 5 environment checks. Coverage: 162 requirements, 123 eslint + 5 doctor, zero issues. |
-| 2026-08-27 | Trimmed `doctor.ts` to environment checks (config-baseline, managed-file-edit, source-under-src, framework packages, global-stylesheet existence) and trimmed `doctor.test.ts` to match. |
-| 2026-08-27 | Restored self-contained `eslint.config.ts` (imports pasikaConfig directly): the working tree had been switched to zirka's styleguide, which could not resolve `pasika` from zirka's dist and broke the lint gate — the exact circular state the recovery plan targets. Zirka remains only in `prettier.config.mjs`, which never triggers the pasika import. |
-| 2026-08-27 | Repaired the zirka dependency state: `package-lock.json` had a `link: true` entry for `node_modules/zirka` resolving to `../zirka` (machine-local sibling), which breaks clean `npm ci`. Pinned zirka devDep to published `^0.0.39` and regenerated the lockfile from the registry. Peer conflict (zirka 0.0.39 peers eslint ^9; pasika is on ESLint 10) requires `npm ci --legacy-peer-deps`, added to both workflows. Publishing zirka 0.0.40 (ESLint-10 build) later removes the need for the flag. |
-| 2026-08-27 | Noticed pre-existing CI gap: both workflows run `npm run docs`, but no `docs` script exists in package.json — the docs-lint gate has been broken since the documentation checks moved to ESLint rules. |
-| 2026-08-27 | Fixed the docs gate: added `npm run docs` wired to the pasika markdown rules. The styleguide's base config ignores markdown globally, so the docs lint lives in `eslint.docs.config.ts` (`eslint docs --config eslint.docs.config.ts`, `_templates` ignored). All 41 non-template docs pass all 24 markdown rules with zero violations. |
+| Date       | What happened                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-27 | Started M4: CSS + JSON rules written and tested; typecheck clean. Registry shows 98 eslint, 30 doctor, 21 judgment, 13 permission (162 total). `NEXT-SESSION.md` deleted during session.                                                                                                                                                                                                                                                                                                                                               |
+| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 2026-08-27 | Created MILESTONES.md to track progress across sessions.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 2026-08-27 | Wired CSS/JSON configs into zirka `styleguide.ts`; consumers now get CSS/JSON rules through the pasika styleguide option. Fixed pasika lint error in helpers.ts (`no-unnecessary-condition`).                                                                                                                                                                                                                                                                                                                                          |
+| 2026-08-27 | Expanded M4 to explicitly cover both pasika and zirka. Researched native language rule-definition types; ESLint 10/plugin compatibility and final verification remain open.                                                                                                                                                                                                                                                                                                                                                            |
+| 2026-08-27 | Standardized zirka plugin-object names as `pasikaJsTs`, `pasikaCss`, and `pasikaJson`; all are ESLint plugins, with language names distinguishing their rule sets.                                                                                                                                                                                                                                                                                                                                                                     |
+| 2026-08-27 | Corrected dependency ownership: `@babel/core` belongs to zirka because zirka directly uses `@babel/eslint-parser`; it is not a pasika dependency.                                                                                                                                                                                                                                                                                                                                                                                      |
+| 2026-08-27 | Decided to internalize pasika's Markdown config: pasika owns its docs linting; zirka owns only consumer JS/TS/CSS/JSON composition.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 2026-08-27 | Confirmed `jiti` remains a direct dev dependency for TypeScript ESLint config loading; removed reliance on transitive hoisting.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 2026-08-27 | Recorded recovery plan: undo the circular release dependency, remove generated artifacts, require clean-install CI gates, and restore progress from this file at the start of each session.                                                                                                                                                                                                                                                                                                                                            |
+| 2026-08-27 | Wrote 9 TS/TSX rules completing the doctor→ESLint migration: hook-extraction, value-extraction, config-extraction, component-nesting, stay-flat, locale-placement, type-extraction, shared-style-dedup, no-eslint-disable. Each cross-file rule reads the project index and reports like component-placement.                                                                                                                                                                                                                          |
+| 2026-08-27 | Reclassified 25 registry entries doctor → eslint (3 JSON, 10 CSS, 12 TS/TSX); doctor now holds only 5 environment checks. Coverage: 162 requirements, 123 eslint + 5 doctor, zero issues.                                                                                                                                                                                                                                                                                                                                              |
+| 2026-08-27 | Trimmed `doctor.ts` to environment checks (config-baseline, managed-file-edit, source-under-src, framework packages, global-stylesheet existence) and trimmed `doctor.test.ts` to match.                                                                                                                                                                                                                                                                                                                                               |
+| 2026-08-27 | Restored self-contained `eslint.config.ts` (imports pasikaConfig directly): the working tree had been switched to zirka's styleguide, which could not resolve `pasika` from zirka's dist and broke the lint gate — the exact circular state the recovery plan targets. Zirka remains only in `prettier.config.mjs`, which never triggers the pasika import.                                                                                                                                                                            |
+| 2026-08-27 | Repaired the zirka dependency state: `package-lock.json` had a `link: true` entry for `node_modules/zirka` resolving to `../zirka` (machine-local sibling), which breaks clean `npm ci`. Pinned zirka devDep to published `^0.0.39` and regenerated the lockfile from the registry. Peer conflict (zirka 0.0.39 peers eslint ^9; pasika is on ESLint 10) requires `npm ci --legacy-peer-deps`, added to both workflows. Publishing zirka 0.0.40 (ESLint-10 build) later removes the need for the flag.                                 |
+| 2026-08-27 | Noticed pre-existing CI gap: both workflows run `npm run docs`, but no `docs` script exists in package.json — the docs-lint gate has been broken since the documentation checks moved to ESLint rules.                                                                                                                                                                                                                                                                                                                                 |
+| 2026-08-27 | Fixed the docs gate: added `npm run docs` wired to the pasika markdown rules. The styleguide's base config ignores markdown globally, so the docs lint lives in `eslint.docs.config.ts` (`eslint docs --config eslint.docs.config.ts`, `_templates` ignored). All 41 non-template docs pass all 24 markdown rules with zero violations.                                                                                                                                                                                                |
 | 2026-08-27 | Restored the local zirka-styleguide dev setup (working tree only, kept out of commits): pasika's `node_modules/zirka → ../../zirka` (local 0.0.40), zirka's `node_modules/pasika` file-installed from `../pasika` (0.3.2), `eslint.config.ts` back to `styleguide({ node, typescript, pasika })`. The committed state stays self-contained per the recovery plan; `npm ci` and CI keep using the registry path. Fixed 13 lint findings the base presets surfaced in the new rules/tests (prefer-template, prefer-named-capture-group). |
+| 2026-08-27 | Released pasika v0.3.2 (tag moved off the stale failed tag; publish workflow green, npm confirms 0.3.2). M4 code work complete at this point. |
+| 2026-08-27 | Released zirka v0.0.40: added read-only CI gates (lint/typecheck/build) to zirka's `ci.yml` + `publish.yml`, fixed the mutating `check` script, regenerated zirka's lockfile from the registry (removed `../pasika` link). Published and confirmed on npm. |
+| 2026-08-27 | Found and fixed zirka packaging bug: `typescript-eslint` was runtime-imported by the styleguide but only a devDependency, so registry-installed consumers couldn't load it (masked locally by the symlink). Moved to `dependencies`, released zirka v0.0.41. |
+| 2026-08-27 | Phase 3 complete: pasika's committed `eslint.config.ts` now uses `styleguide({ node, typescript, pasika })` from zirka `^0.0.41` exactly like a consumer. Plain `npm ci` works (no `--legacy-peer-deps`), all gates green, CI green on the pushed commit. Both packages released, cycle resolved via registry. |
