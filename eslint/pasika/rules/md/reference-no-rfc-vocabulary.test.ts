@@ -1,7 +1,7 @@
 import { describe, mdRuleTester } from "./rule-tester";
 import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
 
-void describe("A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.", () => {
+void describe("A Reference MUST NOT state a constraint using RFC 2119 vocabulary, and a constraint the reader has to satisfy, stated in plain declarative wording, MUST live in a Rule.", () => {
   mdRuleTester.run("reference-no-rfc-vocabulary", referenceNoRfcVocabularyRule, {
     valid: [
       // A lookup fact stated plainly, with no RFC vocabulary imposing the constraint.

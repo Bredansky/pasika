@@ -695,8 +695,8 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.",
-      "hash": "36dfefa25c",
+      "text": "A Reference MUST NOT state a constraint using RFC 2119 vocabulary, and a constraint the reader has to satisfy, stated in plain declarative wording, MUST live in a Rule.",
+      "hash": "d561faeb34",
       "ref": "pasika/reference-no-rfc-vocabulary",
       "note": "the reference-no-rfc-vocabulary check catches a constraint stated with RFC 2119 wording; recognizing one stated in plain declarative wording without keywords stays judgment"
     },
