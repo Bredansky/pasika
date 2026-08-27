@@ -27,8 +27,13 @@
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
+    "prepare": "husky",
     "test": "node --import tsx --test 'eslint/**/*.test.ts' 'enforcement/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
+  },
+  "lint-staged": {
+    "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "prettier --write --ignore-unknown",
+    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npx eslint --fix"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -46,7 +51,9 @@
     "@typescript-eslint/parser": "^8.68.0",
     "@typescript-eslint/utils": "^8.68.0",
     "eslint": "^10.9.1",
+    "husky": "^9.1.7",
     "jiti": "^2.7.0",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "tsup": "^8.5.1",
     "tsx": "^4.23.12",
