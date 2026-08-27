@@ -6,7 +6,7 @@ When locale strings are scattered across components and constants, they are hard
 - Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).
 - Locales read by files in more than one feature folder or by `src/shared/`, `src/compositions/`, `src/app/`, or root support folders MUST live at the top level of `locales`.
 - A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).
-- A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.
+- A locale key MUST be camelCase English based on the text. A direct translation longer than 30 characters is unwieldy, so such a key MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as Button, Link, or Dialog. A shorter key MAY describe the message's purpose instead when the direct translation would be unclear.
 
 ## Incorrect — Flat Feature Locale Keys
 
