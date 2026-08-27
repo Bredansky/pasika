@@ -14,6 +14,12 @@
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 
+/** A JSX expression container, the parser's shape for `{expr}`. */
+interface JsxExpressionContainer {
+  type: "JSXExpressionContainer";
+  expression: ESTree.Node | null;
+}
+
 /**
  * JSX element/fragment shapes as @typescript-eslint/parser produces them.
  * ESTree carries no JSX types, so the shapes this rule reads are declared here
@@ -31,18 +37,17 @@ type JsxNode = Rule.Node & {
 type JsxChild = Rule.Node | JsxNode;
 
 /** The parser-specific `type` string of any node, JSX included. */
-function nodeKind(node: Rule.Node): string {
-  return (node as { type?: string }).type ?? "";
+function nodeKind(node: { type: string }): string {
+  return node.type;
 }
 
-/** ESTree nodes lack ESLint's `parent` extension; widen to Rule.Node. */
-function toRuleNode(node: ESTree.Node): Rule.Node {
-  return node as Rule.Node;
-}
-
-function isJsxNode(node: Rule.Node): node is JsxNode {
+function isJsxNode(node: ESTree.Node | JsxExpressionContainer): node is JsxNode {
   const kind = nodeKind(node);
   return kind === "JSXElement" || kind === "JSXFragment";
+}
+
+function isJsxExpressionContainer(node: ESTree.Node | JsxExpressionContainer): node is JsxExpressionContainer {
+  return node.type === "JSXExpressionContainer";
 }
 
 /**
@@ -51,26 +56,22 @@ function isJsxNode(node: Rule.Node): node is JsxNode {
  * Text, identifiers, and member-expression data are not visited, because
  * different data or labels must not change the shape.
  */
-function walkJsx(current: Rule.Node, visit: (node: JsxNode) => void): void {
-  const kind = nodeKind(current);
-
-  if (kind === "JSXElement" || kind === "JSXFragment") {
-    const jsx = current as JsxNode;
-    visit(jsx);
-    for (const child of jsx.children ?? []) walkJsx(child, visit);
-  } else if (kind === "JSXExpressionContainer") {
-    const expression = (current as { expression?: ESTree.Node | null }).expression;
-    if (expression) walkJsx(toRuleNode(expression), visit);
+function walkJsx(current: ESTree.Node | JsxExpressionContainer, visit: (node: JsxNode) => void): void {
+  if (isJsxNode(current)) {
+    visit(current);
+    for (const child of current.children ?? []) walkJsx(child, visit);
+  } else if (isJsxExpressionContainer(current)) {
+    if (current.expression) walkJsx(current.expression, visit);
   } else if (current.type === "ArrowFunctionExpression") {
-    walkJsx(toRuleNode(current.body), visit);
+    walkJsx(current.body, visit);
   } else if (current.type === "CallExpression") {
-    for (const argument of current.arguments) walkJsx(toRuleNode(argument), visit);
+    for (const argument of current.arguments) walkJsx(argument, visit);
   } else if (current.type === "ConditionalExpression") {
-    walkJsx(toRuleNode(current.consequent), visit);
-    walkJsx(toRuleNode(current.alternate), visit);
+    walkJsx(current.consequent, visit);
+    walkJsx(current.alternate, visit);
   } else if (current.type === "LogicalExpression") {
-    walkJsx(toRuleNode(current.left), visit);
-    walkJsx(toRuleNode(current.right), visit);
+    walkJsx(current.left, visit);
+    walkJsx(current.right, visit);
   }
 }
 
@@ -83,8 +84,7 @@ function walkJsx(current: Rule.Node, visit: (node: JsxNode) => void): void {
 function signature(node: JsxNode): string {
   const parts: string[] = [];
   const visit = (current: JsxNode): void => {
-    const opening =
-      nodeKind(current) === "JSXFragment" ? "<>" : (current.openingElement?.name as { name?: string }).name ?? "<>";
+    const opening = nodeKind(current) === "JSXFragment" ? "<>" : (current.openingElement?.name.name ?? "<>");
     parts.push(opening);
 
     if (nodeKind(current) === "JSXElement") {
@@ -104,7 +104,7 @@ function signature(node: JsxNode): string {
     for (const child of current.children ?? []) {
       if (isJsxNode(child)) {
         visit(child);
-      } else if (nodeKind(child) === "JSXExpressionContainer") {
+      } else if (isJsxExpressionContainer(child)) {
         walkJsx(child, visit);
         parts.push("{}");
       } else {

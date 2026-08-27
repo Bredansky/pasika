@@ -73,9 +73,8 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
               node,
               message:
                 `Smart component "${component.name}" has no single outer element; wrap its content in one outer ` +
-                "element with data-testid=\"" +
-                `${component.name}` +
-                "\" instead of rendering multiple roots. See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+                `element with data-testid="${component.name}" instead of rendering multiple roots. ` +
+                "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
             });
           }
         }

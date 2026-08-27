@@ -18,14 +18,17 @@ import type { Rule } from "eslint";
 import ts from "typescript";
 import { parseComponentInfo } from "./component-conventions";
 
-type Hook = { value: string; updater: string };
+interface Hook {
+  value: string;
+  updater: string;
+}
 
 /** The `useState` hooks declared anywhere in a component body. */
 function findStateHooks(node: ts.Node): Hook[] {
   const hooks: Hook[] = [];
   const visit = (child: ts.Node): void => {
     if (ts.isCallExpression(child) && ts.isIdentifier(child.expression) && child.expression.text === "useState") {
-      if (child.parent && ts.isVariableDeclaration(child.parent)) {
+      if (ts.isVariableDeclaration(child.parent)) {
         const { name } = child.parent;
         if (ts.isArrayBindingPattern(name) && name.elements.length >= 2) {
           const value = name.elements[0];
@@ -55,7 +58,7 @@ function isHookUsage(node: ts.Node, hook: Hook): "value" | "updater" | undefined
   // declaration `const [isHelpOpen] = …` nor a property-access base.
   if (ts.isIdentifier(node) && node.text === hook.value) {
     const parent = node.parent;
-    if (parent && (ts.isBindingElement(parent) || ts.isPropertyAccessExpression(parent) || ts.isShorthandPropertyAssignment(parent))) {
+    if (ts.isBindingElement(parent) || ts.isPropertyAccessExpression(parent) || ts.isShorthandPropertyAssignment(parent)) {
       return undefined;
     }
     // `isHelpOpen` on the left of `isHelpOpen && …` is a read.
@@ -69,12 +72,13 @@ function isHookUsage(node: ts.Node, hook: Hook): "value" | "updater" | undefined
  * root JSX node's kind. Returns an empty array when the return is not a
  * simple <tag>...children...</tag>.
  */
-function topLevelJsxChildren(expression: ts.Expression | undefined): {
+function topLevelJsxChildren(initial: ts.Expression | undefined): {
   root: ts.Node;
   children: ts.JsxChild[];
 } | undefined {
-  if (!expression) return undefined;
+  if (!initial) return undefined;
   // Unwrap `return (...)` parentheses around the JSX.
+  let expression = initial;
   while (ts.isParenthesizedExpression(expression)) expression = expression.expression;
   if (ts.isJsxFragment(expression)) {
     // A fragment with no outer tag still has its direct children.
@@ -140,7 +144,7 @@ export const soleStateOwnerRule: Rule.RuleModule = {
               node,
               loc: { line: 1, column: 0 },
               message:
-                `Component \"${component.name}\" uses state \"${hook.value}\" in ${String(run)} contiguous ` +
+                `Component "${component.name}" uses state "${hook.value}" in ${String(run)} contiguous ` +
                 `top-level JSX part${run === 1 ? "" : "s"}; extract that part into a named component that owns ` +
                 `useState instead of reading it in the parent. ` +
                 "See docs/code-organization-guide/rules/sole-state-owner-rule.md",
@@ -165,7 +169,6 @@ function analyzeSoleOwner(
   const body = ts.isFunctionDeclaration(declaration) ? declaration.body : undefined;
   if (!body || !ts.isBlock(body)) return undefined;
 
-  let returnExpression: ts.Expression | undefined;
   const returns: ts.ReturnStatement[] = [];
   const visit = (node: ts.Node): void => {
     if (node !== body && (ts.isFunctionLike(node) || ts.isClassLike(node))) return;
@@ -178,8 +181,8 @@ function analyzeSoleOwner(
   // different outer elements are beyond this rule's scope.
   if (returns.length !== 1) return undefined;
   const single = returns[0];
-  if (!single || !single.expression || !ts.isExpression(single.expression)) return undefined;
-  returnExpression = single.expression;
+  if (!single?.expression || !ts.isExpression(single.expression)) return undefined;
+  const returnExpression = single.expression;
 
   const root = topLevelJsxChildren(returnExpression);
   if (!root || root.children.length === 0) return undefined;
@@ -222,9 +225,9 @@ function usesOutsideJsx(declaration: ts.Node, hook: Hook, children: ts.Node[]): 
     if (node !== declaration && (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node))) return;
     if (isHookUsage(node, hook)) {
       // A use is "outside JSX" if it is not underneath one of the top-level children.
-      let current: ts.Node | undefined = node;
+      let current: ts.Node = node;
       let isInJsxChild = false;
-      while (current) {
+      while (!ts.isSourceFile(current)) {
         if (children.includes(current)) {
           isInJsxChild = true;
           break;

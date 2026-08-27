@@ -138,7 +138,7 @@ export const localeKeyShapeRule: Rule.RuleModule = {
     return {
       VariableDeclarator(node) {
         if (node.id.type !== "Identifier" || node.id.name !== "locales") return;
-        if (!node.init || node.init.type !== "ObjectExpression") return;
+        if (node.init?.type !== "ObjectExpression") return;
         visitObject(node.init);
       },
     };
