@@ -3,9 +3,9 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { classifyRequirement } from "./coverage.js";
+import { classifyRequirement, readRegistry, writeRegistry } from "./coverage.js";
 import { parseDocs } from "./parse-docs.js";
-import type { Registry } from "./types.js";
+import type { Registry, Requirement } from "./types.js";
 
 const DOC = `# Example Rule
 
@@ -104,5 +104,66 @@ void describe("classifyRequirement", () => {
       ref: "pasika/overview-length, pasika/no-template-prompt",
     });
     assert.equal(requirement.ref, "pasika/overview-length, pasika/no-template-prompt");
+  });
+});
+
+/** A registry entry for one parsed requirement. */
+function toEntry(parsed: { doc: string; raw: string; hash: string }): Requirement {
+  return { doc: parsed.doc, text: parsed.raw, hash: parsed.hash, kind: "eslint", ref: "pasika/filename-case" };
+}
+
+void describe("writeRegistry", () => {
+  void it("writes entries in document order, then line order within each doc", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-write-"));
+    mkdirSync(path.join(root, "rules"), { recursive: true });
+    // Two docs whose path order and requirement order both matter.
+    writeFileSync(
+      path.join(root, "rules", "b-rule.md"),
+      "# B Rule\n\n- A b-first requirement MUST hold.\n- A b-second requirement MUST hold too.\n",
+    );
+    writeFileSync(
+      path.join(root, "rules", "a-rule.md"),
+      "# A Rule\n\n- An a-first requirement MUST hold.\n- An a-second requirement MUST hold too.\n",
+    );
+
+    const parsed = parseDocs(root).flatMap((doc) =>
+      doc.requirements.map((requirement) => ({ doc: doc.doc, ...requirement })),
+    );
+    // Deliberately shuffled: reverse of the doc order.
+    const registryPath = path.join(root, "registry.json");
+    writeRegistry(registryPath, { requirements: parsed.map(toEntry).reverse() }, root);
+
+    const written = readRegistry(registryPath);
+    assert.deepEqual(
+      written.requirements.map((entry) => entry.hash),
+      parsed.map((entry) => entry.hash),
+      "registry reads in the same order as the docs",
+    );
+  });
+
+  void it("places an entry whose hash the docs no longer contain after the parsed ones", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-write-"));
+    writeFileSync(path.join(root, "only-rule.md"), "# Only Rule\n\n- The one requirement MUST hold.\n");
+
+    const parsed = parseDocs(root).flatMap((doc) =>
+      doc.requirements.map((requirement) => ({ doc: doc.doc, ...requirement })),
+    );
+    const stale: Requirement = {
+      doc: "only-rule.md",
+      text: "A removed requirement MUST be gone.",
+      hash: "0000000000",
+      kind: "judgment",
+      note: "the bullet was deleted from the doc",
+    };
+
+    const registryPath = path.join(root, "registry.json");
+    writeRegistry(registryPath, { requirements: [stale, ...parsed.map(toEntry)] }, root);
+
+    const written = readRegistry(registryPath);
+    assert.deepEqual(
+      written.requirements.map((entry) => entry.hash),
+      [...parsed.map((entry) => entry.hash), stale.hash],
+      "the stale entry trails the parsed ones",
+    );
   });
 });
