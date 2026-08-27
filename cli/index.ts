@@ -79,7 +79,7 @@ program
             registry: readRegistry(registryPath),
             input: { hash: options.classify, kind: kind.data, ref: options.ref, note: options.note },
           });
-          writeRegistry(registryPath, result.registry);
+          writeRegistry(registryPath, result.registry, docsRoot);
           const change =
             result.previousKind === undefined
               ? `recorded as ${result.requirement.kind}`
@@ -120,7 +120,7 @@ program
       );
 
       if (options.accept) {
-        writeRegistry(registryPath, report.nextRegistry);
+        writeRegistry(registryPath, report.nextRegistry, docsRoot);
         const accepted = report.issues.filter((issue) => issue.kind === "changed" || issue.kind === "removed");
         log(`\nAccepted ${String(accepted.length)} change(s) into ${REGISTRY_RELATIVE_PATH}.`);
         log("Requirements reported as new still need a classification.");
