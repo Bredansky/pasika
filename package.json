@@ -52,7 +52,7 @@
     "prettier": "^3.8.1",
     "tsx": "^4.23.12",
     "typescript": "^5.9.2",
-    "zirka": "^0.0.39"
+    "zirka": "^0.0.41"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
