@@ -1,5 +1,5 @@
 {
-  "extends": "zirka/typescript",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "declaration": false,
     "outDir": "./dist",

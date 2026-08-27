@@ -1,10 +1,9 @@
-import { RuleSeverity, styleguide } from "zirka";
+import type { Linter } from "eslint";
+import { pasikaConfig } from "./eslint/pasika/index.js";
 
-const { eslintConfig } = styleguide({
-  node: RuleSeverity.Error,
-  typescript: RuleSeverity.Error,
-  pasika: RuleSeverity.Error,
-  ignores: ["dist/**", "node_modules/**"],
-});
+const config: Linter.Config[] = [
+  pasikaConfig,
+  { ignores: ["dist/**", "node_modules/**", "docs/**"] },
+];
 
-export default eslintConfig;
+export default config;
