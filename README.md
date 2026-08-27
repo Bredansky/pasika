@@ -42,7 +42,7 @@ Requirements are identified by a hash of their canonical text, not by a hand-wri
 }
 ```
 
-The `note` field is where a check's known gap is recorded, so a partial check never reads as a complete one.
+The `text` field is the bullet as written in the document (markdown links and code spans intact), so it is greppable in the doc it came from; the `hash` is computed from the same text with links collapsed to their text and code spans unwrapped, so editing a URL or adding backticks does not read as a change. The `note` field is where a check's known gap is recorded, so a partial check never reads as a complete one.
 
 | Kind | Meaning |
 | --- | --- |

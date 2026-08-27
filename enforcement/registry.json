@@ -2,7 +2,7 @@
   "requirements": [
     {
       "doc": "agent-policy.md",
-      "text": "A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or npx pasika doctor (environment checks) did not already report.",
+      "text": "A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or `npx pasika doctor` (environment checks) did not already report.",
       "hash": "f8d1db6aaf",
       "kind": "judgment",
       "note": "deciding a finding is new requires the previous state, which neither command carries"
@@ -23,7 +23,7 @@
     },
     {
       "doc": "agent-policy.md",
-      "text": "A commit MUST NOT use the --no-verify flag.",
+      "text": "A commit MUST NOT use the `--no-verify` flag.",
       "hash": "e1c615452f",
       "kind": "judgment",
       "note": "how git was invoked is not observable from the repository"
@@ -37,41 +37,41 @@
     },
     {
       "doc": "agent-policy.md",
-      "text": "A file listed in a .vulyk manifest MUST NOT be edited by hand.",
+      "text": "A file listed in a `.vulyk` manifest MUST NOT be edited by hand.",
       "hash": "2390e57f4f",
       "kind": "doctor",
       "ref": "pasika/managed-file-edit"
     },
     {
       "doc": "agent-policy.md",
-      "text": "A lint command MUST NOT pass ESLint's --cache flag, because rules that compare a file against the rest of the tree need every file in the run.",
+      "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
       "hash": "2b3f806581",
       "kind": "eslint",
       "ref": "pasika/no-cache-flag"
     },
     {
       "doc": "agent-policy.md",
-      "text": "A repository MUST take its lint, format, and TypeScript configuration from pasika and zirka rather than restating it locally.",
+      "text": "A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.",
       "hash": "12553abd17",
       "kind": "doctor",
       "ref": "pasika/config-baseline"
     },
     {
       "doc": "agent-policy.md",
-      "text": "An agent MAY discover available commands with agent-browser --help and command-specific usage with agent-browser <command> --help.",
+      "text": "An agent MAY discover available commands with `agent-browser --help` and command-specific usage with `agent-browser <command> --help`.",
       "hash": "8370ec5f41",
       "kind": "permission"
     },
     {
       "doc": "agent-policy.md",
-      "text": "Browser behavior a task depends on MUST be verified with agent-browser.",
+      "text": "Browser behavior a task depends on MUST be verified with `agent-browser`.",
       "hash": "034197e9d7",
       "kind": "judgment",
       "note": "whether a task depends on browser behavior is not observable"
     },
     {
       "doc": "agent-policy.md",
-      "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
+      "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
       "hash": "628ab4f6a6",
       "kind": "eslint",
       "ref": "pasika/no-eslint-disable"
@@ -92,28 +92,28 @@
     },
     {
       "doc": "agent-policy.md",
-      "text": "Vulyk MUST NOT be added to package.json in order to run its CLI.",
+      "text": "Vulyk MUST NOT be added to `package.json` in order to run its CLI.",
       "hash": "1061447825",
       "kind": "eslint",
       "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "agent-policy.md",
-      "text": "Vulyk MUST run as an ephemeral command such as npx vulyk@latest.",
+      "text": "Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.",
       "hash": "c8aaf8ce02",
       "kind": "eslint",
       "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "agent-policy.md",
-      "text": "agent-browser upgrade MUST run before agent-browser is used in a task.",
+      "text": "`agent-browser upgrade` MUST run before `agent-browser` is used in a task.",
       "hash": "aea9247939",
       "kind": "judgment",
       "note": "tool invocation order within a task is not observable"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders.",
+      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders.",
       "hash": "5cc68d9d44",
       "kind": "permission",
       "note": "the application-structure check must allow support folders in these scopes"
@@ -128,7 +128,7 @@
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds.",
+      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds.",
       "hash": "1ea6de0cbf",
       "kind": "eslint",
       "ref": "pasika/application-structure"
@@ -142,49 +142,49 @@
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "Application source MUST live under src/.",
+      "text": "Application source MUST live under `src/`.",
       "hash": "0a5c03a95d",
       "kind": "doctor",
       "ref": "pasika/source-under-src"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "src/ MUST contain only the app/, compositions/, features/, and shared/ folders, the root support folders, config/, locales/, and the files a framework requires at the src root.",
+      "text": "`src/` MUST contain only the `app/`, `compositions/`, `features/`, and `shared/` folders, the root support folders, `config/`, `locales/`, and the files a framework requires at the `src` root.",
       "hash": "dd84e5498f",
       "kind": "eslint",
       "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "src/features/ MUST contain only feature folders.",
+      "text": "`src/features/` MUST contain only feature folders.",
       "hash": "8e68eeb8c4",
       "kind": "eslint",
       "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component that imports from two or more feature folders MUST live in src/compositions/.",
+      "text": "A component that imports from two or more feature folders MUST live in `src/compositions/`.",
       "hash": "a00c621fbe",
       "kind": "eslint",
       "ref": "pasika/cross-feature-import"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component whose CCF is src/features/ MUST live in src/shared/.",
+      "text": "A component whose CCF is `src/features/` MUST live in `src/shared/`.",
       "hash": "b1a3a85205",
       "kind": "eslint",
       "ref": "pasika/component-placement"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component with at least one consumer outside src/app/ and configuration modules MUST live in its CCF, calculated without imports from src/app/ or configuration modules.",
+      "text": "A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.",
       "hash": "ace1e1e4e0",
       "kind": "eslint",
       "ref": "pasika/component-placement"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
+      "text": "A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
       "hash": "b3d12b8551",
       "kind": "eslint",
       "ref": "pasika/component-placement",
@@ -192,21 +192,21 @@
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "When calculating a component's CCF, consumers under src/compositions/ MUST count only when no consumer is outside src/compositions/.",
+      "text": "When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.",
       "hash": "861dd64bfa",
       "kind": "eslint",
       "ref": "pasika/component-placement"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
-      "text": "src/app/ MUST contain Next.js App Router framework-convention files and assets, plus styles required by routing files, but MUST NOT contain ordinary components or support folders.",
+      "text": "`src/app/` MUST contain [Next.js App Router framework-convention files and assets](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), plus styles required by routing files, but MUST NOT contain ordinary components or support folders.",
       "hash": "6a1d1f370e",
       "kind": "eslint",
       "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
-      "text": "A configuration module MUST be one src/config/<config-name>/ folder with index.ts as its entry point.",
+      "text": "A configuration module MUST be one `src/config/<config-name>/` folder with `index.ts` as its entry point.",
       "hash": "2f17655f6f",
       "kind": "eslint",
       "ref": "pasika/application-structure"
@@ -220,7 +220,7 @@
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
-      "text": "All configuration modules MUST live in src/config/.",
+      "text": "All configuration modules MUST live in `src/config/`.",
       "hash": "068f9a0a91",
       "kind": "eslint",
       "ref": "pasika/application-structure"
@@ -234,24 +234,24 @@
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
-      "text": "An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under src/config/<config-name>/.",
+      "text": "An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under `src/config/<config-name>/`.",
       "hash": "d931ef91df",
       "kind": "eslint",
       "ref": "pasika/application-structure"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in src/config/<module>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
-      "hash": "57f90aa714",
-      "kind": "permission",
-      "note": "pasika/support-file-placement skips the constants/ folder of a configuration module"
-    },
-    {
-      "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "A constants/ folder MUST either define its constants directly in index.ts or group related constants in files that index.ts named-re-exports.",
+      "text": "A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in files that `index.ts` named-re-exports.",
       "hash": "2d1591194c",
       "kind": "eslint",
       "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "code-organization-guide/rules/constants-rule.md",
+      "text": "A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
+      "hash": "57f90aa714",
+      "kind": "permission",
+      "note": "pasika/support-file-placement skips the constants/ folder of a configuration module"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -262,21 +262,21 @@
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "Consumers MUST import an extracted constant through the index.ts in that constant's constants/ folder.",
+      "text": "Consumers MUST import an extracted constant through the `index.ts` in that constant's `constants/` folder.",
       "hash": "0a7bdc1dfe",
       "kind": "eslint",
       "ref": "pasika/import-through-index"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "Extracted constants MUST live in a constants/ folder at the CCF of their consumers.",
+      "text": "Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.",
       "hash": "34022a9e2b",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
-      "text": "When a constant's CCF is src/features/, it MUST move to src/constants/.",
+      "text": "When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.",
       "hash": "2b137b9350",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
@@ -290,14 +290,14 @@
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in a feature folder MUST NOT import from another feature folder, src/compositions/, or src/app/.",
+      "text": "A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.",
       "hash": "e91ffc37d1",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in the root layer MUST NOT import from src/app/, src/compositions/, a feature folder, or src/shared/.",
+      "text": "A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.",
       "hash": "a73db9af2e",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
@@ -311,28 +311,28 @@
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file under src/compositions/ MUST NOT import from src/app/.",
+      "text": "A file under `src/compositions/` MUST NOT import from `src/app/`.",
       "hash": "591ad01f1d",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "A file under src/shared/ MUST NOT import from src/app/, src/compositions/, or a feature folder.",
+      "text": "A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.",
       "hash": "901b928be3",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "Imports MUST use the relative path when the relative path and the @/* alias have the same number of segments.",
+      "text": "Imports MUST use the relative path when the relative path and the `@/*` alias have the same number of segments.",
       "hash": "2e467d4659",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
     },
     {
       "doc": "code-organization-guide/rules/exports-and-imports-rule.md",
-      "text": "Imports MUST use whichever of the relative path and the @/* alias has fewer segments, counting each ../ step and each name in the path as one segment.",
+      "text": "Imports MUST use whichever of the relative path and the `@/*` alias has fewer segments, counting each `../` step and each name in the path as one segment.",
       "hash": "47c4ccc7fd",
       "kind": "eslint",
       "ref": "pasika/import-boundaries"
@@ -360,7 +360,7 @@
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
-      "text": "The nested folder's index.ts MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
+      "text": "The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
       "hash": "d3fba850df",
       "kind": "eslint",
       "ref": "pasika/enforce-barrel-exports"
@@ -388,35 +388,35 @@
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
-      "text": "An extracted custom hook MUST live in a hooks/ folder at the CCF of its consumers.",
+      "text": "An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.",
       "hash": "9b975cbb62",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
-      "text": "When a custom hook's CCF is src/features/, it MUST move to src/hooks/.",
+      "text": "When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.",
       "hash": "afef325493",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/interactive-component-rule.md",
-      "text": "An interactive HTML element MUST be extracted to a component with a descriptive name.",
+      "text": "An [interactive HTML element](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.",
       "hash": "56a186c55b",
       "kind": "eslint",
       "ref": "pasika/interactive-component"
     },
     {
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
-      "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. cn() MAY be called inline. An event handler MAY make one call inline.",
+      "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. `cn()` MAY be called inline. An event handler MAY make one call inline.",
       "hash": "d8f4ceb822",
       "kind": "permission",
       "note": "the jsx-hygiene check must treat exactly these as the permitted inline set"
     },
     {
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
-      "text": "Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before return, including in JSX attributes.",
+      "text": "Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before `return`, including in JSX attributes.",
       "hash": "979a3e96c3",
       "kind": "eslint",
       "ref": "pasika/jsx-hygiene"
@@ -430,28 +430,28 @@
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "A namespaced locale MUST be read through its full dotted path (locales.stream.watchLiveStream).",
+      "text": "A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).",
       "hash": "3c10684240",
       "kind": "eslint",
       "ref": "pasika/locale-dotted-path"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "All locales MUST live in the named locales object exported from src/locales/index.ts.",
+      "text": "All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.",
       "hash": "2469d743da",
       "kind": "eslint",
       "ref": "pasika/locales-location"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",
+      "text": "Locales read by files in more than one feature folder or by `src/shared/`, `src/compositions/`, `src/app/`, or root support folders MUST live at the top level of `locales`.",
       "hash": "4f947bf362",
       "kind": "eslint",
       "ref": "pasika/locale-placement"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
-      "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).",
+      "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).",
       "hash": "66addb15b3",
       "kind": "eslint",
       "ref": "pasika/locale-placement"
@@ -465,7 +465,7 @@
     },
     {
       "doc": "code-organization-guide/rules/no-mixed-concerns-rule.md",
-      "text": "A .tsx file that defines a component MUST contain exactly one component.",
+      "text": "A `.tsx` file that defines a component MUST contain exactly one component.",
       "hash": "b19fe3bd34",
       "kind": "eslint",
       "ref": "pasika/no-mixed-concerns",
@@ -480,42 +480,42 @@
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A dumb component MAY set data-testid on its root element, and the value MUST be kebab-case.",
+      "text": "A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.",
       "hash": "4c78863697",
       "kind": "eslint",
       "ref": "pasika/data-testid-case"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A dumb component file name MUST be kebab-case.tsx.",
+      "text": "A dumb component file name MUST be `kebab-case.tsx`.",
       "hash": "7639f7df0b",
       "kind": "eslint",
       "ref": "pasika/filename-case"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component file name MUST be PascalCase.tsx.",
+      "text": "A smart component file name MUST be `PascalCase.tsx`.",
       "hash": "1ece393f32",
       "kind": "eslint",
       "ref": "pasika/filename-case"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component with one outer DOM element in every rendered result MUST set data-testid on that element, and its value MUST match the component name in PascalCase.",
+      "text": "A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.",
       "hash": "31dc8b3188",
       "kind": "eslint",
       "ref": "pasika/data-testid-case"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component without one outer DOM element in every rendered result MAY omit data-testid.",
+      "text": "A smart component without one outer DOM element in every rendered result MAY omit `data-testid`.",
       "hash": "b0dc309f05",
       "kind": "permission",
       "note": "the data-testid check must exempt a component with no single outer element"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "Next.js App Router routing files MUST use their required kebab-case names and are exempt from smart/dumb file-name and data-testid requirements.",
+      "text": "[Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.",
       "hash": "fb2c9ab370",
       "kind": "eslint",
       "ref": "pasika/data-testid-case"
@@ -529,7 +529,14 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "A type MAY stay in src/config/<module>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
+      "text": "A `types/` or `schemas/` folder MUST either define its exports directly in `index.ts` or group related types and schemas in files that `index.ts` named-re-exports.",
+      "hash": "b13a973306",
+      "kind": "eslint",
+      "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
+      "text": "A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
       "hash": "091724ed27",
       "kind": "permission",
       "note": "pasika/support-file-placement skips the types/ folder of a configuration module"
@@ -550,28 +557,21 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema used only to implement one configuration module MUST live in that module's types/ or schemas/ folder.",
+      "text": "A type or schema used only to implement one configuration module MUST live in that module's `types/` or `schemas/` folder.",
       "hash": "7a5f58f278",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "A types/ or schemas/ folder MUST either define its exports directly in index.ts or group related types and schemas in files that index.ts named-re-exports.",
-      "hash": "b13a973306",
-      "kind": "eslint",
-      "ref": "pasika/support-folder-shape"
-    },
-    {
-      "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "Consumers MUST import an extracted type or schema through the index.ts in that type or schema's types/ or schemas/ folder.",
+      "text": "Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.",
       "hash": "24fb9c0774",
       "kind": "eslint",
       "ref": "pasika/import-through-index"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "Extracted types and schemas MUST live in their matching types/ or schemas/ folder at the CCF of their consumers.",
+      "text": "Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the CCF of their consumers.",
       "hash": "d8f89cd54a",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
@@ -585,14 +585,14 @@
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
-      "text": "When a type or schema's CCF is src/features/, it MUST move to src/types/ or src/schemas/.",
+      "text": "When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.",
       "hash": "c8fc7e7374",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "A pure function MUST be extracted to utils/, even when it has one consumer.",
+      "text": "A pure function MUST be extracted to `utils/`, even when it has one consumer.",
       "hash": "d49b4ce49a",
       "kind": "eslint",
       "ref": "pasika/pure-function-extract"
@@ -613,14 +613,14 @@
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "A utility used only to implement one configuration module MUST live in that module's utils/ folder.",
+      "text": "A utility used only to implement one configuration module MUST live in that module's `utils/` folder.",
       "hash": "c9d890d2d7",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "An extracted utility MUST live in the utils/ folder at the CCF of its consumers.",
+      "text": "An extracted utility MUST live in the `utils/` folder at the CCF of its consumers.",
       "hash": "bb1130ed9d",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
@@ -633,7 +633,7 @@
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
-      "text": "When a utility's CCF is src/features/, it MUST move to src/utils/.",
+      "text": "When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.",
       "hash": "ff2b2398f3",
       "kind": "eslint",
       "ref": "pasika/support-file-placement"
@@ -662,21 +662,21 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Guide with support files MUST become a folder named the same as its entry-point file, without the .md extension.",
+      "text": "A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.",
       "hash": "26a4eb93d4",
       "kind": "eslint",
       "ref": "pasika/guide-folder-entry-point"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Reference file that a Guide owns MUST live in a references/ subfolder inside the Guide's folder.",
+      "text": "A Reference file that a Guide owns MUST live in a `references/` subfolder inside the Guide's folder.",
       "hash": "4efb50f75f",
       "kind": "eslint",
       "ref": "pasika/support-document-placement"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Rule file that a Guide owns MUST live in a rules/ subfolder inside the Guide's folder.",
+      "text": "A Rule file that a Guide owns MUST live in a `rules/` subfolder inside the Guide's folder.",
       "hash": "73d2f1cc23",
       "kind": "eslint",
       "ref": "pasika/support-document-placement"
@@ -706,7 +706,7 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Guide file names MUST match the document title in kebab-case and use the -guide suffix (e.g., foo-guide.md).",
+      "text": "Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).",
       "hash": "e820de2429",
       "kind": "eslint",
       "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
@@ -778,7 +778,7 @@
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "Policy file names MUST match the document title in kebab-case and use the -policy suffix (e.g., foo-policy.md).",
+      "text": "Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).",
       "hash": "e83fddcd78",
       "kind": "eslint",
       "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
@@ -812,7 +812,7 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.",
+      "text": "A Reference MUST NOT use RFC 2119 vocabulary (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`), because lookup material describes what exists rather than imposing requirements.",
       "hash": "b06563ebdb",
       "kind": "eslint",
       "ref": "pasika/reference-no-rfc-vocabulary"
@@ -840,7 +840,7 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "Reference file names MUST match the document title in kebab-case and use the -reference suffix (e.g., foo-reference.md).",
+      "text": "Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).",
       "hash": "8aae1d6156",
       "kind": "eslint",
       "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
@@ -867,7 +867,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST contain at least one bullet point that uses RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).",
+      "text": "A Rule MUST contain at least one bullet point that uses [RFC 2119 vocabulary](https://datatracker.ietf.org/doc/html/rfc2119) (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`).",
       "hash": "2cfcc88337",
       "kind": "eslint",
       "ref": "pasika/requirement-present"
@@ -895,7 +895,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A bullet MUST use MUST or MUST NOT only when the requirement admits no exception, and SHOULD or SHOULD NOT only when exceptions are possible.",
+      "text": "A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, and `SHOULD` or `SHOULD NOT` only when exceptions are possible.",
       "hash": "67e994bec5",
       "kind": "judgment",
       "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
@@ -909,7 +909,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "text": "Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "kind": "eslint",
       "ref": "pasika/rfc-only-in-bullets",
@@ -925,7 +925,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Rule file names MUST match the document title in kebab-case and use the -rule suffix (e.g., foo-rule.md).",
+      "text": "Rule file names MUST match the document title in kebab-case and use the `-rule` suffix (e.g., `foo-rule.md`).",
       "hash": "58b18e4f61",
       "kind": "eslint",
       "ref": "pasika/title-matches-file-name, pasika/doc-kind-suffix"
@@ -967,35 +967,35 @@
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "A className passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and z-index.",
+      "text": "A `className` passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and `z-index`.",
       "hash": "a84eca1927",
       "kind": "eslint",
       "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "A component MUST expose its supported appearance and size variants through typed props, not through a passed className or separate class-name props for internal elements.",
+      "text": "A component MUST expose its supported appearance and size variants through typed props, not through a passed `className` or separate class-name props for internal elements.",
       "hash": "294fb0dbae",
       "kind": "eslint",
       "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "A static class list with more than five class names MUST use cn with multiple string literals, each grouped by styling concern and containing no more than five class names.",
+      "text": "A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.",
       "hash": "2c58fa578d",
       "kind": "eslint",
       "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "Components MUST NOT concatenate class strings with template literals or + when any part is conditional.",
+      "text": "Components MUST NOT concatenate class strings with template literals or `+` when any part is conditional.",
       "hash": "3afbe2697b",
       "kind": "eslint",
       "ref": "pasika/enforce-cn-merge"
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
-      "text": "Components MUST use cn or the project's equivalent class-merging helper for conditional classes and a className passed to the component.",
+      "text": "Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a `className` passed to the component.",
       "hash": "ecc15933e6",
       "kind": "eslint",
       "ref": "pasika/enforce-cn-merge",
@@ -1031,21 +1031,21 @@
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
-      "text": "A boolean prop that changes appearance MUST use conditional cn() when it only adds or removes one standalone class treatment.",
+      "text": "A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.",
       "hash": "c1fc4dacbd",
       "kind": "eslint",
       "ref": "pasika/cva-boolean-variants"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
-      "text": "A component that lets callers choose visual options MUST define them with cva.",
+      "text": "A component that lets callers choose visual options MUST define them with `cva`.",
       "hash": "8162f16933",
       "kind": "eslint",
       "ref": "pasika/cva-appearance-props"
     },
     {
       "doc": "styling-guide/rules/component-variant-rule.md",
-      "text": "A component's variant prop types MUST be derived from its cva definition with VariantProps rather than manually duplicated unions.",
+      "text": "A component's variant prop types MUST be derived from its `cva` definition with `VariantProps` rather than manually duplicated unions.",
       "hash": "c9d1cf136c",
       "kind": "eslint",
       "ref": "pasika/enforce-cva-variant-props"
@@ -1059,35 +1059,35 @@
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.",
+      "text": "Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.",
       "hash": "d89d54996c",
       "kind": "eslint",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "Style declarations added by the project inside global selectors MUST use @apply.",
+      "text": "Style declarations added by the project inside global selectors MUST use `@apply`.",
       "hash": "9799ce3761",
       "kind": "eslint",
       "ref": "pasika/apply-usage"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.",
+      "text": "The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.",
       "hash": "a3b7faf6da",
       "kind": "eslint",
       "ref": "pasika/base-layer-pair"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.",
+      "text": "The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
       "kind": "eslint",
       "ref": "pasika/stylesheet-ordering"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST reset Tailwind's default theme with --*: initial.",
+      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.",
       "hash": "d28608a7a3",
       "kind": "eslint",
       "ref": "pasika/theme-reset"
@@ -1101,21 +1101,21 @@
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.",
+      "text": "A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas` or `text-<role>-ink`.",
       "hash": "0fb98de16d",
       "kind": "eslint",
       "ref": "pasika/css-variable-naming"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
+      "text": "A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
       "hash": "a61de0650b",
       "kind": "eslint",
       "ref": "pasika/custom-utility-apply"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.",
+      "text": "A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.",
       "hash": "0d965db624",
       "kind": "eslint",
       "ref": "pasika/surface-utility"
@@ -1129,7 +1129,7 @@
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A value that needs at least two utility classes from the same Tailwind theme-variable namespace MUST use that namespace and have the same name in :root.",
+      "text": "A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.",
       "hash": "d9b8eeb83d",
       "kind": "eslint",
       "ref": "pasika/theme-variable-namespace"

@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 import { allPasikaRuleIds } from "../eslint/pasika/index.js";
+import { normalizeRequirement } from "./normalize.js";
 import { parseDocs, type ParsedRequirement } from "./parse-docs.js";
 import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types.js";
 
@@ -102,14 +103,14 @@ export function buildCoverageReport(options: {
     if (recorded) {
       matched.add(requirement.hash);
       counts[recorded.kind] += 1;
-      nextRequirements.push({ ...recorded, doc });
+      nextRequirements.push({ ...recorded, doc, text: requirement.raw });
 
       if (!isRefKnown(recorded)) {
         issues.push({
           kind: "unknown-ref",
           doc,
           line: requirement.line,
-          text: requirement.text,
+          text: requirement.raw,
           detail: `${recorded.kind} ref "${recorded.ref ?? "(none)"}" does not exist`,
         });
       }
@@ -118,7 +119,7 @@ export function buildCoverageReport(options: {
           kind: "missing-test",
           doc,
           line: requirement.line,
-          text: requirement.text,
+          text: requirement.raw,
           detail: `no rule test is titled with this requirement`,
         });
       }
@@ -128,26 +129,26 @@ export function buildCoverageReport(options: {
     // Not recorded under this hash: either a reworded requirement or a new one.
     const candidate = registry.requirements
       .filter((entry) => entry.doc === doc && !matched.has(entry.hash))
-      .map((entry) => ({ entry, score: similarity(entry.text, requirement.text) }))
+      .map((entry) => ({ entry, score: similarity(normalizeRequirement(entry.text), requirement.text) }))
       .sort((left, right) => right.score - left.score)
       .find(({ score }) => score >= 0.5);
 
     if (candidate) {
       matched.add(candidate.entry.hash);
       counts[candidate.entry.kind] += 1;
-      nextRequirements.push({ ...candidate.entry, doc, text: requirement.text, hash: requirement.hash });
+      nextRequirements.push({ ...candidate.entry, doc, text: requirement.raw, hash: requirement.hash });
       issues.push({
         kind: "changed",
         doc,
         line: requirement.line,
-        text: requirement.text,
+        text: requirement.raw,
         hash: requirement.hash,
         detail: `was "${candidate.entry.text}" — re-verify ${candidate.entry.kind}${
           candidate.entry.ref ? ` ${candidate.entry.ref}` : ""
         }`,
       });
     } else {
-      issues.push({ kind: "new", doc, line: requirement.line, text: requirement.text, hash: requirement.hash });
+      issues.push({ kind: "new", doc, line: requirement.line, text: requirement.raw, hash: requirement.hash });
     }
   }
 
@@ -230,7 +231,7 @@ export function classifyRequirement(options: {
 
   const requirement: Requirement = {
     doc: match.doc,
-    text: match.requirement.text,
+    text: match.requirement.raw,
     hash: match.requirement.hash,
     kind: input.kind,
     ...(refs.length > 0 ? { ref: refs.join(", ") } : {}),

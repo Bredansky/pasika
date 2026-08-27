@@ -93,6 +93,7 @@ function findDocLinks(line: string): string[] {
 
 export function parseDoc(filePath: string, docsRoot: string): ParsedDoc {
   const body = readFileSync(filePath, "utf8");
+  const sourceLines = body.split("\n");
   const prose = toProse(body, "$<content>");
   const proseWithoutCode = toProse(body, "");
   const fileName = path.basename(filePath);
@@ -113,7 +114,10 @@ export function parseDoc(filePath: string, docsRoot: string): ParsedDoc {
 
     if (/^\s*[-*]\s/.test(line) && RFC_2119.test(line)) {
       const text = normalizeRequirement(line);
-      requirements.push({ text, hash: hashRequirement(text), raw: line.replace(/^\s*[-*]\s+/, ""), line: lineNumber });
+      // The raw bullet as written in the source file (code spans and links intact),
+      // so a registry entry's text is greppable in the doc it came from.
+      const raw = (sourceLines[index] ?? "").replace(/^\s*[-*]\s+/, "");
+      requirements.push({ text, hash: hashRequirement(text), raw, line: lineNumber });
     }
 
     if (/^\s*\d+\.\s/.test(line)) {
