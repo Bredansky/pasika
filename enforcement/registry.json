@@ -329,7 +329,8 @@
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
       "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. `cn()` MAY be called inline. An event handler MAY make one call inline.",
       "hash": "d8f4ceb822",
-      "note": "the jsx-hygiene check must treat exactly these as the permitted inline set"
+      "ref": "pasika/jsx-hygiene",
+      "note": "the jsx-hygiene check flags every expression outside this set, so exactly these stay inline"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",

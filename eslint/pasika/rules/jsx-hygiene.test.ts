@@ -1,6 +1,34 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { jsxHygieneRule } from "./jsx-hygiene";
 
+void describe("An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. cn() MAY be called inline. An event handler MAY make one call inline.", () => {
+  ruleTester.run("jsx-hygiene", jsxHygieneRule, {
+    valid: [
+      {
+        code: "export function Card({ first, second }) { return <div>{first && second}</div>; }",
+        filename: srcFile("features/cards/card.tsx"),
+      },
+      {
+        code: "export function Card({ active, score }) { return <div>{active ? score : 0}</div>; }",
+        filename: srcFile("features/cards/card.tsx"),
+      },
+      {
+        code: "export function Card({ items }) { return <ul>{items.map((item) => <li key={item.id} />)}</ul>; }",
+        filename: srcFile("features/cards/card.tsx"),
+      },
+      {
+        code: "export function Card({ active, className }) { return <div className={cn('card', active && 'active', className)} />; }",
+        filename: srcFile("features/cards/card.tsx"),
+      },
+      {
+        code: "export function Card({ onSave }) { return <button onClick={() => onSave()} />; }",
+        filename: srcFile("features/cards/card.tsx"),
+      },
+    ],
+    invalid: [],
+  });
+});
+
 void describe("Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before return, including in JSX attributes.", () => {
   ruleTester.run("jsx-hygiene", jsxHygieneRule, {
     valid: [
