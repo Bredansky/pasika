@@ -2,8 +2,8 @@
   "requirements": [
     {
       "doc": "agent-policy.md",
-      "text": "A change MUST NOT introduce a finding that npx pasika doctor or the repository's lint command did not already report.",
-      "hash": "041b665bd7",
+      "text": "A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or npx pasika doctor (environment checks) did not already report.",
+      "hash": "f8d1db6aaf",
       "kind": "judgment",
       "note": "deciding a finding is new requires the previous state, which neither command carries"
     },
@@ -657,8 +657,8 @@
       "text": "A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.",
       "hash": "caef1018c4",
       "kind": "eslint",
-      "note": "docs-check: compare glossary terms against the guide's steps",
-      "ref": "pasika/glossary-term-linking"
+      "ref": "pasika/glossary-term-linking",
+      "note": "docs-check: compare glossary terms against the guide's steps"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -686,8 +686,8 @@
       "text": "A step that links another Guide MUST link directly to the relevant How To section.",
       "hash": "eade3a0166",
       "kind": "eslint",
-      "note": "docs-check: a guide link carries a How To anchor",
-      "ref": "pasika/guide-link-anchors"
+      "ref": "pasika/guide-link-anchors",
+      "note": "docs-check: a guide link carries a How To anchor"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -716,8 +716,8 @@
       "text": "How To sections MUST NOT nest inside other How To sections.",
       "hash": "23415cb949",
       "kind": "eslint",
-      "note": "docs-check: no heading nests inside a How To section",
-      "ref": "pasika/no-nested-how-to"
+      "ref": "pasika/no-nested-how-to",
+      "note": "docs-check: no heading nests inside a How To section"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -745,8 +745,8 @@
       "text": "A Policy document MUST group its bullets under a heading per subject.",
       "hash": "fa77621dda",
       "kind": "eslint",
-      "note": "docs-check: every bullet sits under a subject heading",
-      "ref": "pasika/policy-subject-headings"
+      "ref": "pasika/policy-subject-headings",
+      "note": "docs-check: every bullet sits under a subject heading"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
@@ -912,16 +912,16 @@
       "text": "Prose outside bullet points — intros, Why: explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "kind": "eslint",
-      "note": "docs-check: RFC 2119 vocabulary appears only in bullets",
-      "ref": "pasika/rfc-only-in-bullets"
+      "ref": "pasika/rfc-only-in-bullets",
+      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.",
       "hash": "e68233ce8b",
       "kind": "eslint",
-      "note": "docs-check: RFC 2119 vocabulary appears only in bullets",
-      "ref": "pasika/rfc-only-in-bullets"
+      "ref": "pasika/rfc-only-in-bullets",
+      "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",

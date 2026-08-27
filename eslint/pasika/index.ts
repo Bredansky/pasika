@@ -34,6 +34,8 @@ import { hookComplexityRule } from "./rules/hook-complexity.js";
 import { localeDottedPathRule } from "./rules/locale-dotted-path.js";
 import { localesLocationRule } from "./rules/locales-location.js";
 import { mdRules } from "./rules/md/index.js";
+import { cssRules } from "./rules/css/index.js";
+import { jsonRules } from "./rules/json/index.js";
 
 /** Every code rule the plugin provides, keyed by its unprefixed name. */
 export const pasikaRules: Record<string, Rule.RuleModule> = {
@@ -68,14 +70,26 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
 /** All markdown rules, keyed by unprefixed name. */
 export const pasikaMdRules: Record<string, Rule.RuleModule> = mdRules;
 
+/** All CSS rules, keyed by unprefixed name. */
+export const pasikaCssRules: Record<string, Rule.RuleModule> = cssRules;
+
+/** All JSON rules, keyed by unprefixed name. */
+export const pasikaJsonRules: Record<string, Rule.RuleModule> = jsonRules;
+
 /** Rule ids as they appear in configuration and in lint output. */
 export const pasikaRuleIds = Object.keys(pasikaRules).map((name) => `pasika/${name}`);
 
 /** Markdown rule ids as they appear in configuration and in lint output. */
 export const pasikaMdRuleIds = Object.keys(pasikaMdRules).map((name) => `pasika/${name}`);
 
-/** Every rule id, code and markdown, as they appear in configuration and in lint output. */
-export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaMdRuleIds];
+/** CSS rule ids as they appear in configuration and in lint output. */
+export const pasikaCssRuleIds = Object.keys(pasikaCssRules).map((name) => `pasika/${name}`);
+
+/** JSON rule ids as they appear in configuration and in lint output. */
+export const pasikaJsonRuleIds = Object.keys(pasikaJsonRules).map((name) => `pasika/${name}`);
+
+/** Every rule id, as they appear in configuration and in lint output. */
+export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaMdRuleIds, ...pasikaCssRuleIds, ...pasikaJsonRuleIds];
 
 export const pasikaConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],

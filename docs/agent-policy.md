@@ -23,7 +23,7 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 ## Framework
 
 - A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.
-- A change MUST NOT introduce a finding that `npx pasika doctor` or the repository's lint command did not already report.
+- A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or `npx pasika doctor` (environment checks) did not already report.
 
 ## Managed Documentation
 
