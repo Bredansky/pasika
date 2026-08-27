@@ -90,6 +90,12 @@ const FIXTURE: Record<string, string> = {
   "config/player/types/index.ts": 'export type PlayerMode = "auto" | "manual";\n',
   "config/player/constants/index.ts": "export const playerDefaults = { volume: 1 };\n",
   "types/only-config.ts": "export type OnlyConfigType = string;\n",
+
+  // A constant in one configuration module consumed only by another: the other
+  // module owns it, so it must move there even though it lives in config.
+  "config/theme/index.ts":
+    'import { themeLimit } from "@/config/home-feed/constants/theme-limit";\nexport const theme = { limit: themeLimit };\n',
+  "config/home-feed/constants/theme-limit.ts": "export const themeLimit = 10;\n",
 };
 
 // realpath: on macOS the temp dir is a symlink, and the rule resolves its source
@@ -257,6 +263,18 @@ void describe("An extracted configuration schema or utility MUST move to its mat
       {
         ...ok("config/home-feed/utils/shared.ts"),
         errors: [move("src/utils/", REASONS.layers, ["config/home-feed/index.ts", "features/billing/invoice.tsx"])],
+      },
+    ],
+  });
+});
+
+void describe("A constant in one configuration module that only another configuration module consumes MUST move to the consuming module's constants/ folder.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("config/home-feed/constants/theme-limit.ts"),
+        errors: [move("src/config/theme/constants/", REASONS.config, ["config/theme/index.ts"])],
       },
     ],
   });

@@ -61,15 +61,19 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     // declaration still sitting beside its consumer is an extraction question.
     if (supportFolder === undefined || !SUPPORT_FOLDERS.has(supportFolder)) return {};
 
-    // A type or constant whose meaning comes from a configuration may stay with
-    // it however widely it is used, so its consumers cannot place it.
-    if (isConfigModule(segmentsOf(supportFile, sourceRoot)) && CONFIG_OWNED_FOLDERS.has(supportFolder)) return {};
-
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
     const placement = resolveSupportPlacement(supportFile, supportFolder, index);
     if (!placement || sameFolder(currentFolder, placement.expectedFolder)) return {};
+
+    // A type or constant whose meaning comes from a configuration may stay with
+    // it however widely it is used, so consumers outside the module cannot place
+    // it — but when every consumer sits in a single configuration module, that
+    // module owns it and the file must move to that module's own support folder.
+    if (isConfigModule(segmentsOf(supportFile, sourceRoot)) && CONFIG_OWNED_FOLDERS.has(supportFolder)) {
+      if (placement.reason !== "config-module") return {};
+    }
 
     return {
       Program(node) {
