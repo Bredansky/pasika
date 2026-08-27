@@ -384,7 +384,8 @@
       "doc": "code-organization-guide/rules/repeated-structure-rule.md",
       "text": "A block of elements MUST be extracted as a named component when two or more places use the same arrangement of elements for the same purpose. Different data or labels do not prevent extraction.",
       "hash": "3c1b9c7807",
-      "note": "recognizing the same arrangement used for the same purpose needs structural comparison"
+      "ref": "pasika/repeated-structure",
+      "note": "compares sibling JSX blocks for identical markup, ignoring text and expression data"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
