@@ -364,7 +364,8 @@
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.",
       "hash": "94ea814921",
-      "note": "whether a key reads as its text or its purpose depends on the language"
+      "ref": "pasika/locale-key-shape",
+      "note": "the locale-key-shape check enforces camelCase and requires keys over 30 characters to end in a WAI-ARIA element role; whether a short key reads as its text stays judgment"
     },
     {
       "doc": "code-organization-guide/rules/nameable-visual-concept-rule.md",

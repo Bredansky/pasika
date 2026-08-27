@@ -136,6 +136,7 @@ export default [pasikaConfig];
 | `pasika/stay-flat` † | A component stays flat until it has exclusive children |
 | `pasika/type-extraction` † | A type or schema with cross-folder consumers is extracted |
 | `pasika/locale-placement` † | Shared locales at the top level, single-feature locales namespaced |
+| `pasika/locale-key-shape` | camelCase locale keys; keys over 30 characters end in a WAI-ARIA element role |
 | `pasika/shared-style-dedup` † | A className combo used by two or more components becomes a named utility |
 | `pasika/no-eslint-disable` | No `eslint-disable` directives |
 | `pasika/zod-schema-validation` | Runtime validation through Zod schemas, not hand-written type guards |

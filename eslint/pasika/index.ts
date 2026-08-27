@@ -40,6 +40,7 @@ import { componentNestingRule } from "./rules/component-nesting";
 import { stayFlatRule } from "./rules/stay-flat";
 import { typeExtractionRule } from "./rules/type-extraction";
 import { localePlacementRule } from "./rules/locale-placement";
+import { localeKeyShapeRule } from "./rules/locale-key-shape";
 import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { noEslintDisableRule } from "./rules/no-eslint-disable";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
@@ -82,6 +83,7 @@ export const pasikaRules = {
   "stay-flat": stayFlatRule,
   "type-extraction": typeExtractionRule,
   "locale-placement": localePlacementRule,
+  "locale-key-shape": localeKeyShapeRule,
   "shared-style-dedup": sharedStyleDedupRule,
   "no-eslint-disable": noEslintDisableRule,
   "zod-schema-validation": zodSchemaValidationRule,
