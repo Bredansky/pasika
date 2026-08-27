@@ -24,7 +24,6 @@
   "scripts": {
     "build": "tsup",
     "coverage": "tsx cli/index.ts coverage",
-    "docs": "eslint docs",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",

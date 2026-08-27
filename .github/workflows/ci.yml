@@ -32,8 +32,5 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Check documentation
-        run: npm run docs
-
       - name: Check requirement coverage
         run: npm run coverage

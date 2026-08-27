@@ -174,7 +174,7 @@ Applied to `package.json` through `@eslint/json`.
 
 ### Documentation rules
 
-The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (24 rules): file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `pasika coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run docs`).
+The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (24 rules): file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `pasika coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run lint`).
 
 Run `pasika coverage --json` for the exact requirement each rule covers.
 
