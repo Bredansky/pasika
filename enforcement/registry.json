@@ -750,8 +750,8 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, and `SHOULD` or `SHOULD NOT` only when exceptions are possible.",
-      "hash": "67e994bec5",
+      "text": "A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.",
+      "hash": "017308f0ea",
       "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
     },
     {
