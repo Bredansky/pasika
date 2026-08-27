@@ -46,8 +46,8 @@
       "doc": "agent-policy.md",
       "text": "A lint command MUST NOT pass ESLint's --cache flag, because rules that compare a file against the rest of the tree need every file in the run.",
       "hash": "2b3f806581",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/no-cache-flag"
     },
     {
       "doc": "agent-policy.md",
@@ -73,8 +73,8 @@
       "doc": "agent-policy.md",
       "text": "Code MUST NOT use eslint-disable directives, and a reported violation MUST be fixed instead.",
       "hash": "628ab4f6a6",
-      "kind": "doctor",
-      "ref": "pasika/eslint-disable-usage"
+      "kind": "eslint",
+      "ref": "pasika/no-eslint-disable"
     },
     {
       "doc": "agent-policy.md",
@@ -94,15 +94,15 @@
       "doc": "agent-policy.md",
       "text": "Vulyk MUST NOT be added to package.json in order to run its CLI.",
       "hash": "1061447825",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "agent-policy.md",
       "text": "Vulyk MUST run as an ephemeral command such as npx vulyk@latest.",
       "hash": "c8aaf8ce02",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "agent-policy.md",
@@ -145,7 +145,7 @@
       "text": "Application source MUST live under src/.",
       "hash": "0a5c03a95d",
       "kind": "doctor",
-      "ref": "pasika/doctor"
+      "ref": "pasika/source-under-src"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
@@ -215,8 +215,8 @@
       "doc": "code-organization-guide/rules/configuration-rule.md",
       "text": "A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.",
       "hash": "9e5da88f2e",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/config-extraction"
     },
     {
       "doc": "code-organization-guide/rules/configuration-rule.md",
@@ -257,8 +257,8 @@
       "doc": "code-organization-guide/rules/constants-rule.md",
       "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
       "hash": "e779f5ec6f",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/value-extraction"
     },
     {
       "doc": "code-organization-guide/rules/constants-rule.md",
@@ -341,15 +341,15 @@
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
       "text": "A component MUST NOT be nested only because it has support files.",
       "hash": "bd8c041512",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/component-nesting"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
       "text": "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
       "hash": "6adf7c4309",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/stay-flat"
     },
     {
       "doc": "code-organization-guide/rules/folder-nesting-rule.md",
@@ -369,8 +369,8 @@
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
       "text": "A custom hook MUST be extracted to its own file when two or more consumers use it.",
       "hash": "f7a5d6663d",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/hook-extraction"
     },
     {
       "doc": "code-organization-guide/rules/hook-extraction-rule.md",
@@ -446,14 +446,14 @@
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",
       "hash": "4f947bf362",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/locale-placement"
     },
     {
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).",
       "hash": "66addb15b3",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/locale-placement"
     },
     {
@@ -538,14 +538,14 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/type-extraction"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.",
       "hash": "e63d1fbcb8",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/type-extraction"
     },
     {
@@ -1055,90 +1055,90 @@
       "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
       "hash": "4f548b26c4",
       "kind": "doctor",
-      "ref": "pasika/doctor"
+      "ref": "pasika/global-stylesheet"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.",
       "hash": "d89d54996c",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/root-variables"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "Style declarations added by the project inside global selectors MUST use @apply.",
       "hash": "9799ce3761",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/apply-usage"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.",
       "hash": "a3b7faf6da",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/base-layer-pair"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/stylesheet-ordering"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST reset Tailwind's default theme with --*: initial.",
       "hash": "d28608a7a3",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/theme-reset"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
       "text": "The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.",
       "hash": "dce78502d3",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/global-css-location"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.",
       "hash": "0fb98de16d",
-      "kind": "doctor",
-      "ref": "pasika/doctor"
+      "kind": "eslint",
+      "ref": "pasika/css-variable-naming"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
       "hash": "a61de0650b",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/custom-utility-apply"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.",
       "hash": "0d965db624",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/surface-utility"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A style or group of styles that two or more components use together and should change together MUST become one named custom utility. The group MAY include utilities generated by theme variables, built-in utilities, other custom utilities, and interaction styles.",
       "hash": "9cf4c454fb",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/shared-style-dedup"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A value that needs at least two utility classes from the same Tailwind theme-variable namespace MUST use that namespace and have the same name in :root.",
       "hash": "d9b8eeb83d",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/theme-variable-namespace"
     },
     {
       "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.",
       "hash": "50f1692be2",
-      "kind": "doctor",
+      "kind": "eslint",
       "ref": "pasika/shared-style-dedup"
     }
   ]

@@ -33,6 +33,15 @@ import { pureFunctionExtractRule } from "./rules/pure-function-extract.js";
 import { hookComplexityRule } from "./rules/hook-complexity.js";
 import { localeDottedPathRule } from "./rules/locale-dotted-path.js";
 import { localesLocationRule } from "./rules/locales-location.js";
+import { hookExtractionRule } from "./rules/hook-extraction.js";
+import { valueExtractionRule } from "./rules/value-extraction.js";
+import { configExtractionRule } from "./rules/config-extraction.js";
+import { componentNestingRule } from "./rules/component-nesting.js";
+import { stayFlatRule } from "./rules/stay-flat.js";
+import { typeExtractionRule } from "./rules/type-extraction.js";
+import { localePlacementRule } from "./rules/locale-placement.js";
+import { sharedStyleDedupRule } from "./rules/shared-style-dedup.js";
+import { noEslintDisableRule } from "./rules/no-eslint-disable.js";
 import { mdRules } from "./rules/md/index.js";
 import { cssRules } from "./rules/css/index.js";
 import { jsonRules } from "./rules/json/index.js";
@@ -64,6 +73,15 @@ export const pasikaRules = {
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,
+  "hook-extraction": hookExtractionRule,
+  "value-extraction": valueExtractionRule,
+  "config-extraction": configExtractionRule,
+  "component-nesting": componentNestingRule,
+  "stay-flat": stayFlatRule,
+  "type-extraction": typeExtractionRule,
+  "locale-placement": localePlacementRule,
+  "shared-style-dedup": sharedStyleDedupRule,
+  "no-eslint-disable": noEslintDisableRule,
 };
 
 export { mdRules, cssRules, jsonRules };

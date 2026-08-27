@@ -84,6 +84,37 @@ Markdown lint rules enforcing the documentation guide over `docs/**/*.md`.
 
 ## M4 — Doctor → ESLint Migration 🔄
 
+### Recovery Plan (2026-08-27)
+
+The previous release attempt introduced a circular dependency and misleading local verification:
+
+- Pasika’s repository ESLint/TypeScript configs depended on zirka, making clean pasika CI depend on an unpublished zirka release.
+- Zirka’s consumer `styleguide()` imported pasika at build/typecheck time, making clean zirka CI depend on an unpublished pasika release.
+- Local `file:` dependencies and generated `*.tgz` artifacts entered the working/release state during package testing; generated tarballs must never be committed or published.
+- Zirka’s `check` script combined autofix and typecheck but did not provide a clear read-only lint gate; CI and editor diagnostics consequently diverged from local assumptions.
+- Release tags were created before both clean package pipelines were green; those failed tags are not reusable.
+
+#### Repair sequence
+
+1. Keep pasika’s own repository config self-contained; it must enable pasika’s rules without importing zirka.
+2. Keep zirka’s pasika integration runtime-consumer-facing, with no hard build-time dependency cycle.
+3. Use registry semver only in published manifests; never use `file:` references in release commits.
+4. Add explicit, read-only `lint`, `typecheck`, and `build` gates to each package workflow.
+5. Run `npm ci` in each repository and execute the exact CI commands before tagging.
+6. Verify packed artifacts and `npm view <package>@<version>` before releasing the dependent package.
+7. Create new patch versions and tags only after both package checks are green; monitor GitHub Actions through completion.
+
+#### Restoration checklist for future sessions
+
+- Start by reading this recovery plan, package versions, lockfiles, workflow files, and `git status` in both repositories.
+- Confirm `npm view pasika version` and `npm view zirka version` before changing dependency ranges.
+- Confirm no `file:` specs or tracked `*.tgz` files exist.
+- Run clean-install checks; do not trust an existing `node_modules` tree.
+- Record every completed verification item here before creating a tag.
+- Never mark a release complete until the corresponding GitHub Actions publish job and npm version are both confirmed.
+
+
+
 **Scope update (2026-08-27):** This milestone spans both repositories. Pasika
 owns and exports the rules; zirka owns the consumer-facing `styleguide()`
 configuration and must provide compatible ESLint/plugin dependencies. ESLint
@@ -91,10 +122,10 @@ configuration and must provide compatible ESLint/plugin dependencies. ESLint
 until pasika and zirka typecheck and their relevant runtime checks pass.
 
 **Current blockers:** zirka's old ESLint/plugin dependency graph is being
-upgraded for ESLint 10; pasika's own lint currently exercises zirka's config
-through the local package tree. The CSS/JSON rules use the official native
-`CSSRuleDefinition`, `JSONRuleDefinition`, and `MarkdownRuleDefinition` types;
-no cross-package type assertions are intended.
+upgraded for ESLint 10. Pasika's own lint is self-contained (imports
+`pasikaConfig` directly, no zirka import), per the recovery plan. The CSS/JSON
+rules use the official native `CSSRuleDefinition`, `JSONRuleDefinition`, and
+`MarkdownRuleDefinition` types; no cross-package type assertions are intended.
 
 
 Move file-content checks from `pasika doctor` to ESLint rules so they run in
@@ -128,17 +159,17 @@ existence, managed-file mtime, source root, framework packages).
 
 ### TS/TSX Source Rules (using project index)
 
-These doctor checks use `getProjectIndex()` and can become ESLint rules.
+These doctor checks use `getProjectIndex()` and are now ESLint rules.
 
-- [ ] `pasika/hook-extraction` — hooks with 2+ consumers → extract to own file
-- [ ] `pasika/value-extraction` — values with cross-folder consumers → extract
-- [ ] `pasika/config-extraction` — config types/schemas used outside config → move
-- [ ] `pasika/component-nesting` — component nested only for support files → flatten
-- [ ] `pasika/stay-flat` — component stays flat until exclusive children
-- [ ] `pasika/locale-placement` — shared locales in top-level object
-- [ ] `pasika/type-extraction` — types/schemas with cross-folder consumers → extract
-- [ ] `pasika/shared-style-dedup` — repeated className combos → shared utility
-- [ ] `pasika/no-eslint-disable` — no eslint-disable directives (already covered by `@eslint-community/eslint-comments/no-use`)
+- [x] `pasika/hook-extraction` — hooks with 2+ consumers → extract to own file
+- [x] `pasika/value-extraction` — values with cross-folder consumers → extract
+- [x] `pasika/config-extraction` — config types/schemas used outside config → move
+- [x] `pasika/component-nesting` — component nested only for support files → flatten
+- [x] `pasika/stay-flat` — component stays flat until exclusive children
+- [x] `pasika/locale-placement` — shared locales in top-level object
+- [x] `pasika/type-extraction` — types/schemas with cross-folder consumers → extract
+- [x] `pasika/shared-style-dedup` — repeated className combos → shared utility
+- [x] `pasika/no-eslint-disable` — no eslint-disable directives (own rule; consumer-side can still swap in `@eslint-community/eslint-comments/no-use`)
 
 ### Registration & Wiring
 
@@ -154,17 +185,17 @@ These doctor checks use `getProjectIndex()` and can become ESLint rules.
 
 ### Registry Re-classification
 
-- [ ] Re-classify 10 CSS doctor entries → `eslint` refs
-- [ ] Re-classify 2 JSON doctor entries → `eslint` refs
-- [ ] Re-classify ~9 TS/TSX doctor entries → `eslint` refs (after rules written)
-- [ ] Verify `pasika coverage` passes with zero issues
+- [x] Re-classify 10 CSS doctor entries → `eslint` refs
+- [x] Re-classify 2 JSON doctor entries → `eslint` refs (3 entries actually: no-cache-flag + two vulyk)
+- [x] Re-classify ~9 TS/TSX doctor entries → `eslint` refs (12 entries actually, including both shared-style-dedup and both type-extraction texts)
+- [x] Verify `pasika coverage` passes with zero issues (162 requirements, 123 eslint + 5 doctor)
 
 ### Trim Doctor
 
-- [ ] Remove migrated check functions from `doctor.ts`
-- [ ] Keep only: `checkConfigBaseline`, `checkManagedFiles`, `checkSourceRoot`, `checkFrameworkPackages`, `findGlobalStylesheet` (existence check)
-- [ ] Update `doctor.test.ts` for trimmed doctor
-- [ ] Update `cli/index.ts` if needed
+- [x] Remove migrated check functions from `doctor.ts`
+- [x] Keep only: `checkConfigBaseline`, `checkManagedFiles`, `checkSourceRoot`, `checkFrameworkPackages`, `findGlobalStylesheet` (existence check)
+- [x] Update `doctor.test.ts` for trimmed doctor
+- [x] Update `cli/index.ts` if needed (no change required)
 
 ### Verification
 
@@ -207,4 +238,12 @@ Items identified but not yet scoped:
 | 2026-08-27 | Corrected dependency ownership: `@babel/core` belongs to zirka because zirka directly uses `@babel/eslint-parser`; it is not a pasika dependency. |
 | 2026-08-27 | Decided to internalize pasika's Markdown config: pasika owns its docs linting; zirka owns only consumer JS/TS/CSS/JSON composition. |
 | 2026-08-27 | Confirmed `jiti` remains a direct dev dependency for TypeScript ESLint config loading; removed reliance on transitive hoisting. |
-| 2026-08-27 | Separated repository and consumer configuration: zirka owns consumer Markdown/CSS/JSON language configs; pasika retains rule implementations and build-time language dependencies. Both repositories pass their checks. |
+| 2026-08-27 | Recorded recovery plan: undo the circular release dependency, remove generated artifacts, require clean-install CI gates, and restore progress from this file at the start of each session. |
+| 2026-08-27 | Wrote 9 TS/TSX rules completing the doctor→ESLint migration: hook-extraction, value-extraction, config-extraction, component-nesting, stay-flat, locale-placement, type-extraction, shared-style-dedup, no-eslint-disable. Each cross-file rule reads the project index and reports like component-placement. |
+| 2026-08-27 | Reclassified 25 registry entries doctor → eslint (3 JSON, 10 CSS, 12 TS/TSX); doctor now holds only 5 environment checks. Coverage: 162 requirements, 123 eslint + 5 doctor, zero issues. |
+| 2026-08-27 | Trimmed `doctor.ts` to environment checks (config-baseline, managed-file-edit, source-under-src, framework packages, global-stylesheet existence) and trimmed `doctor.test.ts` to match. |
+| 2026-08-27 | Restored self-contained `eslint.config.ts` (imports pasikaConfig directly): the working tree had been switched to zirka's styleguide, which could not resolve `pasika` from zirka's dist and broke the lint gate — the exact circular state the recovery plan targets. Zirka remains only in `prettier.config.mjs`, which never triggers the pasika import. |
+| 2026-08-27 | Repaired the zirka dependency state: `package-lock.json` had a `link: true` entry for `node_modules/zirka` resolving to `../zirka` (machine-local sibling), which breaks clean `npm ci`. Pinned zirka devDep to published `^0.0.39` and regenerated the lockfile from the registry. Peer conflict (zirka 0.0.39 peers eslint ^9; pasika is on ESLint 10) requires `npm ci --legacy-peer-deps`, added to both workflows. Publishing zirka 0.0.40 (ESLint-10 build) later removes the need for the flag. |
+| 2026-08-27 | Noticed pre-existing CI gap: both workflows run `npm run docs`, but no `docs` script exists in package.json — the docs-lint gate has been broken since the documentation checks moved to ESLint rules. |
+| 2026-08-27 | Fixed the docs gate: added `npm run docs` wired to the pasika markdown rules. The styleguide's base config ignores markdown globally, so the docs lint lives in `eslint.docs.config.ts` (`eslint docs --config eslint.docs.config.ts`, `_templates` ignored). All 41 non-template docs pass all 24 markdown rules with zero violations. |
+| 2026-08-27 | Restored the local zirka-styleguide dev setup (working tree only, kept out of commits): pasika's `node_modules/zirka → ../../zirka` (local 0.0.40), zirka's `node_modules/pasika` file-installed from `../pasika` (0.3.2), `eslint.config.ts` back to `styleguide({ node, typescript, pasika })`. The committed state stays self-contained per the recovery plan; `npm ci` and CI keep using the registry path. Fixed 13 lint findings the base presets surfaced in the new rules/tests (prefer-template, prefer-named-capture-group). |

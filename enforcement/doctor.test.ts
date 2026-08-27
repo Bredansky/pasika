@@ -14,55 +14,6 @@ function writeJson(relativePath: string, contents: object): void {
 }
 
 void describe("runDoctor", () => {
-  void describe("vulyk dependency check", () => {
-    void it("reports when vulyk is in dependencies", () => {
-      writeJson("pkg-vulyk-dep/package.json", {
-        name: "test",
-        dependencies: { vulyk: "^0.12.0" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-vulyk-dep"));
-      assert.ok(findings.some((f) => f.check === "no-vulyk-in-package-json"));
-    });
-
-    void it("reports when vulyk is in devDependencies", () => {
-      writeJson("pkg-vulyk-dev/package.json", {
-        name: "test",
-        devDependencies: { vulyk: "^0.12.0" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-vulyk-dev"));
-      assert.ok(findings.some((f) => f.check === "no-vulyk-in-package-json"));
-    });
-
-    void it("passes when vulyk is not a dependency", () => {
-      writeJson("pkg-no-vulyk/package.json", {
-        name: "test",
-        dependencies: { react: "^18.0.0" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-no-vulyk"));
-      assert.ok(!findings.some((f) => f.check === "no-vulyk-in-package-json"));
-    });
-  });
-
-  void describe("cache flag check", () => {
-    void it("reports when lint uses --cache", () => {
-      writeJson("pkg-cache/package.json", {
-        name: "test",
-        scripts: { lint: "eslint . --cache" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-cache"));
-      assert.ok(findings.some((f) => f.check === "no-cache-flag"));
-    });
-
-    void it("passes when lint does not use --cache", () => {
-      writeJson("pkg-no-cache/package.json", {
-        name: "test",
-        scripts: { lint: "eslint . --no-cache" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-no-cache"));
-      assert.ok(!findings.some((f) => f.check === "no-cache-flag"));
-    });
-  });
-
   void describe("framework packages check", () => {
     void it("reports when pasika is missing", () => {
       writeJson("pkg-no-pasika/package.json", {
@@ -117,72 +68,13 @@ void describe("runDoctor", () => {
       assert.ok(findings.some((f) => f.check === "global-stylesheet"));
     });
 
-    void it("reports when theme reset is missing", () => {
-      const dir = path.join(root, "pkg-no-reset/src/app");
+    void it("passes when a global stylesheet exists, whatever its contents", () => {
+      const dir = path.join(root, "pkg-with-css/src/app");
       mkdirSync(dir, { recursive: true });
-      writeFileSync(path.join(dir, "globals.css"), '@import "tailwindcss";\n');
-      writeJson("pkg-no-reset/package.json", { name: "test" });
-      const findings = runDoctor(path.join(root, "pkg-no-reset"));
-      assert.ok(findings.some((f) => f.check === "theme-reset"));
-    });
-
-    void it("reports when base layer is missing base-canvas or base-ink", () => {
-      const dir = path.join(root, "pkg-no-base/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-canvas; }\n}\n',
-      );
-      writeJson("pkg-no-base/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
-      const findings = runDoctor(path.join(root, "pkg-no-base"));
-      assert.ok(findings.some((f) => f.check === "base-layer-pair"));
-    });
-
-    void it("reports when CSS sections are out of order", () => {
-      const dir = path.join(root, "pkg-bad-order/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n\n:root { --base-canvas: #fff; }\n\n@theme { --*: initial; }\n',
-      );
-      writeJson("pkg-bad-order/package.json", {
-        name: "test",
-        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-bad-order"));
-      assert.ok(findings.some((f) => f.check === "css-ordering"));
-    });
-
-    void it("reports when @theme inline is missing", () => {
-      const dir = path.join(root, "pkg-no-theme-inline/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n:root { --spacing: 0.25rem; }\n\n@theme { --*: initial; }\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n',
-      );
-      writeJson("pkg-no-theme-inline/package.json", {
-        name: "test",
-        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-no-theme-inline"));
-      assert.ok(findings.some((f) => f.check === "theme-inline"));
-    });
-
-    void it("passes with a complete global stylesheet", () => {
-      const dir = path.join(root, "pkg-complete/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n:root { --spacing: 0.25rem; --base-canvas: #fff; --base-ink: #111; }\n\n@theme { --*: initial; }\n\n@theme inline {\n  --spacing: var(--spacing);\n}\n\n@utility bg-base-canvas {\n  @apply bg-(--base-canvas);\n}\n\n@layer base {\n  body { @apply bg-base-canvas text-base-ink; }\n}\n',
-      );
-      writeJson("pkg-complete/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
-      writeFileSync(
-        path.join(root, "pkg-complete/eslint.config.ts"),
-        'import { zirka } from "zirka"; export default zirka();',
-      );
-      writeFileSync(path.join(root, "pkg-complete/tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
-      const findings = runDoctor(path.join(root, "pkg-complete"));
-      assert.ok(!findings.some((f) => f.severity === "error"));
+      writeFileSync(path.join(dir, "globals.css"), "body { color: red; }\n");
+      writeJson("pkg-with-css/package.json", { name: "test" });
+      const findings = runDoctor(path.join(root, "pkg-with-css"));
+      assert.ok(!findings.some((f) => f.check === "global-stylesheet"));
     });
   });
 
@@ -239,64 +131,6 @@ void describe("runDoctor", () => {
     });
   });
 
-  void describe("custom utility apply check", () => {
-    void it("reports when custom utility uses raw CSS properties", () => {
-      const dir = path.join(root, "pkg-no-apply/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n@theme { --*: initial; }\n\n@utility my-utility {\n  color: red;\n  font-size: 14px;\n}\n',
-      );
-      writeJson("pkg-no-apply/package.json", { name: "test", devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" } });
-      const findings = runDoctor(path.join(root, "pkg-no-apply"));
-      assert.ok(findings.some((f) => f.check === "custom-utility-apply"));
-    });
-
-    void it("passes when custom utility uses @apply", () => {
-      const dir = path.join(root, "pkg-with-apply/src/app");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "globals.css"),
-        '@import "tailwindcss";\n\n@theme { --*: initial; }\n\n@utility my-utility {\n  @apply text-red-500 text-sm;\n}\n',
-      );
-      writeJson("pkg-with-apply/package.json", {
-        name: "test",
-        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-with-apply"));
-      assert.ok(!findings.some((f) => f.check === "custom-utility-apply"));
-    });
-  });
-
-  void describe("eslint-disable check", () => {
-    void it("reports eslint-disable directives in source files", () => {
-      const dir = path.join(root, "pkg-eslint-disable/src/features/home");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(
-        path.join(dir, "home-page.tsx"),
-        'export function HomePage() { return <div />; }\n// eslint-disable-next-line no-console\nconsole.log("hi");\n',
-      );
-      writeJson("pkg-eslint-disable/package.json", {
-        name: "test",
-        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-eslint-disable"));
-      assert.ok(findings.some((f) => f.check === "eslint-disable-usage"));
-    });
-
-    void it("passes when no eslint-disable directives exist", () => {
-      const dir = path.join(root, "pkg-no-eslint-disable/src/features/home");
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(path.join(dir, "home-page.tsx"), "export function HomePage() { return <div />; }\n");
-      writeJson("pkg-no-eslint-disable/package.json", {
-        name: "test",
-        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
-      });
-      const findings = runDoctor(path.join(root, "pkg-no-eslint-disable"));
-      assert.ok(!findings.some((f) => f.check === "eslint-disable-usage"));
-    });
-  });
-
   void describe("managed file check", () => {
     void it("warns when a managed file is newer than the manifest", () => {
       const pkgDir = path.join(root, "pkg-managed-edit");
@@ -316,6 +150,25 @@ void describe("runDoctor", () => {
       });
       const findings = runDoctor(pkgDir);
       assert.ok(findings.some((f) => f.check === "managed-file-edit"));
+    });
+  });
+
+  void describe("complete baseline", () => {
+    void it("passes with no error findings", () => {
+      const dir = path.join(root, "pkg-complete/src/app");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path.join(dir, "globals.css"), '@import "tailwindcss";\n');
+      writeJson("pkg-complete/package.json", {
+        name: "test",
+        devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
+      });
+      writeFileSync(
+        path.join(root, "pkg-complete/eslint.config.ts"),
+        'import { zirka } from "zirka"; export default zirka();',
+      );
+      writeFileSync(path.join(root, "pkg-complete/tsconfig.json"), JSON.stringify({ compilerOptions: {} }));
+      const findings = runDoctor(path.join(root, "pkg-complete"));
+      assert.ok(!findings.some((f) => f.severity === "error"));
     });
   });
 });
