@@ -40,7 +40,6 @@
     "@eslint/css-tree": "^4.0.5",
     "@eslint/json": "^2.0.1",
     "@eslint/markdown": "^8.0.3",
-    "@eslint/markdown": "^8.0.3",
     "@humanwhocodes/momoa": "^3.3.12",
     "@types/estree": "^1.0.9",
     "@types/mdast": "^4.0.4",
