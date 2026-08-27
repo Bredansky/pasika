@@ -1,6 +1,26 @@
 import { describe, mdRuleTester } from "./rule-tester";
 import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
 
+void describe("A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.", () => {
+  mdRuleTester.run("reference-no-rfc-vocabulary", referenceNoRfcVocabularyRule, {
+    valid: [
+      // A lookup fact stated plainly, with no RFC vocabulary imposing the constraint.
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nFile names are kebab-case and end in `-reference`.",
+      },
+    ],
+    invalid: [
+      // A constraint stated with RFC vocabulary in a Reference is caught mechanically.
+      {
+        filename: "my-reference.md",
+        code: "# My Reference\n\nA feature folder MUST NOT hold ordinary components.",
+        errors: [{ message: "reference uses RFC 2119 vocabulary: MUST NOT" }],
+      },
+    ],
+  });
+});
+
 void describe("A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.", () => {
   mdRuleTester.run("reference-no-rfc-vocabulary", referenceNoRfcVocabularyRule, {
     valid: [
