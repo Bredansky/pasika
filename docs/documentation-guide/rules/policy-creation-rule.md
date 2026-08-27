@@ -9,7 +9,6 @@ Some requirements apply to the whole repository and span subjects too unrelated 
 - A Policy document MUST group its bullets under a heading per subject.
 - A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
 - A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.
-- A repository MUST NOT have more than one Policy document per audience.
 
 ## Incorrect — Policy Document Carries Examples
 

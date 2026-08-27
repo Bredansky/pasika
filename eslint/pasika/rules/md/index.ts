@@ -13,7 +13,6 @@ import { requirementPresentRule } from "./requirement-present";
 import { rulePairedExamplesRule } from "./rule-paired-examples";
 import { exampleHeadingDescriptionRule } from "./example-heading-description";
 import { policyNoExamplesRule } from "./policy-no-examples";
-import { policySingleDocumentRule } from "./policy-single-document";
 import { noCrossDocumentLinkRule } from "./no-cross-document-link";
 import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
 import { referenceBlockHeadingsRule } from "./reference-block-headings";
@@ -39,7 +38,6 @@ export const mdRules = {
   "rule-paired-examples": rulePairedExamplesRule,
   "example-heading-description": exampleHeadingDescriptionRule,
   "policy-no-examples": policyNoExamplesRule,
-  "policy-single-document": policySingleDocumentRule,
   "no-cross-document-link": noCrossDocumentLinkRule,
   "reference-no-rfc-vocabulary": referenceNoRfcVocabularyRule,
   "reference-block-headings": referenceBlockHeadingsRule,

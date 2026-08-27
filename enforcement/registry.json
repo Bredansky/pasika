@@ -2,49 +2,6 @@
   "requirements": [
     {
       "doc": "agent-policy.md",
-      "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
-      "hash": "b5facfa0c0",
-      "kind": "eslint",
-      "ref": "pasika/zod-schema-validation",
-      "note": "flags hand-written type predicates over unknown/any that don't delegate to a schema; as-casts and inline manual checks are not detected"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.",
-      "hash": "b404251c21",
-      "kind": "manual",
-      "note": "deciding a field is genuinely optional requires evidence about runtime data"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
-      "hash": "e765276ded",
-      "kind": "manual",
-      "note": "recognizing a compatibility shim requires knowing the change's intent"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
-      "hash": "628ab4f6a6",
-      "kind": "eslint",
-      "ref": "pasika/no-eslint-disable"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
-      "hash": "2b3f806581",
-      "kind": "eslint",
-      "ref": "pasika/no-cache-flag"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A commit MUST NOT use the `--no-verify` flag.",
-      "hash": "e1c615452f",
-      "kind": "manual",
-      "note": "how git was invoked is not observable from the repository"
-    },
-    {
-      "doc": "agent-policy.md",
       "text": "Browser behavior a task depends on MUST be verified with `agent-browser`.",
       "hash": "034197e9d7",
       "kind": "manual",
@@ -66,10 +23,10 @@
     },
     {
       "doc": "agent-policy.md",
-      "text": "A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.",
-      "hash": "12553abd17",
-      "kind": "doctor",
-      "ref": "pasika/config-baseline"
+      "text": "A commit MUST NOT use the `--no-verify` flag.",
+      "hash": "e1c615452f",
+      "kind": "manual",
+      "note": "how git was invoked is not observable from the repository"
     },
     {
       "doc": "agent-policy.md",
@@ -77,41 +34,6 @@
       "hash": "f8d1db6aaf",
       "kind": "manual",
       "note": "deciding a finding is new requires the previous state, which neither command carries"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.",
-      "hash": "8177201b42",
-      "kind": "manual",
-      "note": "recognizing a document as copied from elsewhere is not decidable from the repository"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
-      "hash": "27247db8eb",
-      "kind": "doctor",
-      "ref": "pasika/managed-file-edit"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "A file listed in a `.vulyk` manifest MUST NOT be edited by hand.",
-      "hash": "2390e57f4f",
-      "kind": "doctor",
-      "ref": "pasika/managed-file-edit"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.",
-      "hash": "c8aaf8ce02",
-      "kind": "eslint",
-      "ref": "pasika/no-vulyk-dependency"
-    },
-    {
-      "doc": "agent-policy.md",
-      "text": "Vulyk MUST NOT be added to `package.json` in order to run its CLI.",
-      "hash": "1061447825",
-      "kind": "eslint",
-      "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
@@ -780,13 +702,6 @@
       "ref": "pasika/no-cross-document-link"
     },
     {
-      "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A repository MUST NOT have more than one Policy document per audience.",
-      "hash": "74dd5ffc9e",
-      "kind": "eslint",
-      "ref": "pasika/policy-single-document"
-    },
-    {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).",
       "hash": "8aae1d6156",
@@ -962,6 +877,84 @@
       "hash": "faeb62c465",
       "kind": "manual",
       "note": "the documentation parser skips folders whose names start with an underscore"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
+      "hash": "b5facfa0c0",
+      "kind": "eslint",
+      "ref": "pasika/zod-schema-validation",
+      "note": "flags hand-written type predicates over unknown/any that don't delegate to a schema; as-casts and inline manual checks are not detected"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.",
+      "hash": "b404251c21",
+      "kind": "manual",
+      "note": "deciding a field is genuinely optional requires evidence about runtime data"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
+      "hash": "e765276ded",
+      "kind": "manual",
+      "note": "recognizing a compatibility shim requires knowing the change's intent"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
+      "hash": "628ab4f6a6",
+      "kind": "eslint",
+      "ref": "pasika/no-eslint-disable"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
+      "hash": "2b3f806581",
+      "kind": "eslint",
+      "ref": "pasika/no-cache-flag"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.",
+      "hash": "12553abd17",
+      "kind": "doctor",
+      "ref": "pasika/config-baseline"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.",
+      "hash": "8177201b42",
+      "kind": "manual",
+      "note": "recognizing a document as copied from elsewhere is not decidable from the repository"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
+      "hash": "27247db8eb",
+      "kind": "doctor",
+      "ref": "pasika/managed-file-edit"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A file listed in a `.vulyk` manifest MUST NOT be edited by hand.",
+      "hash": "2390e57f4f",
+      "kind": "doctor",
+      "ref": "pasika/managed-file-edit"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.",
+      "hash": "c8aaf8ce02",
+      "kind": "eslint",
+      "ref": "pasika/no-vulyk-dependency"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Vulyk MUST NOT be added to `package.json` in order to run its CLI.",
+      "hash": "1061447825",
+      "kind": "eslint",
+      "ref": "pasika/no-vulyk-dependency"
     },
     {
       "doc": "styling-guide/rules/arbitrary-value-rule.md",

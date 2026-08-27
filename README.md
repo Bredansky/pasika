@@ -8,7 +8,8 @@ Documentation, the lint rules derived from it, and the CLI that applies and diag
 
 ```text
 docs/
-  agent-policy.md                 # repo-wide requirements (Policy)
+  agent-policy.md                 # agent-conduct requirements (Policy)
+  repository-policy.md            # repo-wide code and documentation requirements (Policy)
   code-organization-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
   framework-adoption-guide/       # adopting and updating the framework
@@ -181,7 +182,7 @@ Run `pasika coverage --json` for the exact requirement each rule covers.
 
 Where a component, hook, value, type, or style belongs depends on which files use it, so the rules marked † index the whole `src/` tree instead of looking at one file. Two consequences:
 
-- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `agent-policy.md` requires lint commands to run without it.
+- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `repository-policy.md` requires lint commands to run without it.
 - The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
 
 All are inert in a repository with no `src/` tree.
