@@ -646,12 +646,6 @@
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.",
-      "hash": "689de34a0a",
-      "note": "deciding subjects are unrelated enough to share one document is an editorial call"
-    },
-    {
-      "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
       "hash": "eff345fe21",
       "ref": "pasika/requirement-present",

@@ -4,7 +4,6 @@ Some requirements apply to the whole repository and span subjects too unrelated 
 
 - Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).
 - A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.
-- A Policy document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.
 - A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
 - A Policy document MUST group its bullets under a heading per subject.
 - A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
@@ -45,40 +44,3 @@ Why: the document pairs a repo-wide requirement with a worked example, so it com
 ```
 
 Why: each requirement is short enough to apply without an example, and unrelated subjects sit under their own headings.
-
-## Incorrect — Single-Subject Policy Document
-
-```markdown
-# Commit Policy
-
-## Commit Messages
-
-- Commit subjects MUST use the imperative mood.
-- Commit subjects MUST NOT exceed 72 characters.
-```
-
-Why: every requirement covers one subject, so the document is a Rule that is missing its examples rather than a collection of repo-wide requirements.
-
-## Correct — Single Subject Becomes a Rule
-
-```markdown
-# Commit Message Rule
-
-Inconsistent commit subjects make history hard to scan. This rule fixes their mood and length.
-
-- Commit subjects MUST use the imperative mood.
-
-## Incorrect — Past-Tense Subject
-
-fixed the retry delay
-
-Why: the subject describes what happened instead of what the commit does.
-
-## Correct — Imperative Subject
-
-fix retry delay
-
-Why: the subject reads as an instruction, matching every other commit.
-```
-
-Why: one subject with room for examples belongs in a Rule, where the examples show how to apply it.
