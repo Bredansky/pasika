@@ -688,15 +688,8 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT use RFC 2119 vocabulary (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`), because lookup material describes what exists rather than imposing requirements.",
-      "hash": "b06563ebdb",
-      "ref": "pasika/reference-no-rfc-vocabulary",
-      "note": "docs-check: a Reference must not use RFC 2119 vocabulary"
-    },
-    {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT state a constraint using RFC 2119 vocabulary, and a constraint the reader has to satisfy, stated in plain declarative wording, MUST live in a Rule.",
-      "hash": "d561faeb34",
+      "text": "A Reference MUST NOT state a constraint the reader has to satisfy — in RFC 2119 vocabulary or in plain declarative wording — and such a constraint MUST live in a Rule.",
+      "hash": "3c520b7a6c",
       "ref": "pasika/reference-no-rfc-vocabulary",
       "note": "the reference-no-rfc-vocabulary check catches a constraint stated with RFC 2119 wording; recognizing one stated in plain declarative wording without keywords stays judgment"
     },
