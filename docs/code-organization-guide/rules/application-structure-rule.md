@@ -8,7 +8,7 @@ Without a fixed set of folders, every contributor invents a new place for code a
 - A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds.
 - A support folder MUST NOT contain a component.
 - A file that does not define a component MUST have a kebab-case name.
-- A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders.
+- A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.
 
 ## Incorrect — Invented Top-Level Folder
 
@@ -85,6 +85,29 @@ src/features/billing/
 ```
 
 Why: the component sits at the feature scope and the support folder holds only pure functions.
+
+## Incorrect — Non-Support Folder Without Its Component
+
+```text
+src/features/billing/
+├── invoice.tsx
+└── random-folder/
+    └── helper.ts
+```
+
+Why: `random-folder/` is neither a support folder nor a component folder — nothing inside it is named after it, so a reader cannot tell what it holds.
+
+## Correct — Component Folder Named After Its Component
+
+```text
+src/features/billing/
+├── invoice.tsx
+└── InvoicePanel/
+    ├── index.ts
+    └── InvoicePanel.tsx
+```
+
+Why: `InvoicePanel/` is a component folder: it holds `InvoicePanel.tsx` and its `index.ts` re-exports that component.
 
 ## Incorrect — Support File Named Like a Component
 

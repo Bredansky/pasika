@@ -21,6 +21,13 @@ write("config/home-feed/index.ts", "export const homeFeedConfig = {};\n");
 write("features/billing/helpers/format-date.ts", 'export function formatDate() { return ""; }\n');
 write("config/home-feed/helpers/build-url.ts", 'export function buildUrl() { return ""; }\n');
 write("features/billing/utils/invoice-row.tsx", "export function InvoiceRow() { return <div />; }\n");
+// A proper nested component folder: same-named component + index that re-exports it.
+write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');
+write("features/billing/InvoicePanel/InvoicePanel.tsx", "export function InvoicePanel() { return <main />; }\n");
+// A folder that is neither support nor component: a component inside it is not named after the folder.
+write("features/billing/random-folder/foo.tsx", "export function Foo() { return <main />; }\n");
+// A component folder missing its index barrel.
+write("features/billing/BarePanel/BarePanel.tsx", "export function BarePanel() { return <main />; }\n");
 process.chdir(root);
 
 const valid = (relativePath: string): { code: string; filename: string } => ({
@@ -135,6 +142,39 @@ void describe("An extracted configuration type, schema, or utility MUST live in 
         errors: [
           {
             message: "Move this file to a utils/ folder; helpers/ is not a recognized support folder.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a .tsx file with the same name and an index.ts that named-re-exports that component.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [
+      {
+        code: "export function InvoicePanel() { return <main />; }",
+        filename: file("features/billing/InvoicePanel/InvoicePanel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: "export function Foo() { return <main />; }",
+        filename: file("features/billing/random-folder/foo.tsx"),
+        errors: [
+          {
+            message:
+              'A folder that is not a support folder must be a component folder; add "random-folder.tsx" to src/features/billing/random-folder/ or move its files into a support folder.',
+          },
+        ],
+      },
+      {
+        code: "export function BarePanel() { return <main />; }",
+        filename: file("features/billing/BarePanel/BarePanel.tsx"),
+        errors: [
+          {
+            message:
+              "A component folder must have an index.ts that named-re-exports its component; add index.ts to src/features/billing/BarePanel/.",
           },
         ],
       },

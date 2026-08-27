@@ -73,6 +73,43 @@ function configModuleRoot(filename: string, sourceRoot: string): string | undefi
   return path.join(sourceRoot, "config", segments[1] ?? "");
 }
 
+/**
+ * First folder level that can hold a component folder: inside a feature folder
+ * (features/<feature>/...) or directly under compositions/ or shared/.
+ * Returns -1 for scopes where no folder may hold a component.
+ */
+function componentFolderStart(segments: string[]): number {
+  if (segments[0] === "features") return 2;
+  if (segments[0] === "compositions" || segments[0] === "shared") return 1;
+  return -1;
+}
+
+/**
+ * A folder inside a feature folder, compositions/, or shared/ that is not a
+ * support folder must be a component folder: it must contain a `.tsx` file with
+ * the same name, and an index.ts that named-re-exports it. Returns the first
+ * violation walking from the file's own folder outward, so the most local
+ * problem is reported first.
+ */
+function componentFolderViolation(segments: string[], sourceRoot: string): string | undefined {
+  const start = componentFolderStart(segments);
+  if (start < 0) return undefined;
+
+  for (let depth = segments.length - 2; depth >= start; depth -= 1) {
+    const folder = segments[depth];
+    if (!folder || SUPPORT_FOLDERS.has(folder)) continue;
+    const folderPath = path.join(sourceRoot, ...segments.slice(0, depth + 1));
+    const label = `src/${segments.slice(0, depth + 1).join("/")}/`;
+    if (!fs.existsSync(path.join(folderPath, `${folder}.tsx`))) {
+      return `A folder that is not a support folder must be a component folder; add "${folder}.tsx" to ${label} or move its files into a support folder.`;
+    }
+    if (!fs.existsSync(path.join(folderPath, "index.ts"))) {
+      return `A component folder must have an index.ts that named-re-exports its component; add index.ts to ${label}.`;
+    }
+  }
+  return undefined;
+}
+
 export const applicationStructureRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -175,6 +212,8 @@ export const applicationStructureRule: Rule.RuleModule = {
           `Move this file to a ${expected}/ folder; ${currentFolder}/ is not a recognized support folder.`,
         );
       }
+      const violation = componentFolderViolation(segments, sourceRoot);
+      if (violation !== undefined) return report(context, violation);
       return {};
     }
 
@@ -192,6 +231,9 @@ export const applicationStructureRule: Rule.RuleModule = {
         `Move this file to a ${expected}/ folder; ${currentFolder}/ is reserved for ${expected === "utils" ? "utilities" : expected}.`,
       );
     }
+
+    const violation = componentFolderViolation(segments, sourceRoot);
+    if (violation !== undefined) return report(context, violation);
 
     return {};
   },

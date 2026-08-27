@@ -68,9 +68,10 @@
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
-      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders.",
-      "hash": "5cc68d9d44",
-      "note": "the application-structure check must allow support folders in these scopes"
+      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.",
+      "hash": "42f258782a",
+      "ref": "pasika/application-structure",
+      "note": "allows support folders in feature, compositions, shared, and nested-component scopes, and requires any other folder there to be a component folder with a same-named .tsx and an index.ts that named-re-exports it"
     },
     {
       "doc": "code-organization-guide/rules/component-placement-rule.md",
