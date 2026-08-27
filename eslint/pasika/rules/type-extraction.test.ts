@@ -81,6 +81,26 @@ void describe(
 );
 
 void describe(
+  "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
+  () => {
+    ruleTester.run("type-extraction", typeExtractionRule, {
+      valid: [
+        // A consumer imports the schema alongside the component: no extraction.
+        {
+          code: read("features/billing/invoice-form.tsx"),
+          filename: file("features/billing/invoice-form.tsx"),
+        },
+        {
+          code: read("features/billing/invoice-page.tsx"),
+          filename: file("features/billing/invoice-page.tsx"),
+        },
+      ],
+      invalid: [],
+    });
+  },
+);
+
+void describe(
   "A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.",
   () => {
     ruleTester.run("type-extraction", typeExtractionRule, {

@@ -447,7 +447,8 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
       "hash": "061a5c0936",
-      "note": "the extraction check must not fire when the consumer also imports the component from that file"
+      "ref": "pasika/type-extraction",
+      "note": "the type-extraction check only requires extraction when a consumer imports the type without the defining component, so importing it alongside the component never fires"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
