@@ -42,7 +42,7 @@ export function atrulesNamed(node: CssNodePlain, name: string): CssNodePlain[] {
 export function blockChildren(node: CssNodePlain | undefined): CssNodePlain[] {
   if (!node) return [];
   if (!("block" in node) || !node.block) return [];
-  return node.block.children ?? [];
+  return node.block.children;
 }
 
 /**

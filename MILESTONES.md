@@ -131,8 +131,10 @@ These doctor checks use `getProjectIndex()` and can become ESLint rules.
 
 - [x] All rules registered in `eslint/pasika/index.ts`
 - [x] CSS/JSON rule index files (`rules/css/index.ts`, `rules/json/index.ts`)
-- [ ] `eslint.config.ts` wired with CSS and JSON language configs
-- [ ] CSS/JSON configs scoped to correct file patterns (don't leak JS rules into CSS)
+- [x] `eslint.config.ts` wired with CSS and JSON language configs (pasika self-lint)
+- [x] CSS/JSON configs scoped to correct file patterns (don't leak JS rules into CSS)
+- [x] Zirka `styleguide.ts` builds CSS/JSON configs from pasika rules for consumers
+- [x] `@eslint/css` and `@eslint/json` installed in zirka as dependencies
 
 ### Registry Re-classification
 
@@ -161,7 +163,6 @@ These doctor checks use `getProjectIndex()` and can become ESLint rules.
 
 - [x] Reword `agent-policy.md` finding requirement to name both lint and doctor sources
 - [ ] Update `README.md` with new CSS/JSON rules in the ruleset table
-- [ ] Update `NEXT-SESSION.md` with current state (was deleted; recreate if needed)
 
 ## M6 — Future
 
@@ -177,8 +178,8 @@ Items identified but not yet scoped:
 
 ## Session Log
 
-| Date | What happened |
-| --- | --- |
+| Date       | What happened                                                                                                                                                                            |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-08-27 | Started M4: CSS + JSON rules written and tested; typecheck clean. Registry shows 98 eslint, 30 doctor, 21 judgment, 13 permission (162 total). `NEXT-SESSION.md` deleted during session. |
-| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources. |
-| 2026-08-27 | Created MILESTONES.md to track progress across sessions. |
+| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources.                                                                                                    || 2026-08-27 | Created MILESTONES.md to track progress across sessions. |
+| 2026-08-27 | Wired CSS/JSON configs into zirka `styleguide.ts`; consumers now get CSS/JSON rules through the pasika styleguide option. Fixed pasika lint error in helpers.ts (`no-unnecessary-condition`). |
