@@ -88,8 +88,7 @@ export function buildCoverageReport(options: {
     eslint: 0,
     doctor: 0,
     planned: 0,
-    judgment: 0,
-    permission: 0,
+    manual: 0,
   };
 
   const nextRequirements: Requirement[] = [];
@@ -224,8 +223,8 @@ export function classifyRequirement(options: {
     throw new Error(`Kind "${input.kind}" takes no --ref, because nothing reports it.`);
   }
 
-  if ((input.kind === "judgment" || input.kind === "planned") && (input.note ?? "").trim() === "") {
-    const reason = input.kind === "judgment" ? "why no check can decide it" : "the check that should cover it";
+  if ((input.kind === "manual" || input.kind === "planned") && (input.note ?? "").trim() === "") {
+    const reason = input.kind === "manual" ? "why no check decides it, or that it grants permission" : "the check that should cover it";
     throw new Error(`Kind "${input.kind}" needs --note naming ${reason}.`);
   }
 

@@ -114,7 +114,7 @@ program
           "",
           `${String(report.total)} requirements · ${String(report.mechanical)} mechanically enforced`,
           `  eslint ${String(counts.eslint)} · doctor ${String(counts.doctor)}`,
-          `  planned ${String(counts.planned)} · judgment ${String(counts.judgment)} · permission ${String(counts.permission)}`,
+          `  planned ${String(counts.planned)} · manual ${String(counts.manual)}`,
           `  unclassified ${String(report.issues.filter((issue) => issue.kind === "new").length)}`,
         ].join("\n"),
       );

@@ -4,21 +4,21 @@
       "doc": "agent-policy.md",
       "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
       "hash": "b5facfa0c0",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "whether a value crosses a runtime boundary and needs validation is not decidable from source"
     },
     {
       "doc": "agent-policy.md",
       "text": "A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.",
       "hash": "b404251c21",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding a field is genuinely optional requires evidence about runtime data"
     },
     {
       "doc": "agent-policy.md",
       "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
       "hash": "e765276ded",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "recognizing a compatibility shim requires knowing the change's intent"
     },
     {
@@ -39,28 +39,29 @@
       "doc": "agent-policy.md",
       "text": "A commit MUST NOT use the `--no-verify` flag.",
       "hash": "e1c615452f",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "how git was invoked is not observable from the repository"
     },
     {
       "doc": "agent-policy.md",
       "text": "Browser behavior a task depends on MUST be verified with `agent-browser`.",
       "hash": "034197e9d7",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "whether a task depends on browser behavior is not observable"
     },
     {
       "doc": "agent-policy.md",
       "text": "`agent-browser upgrade` MUST run before `agent-browser` is used in a task.",
       "hash": "aea9247939",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "tool invocation order within a task is not observable"
     },
     {
       "doc": "agent-policy.md",
       "text": "An agent MAY discover available commands with `agent-browser --help` and command-specific usage with `agent-browser <command> --help`.",
       "hash": "8370ec5f41",
-      "kind": "permission"
+      "kind": "manual",
+      "note": "grants permission, so there is nothing to check"
     },
     {
       "doc": "agent-policy.md",
@@ -73,14 +74,14 @@
       "doc": "agent-policy.md",
       "text": "A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or `npx pasika doctor` (environment checks) did not already report.",
       "hash": "f8d1db6aaf",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding a finding is new requires the previous state, which neither command carries"
     },
     {
       "doc": "agent-policy.md",
       "text": "Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.",
       "hash": "8177201b42",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "recognizing a document as copied from elsewhere is not decidable from the repository"
     },
     {
@@ -158,7 +159,7 @@
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders.",
       "hash": "5cc68d9d44",
-      "kind": "permission",
+      "kind": "manual",
       "note": "the application-structure check must allow support folders in these scopes"
     },
     {
@@ -278,7 +279,7 @@
       "doc": "code-organization-guide/rules/constants-rule.md",
       "text": "A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
       "hash": "57f90aa714",
-      "kind": "permission",
+      "kind": "manual",
       "note": "pasika/support-file-placement skips the constants/ folder of a configuration module"
     },
     {
@@ -418,7 +419,7 @@
       "doc": "code-organization-guide/rules/jsx-hygiene-rule.md",
       "text": "An inline expression MAY contain one condition with up to one logical operator, one ternary, or one built-in method call. `cn()` MAY be called inline. An event handler MAY make one call inline.",
       "hash": "d8f4ceb822",
-      "kind": "permission",
+      "kind": "manual",
       "note": "the jsx-hygiene check must treat exactly these as the permitted inline set"
     },
     {
@@ -453,14 +454,14 @@
       "doc": "code-organization-guide/rules/locales-rule.md",
       "text": "A locale key MUST be camelCase English based on the text, unless a direct translation would be unclear or unwieldy. In that case, it MAY describe the message's purpose instead.",
       "hash": "94ea814921",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "whether a key reads as its text or its purpose depends on the language"
     },
     {
       "doc": "code-organization-guide/rules/nameable-visual-concept-rule.md",
       "text": "A block of elements SHOULD be extracted to a component when one clear name describes the whole block.",
       "hash": "ca77bfffc0",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding one clear name describes a block is a naming judgment"
     },
     {
@@ -475,7 +476,7 @@
       "doc": "code-organization-guide/rules/repeated-structure-rule.md",
       "text": "A block of elements MUST be extracted as a named component when two or more places use the same arrangement of elements for the same purpose. Different data or labels do not prevent extraction.",
       "hash": "3c1b9c7807",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "recognizing the same arrangement used for the same purpose needs structural comparison"
     },
     {
@@ -503,7 +504,7 @@
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "A smart component without one outer DOM element in every rendered result MAY omit `data-testid`.",
       "hash": "b0dc309f05",
-      "kind": "permission",
+      "kind": "manual",
       "note": "the data-testid check must exempt a component with no single outer element"
     },
     {
@@ -524,7 +525,7 @@
       "doc": "code-organization-guide/rules/sole-state-owner-rule.md",
       "text": "A component MUST extract a named component when one part of its JSX contains every JSX expression, callback, and effect that reads one state hook's value or calls its updater.",
       "hash": "22a896ea5f",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding one JSX part owns every read of a state hook needs subtree analysis a rule cannot ground"
     },
     {
@@ -538,7 +539,7 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
       "hash": "061a5c0936",
-      "kind": "permission",
+      "kind": "manual",
       "note": "the extraction check must not fire when the consumer also imports the component from that file"
     },
     {
@@ -587,7 +588,7 @@
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
       "text": "A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
       "hash": "091724ed27",
-      "kind": "permission",
+      "kind": "manual",
       "note": "pasika/support-file-placement skips the types/ folder of a configuration module"
     },
     {
@@ -629,7 +630,8 @@
       "doc": "code-organization-guide/rules/utilities-rule.md",
       "text": "Utilities that are used together MAY be grouped in one file.",
       "hash": "23f36f077b",
-      "kind": "permission"
+      "kind": "manual",
+      "note": "grants permission, so there is nothing to check"
     },
     {
       "doc": "code-organization-guide/rules/utilities-rule.md",
@@ -650,7 +652,7 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide MAY link Rules, References, Policy documents, and other Guides.",
       "hash": "254850923a",
-      "kind": "permission",
+      "kind": "manual",
       "note": "docs-check no-cross-document-link exempts guides"
     },
     {
@@ -671,7 +673,7 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.",
       "hash": "b38e3ef9c9",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "whether a step names a concrete result is a reading judgment"
     },
     {
@@ -744,7 +746,7 @@
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "A Policy document MUST state requirements that apply to the whole repository and span two or more unrelated subjects.",
       "hash": "689de34a0a",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding subjects are unrelated enough to share one document is an editorial call"
     },
     {
@@ -808,20 +810,21 @@
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT state a constraint the reader has to satisfy, even in plain declarative wording, and a constraint the reader has to satisfy MUST live in a Rule.",
       "hash": "36dfefa25c",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "recognizing a constraint stated as description requires reading it as a reader would"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MAY define terms that Rules, Guides, and Policy documents use.",
       "hash": "0286f4b092",
-      "kind": "permission"
+      "kind": "manual",
+      "note": "grants permission, so there is nothing to check"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MAY name an RFC 2119 keyword as lookup content, because naming a keyword does not impose a requirement.",
       "hash": "5e3305d40a",
-      "kind": "permission",
+      "kind": "manual",
       "note": "docs-check reference-no-rfc-vocabulary ignores code spans"
     },
     {
@@ -863,7 +866,7 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST state requirements about one subject.",
       "hash": "5385606287",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "deciding requirements share one subject is an editorial call"
     },
     {
@@ -885,7 +888,7 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, and `SHOULD` or `SHOULD NOT` only when exceptions are possible.",
       "hash": "67e994bec5",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
     },
     {
@@ -900,7 +903,7 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.",
       "hash": "26f85889e2",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "recognizing a bullet as a definition rather than a demand is a reading judgment"
     },
     {
@@ -914,7 +917,8 @@
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MAY contain multiple Incorrect/Correct pairs.",
       "hash": "f6d4ce8fa7",
-      "kind": "permission"
+      "kind": "manual",
+      "note": "grants permission, so there is nothing to check"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -934,7 +938,7 @@
       "doc": "documentation-guide/rules/template-usage-rule.md",
       "text": "Authors MUST start from the template that matches the chosen document kind and structure.",
       "hash": "08faa3cb70",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "which template an author started from is not recorded in the result"
     },
     {
@@ -948,14 +952,14 @@
       "doc": "documentation-guide/rules/template-usage-rule.md",
       "text": "Authors MUST delete template branches that do not apply to the document being written.",
       "hash": "dbe2070bf9",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "an unused branch is only recognizable by comparing against the template"
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
       "text": "Documentation support assets MAY live in folders whose names start with an underscore.",
       "hash": "faeb62c465",
-      "kind": "permission",
+      "kind": "manual",
       "note": "the documentation parser skips folders whose names start with an underscore"
     },
     {
@@ -1005,7 +1009,7 @@
       "doc": "styling-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST own a distinguishable appearance for every UI state it supports.",
       "hash": "fae776da92",
-      "kind": "judgment",
+      "kind": "manual",
       "note": "whether every supported state looks distinguishable is a visual judgment"
     },
     {

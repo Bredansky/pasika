@@ -2,7 +2,7 @@
 
 Documentation, the lint rules derived from it, and the CLI that applies and diagnoses both.
 
-`pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule, which `pasika` check, or which human judgment covers it — and CI fails when a requirement has no answer.
+`pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule, which `pasika` check, or which manual review covers it — and CI fails when a requirement has no answer.
 
 ## Layout
 
@@ -49,8 +49,7 @@ The `text` field is the bullet as written in the document (markdown links and co
 | `eslint` | An ESLint rule reports it, and a fixture test titled with the requirement pins it |
 | `doctor` | A `pasika doctor` check reports it |
 | `planned` | Mechanically checkable, not written yet; `note` names the intended check |
-| `judgment` | No mechanical check can decide it; `note` says why |
-| `permission` | The requirement grants permission, so there is nothing to check |
+| `manual` | No mechanical check decides it; the reviewer or agent applies it, or the requirement merely grants permission — `note` says why |
 
 `pasika coverage` fails when a requirement is unclassified, when its text changed, when it disappeared, when its `ref` names a check that does not exist, or when a lint-enforced requirement has no test. Confirm a reworded requirement with `pasika coverage --accept`.
 
@@ -69,10 +68,10 @@ A requirement `coverage` reports as `new` is classified with the hash it prints:
 
 ```bash
 npx pasika coverage --classify d311a1457a --kind eslint --ref pasika/import-boundaries
-npx pasika coverage --classify 041b665bd7 --kind judgment --note "no check can compare against the previous state"
+npx pasika coverage --classify 041b665bd7 --kind manual --note "no check can compare against the previous state"
 ```
 
-The command refuses a hash no requirement has, a `ref` naming a rule or check that does not exist, a `ref` on a kind that nothing reports, and `judgment` or `planned` without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-classified requirement reclassifies it and reports what it was.
+The command refuses a hash no requirement has, a `ref` naming a rule or check that does not exist, a `ref` on a kind that nothing reports, and `manual` or `planned` without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-classified requirement reclassifies it and reports what it was.
 
 ## ESLint ruleset
 

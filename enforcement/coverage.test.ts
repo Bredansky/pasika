@@ -46,7 +46,7 @@ const classify = (input: Parameters<typeof classifyRequirement>[0]["input"]): Re
 
 void describe("classifyRequirement", () => {
   void it("rejects a hash that no requirement in the documentation has", () => {
-    assert.throws(() => classify({ hash: "deadbeef00", kind: "judgment", note: "why" }), /has hash "deadbeef00"/);
+    assert.throws(() => classify({ hash: "deadbeef00", kind: "manual", note: "why" }), /has hash "deadbeef00"/);
   });
 
   void it("rejects the eslint kind without a rule id", () => {
@@ -62,13 +62,13 @@ void describe("classifyRequirement", () => {
 
   void it("rejects a ref on a kind that nothing reports", () => {
     assert.throws(
-      () => classify({ hash: mayRequirement.hash, kind: "permission", ref: "pasika/filename-case" }),
+      () => classify({ hash: mayRequirement.hash, kind: "manual", ref: "pasika/filename-case" }),
       /takes no --ref/,
     );
   });
 
-  void it("rejects judgment and planned without a note, because the note is the whole content", () => {
-    assert.throws(() => classify({ hash: mustRequirement.hash, kind: "judgment" }), /needs --note/);
+  void it("rejects manual and planned without a note, because the note is the whole content", () => {
+    assert.throws(() => classify({ hash: mustRequirement.hash, kind: "manual" }), /needs --note/);
     assert.throws(() => classify({ hash: mustRequirement.hash, kind: "planned", note: "  " }), /needs --note/);
   });
 
@@ -152,7 +152,7 @@ void describe("writeRegistry", () => {
       doc: "only-rule.md",
       text: "A removed requirement MUST be gone.",
       hash: "0000000000",
-      kind: "judgment",
+      kind: "manual",
       note: "the bullet was deleted from the doc",
     };
 
