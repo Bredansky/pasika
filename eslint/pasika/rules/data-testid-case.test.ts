@@ -58,15 +58,40 @@ void describe("A dumb component MAY set data-testid on its root element, and the
   });
 });
 
-void describe("A smart component without one outer DOM element in every rendered result MAY omit data-testid.", () => {
+void describe("A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set data-testid on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return open ? <section /> : <aside />;\n}`,
+        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section data-testid="AccountPanel">{open ? <p /> : <p />}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
     ],
-    invalid: [],
+    invalid: [
+      {
+        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return open ? <section /> : <aside />;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+        errors: [
+          {
+            message:
+              'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
+              'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
+              "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+          },
+        ],
+      },
+      {
+        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <>{open ? <section /> : <aside />}</>;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+        errors: [
+          {
+            message:
+              'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
+              'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
+              "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+          },
+        ],
+      },
+    ],
   });
 });
 

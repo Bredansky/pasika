@@ -410,9 +410,10 @@
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component without one outer DOM element in every rendered result MAY omit `data-testid`.",
-      "hash": "b0dc309f05",
-      "note": "the data-testid check must exempt a component with no single outer element"
+      "text": "A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set `data-testid` on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.",
+      "hash": "a8241ec2d4",
+      "ref": "pasika/data-testid-case",
+      "note": "reports a smart component whose rendered result has no single outer element, requiring one wrapping element with the data-testid"
     },
     {
       "doc": "code-organization-guide/rules/smart-vs-dumb-component-rule.md",

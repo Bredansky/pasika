@@ -5,7 +5,7 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
 - A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.
-- A smart component without one outer DOM element in every rendered result MAY omit `data-testid`.
+- A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set `data-testid` on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
 - [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
@@ -108,3 +108,37 @@ export function PlatformCard({
 ```
 
 Why: the component is dumb, so its file name and `data-testid` use `kebab-case`.
+
+## Incorrect — Smart Component Renders Multiple Roots
+
+```tsx
+// src/features/social/SocialStatsPanel.tsx
+"use client";
+
+export function SocialStatsPanel(): React.JSX.Element {
+  const { stats, isLoading } = useSocialStats();
+
+  return isLoading ? <p>{locales.social.loading}</p> : <PlatformList stats={stats} />;
+}
+```
+
+Why: this smart component has no single outer element, so no `data-testid` can anchor tests to the component. It must wrap its content in one outer element.
+
+## Correct — Smart Component Wraps Multiple Roots
+
+```tsx
+// src/features/social/SocialStatsPanel.tsx
+"use client";
+
+export function SocialStatsPanel(): React.JSX.Element {
+  const { stats, isLoading } = useSocialStats();
+
+  return (
+    <section data-testid="SocialStatsPanel">
+      {isLoading ? <p>{locales.social.loading}</p> : <PlatformList stats={stats} />}
+    </section>
+  );
+}
+```
+
+Why: the wrapper gives tests one stable outer element to anchor `data-testid="SocialStatsPanel"` to, no matter which branch renders.

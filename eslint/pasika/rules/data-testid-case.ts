@@ -1,9 +1,13 @@
 /**
  * ESLint rule: pasika/data-testid-case
  *
- * Enforces data-testid casing for components whose rendered result has one
- * statically identifiable intrinsic root. Components with multiple or dynamic
- * roots are intentionally left alone, matching the documented exemption.
+ * Enforces that a smart component renders exactly one outer DOM element and
+ * sets data-testid on it. When the rendered result has one statically
+ * identifiable intrinsic root, the data-testid value and casing are checked.
+ * A smart component with no single statically identifiable root (multiple
+ * roots, branches returning different tags, a fragment) must wrap its content
+ * in one outer element instead, so tests always have a stable element to
+ * anchor data-testid to.
  *
  * @see docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
  */
@@ -47,21 +51,31 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
       Program(node) {
         for (const component of components) {
           const root = findSimpleRoot(component, text, filename);
-          if (!root) continue;
-          const { value } = getTestId(root);
-          const expected = component.smart ? component.name : toKebabCase(component.name);
-          if (component.smart && value === undefined) {
+          if (root) {
+            const { value } = getTestId(root);
+            const expected = component.smart ? component.name : toKebabCase(component.name);
+            if (component.smart && value === undefined) {
+              context.report({
+                node,
+                message: `Smart component "${component.name}" with one outer DOM element must set data-testid="${expected}".`,
+              });
+              continue;
+            }
+            if (value === undefined || value === expected) continue;
+            if (component.smart ? !isPascalCase(value) || value !== expected : !isKebabCase(value)) {
+              context.report({
+                node,
+                message: `data-testid for ${component.smart ? "smart" : "dumb"} component "${component.name}" must be ${component.smart ? "PascalCase" : "kebab-case"}: expected "${expected}".`,
+              });
+            }
+          } else if (component.smart) {
             context.report({
               node,
-              message: `Smart component "${component.name}" with one outer DOM element must set data-testid="${expected}".`,
-            });
-            continue;
-          }
-          if (value === undefined || value === expected) continue;
-          if (component.smart ? !isPascalCase(value) || value !== expected : !isKebabCase(value)) {
-            context.report({
-              node,
-              message: `data-testid for ${component.smart ? "smart" : "dumb"} component "${component.name}" must be ${component.smart ? "PascalCase" : "kebab-case"}: expected "${expected}".`,
+              message:
+                `Smart component "${component.name}" has no single outer element; wrap its content in one outer ` +
+                "element with data-testid=\"" +
+                `${component.name}` +
+                "\" instead of rendering multiple roots. See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
             });
           }
         }
