@@ -19,8 +19,7 @@
     "pasika": "dist/cli/index.js"
   },
   "files": [
-    "dist",
-    "enforcement/registry.json"
+    "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
