@@ -1,13 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2022"],
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "declaration": true
   },
   "include": ["cli/**/*.ts", "enforcement/**/*.ts", "eslint/**/*.ts"],
   "exclude": ["eslint.config.ts", "**/*.test.ts", "eslint/pasika/rule-tester.ts"]
