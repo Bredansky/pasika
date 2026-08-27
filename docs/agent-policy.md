@@ -11,7 +11,3 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 ## Code Quality
 
 - A commit MUST NOT use the `--no-verify` flag.
-
-## Framework
-
-- A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or `npx pasika doctor` (environment checks) did not already report.

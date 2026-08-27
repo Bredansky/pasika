@@ -29,13 +29,6 @@
       "note": "how git was invoked is not observable from the repository"
     },
     {
-      "doc": "agent-policy.md",
-      "text": "A change MUST NOT introduce a finding that the repository's lint command (mechanical rules) or `npx pasika doctor` (environment checks) did not already report.",
-      "hash": "f8d1db6aaf",
-      "kind": "manual",
-      "note": "deciding a finding is new requires the previous state, which neither command carries"
-    },
-    {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "Application source MUST live under `src/`.",
       "hash": "0a5c03a95d",
