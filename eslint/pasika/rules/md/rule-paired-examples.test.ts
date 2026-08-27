@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { rulePairedExamplesRule } from "./rule-paired-examples.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { rulePairedExamplesRule } from "./rule-paired-examples";
 
 void describe("A Rule MUST contain at least one Incorrect/Correct pair.", () => {
   mdRuleTester.run("rule-paired-examples", rulePairedExamplesRule, {

@@ -4,7 +4,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Text } from "mdast";
-import { containsRfcKeyword, getFilename } from "./helpers.js";
+import { containsRfcKeyword, getFilename } from "./helpers";
 
 export const referenceNoRfcVocabularyRule: MarkdownRuleDefinition = {
   meta: {

@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { uiStateRule } from "./ui-state.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { uiStateRule } from "./ui-state";
 
 void describe("A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.", () => {
   ruleTester.run("ui-state", uiStateRule, {

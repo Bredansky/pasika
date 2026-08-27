@@ -9,7 +9,7 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import { findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions.js";
+import { findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions";
 
 const NEXT_ROUTING_FILES = new Set([
   "page",

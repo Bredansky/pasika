@@ -22,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "tsup",
     "coverage": "tsx cli/index.ts coverage",
     "docs": "eslint docs",
     "fix": "eslint . --fix",
@@ -49,6 +49,7 @@
     "eslint": "^10.9.1",
     "jiti": "^2.7.0",
     "prettier": "^3.8.1",
+    "tsup": "^8.5.1",
     "tsx": "^4.23.12",
     "typescript": "^5.9.2",
     "zirka": "^0.0.42"

@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { overviewLengthRule } from "./overview-length.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { overviewLengthRule } from "./overview-length";
 
 void describe("A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.", () => {
   mdRuleTester.run("overview-length", overviewLengthRule, {

@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { cvaAppearancePropsRule } from "./cva-appearance-props.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { cvaAppearancePropsRule } from "./cva-appearance-props";
 
 const CVA_DEFINITION = `const buttonVariants = cva("inline-flex items-center", {
   variants: {

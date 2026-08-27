@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import jsonPlugin from "@eslint/json";
-import { jsonRules } from "../../index.js";
+import { jsonRules } from "../../index";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

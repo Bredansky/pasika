@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { guideLinkAnchorsRule } from "./guide-link-anchors.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { guideLinkAnchorsRule } from "./guide-link-anchors";
 
 void describe("A step that links another Guide MUST link directly to the relevant How To section.", () => {
   mdRuleTester.run("guide-link-anchors", guideLinkAnchorsRule, {

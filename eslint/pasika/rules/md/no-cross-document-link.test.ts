@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { noCrossDocumentLinkRule } from "./no-cross-document-link.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { noCrossDocumentLinkRule } from "./no-cross-document-link";
 
 void describe("A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.", () => {
   mdRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {

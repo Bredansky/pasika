@@ -10,7 +10,7 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index.js";
+import { getProjectIndex } from "../project/index";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -19,7 +19,7 @@ import {
   isUnderApp,
   resolveComponentPlacement,
   segmentsOf,
-} from "../project/ccf.js";
+} from "../project/ccf";
 
 const REASON_TEXT: Record<string, string> = {
   ccf: "that is the closest folder its consumers share",

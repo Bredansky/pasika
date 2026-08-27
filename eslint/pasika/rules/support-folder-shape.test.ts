@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { supportFolderShapeRule } from "./support-folder-shape.js";
+import { describe, ruleTester } from "../rule-tester";
+import { supportFolderShapeRule } from "./support-folder-shape";
 
 function fixture(folder: string, index: string, sibling: string): string {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-support-shape-"));

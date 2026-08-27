@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { runDoctor } from "./doctor.js";
+import { runDoctor } from "./doctor";
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-doctor-")));
 

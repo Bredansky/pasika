@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { importThroughIndexRule } from "./import-through-index.js";
+import { describe, ruleTester } from "../rule-tester";
+import { importThroughIndexRule } from "./import-through-index";
 
 function project(): { root: string; consumer: string } {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-import-index-"));

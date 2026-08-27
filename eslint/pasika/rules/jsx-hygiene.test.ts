@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { jsxHygieneRule } from "./jsx-hygiene.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { jsxHygieneRule } from "./jsx-hygiene";
 
 void describe("Arithmetic, chained built-in method calls, calls to functions declared outside the component, nested ternaries, and conditions containing two or more logical operators MUST be extracted before return, including in JSX attributes.", () => {
   ruleTester.run("jsx-hygiene", jsxHygieneRule, {

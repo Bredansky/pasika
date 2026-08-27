@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import markdown from "@eslint/markdown";
-import { mdRules } from "../../index.js";
+import { mdRules } from "../../index";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

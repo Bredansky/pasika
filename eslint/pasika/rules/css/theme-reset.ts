@@ -8,7 +8,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren } from "./helpers.js";
+import { atrulesNamed, blockChildren } from "./helpers";
 
 export const themeResetRule: CSSRuleDefinition = {
   meta: {

@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { guideOverviewNoLinksRule } from "./guide-overview-no-links.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { guideOverviewNoLinksRule } from "./guide-overview-no-links";
 
 void describe("A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.", () => {
   mdRuleTester.run("guide-overview-no-links", guideOverviewNoLinksRule, {

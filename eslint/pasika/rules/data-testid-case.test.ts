@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { dataTestIdCaseRule } from "./data-testid-case.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { dataTestIdCaseRule } from "./data-testid-case";
 
 void describe("A smart component with one outer DOM element in every rendered result MUST set data-testid on that element, and its value MUST match the component name in PascalCase.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {

@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { exampleHeadingDescriptionRule } from "./example-heading-description.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { exampleHeadingDescriptionRule } from "./example-heading-description";
 
 void describe("An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.", () => {
   mdRuleTester.run("example-heading-description", exampleHeadingDescriptionRule, {

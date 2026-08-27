@@ -14,8 +14,8 @@ import path from "node:path";
 import { readFileSync } from "node:fs";
 import type { Rule } from "eslint";
 import ts from "typescript";
-import { getProjectIndex, resolveSpecifier } from "../project/index.js";
-import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf.js";
+import { getProjectIndex, resolveSpecifier } from "../project/index";
+import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 
 /** The first segment of a `locales.<key>` read. */
 const LOCALE_ACCESS = /\blocales\.(?<key>[A-Za-z_$][\w$]*)/g;

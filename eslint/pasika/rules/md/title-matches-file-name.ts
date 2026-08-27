@@ -4,7 +4,7 @@
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
-import { getFilename, getTextContent } from "./helpers.js";
+import { getFilename, getTextContent } from "./helpers";
 
 function toExpectedFileName(title: string): string {
   return `${title

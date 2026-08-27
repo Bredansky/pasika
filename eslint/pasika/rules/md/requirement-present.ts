@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
-import { containsRfcKeyword, getFilename, getTextContent } from "./helpers.js";
+import { containsRfcKeyword, getFilename, getTextContent } from "./helpers";
 
 /** Check whether a subtree contains a bullet with RFC vocabulary. */
 function hasRequirement(node: Nodes): boolean {

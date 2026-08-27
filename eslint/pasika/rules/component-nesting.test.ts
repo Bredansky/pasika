@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { componentNestingRule } from "./component-nesting.js";
+import { describe, ruleTester } from "../rule-tester";
+import { componentNestingRule } from "./component-nesting";
 
 /**
  * The rule reads the whole tree from disk, so the fixture is a real project.

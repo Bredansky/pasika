@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { noNestedHowToRule } from "./no-nested-how-to.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { noNestedHowToRule } from "./no-nested-how-to";
 
 void describe("How To sections MUST NOT nest inside other How To sections.", () => {
   mdRuleTester.run("no-nested-how-to", noNestedHowToRule, {

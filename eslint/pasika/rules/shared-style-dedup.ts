@@ -13,9 +13,9 @@
 import path from "node:path";
 import { readFileSync, statSync } from "node:fs";
 import type { Rule } from "eslint";
-import type { ProjectIndex } from "../project/index.js";
-import { getProjectIndex } from "../project/index.js";
-import { segmentsOf } from "../project/ccf.js";
+import type { ProjectIndex } from "../project/index";
+import { getProjectIndex } from "../project/index";
+import { segmentsOf } from "../project/ccf";
 
 /** Static className string literals; dynamic class lists are not comparable across files. */
 const CLASS_NAME = /className="(?<classes>[^"]+)"/g;

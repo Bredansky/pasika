@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { themeVariableNamespaceRule } from "./theme-variable-namespace.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 
 void describe("A value that needs at least two utility classes from the same Tailwind theme-variable namespace MUST use that namespace and have the same name in :root.", () => {
   cssRuleTester.run("theme-variable-namespace", themeVariableNamespaceRule, {

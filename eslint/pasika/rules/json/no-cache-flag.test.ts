@@ -1,5 +1,5 @@
-import { describe, jsonRuleTester } from "./rule-tester.js";
-import { noCacheFlagRule } from "./no-cache-flag.js";
+import { describe, jsonRuleTester } from "./rule-tester";
+import { noCacheFlagRule } from "./no-cache-flag";
 
 void describe("A lint command MUST NOT pass ESLint's --cache flag, because rules that compare a file against the rest of the tree need every file in the run.", () => {
   jsonRuleTester.run("no-cache-flag", noCacheFlagRule, {

@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { hookComplexityRule } from "./hook-complexity.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { hookComplexityRule } from "./hook-complexity";
 
 void describe("A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {

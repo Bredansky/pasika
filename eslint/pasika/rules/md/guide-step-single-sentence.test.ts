@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { guideStepSingleSentenceRule } from "./guide-step-single-sentence.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
 
 void describe("Each How To step MUST be concise and use one sentence.", () => {
   mdRuleTester.run("guide-step-single-sentence", guideStepSingleSentenceRule, {

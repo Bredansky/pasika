@@ -12,8 +12,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import { parseModule, type ExportKind } from "../project/parse-module.js";
-import { segmentsOf, SUPPORT_FOLDERS } from "../project/ccf.js";
+import { parseModule, type ExportKind } from "../project/parse-module";
+import { segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);
 const ROUTING_FILES = new Set([

@@ -8,7 +8,7 @@
 
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { JsxElementNode } from "../ast-types.js";
+import type { JsxElementNode } from "../ast-types";
 
 const STATE_PROPS = new Set([
   "disabled",

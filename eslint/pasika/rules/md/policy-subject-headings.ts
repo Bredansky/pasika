@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
-import { getFilename, getLine } from "./helpers.js";
+import { getFilename, getLine } from "./helpers";
 
 export const policySubjectHeadingsRule: MarkdownRuleDefinition = {
   meta: {

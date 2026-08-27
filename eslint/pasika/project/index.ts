@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from "node:fs";
 import path from "node:path";
-import { parseModule, type ParsedModule } from "./parse-module.js";
+import { parseModule, type ParsedModule } from "./parse-module";
 
 const MODULE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"];
 const INDEX_BASENAMES = ["index.ts", "index.tsx", "index.mts", "index.cts", "index.js", "index.jsx"];

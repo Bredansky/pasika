@@ -12,8 +12,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index.js";
-import { describeConsumers, segmentsOf } from "../project/ccf.js";
+import { getProjectIndex } from "../project/index";
+import { describeConsumers, segmentsOf } from "../project/ccf";
 
 export const valueExtractionRule: Rule.RuleModule = {
   meta: {

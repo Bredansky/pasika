@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
-import { containsRfcKeyword, getFilename } from "./helpers.js";
+import { containsRfcKeyword, getFilename } from "./helpers";
 
 /** Minimal view of the rule context the walker reports through. */
 interface ReportingContext {

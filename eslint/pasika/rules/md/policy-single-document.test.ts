@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { policySingleDocumentRule } from "./policy-single-document.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { policySingleDocumentRule } from "./policy-single-document";
 
 void describe("A repository MUST NOT have more than one Policy document per audience.", () => {
   mdRuleTester.run("policy-single-document", policySingleDocumentRule, {

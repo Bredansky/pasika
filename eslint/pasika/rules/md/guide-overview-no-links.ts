@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
-import { getFilename, getLine, getTextContent } from "./helpers.js";
+import { getFilename, getLine, getTextContent } from "./helpers";
 
 function containsLink(node: Nodes): boolean {
   if (node.type === "link") return true;

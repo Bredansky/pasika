@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { noArbitraryTailwindRule } from "./no-arbitrary-tailwind.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { noArbitraryTailwindRule } from "./no-arbitrary-tailwind";
 
 const message = (className: string): string =>
   `Tailwind arbitrary-value class "${className}" is not allowed. Use a named token or custom utility. ` +

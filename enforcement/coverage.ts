@@ -1,10 +1,10 @@
 import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { z } from "zod";
-import { allPasikaRuleIds } from "../eslint/pasika/index.js";
-import { normalizeRequirement } from "./normalize.js";
-import { parseDocs, type ParsedRequirement } from "./parse-docs.js";
-import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types.js";
+import { allPasikaRuleIds } from "../eslint/pasika/index";
+import { normalizeRequirement } from "./normalize";
+import { parseDocs, type ParsedRequirement } from "./parse-docs";
+import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types";
 
 export interface CoverageIssue {
   kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";

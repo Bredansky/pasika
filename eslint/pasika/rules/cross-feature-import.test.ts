@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { crossFeatureImportRule } from "./cross-feature-import.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { crossFeatureImportRule } from "./cross-feature-import";
 
 void describe("A component that imports from two or more feature folders MUST live in src/compositions/.", () => {
   ruleTester.run("cross-feature-import", crossFeatureImportRule, {

@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link, ListItem, Nodes, Root } from "mdast";
-import { getFilename } from "./helpers.js";
+import { getFilename } from "./helpers";
 
 /** Visit every ordered-list item and run a check. */
 function visitSteps(node: Nodes, check: (item: ListItem) => void): void {

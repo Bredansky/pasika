@@ -1,9 +1,9 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { noUtilBarrelRule } from "./no-util-barrel.js";
-import { utilFileNameRule } from "./util-file-name.js";
+import { describe, ruleTester } from "../rule-tester";
+import { noUtilBarrelRule } from "./no-util-barrel";
+import { utilFileNameRule } from "./util-file-name";
 
 void describe("A utility file that exports one function MUST have a name in that function's kebab-case form.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-util-name-"));

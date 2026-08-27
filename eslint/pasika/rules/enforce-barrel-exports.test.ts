@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { enforceBarrelExportsRule } from "./enforce-barrel-exports.js";
+import { describe, ruleTester } from "../rule-tester";
+import { enforceBarrelExportsRule } from "./enforce-barrel-exports";
 
 /**
  * The rule reads the folder from disk to find the component the barrel belongs

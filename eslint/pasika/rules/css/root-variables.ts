@@ -10,7 +10,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren, preludeIdentifiers, rules, selectorNames } from "./helpers.js";
+import { atrulesNamed, blockChildren, preludeIdentifiers, rules, selectorNames } from "./helpers";
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {

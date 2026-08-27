@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link } from "mdast";
-import { getFilename } from "./helpers.js";
+import { getFilename } from "./helpers";
 
 /** The document kind for a filename, when the no-link rule applies to it. */
 function linkedKind(filename: string): string | undefined {

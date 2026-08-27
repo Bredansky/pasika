@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "declaration": true
-  },
-  "include": ["cli/**/*.ts", "enforcement/**/*.ts", "eslint/**/*.ts"],
-  "exclude": ["eslint.config.ts", "**/*.test.ts", "eslint/pasika/rule-tester.ts"]
-}

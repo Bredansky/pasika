@@ -13,7 +13,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
-import type { FunctionDeclarationNode } from "../ast-types.js";
+import type { FunctionDeclarationNode } from "../ast-types";
 
 const REACT_HOOKS = new Set([
   "useState",

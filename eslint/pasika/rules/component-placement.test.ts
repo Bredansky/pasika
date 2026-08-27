@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { componentPlacementRule } from "./component-placement.js";
+import { describe, ruleTester } from "../rule-tester";
+import { componentPlacementRule } from "./component-placement";
 
 /**
  * The rule reads the whole tree from disk, so the fixture is a real project. Node

@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { baseLayerPairRule } from "./base-layer-pair.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { baseLayerPairRule } from "./base-layer-pair";
 
 void describe("The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.", () => {
   cssRuleTester.run("base-layer-pair", baseLayerPairRule, {

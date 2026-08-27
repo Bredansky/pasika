@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { rootVariablesRule } from "./root-variables.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { rootVariablesRule } from "./root-variables";
 
 void describe("Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.", () => {
   cssRuleTester.run("root-variables", rootVariablesRule, {

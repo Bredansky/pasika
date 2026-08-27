@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { pureFunctionExtractRule } from "./pure-function-extract.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { pureFunctionExtractRule } from "./pure-function-extract";
 
 void describe("A pure function MUST be extracted to utils/, even when it has one consumer.", () => {
   ruleTester.run("pure-function-extract", pureFunctionExtractRule, {

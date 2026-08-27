@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { valueExtractionRule } from "./value-extraction.js";
+import { describe, ruleTester } from "../rule-tester";
+import { valueExtractionRule } from "./value-extraction";
 
 /**
  * The rule reads the whole tree from disk, so the fixture is a real project.

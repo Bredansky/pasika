@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { surfaceUtilityRule } from "./surface-utility.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { surfaceUtilityRule } from "./surface-utility";
 
 void describe("A repeated combination of canvas, ink, and related styles MUST become a *-surface custom Tailwind utility that owns the combination.", () => {
   cssRuleTester.run("surface-utility", surfaceUtilityRule, {

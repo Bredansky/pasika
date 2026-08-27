@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { ListItem, Nodes, Root } from "mdast";
-import { getFilename } from "./helpers.js";
+import { getFilename } from "./helpers";
 
 /** Count document links in a subtree. */
 function countDocLinks(node: Nodes): number {

@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { cssVariableNamingRule } from "./css-variable-naming.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { cssVariableNamingRule } from "./css-variable-naming";
 
 void describe("A CSS variable intended only for a background MUST be named --<role>-canvas, and one intended only for readable text MUST be named --<role>-ink. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas or text-<role>-ink.", () => {
   cssRuleTester.run("css-variable-naming", cssVariableNamingRule, {

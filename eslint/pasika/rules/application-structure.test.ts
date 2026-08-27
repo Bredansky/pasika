@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { applicationStructureRule } from "./application-structure.js";
+import { describe, ruleTester } from "../rule-tester";
+import { applicationStructureRule } from "./application-structure";
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-structure-")));
 const file = (relativePath: string): string => path.join(root, "src", relativePath);

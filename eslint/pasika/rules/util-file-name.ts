@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Rule } from "eslint";
-import { parseModule } from "../project/parse-module.js";
+import { parseModule } from "../project/parse-module";
 
 function toKebabCase(value: string): string {
   return value

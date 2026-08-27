@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
-import { getFilename, getTextContent } from "./helpers.js";
+import { getFilename, getTextContent } from "./helpers";
 
 export const policyNoExamplesRule: MarkdownRuleDefinition = {
   meta: {

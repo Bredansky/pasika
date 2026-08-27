@@ -3,8 +3,8 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
-import { getFilename } from "./helpers.js";
-import { findDocsRoot, getProjectDocs } from "./project-index.js";
+import { getFilename } from "./helpers";
+import { findDocsRoot, getProjectDocs } from "./project-index";
 
 export const policySingleDocumentRule: MarkdownRuleDefinition = {
   meta: {

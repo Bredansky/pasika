@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { List, ListItem } from "mdast";
-import { getFilename, getTextContent } from "./helpers.js";
+import { getFilename, getTextContent } from "./helpers";
 
 function countSentences(text: string): number {
   return text.split(/[.!?](?:\s+|$)/).filter((part) => part.trim() !== "").length;

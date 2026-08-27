@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { titleMatchesFileNameRule } from "./title-matches-file-name.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { titleMatchesFileNameRule } from "./title-matches-file-name";
 
 void describe("Policy file names MUST match the document title in kebab-case and use the -policy suffix (e.g., foo-policy.md).", () => {
   mdRuleTester.run("title-matches-file-name", titleMatchesFileNameRule, {

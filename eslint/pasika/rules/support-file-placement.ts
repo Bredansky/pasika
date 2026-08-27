@@ -14,7 +14,7 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index.js";
+import { getProjectIndex } from "../project/index";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -23,7 +23,7 @@ import {
   resolveSupportPlacement,
   segmentsOf,
   SUPPORT_FOLDERS,
-} from "../project/ccf.js";
+} from "../project/ccf";
 
 /**
  * Support folders a configuration module keeps regardless of who imports them: a

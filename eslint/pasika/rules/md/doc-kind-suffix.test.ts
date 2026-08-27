@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { docKindSuffixRule } from "./doc-kind-suffix.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { docKindSuffixRule } from "./doc-kind-suffix";
 
 void describe("Guide file names MUST match the document title in kebab-case and use the -guide suffix (e.g., foo-guide.md).", () => {
   mdRuleTester.run("doc-kind-suffix", docKindSuffixRule, {

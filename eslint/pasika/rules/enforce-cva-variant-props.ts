@@ -8,7 +8,7 @@
 
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { TsTypeAliasDeclarationNode } from "../ast-types.js";
+import type { TsTypeAliasDeclarationNode } from "../ast-types";
 
 export const enforceCvaVariantPropsRule: Rule.RuleModule = {
   meta: {

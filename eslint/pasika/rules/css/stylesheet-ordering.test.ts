@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { stylesheetOrderingRule } from "./stylesheet-ordering.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { stylesheetOrderingRule } from "./stylesheet-ordering";
 
 void describe("The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.", () => {
   cssRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {

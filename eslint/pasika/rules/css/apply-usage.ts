@@ -9,7 +9,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { blockChildren } from "./helpers.js";
+import { blockChildren } from "./helpers";
 
 export const applyUsageRule: CSSRuleDefinition = {
   meta: {

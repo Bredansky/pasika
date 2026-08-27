@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { enforceCnMergeRule } from "./enforce-cn-merge.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { enforceCnMergeRule } from "./enforce-cn-merge";
 
 const DOC = "See docs/styling-guide/rules/class-composition-rule.md";
 const TEMPLATE_MESSAGE = `Use cn() instead of template literals with conditionals for className. ${DOC}`;

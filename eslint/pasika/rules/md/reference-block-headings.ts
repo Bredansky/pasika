@@ -4,7 +4,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading, Root } from "mdast";
-import { getFilename } from "./helpers.js";
+import { getFilename } from "./helpers";
 
 export const referenceBlockHeadingsRule: MarkdownRuleDefinition = {
   meta: {

@@ -10,7 +10,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers.js";
+import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers";
 
 export const themeVariableNamespaceRule: CSSRuleDefinition = {
   meta: {

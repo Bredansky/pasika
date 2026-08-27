@@ -9,7 +9,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { FunctionDeclarationNode } from "../ast-types.js";
+import type { FunctionDeclarationNode } from "../ast-types";
 
 function isComponentLikeName(name: string): boolean {
   return /^[A-Z]/.test(name);

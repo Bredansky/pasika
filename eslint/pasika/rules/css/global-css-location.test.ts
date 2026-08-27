@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { globalCssLocationRule } from "./global-css-location.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { globalCssLocationRule } from "./global-css-location";
 
 void describe("The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.", () => {
   cssRuleTester.run("global-css-location", globalCssLocationRule, {

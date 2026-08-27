@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { localePlacementRule } from "./locale-placement.js";
+import { describe, ruleTester } from "../rule-tester";
+import { localePlacementRule } from "./locale-placement";
 
 /**
  * The rule reads the whole tree from disk and reports on src/locales/index.ts,

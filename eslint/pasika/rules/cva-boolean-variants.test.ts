@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { cvaBooleanVariantsRule } from "./cva-boolean-variants.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { cvaBooleanVariantsRule } from "./cva-boolean-variants";
 
 const CVA_WITH_BOOLEAN = `const buttonVariants = cva("inline-flex", {
   variants: {

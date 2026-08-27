@@ -1,16 +1,16 @@
 /**
  * All CSS rules for the global stylesheet checks.
  */
-import { themeResetRule } from "./theme-reset.js";
-import { rootVariablesRule } from "./root-variables.js";
-import { applyUsageRule } from "./apply-usage.js";
-import { baseLayerPairRule } from "./base-layer-pair.js";
-import { stylesheetOrderingRule } from "./stylesheet-ordering.js";
-import { cssVariableNamingRule } from "./css-variable-naming.js";
-import { customUtilityApplyRule } from "./custom-utility-apply.js";
-import { surfaceUtilityRule } from "./surface-utility.js";
-import { themeVariableNamespaceRule } from "./theme-variable-namespace.js";
-import { globalCssLocationRule } from "./global-css-location.js";
+import { themeResetRule } from "./theme-reset";
+import { rootVariablesRule } from "./root-variables";
+import { applyUsageRule } from "./apply-usage";
+import { baseLayerPairRule } from "./base-layer-pair";
+import { stylesheetOrderingRule } from "./stylesheet-ordering";
+import { cssVariableNamingRule } from "./css-variable-naming";
+import { customUtilityApplyRule } from "./custom-utility-apply";
+import { surfaceUtilityRule } from "./surface-utility";
+import { themeVariableNamespaceRule } from "./theme-variable-namespace";
+import { globalCssLocationRule } from "./global-css-location";
 
 export const cssRules = {
   "theme-reset": themeResetRule,

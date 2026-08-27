@@ -12,8 +12,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, symbolKey } from "../project/index.js";
-import { describeConsumers, segmentsOf } from "../project/ccf.js";
+import { getProjectIndex, symbolKey } from "../project/index";
+import { describeConsumers, segmentsOf } from "../project/ccf";
 
 export const typeExtractionRule: Rule.RuleModule = {
   meta: {

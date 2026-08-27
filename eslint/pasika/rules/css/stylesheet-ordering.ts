@@ -10,7 +10,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { preludeIdentifiers, selectorNames } from "./helpers.js";
+import { preludeIdentifiers, selectorNames } from "./helpers";
 
 const SECTION_ORDER = ["imports", "custom-variant", "root", "theme", "utility", "base styles", "keyframes"] as const;
 

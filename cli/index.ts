@@ -8,10 +8,10 @@ import {
   readRegistry,
   writeRegistry,
   type CoverageIssue,
-} from "../enforcement/coverage.js";
-import { enforcementKindSchema } from "../enforcement/types.js";
-import { runDoctor } from "../enforcement/doctor.js";
-import { log, error, json } from "./output.js";
+} from "../enforcement/coverage";
+import { enforcementKindSchema } from "../enforcement/types";
+import { runDoctor } from "../enforcement/doctor";
+import { log, error, json } from "./output";
 
 const REGISTRY_RELATIVE_PATH = path.join("enforcement", "registry.json");
 

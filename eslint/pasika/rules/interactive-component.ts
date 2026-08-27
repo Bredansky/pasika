@@ -8,7 +8,7 @@
  */
 
 import type { Rule } from "eslint";
-import type { JsxElementNode, MaybeJsxElement } from "../ast-types.js";
+import type { JsxElementNode, MaybeJsxElement } from "../ast-types";
 
 const INTERACTIVE_TAGS = new Set([
   "a",

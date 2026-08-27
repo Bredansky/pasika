@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { filenameCaseRule } from "./filename-case.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { filenameCaseRule } from "./filename-case";
 
 void describe("A smart component file name MUST be PascalCase.tsx.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {

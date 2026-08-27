@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { policyNoExamplesRule } from "./policy-no-examples.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { policyNoExamplesRule } from "./policy-no-examples";
 
 void describe("A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.", () => {
   mdRuleTester.run("policy-no-examples", policyNoExamplesRule, {

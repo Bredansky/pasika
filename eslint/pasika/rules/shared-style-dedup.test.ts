@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { sharedStyleDedupRule } from "./shared-style-dedup.js";
+import { describe, ruleTester } from "../rule-tester";
+import { sharedStyleDedupRule } from "./shared-style-dedup";
 
 /**
  * The rule compares className lists across the whole tree, so the fixture is a

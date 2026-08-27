@@ -6,8 +6,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
-import { getFilename, getTextContent } from "./helpers.js";
-import { findDocsRoot, getProjectDocs } from "./project-index.js";
+import { getFilename, getTextContent } from "./helpers";
+import { findDocsRoot, getProjectDocs } from "./project-index";
 
 /** Extract glossary terms from a reference document. */
 function extractGlossaryTerms(filePath: string): string[] {

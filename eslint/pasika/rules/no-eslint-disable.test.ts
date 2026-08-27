@@ -1,5 +1,5 @@
-import { describe, ruleTester } from "../rule-tester.js";
-import { noEslintDisableRule } from "./no-eslint-disable.js";
+import { describe, ruleTester } from "../rule-tester";
+import { noEslintDisableRule } from "./no-eslint-disable";
 
 const MESSAGE = "Do not use eslint-disable directives; fix the reported violation instead.";
 

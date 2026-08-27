@@ -1,5 +1,5 @@
-import { describe, ruleTester } from "../rule-tester.js";
-import { localesLocationRule } from "./locales-location.js";
+import { describe, ruleTester } from "../rule-tester";
+import { localesLocationRule } from "./locales-location";
 
 void describe("All locales MUST live in the named locales object exported from src/locales/index.ts.", () => {
   ruleTester.run("locales-location", localesLocationRule, {

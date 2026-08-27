@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { ProjectIndex } from "./index.js";
+import type { ProjectIndex } from "./index";
 
 export const SUPPORT_FOLDERS = new Set(["hooks", "types", "schemas", "constants", "utils"]);
 

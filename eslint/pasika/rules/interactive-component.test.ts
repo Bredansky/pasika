@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { interactiveComponentRule } from "./interactive-component.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { interactiveComponentRule } from "./interactive-component";
 
 void describe("An interactive HTML element MUST be extracted to a component with a descriptive name.", () => {
   ruleTester.run("interactive-component", interactiveComponentRule, {

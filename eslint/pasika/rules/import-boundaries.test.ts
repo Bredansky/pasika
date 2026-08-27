@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { importBoundariesRule } from "./import-boundaries.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { importBoundariesRule } from "./import-boundaries";
 
 const BOUNDARY_MESSAGE = "This import violates the src layer boundary.";
 

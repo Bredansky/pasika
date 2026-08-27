@@ -8,7 +8,7 @@
 
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { JsxAttributeNode, JsxIdentifier, JsxMemberExpression } from "../ast-types.js";
+import type { JsxAttributeNode, JsxIdentifier, JsxMemberExpression } from "../ast-types";
 
 function classCount(str: string): number {
   return str.split(/\s+/).filter(Boolean).length;

@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
 
 void describe("A Reference MUST NOT use RFC 2119 vocabulary (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY), because lookup material describes what exists rather than imposing requirements.", () => {
   mdRuleTester.run("reference-no-rfc-vocabulary", referenceNoRfcVocabularyRule, {

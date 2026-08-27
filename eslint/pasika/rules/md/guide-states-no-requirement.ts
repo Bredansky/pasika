@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { ListItem } from "mdast";
-import { containsRfcKeyword, getFilename, getTextContent } from "./helpers.js";
+import { containsRfcKeyword, getFilename, getTextContent } from "./helpers";
 
 export const guideStatesNoRequirementRule: MarkdownRuleDefinition = {
   meta: {

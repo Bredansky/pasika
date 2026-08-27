@@ -9,7 +9,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, preludeIdentifiers } from "./helpers.js";
+import { atrulesNamed, preludeIdentifiers } from "./helpers";
 
 export const surfaceUtilityRule: CSSRuleDefinition = {
   meta: {

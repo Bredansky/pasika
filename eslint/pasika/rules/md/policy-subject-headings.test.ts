@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { policySubjectHeadingsRule } from "./policy-subject-headings.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { policySubjectHeadingsRule } from "./policy-subject-headings";
 
 void describe("A Policy document MUST group its bullets under a heading per subject.", () => {
   mdRuleTester.run("policy-subject-headings", policySubjectHeadingsRule, {

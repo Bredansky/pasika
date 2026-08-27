@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { supportDocumentPlacementRule } from "./support-document-placement.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { supportDocumentPlacementRule } from "./support-document-placement";
 
 void describe("A Reference file that a Guide owns MUST live in a references/ subfolder inside the Guide's folder.", () => {
   mdRuleTester.run("support-document-placement", supportDocumentPlacementRule, {

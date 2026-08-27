@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { requirementPresentRule } from "./requirement-present.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { requirementPresentRule } from "./requirement-present";
 
 void describe("A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.", () => {
   mdRuleTester.run("requirement-present", requirementPresentRule, {

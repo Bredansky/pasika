@@ -13,8 +13,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, symbolKey } from "../project/index.js";
-import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf.js";
+import { getProjectIndex, symbolKey } from "../project/index";
+import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 
 export const configExtractionRule: Rule.RuleModule = {
   meta: {

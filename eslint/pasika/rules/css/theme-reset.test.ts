@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { themeResetRule } from "./theme-reset.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { themeResetRule } from "./theme-reset";
 
 void describe("The global stylesheet MUST reset Tailwind's default theme with --*: initial.", () => {
   cssRuleTester.run("theme-reset", themeResetRule, {

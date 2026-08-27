@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Rule } from "eslint";
-import { resolveSpecifier } from "../project/index.js";
+import { resolveSpecifier } from "../project/index";
 
 export const noUtilBarrelRule: Rule.RuleModule = {
   meta: {

@@ -1,5 +1,5 @@
-import { describe, cssRuleTester } from "./rule-tester.js";
-import { applyUsageRule } from "./apply-usage.js";
+import { describe, cssRuleTester } from "./rule-tester";
+import { applyUsageRule } from "./apply-usage";
 
 void describe("Style declarations added by the project inside global selectors MUST use @apply.", () => {
   cssRuleTester.run("apply-usage", applyUsageRule, {

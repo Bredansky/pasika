@@ -1,5 +1,5 @@
-import { describe, jsonRuleTester } from "./rule-tester.js";
-import { noVulykDependencyRule } from "./no-vulyk-dependency.js";
+import { describe, jsonRuleTester } from "./rule-tester";
+import { noVulykDependencyRule } from "./no-vulyk-dependency";
 
 void describe("Vulyk MUST NOT be added to package.json in order to run its CLI.", () => {
   jsonRuleTester.run("no-vulyk-dependency", noVulykDependencyRule, {

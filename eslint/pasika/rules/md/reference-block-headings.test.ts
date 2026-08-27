@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { referenceBlockHeadingsRule } from "./reference-block-headings.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { referenceBlockHeadingsRule } from "./reference-block-headings";
 
 void describe("A Reference with a single lookup block MUST NOT add a section heading for it.", () => {
   mdRuleTester.run("reference-block-headings", referenceBlockHeadingsRule, {

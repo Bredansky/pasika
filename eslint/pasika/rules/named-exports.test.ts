@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { namedExportsRule } from "./named-exports.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { namedExportsRule } from "./named-exports";
 
 const MESSAGE =
   "Files that export values must use named exports unless a framework or third-party package requires a different export style for that file. " +

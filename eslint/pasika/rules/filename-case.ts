@@ -10,7 +10,7 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import { parseComponentInfo } from "./component-conventions.js";
+import { parseComponentInfo } from "./component-conventions";
 
 /**
  * Next.js App Router routing files that are exempt from filename-case checks.

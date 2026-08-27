@@ -10,7 +10,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren } from "./helpers.js";
+import { atrulesNamed, blockChildren } from "./helpers";
 
 /** The property name when a tolerant-mode `Raw` is actually `property: value`. */
 function rawProperty(raw: string): string | undefined {

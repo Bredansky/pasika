@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, ruleTester } from "../rule-tester.js";
-import { supportFilePlacementRule } from "./support-file-placement.js";
+import { describe, ruleTester } from "../rule-tester";
+import { supportFilePlacementRule } from "./support-file-placement";
 
 /**
  * One fixture tree covering every placement outcome. Node runs each test file in

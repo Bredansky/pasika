@@ -1,5 +1,5 @@
-import { describe, mdRuleTester } from "./rule-tester.js";
-import { noTemplatePromptRule } from "./no-template-prompt.js";
+import { describe, mdRuleTester } from "./rule-tester";
+import { noTemplatePromptRule } from "./no-template-prompt";
 
 void describe("Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.", () => {
   mdRuleTester.run("no-template-prompt", noTemplatePromptRule, {

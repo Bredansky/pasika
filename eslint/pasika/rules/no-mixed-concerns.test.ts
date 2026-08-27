@@ -1,5 +1,5 @@
-import { describe, ruleTester, srcFile } from "../rule-tester.js";
-import { noMixedConcernsRule } from "./no-mixed-concerns.js";
+import { describe, ruleTester, srcFile } from "../rule-tester";
+import { noMixedConcernsRule } from "./no-mixed-concerns";
 
 void describe("A .tsx file that defines a component MUST contain exactly one component.", () => {
   ruleTester.run("no-mixed-concerns", noMixedConcernsRule, {

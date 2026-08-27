@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import css from "@eslint/css";
-import { cssRules } from "../../index.js";
+import { cssRules } from "../../index";
 
 RuleTester.describe = describe;
 RuleTester.it = it;

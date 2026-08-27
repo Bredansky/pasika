@@ -10,8 +10,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, symbolKey } from "../project/index.js";
-import { folderSegmentsOf, segmentsOf } from "../project/ccf.js";
+import { getProjectIndex, symbolKey } from "../project/index";
+import { folderSegmentsOf, segmentsOf } from "../project/ccf";
 
 export const hookExtractionRule: Rule.RuleModule = {
   meta: {
