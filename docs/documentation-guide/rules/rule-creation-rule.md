@@ -7,7 +7,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - A Rule MUST state requirements about one subject.
 - A Rule MUST contain at least one bullet point that uses [RFC 2119 vocabulary](https://datatracker.ietf.org/doc/html/rfc2119) (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`).
 - RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.
-- A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.
+- A bullet MUST contain at least one RFC 2119 keyword, and a bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.
 - Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.
 - A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
 - A Rule MUST contain at least one Incorrect/Correct pair.

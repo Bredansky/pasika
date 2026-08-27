@@ -20,6 +20,7 @@ import { supportDocumentPlacementRule } from "./support-document-placement";
 import { noTemplatePromptRule } from "./no-template-prompt";
 import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
 import { rfcOnlyInBulletsRule } from "./rfc-only-in-bullets";
+import { rfcKeywordInEveryBulletRule } from "./rfc-keyword-in-every-bullet";
 import { policySubjectHeadingsRule } from "./policy-subject-headings";
 import { guideLinkAnchorsRule } from "./guide-link-anchors";
 import { noNestedHowToRule } from "./no-nested-how-to";
@@ -45,6 +46,7 @@ export const mdRules = {
   "no-template-prompt": noTemplatePromptRule,
   "guide-folder-entry-point": guideFolderEntryPointRule,
   "rfc-only-in-bullets": rfcOnlyInBulletsRule,
+  "rfc-keyword-in-every-bullet": rfcKeywordInEveryBulletRule,
   "policy-subject-headings": policySubjectHeadingsRule,
   "guide-link-anchors": guideLinkAnchorsRule,
   "no-nested-how-to": noNestedHowToRule,

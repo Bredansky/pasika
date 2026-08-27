@@ -750,9 +750,10 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.",
-      "hash": "017308f0ea",
-      "note": "matching a keyword's strength to the requirement's intent is a reading judgment"
+      "text": "A bullet MUST contain at least one RFC 2119 keyword, and a bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.",
+      "hash": "5359860b75",
+      "ref": "pasika/rfc-keyword-in-every-bullet",
+      "note": "the rule flags any bullet lacking an RFC keyword; matching the keyword's strength to the requirement's intent is still a reading judgment"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
