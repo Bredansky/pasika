@@ -143,6 +143,7 @@ export default [pasikaConfig];
 | `pasika/locale-placement` † | Shared locales at the top level, single-feature locales namespaced |
 | `pasika/shared-style-dedup` † | A className combo used by two or more components becomes a named utility |
 | `pasika/no-eslint-disable` | No `eslint-disable` directives |
+| `pasika/zod-schema-validation` | Runtime validation through Zod schemas, not hand-written type guards |
 
 ### CSS rules
 

@@ -4,8 +4,9 @@
       "doc": "agent-policy.md",
       "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
       "hash": "b5facfa0c0",
-      "kind": "manual",
-      "note": "whether a value crosses a runtime boundary and needs validation is not decidable from source"
+      "kind": "eslint",
+      "ref": "pasika/zod-schema-validation",
+      "note": "flags hand-written type predicates over unknown/any that don't delegate to a schema; as-casts and inline manual checks are not detected"
     },
     {
       "doc": "agent-policy.md",
