@@ -701,12 +701,6 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MAY name an RFC 2119 keyword as lookup content, because naming a keyword does not impose a requirement.",
-      "hash": "5e3305d40a",
-      "note": "docs-check reference-no-rfc-vocabulary ignores code spans"
-    },
-    {
-      "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences.",
       "hash": "829df330c7",
       "ref": "pasika/overview-length",

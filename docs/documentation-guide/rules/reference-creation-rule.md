@@ -6,7 +6,6 @@ References without a consistent creation process scatter lookup material. This r
 - A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.
 - A Reference MUST NOT state a constraint the reader has to satisfy — in RFC 2119 vocabulary or in plain declarative wording — and such a constraint MUST live in a Rule.
 - A Reference MAY define terms that Rules, Guides, and Policy documents use.
-- A Reference MAY name an RFC 2119 keyword as lookup content, because naming a keyword does not impose a requirement.
 - A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
