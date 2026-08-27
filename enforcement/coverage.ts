@@ -4,7 +4,8 @@ import { z } from "zod";
 import { allPasikaRuleIds } from "../eslint/pasika/index";
 import { normalizeRequirement } from "./normalize";
 import { parseDocs, type ParsedRequirement } from "./parse-docs";
-import { MECHANICAL_KINDS, registrySchema, type EnforcementKind, type Registry, type Requirement } from "./types";
+import { doctorCheckRefs } from "./doctor";
+import { registrySchema, type Registry, type Requirement } from "./types";
 
 export interface CoverageIssue {
   kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";
@@ -17,9 +18,11 @@ export interface CoverageIssue {
 }
 
 export interface CoverageReport {
-  counts: Record<EnforcementKind, number>;
+  /** Requirements with a ref: a rule or check governs them. */
+  governed: number;
+  /** Requirements without a ref: a reviewer or agent applies them. */
+  judgment: number;
   total: number;
-  mechanical: number;
   issues: CoverageIssue[];
   /** Registry updated for `--accept`: reworded requirements rehashed, removed ones dropped. */
   nextRegistry: Registry;
@@ -65,16 +68,16 @@ function refParts(ref: string | undefined): string[] {
     .filter(Boolean);
 }
 
+/** Whether any ref names a rule whose requirement must have a titled test. */
+function hasEslintRef(requirement: Requirement): boolean {
+  return refParts(requirement.ref).some((part) => allPasikaRuleIds.includes(part));
+}
+
+/** A ref names an ESLint rule or a known doctor check. */
 function isRefKnown(requirement: Requirement): boolean {
   const parts = refParts(requirement.ref);
-  if (requirement.kind === "doctor") {
-    // Doctor checks do not exist yet, so a `doctor` entry is a forward reference.
-    return true;
-  }
   if (parts.length === 0) return true;
-  // An eslint rule reports it, or a manual requirement names the rule that
-  // governs its subject without deciding it — either way, the id must exist.
-  return parts.every((part) => allPasikaRuleIds.includes(part));
+  return parts.every((part) => allPasikaRuleIds.includes(part) || doctorCheckRefs.includes(part));
 }
 
 export function buildCoverageReport(options: {
@@ -89,12 +92,8 @@ export function buildCoverageReport(options: {
   const byHash = new Map(registry.requirements.map((requirement) => [requirement.hash, requirement]));
   const matched = new Set<string>();
   const issues: CoverageIssue[] = [];
-  const counts: Record<EnforcementKind, number> = {
-    eslint: 0,
-    doctor: 0,
-    planned: 0,
-    manual: 0,
-  };
+  let governed = 0;
+  let judgment = 0;
 
   const nextRequirements: Requirement[] = [];
 
@@ -106,7 +105,8 @@ export function buildCoverageReport(options: {
     const recorded = byHash.get(requirement.hash);
     if (recorded) {
       matched.add(requirement.hash);
-      counts[recorded.kind] += 1;
+      if (recorded.ref) governed += 1;
+      else judgment += 1;
       nextRequirements.push({ ...recorded, doc, text: requirement.raw });
 
       if (!isRefKnown(recorded)) {
@@ -115,10 +115,10 @@ export function buildCoverageReport(options: {
           doc,
           line: requirement.line,
           text: requirement.raw,
-          detail: `${recorded.kind} ref "${recorded.ref ?? "(none)"}" does not exist`,
+          detail: `ref "${recorded.ref ?? "(none)"}" does not exist`,
         });
       }
-      if (recorded.kind === "eslint" && !testTitles.has(requirement.text)) {
+      if (hasEslintRef(recorded) && !testTitles.has(requirement.text)) {
         issues.push({
           kind: "missing-test",
           doc,
@@ -139,7 +139,8 @@ export function buildCoverageReport(options: {
 
     if (candidate) {
       matched.add(candidate.entry.hash);
-      counts[candidate.entry.kind] += 1;
+      if (candidate.entry.ref) governed += 1;
+      else judgment += 1;
       nextRequirements.push({ ...candidate.entry, doc, text: requirement.raw, hash: requirement.hash });
       issues.push({
         kind: "changed",
@@ -147,9 +148,7 @@ export function buildCoverageReport(options: {
         line: requirement.line,
         text: requirement.raw,
         hash: requirement.hash,
-        detail: `was "${candidate.entry.text}" — re-verify ${candidate.entry.kind}${
-          candidate.entry.ref ? ` ${candidate.entry.ref}` : ""
-        }`,
+        detail: `was "${candidate.entry.text}" — re-verify ${candidate.entry.ref ? ` ${candidate.entry.ref}` : "(no check)"}`,
       });
     } else {
       issues.push({ kind: "new", doc, line: requirement.line, text: requirement.raw, hash: requirement.hash });
@@ -162,18 +161,14 @@ export function buildCoverageReport(options: {
       kind: "removed",
       doc: entry.doc,
       text: entry.text,
-      detail: `recorded as ${entry.kind}${entry.ref ? ` ${entry.ref}` : ""} but the bullet is gone`,
+      detail: `recorded with ${entry.ref ? `ref ${entry.ref}` : "no check"} but the bullet is gone`,
     });
   }
 
-  const total = parsed.length;
-  let mechanical = 0;
-  for (const kind of MECHANICAL_KINDS) mechanical += counts[kind];
-
   return {
-    counts,
-    total,
-    mechanical,
+    governed,
+    judgment,
+    total: parsed.length,
     issues,
     nextRegistry: { requirements: nextRequirements },
   };
@@ -182,25 +177,23 @@ export function buildCoverageReport(options: {
 export interface ClassifyInput {
   /** Hash of the requirement, as `coverage` prints it. */
   hash: string;
-  kind: EnforcementKind;
+  /** Rule or doctor check ids that govern it, comma-separated; absent when judgment applies it. */
   ref?: string;
+  /** How the requirement is met; required on every entry. */
   note?: string;
 }
 
 export interface ClassifyResult {
   registry: Registry;
   requirement: Requirement;
-  /** The kind this requirement carried before, when it was already classified. */
-  previousKind?: EnforcementKind;
 }
 
 /**
  * Records how a requirement is checked.
  *
  * Validates that the requirement exists in the documentation as written, that a
- * ref names a check that exists, and that the kinds which are meaningless
- * without an explanation carry one. Throws with a readable message otherwise, so
- * the caller can print it and exit.
+ * ref names a check that exists, and that an explanation is always present.
+ * Throws with a readable message otherwise, so the caller can print it and exit.
  */
 export function classifyRequirement(options: {
   docsRoot: string;
@@ -217,43 +210,28 @@ export function classifyRequirement(options: {
     throw new Error(`No requirement in the documentation has hash "${input.hash}". Run coverage to list them.`);
   }
 
-  const refs = refParts(input.ref);
-  if (input.kind === "eslint") {
-    if (refs.length === 0) throw new Error('Kind "eslint" needs --ref naming the rule that reports it.');
-    const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
-    if (unknown.length > 0) {
-      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);
-    }
-  } else if (input.kind === "manual" && refs.length > 0) {
-    // A manual requirement may name the rule that governs its subject without
-    // deciding it, but the name must still be a real rule.
-    const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
-    if (unknown.length > 0) {
-      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);
-    }
-  } else if (input.kind !== "doctor" && refs.length > 0) {
-    throw new Error(`Kind "${input.kind}" takes no --ref, because nothing reports it.`);
+  if ((input.note ?? "").trim() === "") {
+    throw new Error("--note is required: how the ref'd check governs it, or how judgment applies it.");
   }
 
-  if ((input.kind === "manual" || input.kind === "planned") && (input.note ?? "").trim() === "") {
-    const reason = input.kind === "manual" ? "why no check decides it, or that it grants permission" : "the check that should cover it";
-    throw new Error(`Kind "${input.kind}" needs --note naming ${reason}.`);
+  const refs = refParts(input.ref);
+  const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref) && !doctorCheckRefs.includes(ref));
+  if (unknown.length > 0) {
+    throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule or doctor check.`);
   }
 
   const requirement: Requirement = {
     doc: match.doc,
     text: match.requirement.raw,
     hash: match.requirement.hash,
-    kind: input.kind,
     ...(refs.length > 0 ? { ref: refs.join(", ") } : {}),
-    ...((input.note ?? "").trim() === "" ? {} : { note: input.note?.trim() }),
+    note: (input.note ?? "").trim(),
   };
 
-  const existing = registry.requirements.find((entry) => entry.hash === input.hash);
   const requirements = registry.requirements.filter((entry) => entry.hash !== input.hash);
   requirements.push(requirement);
 
-  return { registry: { requirements }, requirement, previousKind: existing?.kind };
+  return { registry: { requirements }, requirement };
 }
 
 export function readRegistry(registryPath: string): Registry {

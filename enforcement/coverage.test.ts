@@ -46,86 +46,78 @@ const classify = (input: Parameters<typeof classifyRequirement>[0]["input"]): Re
 
 void describe("classifyRequirement", () => {
   void it("rejects a hash that no requirement in the documentation has", () => {
-    assert.throws(() => classify({ hash: "deadbeef00", kind: "manual", note: "why" }), /has hash "deadbeef00"/);
+    assert.throws(() => classify({ hash: "deadbeef00", note: "why" }), /has hash "deadbeef00"/);
   });
 
-  void it("rejects the eslint kind without a rule id", () => {
-    assert.throws(() => classify({ hash: mustRequirement.hash, kind: "eslint" }), /needs --ref/);
+  void it("rejects an entry without a note, because the note is the whole content", () => {
+    assert.throws(() => classify({ hash: mustRequirement.hash, ref: "pasika/filename-case" }), /--note is required/);
+    assert.throws(() => classify({ hash: mustRequirement.hash, note: "  " }), /--note is required/);
   });
 
-  void it("rejects a rule id the plugin does not provide", () => {
+  void it("rejects a ref that is neither a rule nor a doctor check", () => {
     assert.throws(
-      () => classify({ hash: mustRequirement.hash, kind: "eslint", ref: "pasika/not-a-rule" }),
-      /is not a rule in the plugin/,
+      () => classify({ hash: mustRequirement.hash, ref: "pasika/not-a-rule", note: "why" }),
+      /is not a rule or doctor check/,
     );
   });
 
-  void it("accepts a ref naming the rule that governs a manual requirement", () => {
+  void it("accepts a ref naming the rule that governs the requirement", () => {
     const { requirement } = classify({
-      hash: mayRequirement.hash,
-      kind: "manual",
+      hash: mustRequirement.hash,
       ref: "pasika/filename-case",
-      note: "the rule governs the filename without deciding the judgment",
+      note: "reports a default export where the file exports values",
     });
     assert.equal(requirement.ref, "pasika/filename-case");
-    assert.equal(requirement.kind, "manual");
+    assert.equal(requirement.note, "reports a default export where the file exports values");
+    assert.equal("kind" in requirement, false, "kind is gone from the registry entry");
   });
 
-  void it("rejects a manual ref that is not a rule in the plugin", () => {
-    assert.throws(
-      () =>
-        classify({
-          hash: mayRequirement.hash,
-          kind: "manual",
-          ref: "pasika/not-a-rule",
-          note: "why",
-        }),
-      /is not a rule in the plugin/,
-    );
+  void it("accepts a doctor check ref", () => {
+    const { requirement } = classify({
+      hash: mayRequirement.hash,
+      ref: "pasika/config-baseline",
+      note: "pasika doctor checks the eslint config against the baseline",
+    });
+    assert.equal(requirement.ref, "pasika/config-baseline");
   });
 
-  void it("rejects a ref on planned, because nothing reports or governs it yet", () => {
-    assert.throws(
-      () => classify({ hash: mustRequirement.hash, kind: "planned", note: "a future check", ref: "pasika/filename-case" }),
-      /takes no --ref/,
-    );
-  });
-
-  void it("rejects manual and planned without a note, because the note is the whole content", () => {
-    assert.throws(() => classify({ hash: mustRequirement.hash, kind: "manual" }), /needs --note/);
-    assert.throws(() => classify({ hash: mustRequirement.hash, kind: "planned", note: "  " }), /needs --note/);
+  void it("accepts an entry without a ref, applied by judgment", () => {
+    const { requirement } = classify({
+      hash: mayRequirement.hash,
+      note: "a reviewer decides whether the sibling is worth re-exporting",
+    });
+    assert.equal(requirement.ref, undefined);
+    assert.equal(requirement.note, "a reviewer decides whether the sibling is worth re-exporting");
   });
 
   void it("records the requirement as the documentation currently words it", () => {
-    const { registry, requirement, previousKind } = classify({
+    const { registry, requirement } = classify({
       hash: mustRequirement.hash,
-      kind: "eslint",
       ref: "pasika/filename-case",
+      note: "reports a default export",
     });
     assert.equal(requirement.text, mustRequirement.text);
     assert.equal(requirement.doc, "rules/example-rule.md");
     assert.equal(requirement.ref, "pasika/filename-case");
-    assert.equal(previousKind, undefined);
     assert.equal(registry.requirements.length, 1);
   });
 
-  void it("reports the previous kind when a requirement is reclassified", () => {
-    const first = classify({ hash: mustRequirement.hash, kind: "planned", note: "eslint: a future rule" });
+  void it("replaces rather than duplicates when the same requirement is classified again", () => {
+    const first = classify({ hash: mustRequirement.hash, note: "applied by judgment" });
     const second = classifyRequirement({
       docsRoot,
       registry: first.registry,
-      input: { hash: mustRequirement.hash, kind: "eslint", ref: "pasika/filename-case" },
+      input: { hash: mustRequirement.hash, ref: "pasika/filename-case", note: "reports a default export" },
     });
-    assert.equal(second.previousKind, "planned");
     assert.equal(second.registry.requirements.length, 1, "reclassifying replaces rather than duplicates");
-    assert.equal(second.requirement.note, undefined, "the stale note does not survive the new kind");
+    assert.equal(second.requirement.ref, "pasika/filename-case");
   });
 
   void it("accepts several rule refs for one requirement", () => {
     const { requirement } = classify({
       hash: mustRequirement.hash,
-      kind: "eslint",
       ref: "pasika/overview-length, pasika/no-template-prompt",
+      note: "docs-check: two rules cover it",
     });
     assert.equal(requirement.ref, "pasika/overview-length, pasika/no-template-prompt");
   });
@@ -133,7 +125,7 @@ void describe("classifyRequirement", () => {
 
 /** A registry entry for one parsed requirement. */
 function toEntry(parsed: { doc: string; raw: string; hash: string }): Requirement {
-  return { doc: parsed.doc, text: parsed.raw, hash: parsed.hash, kind: "eslint", ref: "pasika/filename-case" };
+  return { doc: parsed.doc, text: parsed.raw, hash: parsed.hash, ref: "pasika/filename-case", note: "reports it" };
 }
 
 void describe("writeRegistry", () => {
@@ -176,7 +168,6 @@ void describe("writeRegistry", () => {
       doc: "only-rule.md",
       text: "A removed requirement MUST be gone.",
       hash: "0000000000",
-      kind: "manual",
       note: "the bullet was deleted from the doc",
     };
 

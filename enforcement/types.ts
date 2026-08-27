@@ -9,17 +9,6 @@
  */
 import { z } from "zod";
 
-export const enforcementKindSchema = z.enum([
-  /** An ESLint rule reports it. */
-  "eslint",
-  /** A `pasika doctor` check reports it. */
-  "doctor",
-  /** No mechanical check decides it; the reviewer or agent applies it, or the requirement merely grants permission. */
-  "manual",
-  /** A mechanical check is possible but not written yet. */
-  "planned",
-]);
-
 export const requirementSchema = z.object({
   /** Document path relative to the docs root. */
   doc: z.string(),
@@ -27,33 +16,22 @@ export const requirementSchema = z.object({
   text: z.string(),
   /** Short hash of `text`. */
   hash: z.string(),
-  kind: enforcementKindSchema,
   /**
-   * Identifier of the check that covers or governs this requirement: an ESLint
-   * rule id or a doctor check id. Several ids are comma-separated.
-   * For `manual`, names the rule that governs the requirement's subject (e.g.
-   * its placement) without deciding it; `note` says what the rule does and what
-   * stays judgment. Absent for planned.
+   * Identifier of the rule or doctor check that governs this requirement, or
+   * absent when a reviewer or agent applies it by hand. Several ids are
+   * comma-separated.
    */
   ref: z.string().optional(),
   /**
-   * For `manual`, why no mechanical check decides it (or that it merely
-   * grants permission). For `planned`, the check that should cover it. For
-   * `eslint` and `doctor`, what the existing check does not cover.
+   * How the requirement is met: what the ref'd check does and where it falls
+   * short, or — with no ref — how a reviewer or agent applies it.
    */
-  note: z.string().optional(),
+  note: z.string(),
 });
 
 export const registrySchema = z.object({
   requirements: z.array(requirementSchema),
 });
 
-export type EnforcementKind = z.infer<typeof enforcementKindSchema>;
 export type Requirement = z.infer<typeof requirementSchema>;
 export type Registry = z.infer<typeof registrySchema>;
-
-/** Every kind, in the order the coverage summary prints them. */
-export const ENFORCEMENT_KINDS: EnforcementKind[] = ["eslint", "doctor", "planned", "manual"];
-
-/** The kinds that count as mechanically enforced today. */
-export const MECHANICAL_KINDS: EnforcementKind[] = ["eslint", "doctor"];

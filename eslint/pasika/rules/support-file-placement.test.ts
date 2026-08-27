@@ -280,6 +280,22 @@ void describe("A constant in one configuration module that only another configur
   });
 });
 
+void describe("A constant MAY live in src/config/<module>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    // Consumers outside the config module do not place a config-owned constant;
+    // only a consuming config module does, and that case has its own test above.
+    valid: [ok("config/player/constants/index.ts")],
+    invalid: [],
+  });
+});
+
+void describe("A type MAY stay in src/config/<module>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [ok("config/player/types/index.ts")],
+    invalid: [],
+  });
+});
+
 void describe("A nested component's support files MUST live in its folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],

@@ -2,7 +2,7 @@
 
 Documentation, the lint rules derived from it, and the CLI that applies and diagnoses both.
 
-`pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule, which `pasika` check, or which manual review covers it — and CI fails when a requirement has no answer.
+`pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule or `pasika` check governs it — or, when none does, how a reviewer or agent applies it by hand. CI fails when a requirement has no recorded answer.
 
 ## Layout
 
@@ -37,22 +37,16 @@ Requirements are identified by a hash of their canonical text, not by a hand-wri
   "doc": "code-organization-guide/rules/no-mixed-concerns-rule.md",
   "text": "A .tsx file that defines a component MUST contain exactly one component.",
   "hash": "b19fe3bd34",
-  "kind": "eslint",
   "ref": "pasika/no-mixed-concerns",
   "note": "counts exported components; a second component that is not exported is not detected"
 }
 ```
 
-The `text` field is the bullet as written in the document (markdown links and code spans intact), so it is greppable in the doc it came from; the `hash` is computed from the same text with links collapsed to their text and code spans unwrapped, so editing a URL or adding backticks does not read as a change. The `note` field is where a check's known gap is recorded, so a partial check never reads as a complete one.
+The `text` field is the bullet as written in the document (markdown links and code spans intact), so it is greppable in the doc it came from; the `hash` is computed from the same text with links collapsed to their text and code spans unwrapped, so editing a URL or adding backticks does not read as a change.
 
-| Kind | Meaning |
-| --- | --- |
-| `eslint` | An ESLint rule reports it, and a fixture test titled with the requirement pins it |
-| `doctor` | A `pasika doctor` check reports it |
-| `planned` | Mechanically checkable, not written yet; `note` names the intended check |
-| `manual` | No mechanical check decides it; the reviewer or agent applies it, or the requirement merely grants permission — `note` says why. When a rule governs the requirement's subject without deciding it (e.g. its placement), `ref` names that rule |
+Every requirement carries a `note` explaining how it is met: what the ref'd rule or doctor check does and where it falls short, or — with no `ref` — how a reviewer or agent applies it by hand. When a rule governs the requirement's subject without fully deciding it (e.g. its placement), the `ref` still names that rule and the `note` says what stays judgment, so a partial check never reads as a complete one.
 
-`pasika coverage` fails when a requirement is unclassified, when its text changed, when it disappeared, when its `ref` names a check that does not exist, or when a lint-enforced requirement has no test. Confirm a reworded requirement with `pasika coverage --accept`.
+`pasika coverage` fails when a requirement has no recorded answer, when its text changed, when it disappeared, when its `ref` names a rule or doctor check that does not exist, or when a requirement a rule governs has no test titled with its text. Confirm a reworded requirement with `pasika coverage --accept`.
 
 ## Commands
 
@@ -68,11 +62,11 @@ Both accept `--json` for agent use.
 A requirement `coverage` reports as `new` is classified with the hash it prints:
 
 ```bash
-npx pasika coverage --classify d311a1457a --kind eslint --ref pasika/import-boundaries
-npx pasika coverage --classify 041b665bd7 --kind manual --note "no check can compare against the previous state"
+npx pasika coverage --classify d311a1457a --ref pasika/import-boundaries --note "reports imports that cross a feature boundary"
+npx pasika coverage --classify 041b665bd7 --note "no check can compare against the previous state"
 ```
 
-The command refuses a hash no requirement has, a `ref` naming a rule or check that does not exist, a `ref` on a kind that nothing reports, and `manual` or `planned` without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-classified requirement reclassifies it and reports what it was.
+The command refuses a hash no requirement has, a `ref` naming a rule or doctor check that does not exist, and an entry without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry.
 
 ## ESLint ruleset
 

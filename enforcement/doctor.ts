@@ -10,6 +10,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
 
+/**
+ * The doctor check ids a registry `ref` may name, in `pasika/<check>` form,
+ * mirroring how eslint rule refs are written.
+ */
+export const doctorCheckRefs = [
+  "pasika/pasika-installed",
+  "pasika/zirka-installed",
+  "pasika/source-under-src",
+  "pasika/global-stylesheet",
+  "pasika/config-baseline",
+  "pasika/managed-file-edit",
+];
+
 export interface DoctorFinding {
   /** Which requirement this relates to. */
   check: string;

@@ -9,7 +9,6 @@ import {
   writeRegistry,
   type CoverageIssue,
 } from "../enforcement/coverage";
-import { enforcementKindSchema } from "../enforcement/types";
 import { runDoctor } from "../enforcement/doctor";
 import { log, error, json } from "./output";
 
@@ -47,12 +46,11 @@ program
   .description("Check that every documented requirement has recorded enforcement.")
   .option("--accept", "rehash reworded requirements and drop removed ones")
   .option("--classify <hash>", "record how one requirement is checked")
-  .option("--kind <kind>", "enforcement kind for --classify")
-  .option("--ref <id>", "rule or check id for --classify")
-  .option("--note <text>", "why it is not checked, or what the check misses")
+  .option("--ref <id>", "rule or check id for --classify; omit when judgment applies it")
+  .option("--note <text>", "how the ref'd check governs it, or how judgment applies it")
   .option("--json", "print the report as JSON")
   .action(
-    (options: { accept?: boolean; classify?: string; kind?: string; ref?: string; note?: string; json?: boolean }) => {
+    (options: { accept?: boolean; classify?: string; ref?: string; note?: string; json?: boolean }) => {
       const root = findRegistryRoot(process.cwd());
       if (!root) {
         error(`No ${REGISTRY_RELATIVE_PATH} found in this directory or any parent.`);
@@ -68,23 +66,15 @@ program
       const registryPath = path.join(root, REGISTRY_RELATIVE_PATH);
 
       if (options.classify !== undefined) {
-        const kind = enforcementKindSchema.safeParse(options.kind);
-        if (!kind.success) {
-          error(`✗ --kind must be one of ${enforcementKindSchema.options.join(", ")}.`);
-          process.exit(1);
-        }
         try {
           const result = classifyRequirement({
             docsRoot,
             registry: readRegistry(registryPath),
-            input: { hash: options.classify, kind: kind.data, ref: options.ref, note: options.note },
+            input: { hash: options.classify, ref: options.ref, note: options.note },
           });
           writeRegistry(registryPath, result.registry, docsRoot);
-          const change =
-            result.previousKind === undefined
-              ? `recorded as ${result.requirement.kind}`
-              : `reclassified from ${result.previousKind} to ${result.requirement.kind}`;
-          log(`✓ ${change}: ${result.requirement.text}`);
+          const check = result.requirement.ref ? `governed by ${result.requirement.ref}` : "applied by judgment";
+          log(`✓ recorded as ${check}: ${result.requirement.text}`);
         } catch (err) {
           error(`✗ ${err instanceof Error ? err.message : String(err)}`);
           process.exit(1);
@@ -108,13 +98,11 @@ program
         log(`              ${where}${issue.detail ? `\n              ${issue.detail}` : ""}`);
       }
 
-      const { counts } = report;
       log(
         [
           "",
-          `${String(report.total)} requirements · ${String(report.mechanical)} mechanically enforced`,
-          `  eslint ${String(counts.eslint)} · doctor ${String(counts.doctor)}`,
-          `  planned ${String(counts.planned)} · manual ${String(counts.manual)}`,
+          `${String(report.total)} requirements`,
+          `  governed by a rule or check ${String(report.governed)} · by judgment ${String(report.judgment)}`,
           `  unclassified ${String(report.issues.filter((issue) => issue.kind === "new").length)}`,
         ].join("\n"),
       );
