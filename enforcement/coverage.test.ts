@@ -60,9 +60,33 @@ void describe("classifyRequirement", () => {
     );
   });
 
-  void it("rejects a ref on a kind that nothing reports", () => {
+  void it("accepts a ref naming the rule that governs a manual requirement", () => {
+    const { requirement } = classify({
+      hash: mayRequirement.hash,
+      kind: "manual",
+      ref: "pasika/filename-case",
+      note: "the rule governs the filename without deciding the judgment",
+    });
+    assert.equal(requirement.ref, "pasika/filename-case");
+    assert.equal(requirement.kind, "manual");
+  });
+
+  void it("rejects a manual ref that is not a rule in the plugin", () => {
     assert.throws(
-      () => classify({ hash: mayRequirement.hash, kind: "manual", ref: "pasika/filename-case" }),
+      () =>
+        classify({
+          hash: mayRequirement.hash,
+          kind: "manual",
+          ref: "pasika/not-a-rule",
+          note: "why",
+        }),
+      /is not a rule in the plugin/,
+    );
+  });
+
+  void it("rejects a ref on planned, because nothing reports or governs it yet", () => {
+    assert.throws(
+      () => classify({ hash: mustRequirement.hash, kind: "planned", note: "a future check", ref: "pasika/filename-case" }),
       /takes no --ref/,
     );
   });

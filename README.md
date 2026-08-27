@@ -50,7 +50,7 @@ The `text` field is the bullet as written in the document (markdown links and co
 | `eslint` | An ESLint rule reports it, and a fixture test titled with the requirement pins it |
 | `doctor` | A `pasika doctor` check reports it |
 | `planned` | Mechanically checkable, not written yet; `note` names the intended check |
-| `manual` | No mechanical check decides it; the reviewer or agent applies it, or the requirement merely grants permission — `note` says why |
+| `manual` | No mechanical check decides it; the reviewer or agent applies it, or the requirement merely grants permission — `note` says why. When a rule governs the requirement's subject without deciding it (e.g. its placement), `ref` names that rule |
 
 `pasika coverage` fails when a requirement is unclassified, when its text changed, when it disappeared, when its `ref` names a check that does not exist, or when a lint-enforced requirement has no test. Confirm a reworded requirement with `pasika coverage --accept`.
 

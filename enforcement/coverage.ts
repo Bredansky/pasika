@@ -67,9 +67,14 @@ function refParts(ref: string | undefined): string[] {
 
 function isRefKnown(requirement: Requirement): boolean {
   const parts = refParts(requirement.ref);
-  if (requirement.kind === "eslint") return parts.length > 0 && parts.every((part) => allPasikaRuleIds.includes(part));
-  // Doctor checks do not exist yet, so a `doctor` entry is a forward reference.
-  return true;
+  if (requirement.kind === "doctor") {
+    // Doctor checks do not exist yet, so a `doctor` entry is a forward reference.
+    return true;
+  }
+  if (parts.length === 0) return true;
+  // An eslint rule reports it, or a manual requirement names the rule that
+  // governs its subject without deciding it — either way, the id must exist.
+  return parts.every((part) => allPasikaRuleIds.includes(part));
 }
 
 export function buildCoverageReport(options: {
@@ -215,6 +220,13 @@ export function classifyRequirement(options: {
   const refs = refParts(input.ref);
   if (input.kind === "eslint") {
     if (refs.length === 0) throw new Error('Kind "eslint" needs --ref naming the rule that reports it.');
+    const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
+    if (unknown.length > 0) {
+      throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);
+    }
+  } else if (input.kind === "manual" && refs.length > 0) {
+    // A manual requirement may name the rule that governs its subject without
+    // deciding it, but the name must still be a real rule.
     const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
     if (unknown.length > 0) {
       throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule in the plugin.`);

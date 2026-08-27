@@ -197,6 +197,7 @@
       "text": "A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
       "hash": "57f90aa714",
       "kind": "manual",
+      "ref": "pasika/support-file-placement",
       "note": "pasika/support-file-placement applies the config-module placement inside a config module, moving a constant to the consuming module; whether it configures application behavior stays a judgment"
     },
     {
@@ -506,6 +507,7 @@
       "text": "A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
       "hash": "091724ed27",
       "kind": "manual",
+      "ref": "pasika/support-file-placement",
       "note": "pasika/support-file-placement applies the config-module placement inside a config module, moving a type to the consuming module; whether its meaning derives from the configuration stays a judgment"
     },
     {

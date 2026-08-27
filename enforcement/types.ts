@@ -29,9 +29,11 @@ export const requirementSchema = z.object({
   hash: z.string(),
   kind: enforcementKindSchema,
   /**
-   * Identifier of the check that covers this requirement: an ESLint rule id or
-   * a doctor check id. Several ids are comma-separated.
-   * Absent for manual and planned.
+   * Identifier of the check that covers or governs this requirement: an ESLint
+   * rule id or a doctor check id. Several ids are comma-separated.
+   * For `manual`, names the rule that governs the requirement's subject (e.g.
+   * its placement) without deciding it; `note` says what the rule does and what
+   * stays judgment. Absent for planned.
    */
   ref: z.string().optional(),
   /**
