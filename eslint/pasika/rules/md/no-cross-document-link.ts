@@ -1,7 +1,7 @@
 /**
  * @fileoverview Rules, references, and policy must not link to other documents.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link } from "mdast";
 import { getFilename } from "./helpers.js";
 
@@ -13,7 +13,7 @@ function linkedKind(filename: string): string | undefined {
   return undefined;
 }
 
-export const noCrossDocumentLinkRule: Rule.RuleModule = {
+export const noCrossDocumentLinkRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -21,7 +21,7 @@ export const noCrossDocumentLinkRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       link(node: Link) {
         const filename = getFilename(context);

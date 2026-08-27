@@ -1,12 +1,12 @@
 /**
  * @fileoverview No leftover bracketed template prompts.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Text } from "mdast";
 
 const TEMPLATE_PROMPT = /^\s*\[[A-Z0-9].*\]\s*$/;
 
-export const noTemplatePromptRule: Rule.RuleModule = {
+export const noTemplatePromptRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -14,7 +14,7 @@ export const noTemplatePromptRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       text(node: Text) {
         if (TEMPLATE_PROMPT.test(node.value)) {

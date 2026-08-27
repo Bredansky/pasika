@@ -7,14 +7,14 @@
  * @see docs/agent-policy.md
  */
 
-import type { Rule } from "eslint";
+import type { JSONRuleDefinition } from "@eslint/json";
 import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
 
 function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
 }
 
-export const noCacheFlagRule: Rule.RuleModule = {
+export const noCacheFlagRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -22,7 +22,7 @@ export const noCacheFlagRule: Rule.RuleModule = {
       description: "Require lint scripts to not pass ESLint's --cache flag.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       Document(node: DocumentNode) {
         const root = node.body;

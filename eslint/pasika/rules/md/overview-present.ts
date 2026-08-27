@@ -1,11 +1,11 @@
 /**
  * @fileoverview Overview must follow the title in a documentation file.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers.js";
 
-export const overviewPresentRule: Rule.RuleModule = {
+export const overviewPresentRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const overviewPresentRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

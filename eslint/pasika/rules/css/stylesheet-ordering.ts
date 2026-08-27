@@ -8,13 +8,13 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { preludeIdentifiers, selectorNames } from "./helpers.js";
 
 const SECTION_ORDER = ["imports", "custom-variant", "root", "theme", "utility", "base styles", "keyframes"] as const;
 
-export const stylesheetOrderingRule: Rule.RuleModule = {
+export const stylesheetOrderingRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -22,7 +22,7 @@ export const stylesheetOrderingRule: Rule.RuleModule = {
       description: "Require the global stylesheet sections in the documented order.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // Map each top-level child to its section name.

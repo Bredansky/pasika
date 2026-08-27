@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import jsonPlugin from "@eslint/json";
-import { pasikaJsonRules } from "../../index.js";
+import { jsonRules } from "../../index.js";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -17,7 +17,7 @@ export const jsonRuleTester = new RuleTester({
   language: "json/json",
   plugins: {
     json: { languages: { json: jsonPlugin.languages.json } },
-    pasika: { rules: pasikaJsonRules },
+    pasika: { rules: jsonRules },
   },
 });
 

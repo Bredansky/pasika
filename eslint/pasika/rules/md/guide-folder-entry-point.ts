@@ -2,12 +2,12 @@
  * @fileoverview Guide folders must have an entry point.
  */
 import path from "node:path";
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename } from "./helpers.js";
 import { findDocsRoot, getProjectDocs } from "./project-index.js";
 
-export const guideFolderEntryPointRule: Rule.RuleModule = {
+export const guideFolderEntryPointRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -15,7 +15,7 @@ export const guideFolderEntryPointRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Example headings must have an em-dash description.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
 import { getFilename, getTextContent } from "./helpers.js";
 
-export const exampleHeadingDescriptionRule: Rule.RuleModule = {
+export const exampleHeadingDescriptionRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const exampleHeadingDescriptionRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       heading(node: Heading) {
         const filename = getFilename(context);

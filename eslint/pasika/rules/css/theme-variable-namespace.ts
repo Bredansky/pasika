@@ -8,11 +8,11 @@
  * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers.js";
 
-export const themeVariableNamespaceRule: Rule.RuleModule = {
+export const themeVariableNamespaceRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -20,7 +20,7 @@ export const themeVariableNamespaceRule: Rule.RuleModule = {
       description: "Require utility classes from the same theme namespace to share a prefix.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // Namespaces are the first segment of each theme variable name, e.g.

@@ -7,11 +7,11 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, blockChildren, preludeIdentifiers, selectorNames } from "./helpers.js";
 
-export const baseLayerPairRule: Rule.RuleModule = {
+export const baseLayerPairRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -19,7 +19,7 @@ export const baseLayerPairRule: Rule.RuleModule = {
       description: "Require the base layer to apply base-canvas and base-ink to the body.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const baseLayers = atrulesNamed(node, "layer").filter((layer) => preludeIdentifiers(layer).includes("base"));

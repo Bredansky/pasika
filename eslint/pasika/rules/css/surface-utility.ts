@@ -7,11 +7,11 @@
  * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, preludeIdentifiers } from "./helpers.js";
 
-export const surfaceUtilityRule: Rule.RuleModule = {
+export const surfaceUtilityRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -19,7 +19,7 @@ export const surfaceUtilityRule: Rule.RuleModule = {
       description: "Require repeated canvas+ink combinations to become a *-surface utility.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const combinations = new Map<string, number>();

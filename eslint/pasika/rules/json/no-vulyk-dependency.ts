@@ -7,14 +7,14 @@
  * @see docs/agent-policy.md
  */
 
-import type { Rule } from "eslint";
+import type { JSONRuleDefinition } from "@eslint/json";
 import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
 
 function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
 }
 
-export const noVulykDependencyRule: Rule.RuleModule = {
+export const noVulykDependencyRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -22,7 +22,7 @@ export const noVulykDependencyRule: Rule.RuleModule = {
       description: "Require vulyk to run as an ephemeral command, not a package.json dependency.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       Document(node: DocumentNode) {
         const root = node.body;

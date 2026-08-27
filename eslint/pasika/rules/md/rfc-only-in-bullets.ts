@@ -1,12 +1,17 @@
 /**
  * @fileoverview RFC 2119 vocabulary must appear only in bullet points.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
 import { containsRfcKeyword, getFilename } from "./helpers.js";
 
+/** Minimal view of the rule context the walker reports through. */
+interface ReportingContext {
+  report: (descriptor: { node: Nodes; message: string }) => void;
+}
+
 /** Check whether a subtree contains a text node outside a bullet using RFC vocabulary. */
-function checkOutsideBullets(node: Nodes, context: Rule.RuleContext, insideBullet: boolean): void {
+function checkOutsideBullets(node: Nodes, context: ReportingContext, insideBullet: boolean): void {
   if (node.type === "listItem") {
     // Everything under a list item is a bullet; stop descending for the
     // outside-bullet check, but nested lists still need walking.
@@ -32,7 +37,7 @@ function checkOutsideBullets(node: Nodes, context: Rule.RuleContext, insideBulle
   }
 }
 
-export const rfcOnlyInBulletsRule: Rule.RuleModule = {
+export const rfcOnlyInBulletsRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -40,7 +45,7 @@ export const rfcOnlyInBulletsRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

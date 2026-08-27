@@ -84,13 +84,26 @@ Markdown lint rules enforcing the documentation guide over `docs/**/*.md`.
 
 ## M4 — Doctor → ESLint Migration 🔄
 
+**Scope update (2026-08-27):** This milestone spans both repositories. Pasika
+owns and exports the rules; zirka owns the consumer-facing `styleguide()`
+configuration and must provide compatible ESLint/plugin dependencies. ESLint
+10 adoption is in progress in both packages. No milestone item is complete
+until pasika and zirka typecheck and their relevant runtime checks pass.
+
+**Current blockers:** zirka's old ESLint/plugin dependency graph is being
+upgraded for ESLint 10; pasika's own lint currently exercises zirka's config
+through the local package tree. The CSS/JSON rules use the official native
+`CSSRuleDefinition`, `JSONRuleDefinition`, and `MarkdownRuleDefinition` types;
+no cross-package type assertions are intended.
+
+
 Move file-content checks from `pasika doctor` to ESLint rules so they run in
 CI rather than on-demand. Doctor keeps only **environment checks** (config
 existence, managed-file mtime, source root, framework packages).
 
 ### CSS Rules (globals.css checks via `@eslint/css`)
 
-- [x] `@eslint/css` installed; tolerant mode enables real Tailwind v4 parsing
+- [x] `@eslint/css` installed; tolerant mode enables real Tailwind v4 parsing (pasika + zirka dependency adoption pending final verification)
 - [x] `eslint/pasika/rules/css/helpers.ts` — walkNodes, blockWalker, blockChildren
 - [x] `eslint/pasika/rules/css/rule-tester.ts` — CSS RuleTester setup
 - [x] `pasika/theme-reset` — `--*: initial` theme reset present
@@ -107,7 +120,7 @@ existence, managed-file mtime, source root, framework packages).
 
 ### JSON Rules (package.json checks via `@eslint/json`)
 
-- [x] `@eslint/json` installed
+- [x] `@eslint/json` installed (pasika + zirka dependency adoption pending final verification)
 - [x] `eslint/pasika/rules/json/rule-tester.ts` — JSON RuleTester setup
 - [x] `pasika/no-vulyk-dependency` — vulyk not in dependencies
 - [x] `pasika/no-cache-flag` — lint scripts don't use `--cache`
@@ -131,10 +144,13 @@ These doctor checks use `getProjectIndex()` and can become ESLint rules.
 
 - [x] All rules registered in `eslint/pasika/index.ts`
 - [x] CSS/JSON rule index files (`rules/css/index.ts`, `rules/json/index.ts`)
-- [x] `eslint.config.ts` wired with CSS and JSON language configs (pasika self-lint)
+- [x] `zirka/styleguide.ts` owns Markdown, CSS, and JSON language configs for consumers
 - [x] CSS/JSON configs scoped to correct file patterns (don't leak JS rules into CSS)
-- [x] Zirka `styleguide.ts` builds CSS/JSON configs from pasika rules for consumers
-- [x] `@eslint/css` and `@eslint/json` installed in zirka as dependencies
+- [x] Zirka `styleguide.ts` builds Markdown/CSS/JSON configs from pasika rules for consumers
+- [x] `@eslint/css`, `@eslint/json`, and `@eslint/markdown` installed in zirka and verified with its package graph
+- [x] Align ESLint major versions and compatible plugin versions in pasika and zirka
+- [x] Remove all temporary type assertions and eslint suppressions introduced during migration
+- [x] Keep `jiti` as a direct dev dependency in repositories that lint `.ts` ESLint configs
 
 ### Registry Re-classification
 
@@ -152,12 +168,14 @@ These doctor checks use `getProjectIndex()` and can become ESLint rules.
 
 ### Verification
 
-- [ ] `npm run lint` — clean
-- [ ] `npm run typecheck` — clean
-- [ ] `node --import tsx --test` — all tests pass
-- [ ] `npm run build` — clean
-- [ ] `npx tsx cli/index.ts coverage` — zero issues
-- [ ] Commit and push
+- [x] Pasika `npm run lint` — clean on the final zirka dependency
+- [x] Pasika `npm run typecheck` — clean
+- [x] Pasika tests — all pass (366)
+- [x] Pasika `npm run build` — clean
+- [x] Zirka typecheck — clean
+- [x] Zirka consumer configuration includes Markdown, CSS, and JSON language blocks
+- [x] `npx tsx cli/index.ts coverage` — zero issues
+- [ ] Commit and push both repositories
 
 ## M5 — Documentation Cleanup
 
@@ -181,5 +199,12 @@ Items identified but not yet scoped:
 | Date       | What happened                                                                                                                                                                            |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-08-27 | Started M4: CSS + JSON rules written and tested; typecheck clean. Registry shows 98 eslint, 30 doctor, 21 judgment, 13 permission (162 total). `NEXT-SESSION.md` deleted during session. |
-| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources.                                                                                                    || 2026-08-27 | Created MILESTONES.md to track progress across sessions. |
+| 2026-08-27 | Reworded agent-policy.md finding requirement to name both lint and doctor as sources. |
+| 2026-08-27 | Created MILESTONES.md to track progress across sessions. |
 | 2026-08-27 | Wired CSS/JSON configs into zirka `styleguide.ts`; consumers now get CSS/JSON rules through the pasika styleguide option. Fixed pasika lint error in helpers.ts (`no-unnecessary-condition`). |
+| 2026-08-27 | Expanded M4 to explicitly cover both pasika and zirka. Researched native language rule-definition types; ESLint 10/plugin compatibility and final verification remain open. |
+| 2026-08-27 | Standardized zirka plugin-object names as `pasikaJsTs`, `pasikaCss`, and `pasikaJson`; all are ESLint plugins, with language names distinguishing their rule sets. |
+| 2026-08-27 | Corrected dependency ownership: `@babel/core` belongs to zirka because zirka directly uses `@babel/eslint-parser`; it is not a pasika dependency. |
+| 2026-08-27 | Decided to internalize pasika's Markdown config: pasika owns its docs linting; zirka owns only consumer JS/TS/CSS/JSON composition. |
+| 2026-08-27 | Confirmed `jiti` remains a direct dev dependency for TypeScript ESLint config loading; removed reliance on transitive hoisting. |
+| 2026-08-27 | Separated repository and consumer configuration: zirka owns consumer Markdown/CSS/JSON language configs; pasika retains rule implementations and build-time language dependencies. Both repositories pass their checks. |

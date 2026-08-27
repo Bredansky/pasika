@@ -1,11 +1,11 @@
 /**
  * @fileoverview Policy document must not contain Incorrect/Correct examples.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
 import { getFilename, getTextContent } from "./helpers.js";
 
-export const policyNoExamplesRule: Rule.RuleModule = {
+export const policyNoExamplesRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const policyNoExamplesRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       heading(node: Heading) {
         const filename = getFilename(context);

@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import markdown from "@eslint/markdown";
-import { pasikaMdRules } from "../../index.js";
+import { mdRules } from "../../index.js";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -17,7 +17,7 @@ export const mdRuleTester = new RuleTester({
   language: "markdown/gfm",
   plugins: {
     markdown,
-    pasika: { rules: pasikaMdRules },
+    pasika: { rules: mdRules },
   },
 });
 

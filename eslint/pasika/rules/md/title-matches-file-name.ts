@@ -2,7 +2,7 @@
  * @fileoverview Document title must match the file name in kebab-case.
  */
 import path from "node:path";
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
 import { getFilename, getTextContent } from "./helpers.js";
 
@@ -13,7 +13,7 @@ function toExpectedFileName(title: string): string {
     .replace(/^-|-$/g, "")}.md`;
 }
 
-export const titleMatchesFileNameRule: Rule.RuleModule = {
+export const titleMatchesFileNameRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -21,7 +21,7 @@ export const titleMatchesFileNameRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       heading(node: Heading) {
         if (node.depth !== 1) return;

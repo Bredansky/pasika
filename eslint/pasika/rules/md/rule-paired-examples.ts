@@ -1,11 +1,11 @@
 /**
  * @fileoverview Rule must have paired Incorrect/Correct examples.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers.js";
 
-export const rulePairedExamplesRule: Rule.RuleModule = {
+export const rulePairedExamplesRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const rulePairedExamplesRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

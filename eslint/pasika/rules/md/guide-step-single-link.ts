@@ -1,7 +1,7 @@
 /**
  * @fileoverview Each guide step must link at most one document total.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { ListItem, Nodes, Root } from "mdast";
 import { getFilename } from "./helpers.js";
 
@@ -24,7 +24,7 @@ function visitSteps(node: Nodes, check: (item: ListItem) => void): void {
   }
 }
 
-export const guideStepSingleLinkRule: Rule.RuleModule = {
+export const guideStepSingleLinkRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -32,7 +32,7 @@ export const guideStepSingleLinkRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

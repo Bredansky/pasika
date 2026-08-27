@@ -6,7 +6,7 @@
  * documented requirement each rule covers is recorded in
  * `enforcement/registry.json` and verified by `pasika coverage`.
  */
-import type { Linter, Rule } from "eslint";
+import type { Linter } from "eslint";
 import { filenameCaseRule } from "./rules/filename-case.js";
 import { importBoundariesRule } from "./rules/import-boundaries.js";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns.js";
@@ -37,8 +37,7 @@ import { mdRules } from "./rules/md/index.js";
 import { cssRules } from "./rules/css/index.js";
 import { jsonRules } from "./rules/json/index.js";
 
-/** Every code rule the plugin provides, keyed by its unprefixed name. */
-export const pasikaRules: Record<string, Rule.RuleModule> = {
+export const pasikaRules = {
   "component-placement": componentPlacementRule,
   "support-file-placement": supportFilePlacementRule,
   "application-structure": applicationStructureRule,
@@ -67,26 +66,14 @@ export const pasikaRules: Record<string, Rule.RuleModule> = {
   "locales-location": localesLocationRule,
 };
 
-/** All markdown rules, keyed by unprefixed name. */
-export const pasikaMdRules: Record<string, Rule.RuleModule> = mdRules;
-
-/** All CSS rules, keyed by unprefixed name. */
-export const pasikaCssRules: Record<string, Rule.RuleModule> = cssRules;
-
-/** All JSON rules, keyed by unprefixed name. */
-export const pasikaJsonRules: Record<string, Rule.RuleModule> = jsonRules;
+export { mdRules, cssRules, jsonRules };
 
 /** Rule ids as they appear in configuration and in lint output. */
 export const pasikaRuleIds = Object.keys(pasikaRules).map((name) => `pasika/${name}`);
 
-/** Markdown rule ids as they appear in configuration and in lint output. */
-export const pasikaMdRuleIds = Object.keys(pasikaMdRules).map((name) => `pasika/${name}`);
-
-/** CSS rule ids as they appear in configuration and in lint output. */
-export const pasikaCssRuleIds = Object.keys(pasikaCssRules).map((name) => `pasika/${name}`);
-
-/** JSON rule ids as they appear in configuration and in lint output. */
-export const pasikaJsonRuleIds = Object.keys(pasikaJsonRules).map((name) => `pasika/${name}`);
+export const pasikaMdRuleIds = Object.keys(mdRules).map((name) => `pasika/${name}`);
+export const pasikaCssRuleIds = Object.keys(cssRules).map((name) => `pasika/${name}`);
+export const pasikaJsonRuleIds = Object.keys(jsonRules).map((name) => `pasika/${name}`);
 
 /** Every rule id, as they appear in configuration and in lint output. */
 export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaMdRuleIds, ...pasikaCssRuleIds, ...pasikaJsonRuleIds];

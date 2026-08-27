@@ -1,11 +1,11 @@
 /**
  * @fileoverview How To sections must not nest inside other How To sections.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers.js";
 
-export const noNestedHowToRule: Rule.RuleModule = {
+export const noNestedHowToRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const noNestedHowToRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

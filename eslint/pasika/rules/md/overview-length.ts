@@ -1,7 +1,7 @@
 /**
  * @fileoverview Overview must contain at most two sentences.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers.js";
 
@@ -9,7 +9,7 @@ function countSentences(text: string): number {
   return text.split(/[.!?](?:\s+|$)/).filter((part) => part.trim() !== "").length;
 }
 
-export const overviewLengthRule: Rule.RuleModule = {
+export const overviewLengthRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -17,7 +17,7 @@ export const overviewLengthRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

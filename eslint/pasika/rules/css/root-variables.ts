@@ -8,11 +8,11 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rules, selectorNames } from "./helpers.js";
 
-export const rootVariablesRule: Rule.RuleModule = {
+export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -20,7 +20,7 @@ export const rootVariablesRule: Rule.RuleModule = {
       description: "Require styling values to be CSS variables in :root referenced through @theme inline.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const hasRootVars = rules(node).some((rule) => {

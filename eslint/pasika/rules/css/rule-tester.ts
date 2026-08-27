@@ -8,7 +8,7 @@
 import { describe, it } from "node:test";
 import { RuleTester } from "eslint";
 import css from "@eslint/css";
-import { pasikaCssRules } from "../../index.js";
+import { cssRules } from "../../index.js";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -18,7 +18,7 @@ export const cssRuleTester = new RuleTester({
   languageOptions: { tolerant: true },
   plugins: {
     css,
-    pasika: { rules: pasikaCssRules },
+    pasika: { rules: cssRules },
   },
 });
 

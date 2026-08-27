@@ -8,7 +8,7 @@
  * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, blockChildren } from "./helpers.js";
 
@@ -18,7 +18,7 @@ function rawProperty(raw: string): string | undefined {
   return match?.groups?.property;
 }
 
-export const customUtilityApplyRule: Rule.RuleModule = {
+export const customUtilityApplyRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -26,7 +26,7 @@ export const customUtilityApplyRule: Rule.RuleModule = {
       description: "Require @utility blocks to style through @apply.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         for (const utility of atrulesNamed(node, "utility")) {

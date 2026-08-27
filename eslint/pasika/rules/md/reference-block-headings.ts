@@ -2,11 +2,11 @@
  * @fileoverview Reference block headings rule.
  * A Reference with a single lookup block must not add a section heading for it.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading, Root } from "mdast";
 import { getFilename } from "./helpers.js";
 
-export const referenceBlockHeadingsRule: Rule.RuleModule = {
+export const referenceBlockHeadingsRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -14,7 +14,7 @@ export const referenceBlockHeadingsRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

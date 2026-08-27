@@ -6,11 +6,11 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, blockChildren } from "./helpers.js";
 
-export const themeResetRule: Rule.RuleModule = {
+export const themeResetRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -18,7 +18,7 @@ export const themeResetRule: Rule.RuleModule = {
       description: "Require Tailwind's default theme reset --*: initial.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const resetFound = atrulesNamed(node, "theme").some((theme) =>

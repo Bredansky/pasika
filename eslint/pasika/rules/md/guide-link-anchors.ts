@@ -1,7 +1,7 @@
 /**
  * @fileoverview A step that links another Guide must link directly to a How To section.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link, ListItem, Nodes, Root } from "mdast";
 import { getFilename } from "./helpers.js";
 
@@ -24,7 +24,7 @@ function collectGuideLinks(node: Nodes): Link[] {
   return [];
 }
 
-export const guideLinkAnchorsRule: Rule.RuleModule = {
+export const guideLinkAnchorsRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -32,7 +32,7 @@ export const guideLinkAnchorsRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

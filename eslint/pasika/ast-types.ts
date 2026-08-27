@@ -30,11 +30,12 @@ export interface JsxExpressionContainer {
 }
 
 /** JSXAttribute — `name="value"` or `name={expression}`. */
-export interface JsxAttribute {
-  type: "JSXAttribute";
+export type JsxAttribute = Omit<Rule.Node, "type"> & {
+  type: string;
   name: JsxIdentifier;
   value: ESTree.Literal | JsxExpressionContainer | null;
-}
+  parent?: JsxOpeningElementNode;
+};
 
 /** JSXSpreadAttribute — `{...props}`. */
 export interface JsxSpreadAttribute {

@@ -2,7 +2,6 @@
  * Helpers for markdown ESLint rules operating on @eslint/markdown's AST.
  */
 import type { Nodes } from "mdast";
-import type { Rule } from "eslint";
 
 /**
  * RFC 2119 keywords matched by word-boundary regex, longest first.
@@ -21,8 +20,10 @@ export function containsRfcKeyword(text: string): string | null {
 
 /**
  * Get the file path being linted.
+ *
+ * Accepts the rule context structurally so any language plugin can pass it.
  */
-export function getFilename(context: Rule.RuleContext): string {
+export function getFilename(context: { filename: string }): string {
   return context.filename;
 }
 

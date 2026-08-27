@@ -1,11 +1,11 @@
 /**
  * @fileoverview Policy document must group its bullets under a heading per subject.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename, getLine } from "./helpers.js";
 
-export const policySubjectHeadingsRule: Rule.RuleModule = {
+export const policySubjectHeadingsRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const policySubjectHeadingsRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

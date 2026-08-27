@@ -1,7 +1,7 @@
 /**
  * @fileoverview Rule and policy documents must state at least one requirement.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
 import { containsRfcKeyword, getFilename, getTextContent } from "./helpers.js";
 
@@ -18,7 +18,7 @@ function hasRequirement(node: Nodes): boolean {
   return false;
 }
 
-export const requirementPresentRule: Rule.RuleModule = {
+export const requirementPresentRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -26,7 +26,7 @@ export const requirementPresentRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

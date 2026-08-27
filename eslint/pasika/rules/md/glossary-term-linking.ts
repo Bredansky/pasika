@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
 import { getFilename, getTextContent } from "./helpers.js";
 import { findDocsRoot, getProjectDocs } from "./project-index.js";
@@ -55,7 +55,7 @@ function collectDocLinks(node: Nodes, out: string[]): void {
   }
 }
 
-export const glossaryTermLinkingRule: Rule.RuleModule = {
+export const glossaryTermLinkingRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -63,7 +63,7 @@ export const glossaryTermLinkingRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

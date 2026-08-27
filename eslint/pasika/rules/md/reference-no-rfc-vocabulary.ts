@@ -2,11 +2,11 @@
  * @fileoverview Reference documents must not use RFC 2119 vocabulary in prose.
  * Only naming a keyword in code spans is permitted.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Text } from "mdast";
 import { containsRfcKeyword, getFilename } from "./helpers.js";
 
-export const referenceNoRfcVocabularyRule: Rule.RuleModule = {
+export const referenceNoRfcVocabularyRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -15,7 +15,7 @@ export const referenceNoRfcVocabularyRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       text(node: Text) {
         const filename = getFilename(context);

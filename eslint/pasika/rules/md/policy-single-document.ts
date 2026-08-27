@@ -1,12 +1,12 @@
 /**
  * @fileoverview A repository must not have more than one Policy document.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename } from "./helpers.js";
 import { findDocsRoot, getProjectDocs } from "./project-index.js";
 
-export const policySingleDocumentRule: Rule.RuleModule = {
+export const policySingleDocumentRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -14,7 +14,7 @@ export const policySingleDocumentRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

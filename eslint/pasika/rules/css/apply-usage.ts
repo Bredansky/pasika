@@ -7,11 +7,11 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { blockChildren } from "./helpers.js";
 
-export const applyUsageRule: Rule.RuleModule = {
+export const applyUsageRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -19,7 +19,7 @@ export const applyUsageRule: Rule.RuleModule = {
       description: "Require @apply for project style declarations inside global selectors.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // Project style declarations inside global selectors are the ones in

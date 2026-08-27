@@ -7,10 +7,10 @@
  * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { DeclarationPlain } from "@eslint/css-tree";
 
-export const cssVariableNamingRule: Rule.RuleModule = {
+export const cssVariableNamingRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -18,7 +18,7 @@ export const cssVariableNamingRule: Rule.RuleModule = {
       description: "Require background variables to end in -canvas and text variables to end in -ink.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       Declaration(node: DeclarationPlain) {
         const property = node.property;

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Documentation files must have a kind suffix in their filename.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
 import { getFilename } from "./helpers.js";
 
-export const docKindSuffixRule: Rule.RuleModule = {
+export const docKindSuffixRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -13,7 +13,7 @@ export const docKindSuffixRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

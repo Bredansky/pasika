@@ -1,7 +1,7 @@
 /**
  * @fileoverview Guide overview must not link to other documents.
  */
-import type { Rule } from "eslint";
+import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers.js";
 
@@ -13,7 +13,7 @@ function containsLink(node: Nodes): boolean {
   return false;
 }
 
-export const guideOverviewNoLinksRule: Rule.RuleModule = {
+export const guideOverviewNoLinksRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
@@ -21,7 +21,7 @@ export const guideOverviewNoLinksRule: Rule.RuleModule = {
       recommended: true,
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       root(node: Root) {
         const filename = getFilename(context);

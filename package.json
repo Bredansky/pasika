@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -40,16 +40,19 @@
     "@eslint/css-tree": "^4.0.5",
     "@eslint/json": "^2.0.1",
     "@eslint/markdown": "^8.0.3",
+    "@eslint/markdown": "^8.0.3",
     "@humanwhocodes/momoa": "^3.3.12",
     "@types/estree": "^1.0.9",
     "@types/mdast": "^4.0.4",
-    "@types/node": "^24.12.2",
+    "@types/node": "^26.4.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "eslint": "^9.39.4",
+    "@typescript-eslint/utils": "^8.68.0",
+    "eslint": "^10.9.1",
+    "jiti": "^2.7.0",
     "prettier": "^3.8.1",
     "tsx": "^4.23.12",
     "typescript": "^5.9.2",
-    "zirka": "^0.0.38"
+    "zirka": "^0.0.39"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

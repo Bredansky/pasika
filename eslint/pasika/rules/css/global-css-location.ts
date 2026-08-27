@@ -7,10 +7,10 @@
  * @see docs/styling-guide/rules/global-stylesheet-rule.md
  */
 
-import type { Rule } from "eslint";
+import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 
-export const globalCssLocationRule: Rule.RuleModule = {
+export const globalCssLocationRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
@@ -18,7 +18,7 @@ export const globalCssLocationRule: Rule.RuleModule = {
       description: "Require project global CSS to live only in the entry point stylesheet.",
     },
   },
-  create(context: Rule.RuleContext) {
+  create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // The entry point registers Tailwind. Any other stylesheet with
