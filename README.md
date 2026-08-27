@@ -139,6 +139,7 @@ export default [pasikaConfig];
 | `pasika/locale-key-shape` | camelCase locale keys; keys over 30 characters end in a WAI-ARIA element role |
 | `pasika/shared-style-dedup` † | A className combo used by two or more components becomes a named utility |
 | `pasika/repeated-structure` | A block of elements repeated two or more times is extracted as a named component |
+| `pasika/sole-state-owner` | A contiguous JSX part that is the sole consumer of a useState hook is extracted into a named component |
 | `pasika/no-eslint-disable` | No `eslint-disable` directives |
 | `pasika/zod-schema-validation` | Runtime validation through Zod schemas, not hand-written type guards |
 | `pasika/source-under-src` | Application source lives under `src/`, not in root-level folders |

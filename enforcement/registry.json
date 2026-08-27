@@ -433,7 +433,8 @@
       "doc": "code-organization-guide/rules/sole-state-owner-rule.md",
       "text": "A component MUST extract a named component when one part of its JSX contains every JSX expression, callback, and effect that reads one state hook's value or calls its updater.",
       "hash": "22a896ea5f",
-      "note": "deciding one JSX part owns every read of a state hook needs subtree analysis a rule cannot ground"
+      "ref": "pasika/sole-state-owner",
+      "note": "finds a useState hook read and its updater called only inside JSX, all within one contiguous run of the returned JSX's top-level children with a sibling that never touches it; whether the part reads only that hook stays judgment"
     },
     {
       "doc": "code-organization-guide/rules/types-and-schemas-rule.md",
