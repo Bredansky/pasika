@@ -14,6 +14,19 @@ void describe("A Policy document MUST NOT link to Rules, References, Guides, or 
   });
 });
 
+void describe("A Guide MAY link Rules, References, Policy documents, and other Guides.", () => {
+  mdRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {
+    valid: [
+      // A guide may link a Rule, Reference, Policy, or another Guide.
+      { filename: "foo-guide.md", code: "# Foo Guide\n\n1. Follow the [Rule](rule.md)." },
+      { filename: "foo-guide.md", code: "# Foo Guide\n\n1. Read the [Reference](ref-reference.md)." },
+      { filename: "foo-guide.md", code: "# Foo Guide\n\n1. Run the checks in [Policy](bar-policy.md)." },
+      { filename: "foo-guide.md", code: "# Foo Guide\n\n1. See [How To Build](build-guide.md#how-to-build)." },
+    ],
+    invalid: [],
+  });
+});
+
 void describe("A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.", () => {
   mdRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {
     valid: [{ filename: "foo-reference.md", code: "# Foo Reference\n\nA term is defined here." }],

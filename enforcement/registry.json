@@ -558,7 +558,8 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide MAY link Rules, References, Policy documents, and other Guides.",
       "hash": "254850923a",
-      "note": "docs-check no-cross-document-link exempts guides"
+      "ref": "pasika/no-cross-document-link",
+      "note": "the no-cross-document-link check exempts guide files, so a Guide may link Rules, References, Policy documents, and other Guides"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
