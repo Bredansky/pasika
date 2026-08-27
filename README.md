@@ -145,6 +145,7 @@ export default [pasikaConfig];
 | `pasika/shared-style-dedup` † | A className combo used by two or more components becomes a named utility |
 | `pasika/no-eslint-disable` | No `eslint-disable` directives |
 | `pasika/zod-schema-validation` | Runtime validation through Zod schemas, not hand-written type guards |
+| `pasika/source-under-src` | Application source lives under `src/`, not in root-level folders |
 
 ### CSS rules
 

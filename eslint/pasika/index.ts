@@ -43,6 +43,7 @@ import { localePlacementRule } from "./rules/locale-placement";
 import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { noEslintDisableRule } from "./rules/no-eslint-disable";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
+import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { mdRules } from "./rules/md/index";
 import { cssRules } from "./rules/css/index";
 import { jsonRules } from "./rules/json/index";
@@ -84,6 +85,7 @@ export const pasikaRules = {
   "shared-style-dedup": sharedStyleDedupRule,
   "no-eslint-disable": noEslintDisableRule,
   "zod-schema-validation": zodSchemaValidationRule,
+  "source-under-src": sourceUnderSrcRule,
 };
 
 export { mdRules, cssRules, jsonRules };

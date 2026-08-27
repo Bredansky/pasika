@@ -32,8 +32,9 @@
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "Application source MUST live under `src/`.",
       "hash": "0a5c03a95d",
-      "kind": "doctor",
-      "ref": "pasika/source-under-src"
+      "kind": "eslint",
+      "ref": "pasika/source-under-src",
+      "note": "flags linted JS/TS modules outside src/, exempting config files and tooling directories"
     },
     {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
