@@ -25,7 +25,7 @@
     "lint": "eslint .",
     "prepack": "npm run build",
     "prepare": "husky",
-    "test": "node --import tsx --test 'eslint/**/*.test.ts' 'enforcement/**/*.test.ts'",
+    "test": "node --import tsx --test '**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
