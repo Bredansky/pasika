@@ -11,6 +11,7 @@ import { customUtilityApplyRule } from "./custom-utility-apply";
 import { surfaceUtilityRule } from "./surface-utility";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { globalCssLocationRule } from "./global-css-location";
+import { globalStylesheetRule } from "./global-stylesheet";
 
 export const cssRules = {
   "theme-reset": themeResetRule,
@@ -23,6 +24,7 @@ export const cssRules = {
   "surface-utility": surfaceUtilityRule,
   "theme-variable-namespace": themeVariableNamespaceRule,
   "global-css-location": globalCssLocationRule,
+  "global-stylesheet": globalStylesheetRule,
 };
 
 export type CssRuleName = keyof typeof cssRules;

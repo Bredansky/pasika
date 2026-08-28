@@ -32,9 +32,6 @@
     "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "prettier --write --ignore-unknown",
     "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npx eslint --fix"
   },
-  "dependencies": {
-    "zod": "^4.4.3"
-  },
   "devDependencies": {
     "@eslint/css": "^1.4.0",
     "@eslint/css-tree": "^4.0.5",
@@ -45,16 +42,15 @@
     "@types/mdast": "^4.0.4",
     "@types/node": "^26.4.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "@typescript-eslint/utils": "^8.68.0",
     "eslint": "^10.9.1",
     "husky": "^9.1.7",
-    "jiti": "^2.7.0",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "tsup": "^8.5.1",
     "tsx": "^4.23.12",
     "typescript": "^5.9.2",
-    "zirka": "^0.0.42"
+    "zirka": "^0.0.42",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

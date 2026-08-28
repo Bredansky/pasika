@@ -4,7 +4,7 @@ import { zodSchemaValidationRule } from "./zod-schema-validation";
 const MESSAGE =
   "This hand-written type guard validates an unknown value ad hoc. " +
   "Use a Zod schema instead: schema.safeParse(value) returns a discriminated result " +
-  "whose .success narrows the type. See docs/agent-policy.md";
+  "whose .success narrows the type. See docs/repository-policy.md";
 
 void describe("Runtime validation MUST use Zod schemas rather than ad hoc type guards.", () => {
   ruleTester.run("zod-schema-validation", zodSchemaValidationRule, {

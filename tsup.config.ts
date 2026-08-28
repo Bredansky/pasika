@@ -2,7 +2,6 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
-    "cli/index": "cli/index.ts",
     "eslint/pasika/index": "eslint/pasika/index.ts",
   },
   format: ["esm"],
@@ -13,8 +12,6 @@ export default defineConfig({
   minify: false,
   target: "esnext",
   external: [
-    "commander",
-    "zod",
     "eslint",
     "typescript",
     "@typescript-eslint/parser",

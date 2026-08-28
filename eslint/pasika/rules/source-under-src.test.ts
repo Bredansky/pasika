@@ -20,7 +20,7 @@ void describe("Application source MUST live under src/.", () => {
       { code: "export const a = 1;", filename: path.resolve("docs/examples.ts") },
       { code: "export const a = 1;", filename: path.resolve("tests/setup.ts") },
       { code: "export const a = 1;", filename: path.resolve("cli/index.ts") },
-      { code: "export const a = 1;", filename: path.resolve("enforcement/coverage.ts") },
+      { code: "export const a = 1;", filename: path.resolve("scripts/coverage-helpers.ts") },
     ],
     invalid: [
       {

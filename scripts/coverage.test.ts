@@ -3,9 +3,10 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { classifyRequirement, readRegistry, writeRegistry } from "./coverage";
-import { parseDocs } from "./parse-docs";
-import type { Registry, Requirement } from "./types";
+import { classifyRequirement } from "../utils/classify";
+import { readRegistry, writeRegistry } from "../utils/registry";
+import { parseDocs } from "../utils/parse-docs";
+import type { Registry, Requirement } from "../utils/types";
 
 const DOC = `# Example Rule
 

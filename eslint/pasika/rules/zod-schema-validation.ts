@@ -9,7 +9,7 @@
  * `unknown`/`any` parameter and whose body never delegates to a schema
  * (`schema.safeParse(x)`, `schema.parse(x)`, or `schema.assert(x)`).
  *
- * @see docs/agent-policy.md
+ * @see docs/repository-policy.md
  */
 
 import type { Rule } from "eslint";
@@ -102,7 +102,7 @@ export const zodSchemaValidationRule: Rule.RuleModule = {
         message:
           "This hand-written type guard validates an unknown value ad hoc. " +
           "Use a Zod schema instead: schema.safeParse(value) returns a discriminated result " +
-          "whose .success narrows the type. See docs/agent-policy.md",
+          "whose .success narrows the type. See docs/repository-policy.md",
       });
     }
 

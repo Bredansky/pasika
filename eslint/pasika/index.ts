@@ -46,6 +46,7 @@ import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { repeatedStructureRule } from "./rules/repeated-structure";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
+import { configBaselineRule } from "./rules/config-baseline";
 import { mdRules } from "./rules/md/index";
 import { cssRules } from "./rules/css/index";
 import { jsonRules } from "./rules/json/index";
@@ -90,6 +91,7 @@ export const pasikaRules = {
   "repeated-structure": repeatedStructureRule,
   "zod-schema-validation": zodSchemaValidationRule,
   "source-under-src": sourceUnderSrcRule,
+  "config-baseline": configBaselineRule,
 };
 
 export { mdRules, cssRules, jsonRules };

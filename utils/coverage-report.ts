@@ -1,11 +1,9 @@
-import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { z } from "zod";
 import { allPasikaRuleIds } from "../eslint/pasika/index";
 import { normalizeRequirement } from "./normalize";
 import { parseDocs, type ParsedRequirement } from "./parse-docs";
-import { doctorCheckRefs } from "./doctor";
-import { registrySchema, type Registry, type Requirement } from "./types";
+import type { Registry, Requirement } from "./types";
 
 export interface CoverageIssue {
   kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";
@@ -52,7 +50,7 @@ function collectTestTitles(rulesDir: string): Set<string> {
       const titlePattern = /\b(?:describe|test|it)\(\s*(?:"(?<double>(?:[^"\\]|\\.)*)"|'(?<single>(?:[^'\\]|\\.)*)')/g;
       for (const match of body.matchAll(titlePattern)) {
         const title = match.groups?.double ?? match.groups?.single ?? "";
-        titles.add(title.replaceAll('`', '').replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
+        titles.add(title.replaceAll("`", "").replaceAll('\\"', '"').replaceAll("\\'", "'"));
       }
     }
   };
@@ -77,7 +75,7 @@ function hasEslintRef(requirement: Requirement): boolean {
 function isRefKnown(requirement: Requirement): boolean {
   const parts = refParts(requirement.ref);
   if (parts.length === 0) return true;
-  return parts.every((part) => allPasikaRuleIds.includes(part) || doctorCheckRefs.includes(part));
+  return parts.every((part) => allPasikaRuleIds.includes(part));
 }
 
 export function buildCoverageReport(options: {
@@ -172,121 +170,4 @@ export function buildCoverageReport(options: {
     issues,
     nextRegistry: { requirements: nextRequirements },
   };
-}
-
-export interface ClassifyInput {
-  /** Hash of the requirement, as `coverage` prints it. */
-  hash: string;
-  /** Rule or doctor check ids that govern it, comma-separated; absent when judgment applies it. */
-  ref?: string;
-  /** How the requirement is met; required on every entry. */
-  note?: string;
-}
-
-export interface ClassifyResult {
-  registry: Registry;
-  requirement: Requirement;
-}
-
-/**
- * Records how a requirement is checked.
- *
- * Validates that the requirement exists in the documentation as written, that a
- * ref names a check that exists, and that an explanation is always present.
- * Throws with a readable message otherwise, so the caller can print it and exit.
- */
-export function classifyRequirement(options: {
-  docsRoot: string;
-  registry: Registry;
-  input: ClassifyInput;
-}): ClassifyResult {
-  const { docsRoot, registry, input } = options;
-
-  const parsed = parseDocs(docsRoot).flatMap((doc) =>
-    doc.requirements.map((requirement) => ({ doc: doc.doc, requirement })),
-  );
-  const match = parsed.find((entry) => entry.requirement.hash === input.hash);
-  if (!match) {
-    throw new Error(`No requirement in the documentation has hash "${input.hash}". Run coverage to list them.`);
-  }
-
-  if ((input.note ?? "").trim() === "") {
-    throw new Error("--note is required: how the ref'd check governs it, or how judgment applies it.");
-  }
-
-  const refs = refParts(input.ref);
-  const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref) && !doctorCheckRefs.includes(ref));
-  if (unknown.length > 0) {
-    throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule or doctor check.`);
-  }
-
-  const requirement: Requirement = {
-    doc: match.doc,
-    text: match.requirement.raw,
-    hash: match.requirement.hash,
-    ...(refs.length > 0 ? { ref: refs.join(", ") } : {}),
-    note: (input.note ?? "").trim(),
-  };
-
-  const requirements = registry.requirements.filter((entry) => entry.hash !== input.hash);
-  requirements.push(requirement);
-
-  return { registry: { requirements }, requirement };
-}
-
-export function readRegistry(registryPath: string): Registry {
-  const parsed: unknown = JSON.parse(readFileSync(registryPath, "utf8"));
-  const result = registrySchema.safeParse(parsed);
-  if (!result.success) {
-    throw new Error(`${registryPath} is not a valid enforcement registry:\n${z.prettifyError(result.error)}`);
-  }
-  return result.data;
-}
-
-/**
- * Sequence position of each requirement in the docs: doc order as `parseDocs`
- * yields it, then line order within each doc. Entries whose hash no longer
- * exists in the docs (removed, not yet accepted) sort after everything parsed.
- */
-function buildDocOrder(docsRoot: string): Map<string, number> {
-  const order = new Map<string, number>();
-  let position = 0;
-  for (const doc of parseDocs(docsRoot)) {
-    for (const requirement of doc.requirements) {
-      order.set(requirement.hash, position);
-      position += 1;
-    }
-  }
-  return order;
-}
-
-/**
- * Code-point order on doc then text. Deliberately not `localeCompare`, whose
- * result depends on the host's locale data — a generated file that is committed
- * has to sort the same way everywhere.
- */
-function compareRequirements(left: Requirement, right: Requirement): number {
-  if (left.doc !== right.doc) return left.doc < right.doc ? -1 : 1;
-  if (left.text !== right.text) return left.text < right.text ? -1 : 1;
-  return 0;
-}
-
-/**
- * Writes the registry sorted in the same order the requirements appear in the
- * docs: document order, then line order within each document.
- */
-export function writeRegistry(registryPath: string, registry: Registry, docsRoot: string): void {
-  const order = buildDocOrder(docsRoot);
-  const withPosition = registry.requirements.map((requirement) => ({
-    requirement,
-    position: order.get(requirement.hash) ?? Number.MAX_SAFE_INTEGER,
-  }));
-  withPosition.sort((left, right) => {
-    if (left.position !== right.position) return left.position - right.position;
-    // Two entries with the same hash cannot coexist; this fallback orders
-    // entries whose hash the docs no longer contain, deterministically.
-    return compareRequirements(left.requirement, right.requirement);
-  });
-  const sorted: Registry = { requirements: withPosition.map((entry) => entry.requirement) };
-  writeFileSync(registryPath, `${JSON.stringify(sorted, null, 2)}\n`);
 }

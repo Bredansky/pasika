@@ -8,7 +8,7 @@ Documentation, the lint rules derived from it, and the CLI that applies and diag
 
 ```text
 docs/
-  agent-policy.md                 # agent-conduct requirements (Policy)
+  repository-policy.md                 # agent-conduct requirements (Policy)
   repository-policy.md            # repo-wide code and documentation requirements (Policy)
   code-organization-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
@@ -38,7 +38,7 @@ Requirements are identified by a hash of their canonical text, not by a hand-wri
   "text": "A .tsx file that defines a component MUST contain exactly one component.",
   "hash": "b19fe3bd34",
   "ref": "pasika/no-mixed-concerns",
-  "note": "counts exported components; a second component that is not exported is not detected"
+  "note": "counts exported components; a second component that is not exported is not detected",
 }
 ```
 
@@ -101,74 +101,74 @@ export default [pasikaConfig];
 
 ### TS/TSX rules
 
-| Rule | Enforces |
-| --- | --- |
-| `pasika/filename-case` | kebab-case for files that define no component |
-| `pasika/import-boundaries` | The shorter of the relative path and the `@/*` alias, and the layer boundaries |
-| `pasika/no-mixed-concerns` | One exported React component per `.tsx` file |
-| `pasika/no-arbitrary-tailwind` | No arbitrary `-[value]` classes, including inside `cn()` conditionals |
-| `pasika/enforce-cn-merge` | `cn()` instead of `+` or template literals; at most five classes per group |
-| `pasika/enforce-cva-variant-props` | `VariantProps<typeof …>` instead of hand-written unions |
-| `pasika/cva-appearance-props` | Visual option props (`size`, `variant`, …) declared through CVA appearance props |
-| `pasika/cva-boolean-variants` | Boolean appearance props placed on the CVA variant, not as standalone props |
-| `pasika/enforce-barrel-exports` | A nested `index.ts` re-exports only its component |
-| `pasika/component-placement` † | The folder a component's consumers imply |
-| `pasika/support-file-placement` † | The folder a hook, type, schema, constant, or utility belongs in |
-| `pasika/application-structure` | The path-based parts of the application structure and configuration rules |
-| `pasika/named-exports` | Named exports for application files (framework routing files may default-export) |
-| `pasika/data-testid-case` | `data-testid` casing where a rendered result carries one |
-| `pasika/support-folder-shape` | A `constants/`, `types/`, or `schemas/` folder defines exports directly in `index.ts` or in named-re-exported files |
-| `pasika/import-through-index` | An extracted constant, type, or schema is imported through its folder's `index.ts` |
-| `pasika/util-file-name` | A single-function utility file is named in the function's kebab-case form |
-| `pasika/no-util-barrel` | A utility is imported directly, without a barrel |
-| `pasika/jsx-hygiene` | Calculations and complex conditions stay out of JSX children and attributes |
-| `pasika/interactive-component` | Interactive elements are component boundaries when mixed with other content |
-| `pasika/ui-state` | Native or ARIA state expression and Tailwind state variants |
-| `pasika/cross-feature-import` | A component importing from two or more feature folders lives in a shared location |
-| `pasika/pure-function-extract` | Pure functions extracted to `utils/`, even with one consumer |
-| `pasika/hook-complexity` | Hook complexity limits (imperative categories per hook) |
-| `pasika/locale-dotted-path` | A namespaced locale is read through its full dotted path |
-| `pasika/locales-location` | Locales live in the named locales object |
-| `pasika/hook-extraction` † | A hook with two or more consumers is extracted to its own file |
-| `pasika/value-extraction` † | A value with cross-folder consumers is extracted |
-| `pasika/config-extraction` † | A type, schema, or utility used outside its config module is moved |
-| `pasika/component-nesting` † | A component is not nested solely because it has support files |
-| `pasika/stay-flat` † | A component stays flat until it has exclusive children |
-| `pasika/type-extraction` † | A type or schema with cross-folder consumers is extracted |
-| `pasika/locale-placement` † | Shared locales at the top level, single-feature locales namespaced |
-| `pasika/locale-key-shape` | camelCase locale keys; keys over 30 characters end in a WAI-ARIA element role |
-| `pasika/shared-style-dedup` † | A className combo used by two or more components becomes a named utility |
-| `pasika/repeated-structure` | A block of elements repeated two or more times is extracted as a named component |
-| `pasika/sole-state-owner` | A contiguous JSX part that is the sole consumer of a useState hook is extracted into a named component |
-| `pasika/no-eslint-disable` | No `eslint-disable` directives |
-| `pasika/zod-schema-validation` | Runtime validation through Zod schemas, not hand-written type guards |
-| `pasika/source-under-src` | Application source lives under `src/`, not in root-level folders |
+| Rule                               | Enforces                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `pasika/filename-case`             | kebab-case for files that define no component                                                                       |
+| `pasika/import-boundaries`         | The shorter of the relative path and the `@/*` alias, and the layer boundaries                                      |
+| `pasika/no-mixed-concerns`         | One exported React component per `.tsx` file                                                                        |
+| `pasika/no-arbitrary-tailwind`     | No arbitrary `-[value]` classes, including inside `cn()` conditionals                                               |
+| `pasika/enforce-cn-merge`          | `cn()` instead of `+` or template literals; at most five classes per group                                          |
+| `pasika/enforce-cva-variant-props` | `VariantProps<typeof …>` instead of hand-written unions                                                             |
+| `pasika/cva-appearance-props`      | Visual option props (`size`, `variant`, …) declared through CVA appearance props                                    |
+| `pasika/cva-boolean-variants`      | Boolean appearance props placed on the CVA variant, not as standalone props                                         |
+| `pasika/enforce-barrel-exports`    | A nested `index.ts` re-exports only its component                                                                   |
+| `pasika/component-placement` †     | The folder a component's consumers imply                                                                            |
+| `pasika/support-file-placement` †  | The folder a hook, type, schema, constant, or utility belongs in                                                    |
+| `pasika/application-structure`     | The path-based parts of the application structure and configuration rules                                           |
+| `pasika/named-exports`             | Named exports for application files (framework routing files may default-export)                                    |
+| `pasika/data-testid-case`          | `data-testid` casing where a rendered result carries one                                                            |
+| `pasika/support-folder-shape`      | A `constants/`, `types/`, or `schemas/` folder defines exports directly in `index.ts` or in named-re-exported files |
+| `pasika/import-through-index`      | An extracted constant, type, or schema is imported through its folder's `index.ts`                                  |
+| `pasika/util-file-name`            | A single-function utility file is named in the function's kebab-case form                                           |
+| `pasika/no-util-barrel`            | A utility is imported directly, without a barrel                                                                    |
+| `pasika/jsx-hygiene`               | Calculations and complex conditions stay out of JSX children and attributes                                         |
+| `pasika/interactive-component`     | Interactive elements are component boundaries when mixed with other content                                         |
+| `pasika/ui-state`                  | Native or ARIA state expression and Tailwind state variants                                                         |
+| `pasika/cross-feature-import`      | A component importing from two or more feature folders lives in a shared location                                   |
+| `pasika/pure-function-extract`     | Pure functions extracted to `utils/`, even with one consumer                                                        |
+| `pasika/hook-complexity`           | Hook complexity limits (imperative categories per hook)                                                             |
+| `pasika/locale-dotted-path`        | A namespaced locale is read through its full dotted path                                                            |
+| `pasika/locales-location`          | Locales live in the named locales object                                                                            |
+| `pasika/hook-extraction` †         | A hook with two or more consumers is extracted to its own file                                                      |
+| `pasika/value-extraction` †        | A value with cross-folder consumers is extracted                                                                    |
+| `pasika/config-extraction` †       | A type, schema, or utility used outside its config module is moved                                                  |
+| `pasika/component-nesting` †       | A component is not nested solely because it has support files                                                       |
+| `pasika/stay-flat` †               | A component stays flat until it has exclusive children                                                              |
+| `pasika/type-extraction` †         | A type or schema with cross-folder consumers is extracted                                                           |
+| `pasika/locale-placement` †        | Shared locales at the top level, single-feature locales namespaced                                                  |
+| `pasika/locale-key-shape`          | camelCase locale keys; keys over 30 characters end in a WAI-ARIA element role                                       |
+| `pasika/shared-style-dedup` †      | A className combo used by two or more components becomes a named utility                                            |
+| `pasika/repeated-structure`        | A block of elements repeated two or more times is extracted as a named component                                    |
+| `pasika/sole-state-owner`          | A contiguous JSX part that is the sole consumer of a useState hook is extracted into a named component              |
+| `pasika/no-eslint-disable`         | No `eslint-disable` directives                                                                                      |
+| `pasika/zod-schema-validation`     | Runtime validation through Zod schemas, not hand-written type guards                                                |
+| `pasika/source-under-src`          | Application source lives under `src/`, not in root-level folders                                                    |
 
 ### CSS rules
 
 Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` with tolerant Tailwind v4 parsing.
 
-| Rule | Enforces |
-| --- | --- |
-| `pasika/theme-reset` | A `--*: initial` theme reset is present |
-| `pasika/root-variables` | `:root` defines the CSS custom properties |
-| `pasika/apply-usage` | `@layer base` uses `@apply` for declarations |
-| `pasika/base-layer-pair` | The base layer applies `base-canvas` and `base-ink` |
-| `pasika/stylesheet-ordering` | Imports → `@custom-variant` → `:root` → `@theme` → `@utility` → `@layer base` |
-| `pasika/css-variable-naming` | Background vars named `--<role>-canvas`, text vars `--<role>-ink` |
-| `pasika/custom-utility-apply` | `@utility` blocks use `@apply` |
-| `pasika/surface-utility` | Repeated canvas+ink combos become a named surface utility |
-| `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix |
-| `pasika/global-css-location` | Global CSS lives in the correct entry point |
+| Rule                              | Enforces                                                                      |
+| --------------------------------- | ----------------------------------------------------------------------------- |
+| `pasika/theme-reset`              | A `--*: initial` theme reset is present                                       |
+| `pasika/root-variables`           | `:root` defines the CSS custom properties                                     |
+| `pasika/apply-usage`              | `@layer base` uses `@apply` for declarations                                  |
+| `pasika/base-layer-pair`          | The base layer applies `base-canvas` and `base-ink`                           |
+| `pasika/stylesheet-ordering`      | Imports → `@custom-variant` → `:root` → `@theme` → `@utility` → `@layer base` |
+| `pasika/css-variable-naming`      | Background vars named `--<role>-canvas`, text vars `--<role>-ink`             |
+| `pasika/custom-utility-apply`     | `@utility` blocks use `@apply`                                                |
+| `pasika/surface-utility`          | Repeated canvas+ink combos become a named surface utility                     |
+| `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                 |
+| `pasika/global-css-location`      | Global CSS lives in the correct entry point                                   |
 
 ### JSON rules
 
 Applied to `package.json` through `@eslint/json`.
 
-| Rule | Enforces |
-| --- | --- |
-| `pasika/no-cache-flag` | Lint scripts don't pass `--cache` |
-| `pasika/no-vulyk-dependency` | `vulyk` is not in `dependencies` |
+| Rule                         | Enforces                          |
+| ---------------------------- | --------------------------------- |
+| `pasika/no-cache-flag`       | Lint scripts don't pass `--cache` |
+| `pasika/no-vulyk-dependency` | `vulyk` is not in `dependencies`  |
 
 ### Documentation rules
 
@@ -180,7 +180,7 @@ Run `pasika coverage --json` for the exact requirement each rule covers.
 
 Where a component, hook, value, type, or style belongs depends on which files use it, so the rules marked † index the whole `src/` tree instead of looking at one file. Two consequences:
 
-- **Do not pass `--cache`.** Move a file and the finding belongs to a *different* file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `repository-policy.md` requires lint commands to run without it.
+- **Do not pass `--cache`.** Move a file and the finding belongs to a _different_ file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `repository-policy.md` requires lint commands to run without it.
 - The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
 
 All are inert in a repository with no `src/` tree.

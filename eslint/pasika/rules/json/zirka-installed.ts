@@ -1,8 +1,7 @@
 /**
- * ESLint rule: pasika/no-vulyk-dependency
+ * ESLint rule: pasika/zirka-installed
  *
- * Vulyk MUST NOT be added to package.json in order to run its CLI; it MUST run
- * as an ephemeral command such as npx vulyk@latest.
+ * zirka MUST be listed in package.json as a devDependency.
  *
  * @see docs/repository-policy.md
  */
@@ -14,12 +13,12 @@ function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
 }
 
-export const noVulykDependencyRule: JSONRuleDefinition = {
+export const zirkaInstalledRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require vulyk to run as an ephemeral command, not a package.json dependency.",
+      description: "Require zirka to be listed in package.json as a devDependency.",
     },
   },
   create(context) {
@@ -27,16 +26,21 @@ export const noVulykDependencyRule: JSONRuleDefinition = {
       Document(node: DocumentNode) {
         const root = node.body;
         if (root.type !== "Object") return;
+
+        const allDeps: string[] = [];
         for (const key of ["dependencies", "devDependencies"]) {
           const section = root.members.find((member) => memberName(member) === key);
           if (section?.value.type !== "Object") continue;
-          const vulyk = section.value.members.find((member) => memberName(member) === "vulyk");
-          if (vulyk) {
-            context.report({
-              node: vulyk,
-              message: 'Vulyk must not be a package.json dependency. Run it as "npx vulyk@latest" instead.',
-            });
+          for (const member of section.value.members) {
+            allDeps.push(memberName(member));
           }
+        }
+
+        if (!allDeps.includes("zirka")) {
+          context.report({
+            node,
+            message: "zirka must be listed in package.json as a devDependency.",
+          });
         }
       },
     };
