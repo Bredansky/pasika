@@ -8,10 +8,6 @@ Repo-wide requirements for the repository's code, tooling, and documentation. Th
 - A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.
 - A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.
 
-## Code Quality
-
-- Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
-
 ## Framework
 
 - A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.
