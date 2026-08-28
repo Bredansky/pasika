@@ -19,7 +19,7 @@ enforcement/
   coverage.ts                     # reconciles the docs against the registry
 eslint/
   pasika/rules/                   # the lint rules, with fixture tests beside them
-  pasika/rules/documentation/     # the documentation-guide rules, linting docs/ itself
+  pasika/rules/md/                # the documentation-guide rules, linting docs/ itself
 cli/
   index.ts                        # the `pasika` command
 ```
@@ -97,7 +97,7 @@ import { pasikaConfig } from "pasika/eslint";
 export default [pasikaConfig];
 ```
 
-`pasikaConfig` applies the TS/TSX rules to `src/**` only, so a repository without a `src/` tree passes it trivially. The CSS, package.json, and markdown language configs are composed by `zirka`'s `styleguide()`; the individual rule objects (`cssRules`, `repoPackageJsonRules`, `documentationRules`) are exported for manual wiring.
+`pasikaConfig` applies the TS/TSX rules to `src/**` only, so a repository without a `src/` tree passes it trivially. The CSS, JSON, and markdown language configs are composed by `zirka`'s `styleguide()`; the individual rule objects (`cssRules`, `jsonRules`, `mdRules`) are exported for manual wiring.
 
 ### TS/TSX rules
 
@@ -161,7 +161,7 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 | `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                 |
 | `pasika/global-css-location`      | Global CSS lives in the correct entry point                                   |
 
-### Package.json rules
+### JSON rules
 
 Applied to `package.json` through `@eslint/json`.
 

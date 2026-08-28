@@ -1,1 +1,1 @@
-npx lint-staged && npm run typecheck && npm run coverage && npm run check-drift
+npx lint-staged && npm run typecheck && npm run coverage

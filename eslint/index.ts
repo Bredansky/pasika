@@ -12,7 +12,6 @@ import { importBoundariesRule } from "./rules/import-boundaries";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
-import { cnHelperRule } from "./rules/cn-helper";
 import { enforceCvaVariantPropsRule } from "./rules/enforce-cva-variant-props";
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports";
 import { componentPlacementRule } from "./rules/component-placement";
@@ -48,118 +47,69 @@ import { repeatedStructureRule } from "./rules/repeated-structure";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { configBaselineRule } from "./rules/config-baseline";
-import { documentationRules } from "./rules/documentation/index";
+import { mdRules } from "./rules/md/index";
 import { cssRules } from "./rules/css/index";
-import { repoPackageJsonRules, nextPackageJsonRules } from "./rules/package-json/index";
-import { huskyRules } from "./rules/husky/index";
+import { jsonRules } from "./rules/json/index";
 
-/**
- * Framework-agnostic source rules: file naming, imports, exports, folder
- * conventions, package hygiene. These apply to any TypeScript repository.
- */
-export const repoSourceRules = {
-  "filename-case": filenameCaseRule,
-  "import-boundaries": importBoundariesRule,
-  "named-exports": namedExportsRule,
+export const pasikaRules = {
+  "component-placement": componentPlacementRule,
   "support-file-placement": supportFilePlacementRule,
+  "application-structure": applicationStructureRule,
+  "named-exports": namedExportsRule,
+  "data-testid-case": dataTestIdCaseRule,
   "support-folder-shape": supportFolderShapeRule,
   "import-through-index": importThroughIndexRule,
   "util-file-name": utilFileNameRule,
   "no-util-barrel": noUtilBarrelRule,
-  "enforce-barrel-exports": enforceBarrelExportsRule,
-  "config-extraction": configExtractionRule,
-  "value-extraction": valueExtractionRule,
-  "type-extraction": typeExtractionRule,
-  "zod-schema-validation": zodSchemaValidationRule,
-  "source-under-src": sourceUnderSrcRule,
-  "config-baseline": configBaselineRule,
-};
-
-/**
- * Framework-flavored source rules: React components, JSX, hooks, Tailwind,
- * CVA variants, UI state, feature-folder i18n. These assume a Next.js/React
- * application with a Tailwind theme and are inert in other codebases.
- */
-export const nextSourceRules = {
-  "component-placement": componentPlacementRule,
-  "application-structure": applicationStructureRule,
-  "data-testid-case": dataTestIdCaseRule,
   "jsx-hygiene": jsxHygieneRule,
   "interactive-component": interactiveComponentRule,
   "ui-state": uiStateRule,
+  "filename-case": filenameCaseRule,
+  "import-boundaries": importBoundariesRule,
   "no-mixed-concerns": noMixedConcernsRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
   "enforce-cn-merge": enforceCnMergeRule,
-  "cn-helper": cnHelperRule,
   "enforce-cva-variant-props": enforceCvaVariantPropsRule,
   "cva-appearance-props": cvaAppearancePropsRule,
   "cva-boolean-variants": cvaBooleanVariantsRule,
+  "enforce-barrel-exports": enforceBarrelExportsRule,
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,
   "hook-extraction": hookExtractionRule,
+  "value-extraction": valueExtractionRule,
+  "config-extraction": configExtractionRule,
   "component-nesting": componentNestingRule,
   "stay-flat": stayFlatRule,
+  "type-extraction": typeExtractionRule,
   "locale-placement": localePlacementRule,
   "sole-state-owner": soleStateOwnerRule,
   "locale-key-shape": localeKeyShapeRule,
   "shared-style-dedup": sharedStyleDedupRule,
   "repeated-structure": repeatedStructureRule,
+  "zod-schema-validation": zodSchemaValidationRule,
+  "source-under-src": sourceUnderSrcRule,
+  "config-baseline": configBaselineRule,
 };
 
-/** Merged for backward compatibility and coverage ref resolution. */
-export const pasikaRules = {
-  ...repoSourceRules,
-  ...nextSourceRules,
-};
-
-export { documentationRules, cssRules, repoPackageJsonRules, nextPackageJsonRules, huskyRules };
+export { mdRules, cssRules, jsonRules };
 
 /** Rule ids as they appear in configuration and in lint output. */
 export const pasikaRuleIds = Object.keys(pasikaRules).map((name) => `pasika/${name}`);
 
-export const pasikaDocumentationRuleIds = Object.keys(documentationRules).map((name) => `pasika/${name}`);
-/** CSS rules are Tailwind-flavored and belong to the Next presets. */
+export const pasikaMdRuleIds = Object.keys(mdRules).map((name) => `pasika/${name}`);
 export const pasikaCssRuleIds = Object.keys(cssRules).map((name) => `pasika/${name}`);
-export const repoPackageJsonRuleIds = Object.keys(repoPackageJsonRules).map((name) => `pasika/${name}`);
-
-export const repoSourceRuleIds = Object.keys(repoSourceRules).map((name) => `pasika/${name}`);
-export const nextSourceRuleIds = Object.keys(nextSourceRules).map((name) => `pasika/${name}`);
-export const huskyRuleIds = Object.keys(huskyRules).map((name) => `pasika/${name}`);
-export const nextPackageJsonRuleIds = Object.keys(nextPackageJsonRules).map((name) => `pasika/${name}`);
+export const pasikaJsonRuleIds = Object.keys(jsonRules).map((name) => `pasika/${name}`);
 
 /** Every rule id, as they appear in configuration and in lint output. */
-export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaDocumentationRuleIds, ...pasikaCssRuleIds, ...repoPackageJsonRuleIds, ...nextPackageJsonRuleIds, ...huskyRuleIds];
+export const allPasikaRuleIds = [...pasikaRuleIds, ...pasikaMdRuleIds, ...pasikaCssRuleIds, ...pasikaJsonRuleIds];
 
-/**
- * Framework-agnostic source preset: the generic source rules over `src/**`.
- * CSS, JSON, and markdown rules need their own ESLint language and are wired
- * separately (or composed by zirka's `styleguide()`). Use `repoConfig` for a
- * plain TypeScript repository or for pasika building itself.
- */
-export const repoConfig: Linter.Config = {
-  files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
-  plugins: {
-    pasika: { rules: repoSourceRules },
-  },
-  rules: Object.fromEntries(repoSourceRuleIds.map((id) => [id, "error"])),
-};
-
-/**
- * Framework-flavored source preset: the full application source rules over
- * `src/**`. CSS (Tailwind) and package.json rules need their own ESLint
- * language and are wired separately (or composed by zirka's `styleguide()`).
- * Consumers with a Next.js/React app use this; pasika itself does not.
- */
-export const nextConfig: Linter.Config = {
+export const pasikaConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
   plugins: {
     pasika: { rules: pasikaRules },
   },
   rules: Object.fromEntries(pasikaRuleIds.map((id) => [id, "error"])),
 };
-
-/** Backward-compatible alias for consumers already using `pasikaConfig`. */
-export const pasikaConfig: Linter.Config = nextConfig;
