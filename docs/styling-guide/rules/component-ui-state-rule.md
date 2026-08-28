@@ -2,7 +2,6 @@
 
 Visual state communicates whether a component can be used and what will happen when it is used. This rule keeps that feedback owned by the component rather than reconstructed by every caller.
 
-- A component MUST own a distinguishable appearance for every UI state it supports.
 - A component MUST use Tailwind "state variants" when they can express a supported UI state.
 - A component MUST express a UI state through the native element, attribute, or ARIA state for it and MUST NOT use a custom equivalent.
 
@@ -45,9 +44,7 @@ export function Button({ children, disabled = false, loading = false }: ButtonPr
   );
 }
 
-<Button loading={isSaving}>
-  Save
-</Button>
+<Button loading={isSaving}>Save</Button>;
 ```
 
 Why: `Button` uses native disabled and ARIA busy attributes with Tailwind state variants, while callers express only loading through its typed API.
