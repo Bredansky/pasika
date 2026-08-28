@@ -6,7 +6,7 @@ import { mdRules } from "./eslint/pasika/index";
 // Pasika's own docs, linted with this repository's local markdown rules.
 const docsBlock: Linter.Config = {
   files: ["docs/**/*.md"],
-  ignores: ["**/_templates/**"],
+  ignores: ["**/_*/**"],
   plugins: { markdown, pasika: { rules: mdRules } },
   language: "markdown/gfm",
   rules: Object.fromEntries(Object.keys(mdRules).map((name) => [`pasika/${name}`, "error"])),

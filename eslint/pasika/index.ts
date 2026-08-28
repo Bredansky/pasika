@@ -44,7 +44,6 @@ import { soleStateOwnerRule } from "./rules/sole-state-owner";
 import { localeKeyShapeRule } from "./rules/locale-key-shape";
 import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { repeatedStructureRule } from "./rules/repeated-structure";
-import { noEslintDisableRule } from "./rules/no-eslint-disable";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { mdRules } from "./rules/md/index";
@@ -89,7 +88,6 @@ export const pasikaRules = {
   "locale-key-shape": localeKeyShapeRule,
   "shared-style-dedup": sharedStyleDedupRule,
   "repeated-structure": repeatedStructureRule,
-  "no-eslint-disable": noEslintDisableRule,
   "zod-schema-validation": zodSchemaValidationRule,
   "source-under-src": sourceUnderSrcRule,
 };

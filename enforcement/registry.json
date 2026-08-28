@@ -837,7 +837,6 @@
       "doc": "repository-policy.md",
       "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
       "hash": "628ab4f6a6",
-      "ref": "pasika/no-eslint-disable",
       "note": "reports eslint-disable directives"
     },
     {
