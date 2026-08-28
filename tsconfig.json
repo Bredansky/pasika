@@ -5,5 +5,5 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["cli/**/*.ts", "enforcement/**/*.ts", "eslint/**/*.ts", "eslint.config.ts", "tsup.config.ts"]
+  "include": ["**/*.ts"]
 }

@@ -15,15 +15,12 @@
     },
     "./package.json": "./package.json"
   },
-  "bin": {
-    "pasika": "dist/cli/index.js"
-  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsup",
-    "coverage": "tsx cli/index.ts coverage",
+    "coverage": "tsx scripts/coverage.ts",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
@@ -36,7 +33,6 @@
     "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npx eslint --fix"
   },
   "dependencies": {
-    "commander": "^12.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
