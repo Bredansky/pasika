@@ -132,18 +132,21 @@ void describe("runDoctor", () => {
   });
 
   void describe("managed file check", () => {
-    void it("warns when a managed file is newer than the manifest", () => {
+    void it("warns when a managed file is newer than vulyk config", () => {
       const pkgDir = path.join(root, "pkg-managed-edit");
-      mkdirSync(path.join(pkgDir, ".vulyk"), { recursive: true });
-      writeJson("pkg-managed-edit/.vulyk/manifest.json", {
-        "agent-policy": { targets: ["docs/agent-policy.md"] },
-      });
-      // Write manifest first, sleep to ensure a mtime gap, then write the target
-      const manifestPath = path.join(pkgDir, ".vulyk", "manifest.json");
+      mkdirSync(pkgDir, { recursive: true });
+      // Create vulyk.config.ts and vulyk.lock.json (the real vulyk artifacts)
+      writeFileSync(path.join(pkgDir, "vulyk.config.ts"), "export default {}\n");
+      writeJson("pkg-managed-edit/vulyk.lock.json", { github: {} });
+      // Set config/lock mtimes to be older than the target file
+      const configPath = path.join(pkgDir, "vulyk.config.ts");
+      const lockPath = path.join(pkgDir, "vulyk.lock.json");
       const now = Date.now();
-      utimesSync(manifestPath, new Date(now - 5000), new Date(now - 5000));
-      mkdirSync(path.join(pkgDir, "docs"), { recursive: true });
-      writeFileSync(path.join(pkgDir, "docs/agent-policy.md"), "# Policy\n");
+      utimesSync(configPath, new Date(now - 5000), new Date(now - 5000));
+      utimesSync(lockPath, new Date(now - 5000), new Date(now - 5000));
+      // Create a managed output file that is newer than config/lock
+      mkdirSync(path.join(pkgDir, "docs/external"), { recursive: true });
+      writeFileSync(path.join(pkgDir, "docs/external/agent-policy.md"), "# Policy\n");
       writeJson("pkg-managed-edit/package.json", {
         name: "test",
         devDependencies: { pasika: "^0.3.0", zirka: "^0.0.38" },
