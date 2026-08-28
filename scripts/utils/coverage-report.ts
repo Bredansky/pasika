@@ -1,9 +1,9 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { allPasikaRuleIds } from "../eslint/pasika/index";
+import { allPasikaRuleIds } from "../../eslint/index";
 import { normalizeRequirement } from "./normalize";
 import { parseDocs, type ParsedRequirement } from "./parse-docs";
-import type { Registry, Requirement } from "./types";
+import type { Registry, Requirement } from "../types";
 
 export interface CoverageIssue {
   kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";

@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { z } from "zod";
 import { parseDocs } from "./parse-docs";
-import { registrySchema, type Registry, type Requirement } from "./types";
+import { registrySchema, type Registry, type Requirement } from "../types";
 
 export function readRegistry(registryPath: string): Registry {
   const parsed: unknown = JSON.parse(readFileSync(registryPath, "utf8"));

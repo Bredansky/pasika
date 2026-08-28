@@ -1,7 +1,7 @@
 import type { Linter } from "eslint";
 import { RuleSeverity, styleguide } from "zirka";
 import markdown from "@eslint/markdown";
-import { mdRules } from "./eslint/pasika/index";
+import { mdRules } from "./eslint/index";
 
 // Pasika's own docs, linted with this repository's local markdown rules.
 const docsBlock: Linter.Config = {

@@ -12,9 +12,9 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 /* eslint-disable no-console -- coverage-script-reports-to-terminal */
 
-import { buildCoverageReport, type CoverageIssue } from "../utils/coverage-report";
-import { classifyRequirement } from "../utils/classify";
-import { readRegistry, writeRegistry } from "../utils/registry";
+import { buildCoverageReport, type CoverageIssue } from "./utils/coverage-report";
+import { classifyRequirement } from "./utils/classify";
+import { readRegistry, writeRegistry } from "./utils/registry";
 
 const REGISTRY_RELATIVE_PATH = path.join("scripts", "registry.json");
 
@@ -89,7 +89,7 @@ if (classifyHash !== undefined) {
 const report = buildCoverageReport({
   docsRoot,
   registry: readRegistry(registryPath),
-  rulesDir: path.join(root, "eslint", "pasika", "rules"),
+  rulesDir: path.join(root, "eslint", "rules"),
 });
 
 if (flags.has("json")) {

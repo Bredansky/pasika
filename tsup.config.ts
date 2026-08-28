@@ -2,7 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: {
-    "eslint/pasika/index": "eslint/pasika/index.ts",
+    "eslint/pasika/index": "eslint/index.ts",
   },
   format: ["esm"],
   outDir: "dist",
