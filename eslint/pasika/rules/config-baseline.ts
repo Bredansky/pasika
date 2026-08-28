@@ -29,7 +29,7 @@ export const configBaselineRule: Rule.RuleModule = {
 
     return {
       Program(node) {
-        const content = fs.readFileSync(filename, "utf8");
+        const content = context.sourceCode.getText();
 
         // Check eslint config references zirka
         if (!content.includes("zirka")) {

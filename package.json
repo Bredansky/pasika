@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "lint": "eslint .",
     "prepack": "npm run build",
     "prepare": "husky",
-    "test": "node --import tsx --test '**/*.test.ts'",
+    "test": "node --import tsx --test 'eslint/**/*.test.ts' 'scripts/**/*.test.ts' 'utils/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
