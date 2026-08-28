@@ -19,3 +19,4 @@ Repo-wide requirements for the repository's code, tooling, and documentation. Th
 - A file listed in a `.vulyk` manifest MUST NOT be edited by hand.
 - `vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.
 - `vulyk` MUST NOT be added to `package.json` in order to run its CLI.
+- A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.

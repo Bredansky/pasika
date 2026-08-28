@@ -887,6 +887,12 @@
       "note": "reports vulyk in package.json dependencies instead of run ephemerally"
     },
     {
+      "doc": "repository-policy.md",
+      "text": "A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.",
+      "hash": "974bc3e794",
+      "note": "grants permission, so there is nothing to check"
+    },
+    {
       "doc": "styling-guide/rules/arbitrary-value-rule.md",
       "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.",
       "hash": "426116116d",
