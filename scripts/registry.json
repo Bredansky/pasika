@@ -1,42 +1,6 @@
 {
   "requirements": [
     {
-      "doc": "repository-policy.md",
-      "text": "Browser behavior a task depends on MUST be verified with `agent-browser`.",
-      "hash": "034197e9d7",
-      "note": "whether a task depends on browser behavior is not observable"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "`agent-browser upgrade` MUST run before `agent-browser` is used in a task.",
-      "hash": "aea9247939",
-      "note": "tool invocation order within a task is not observable"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "An agent MAY discover available commands with `agent-browser --help` and command-specific usage with `agent-browser <command> --help`.",
-      "hash": "8370ec5f41",
-      "note": "grants permission, so there is nothing to check"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "A commit MUST NOT use the `--no-verify` flag.",
-      "hash": "e1c615452f",
-      "note": "how git was invoked is not observable from the repository"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
-      "hash": "628ab4f6a6",
-      "note": "reports eslint-disable directives"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
-      "hash": "2b3f806581",
-      "note": "pasika/no-cache-flag was deleted; rule never ran (not wired into eslint config)"
-    },
-    {
       "doc": "code-organization-guide/rules/application-structure-rule.md",
       "text": "Application source MUST live under `src/`.",
       "hash": "0a5c03a95d",
@@ -700,7 +664,7 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT state a constraint the reader has to satisfy \u2014 in RFC 2119 vocabulary or in plain declarative wording \u2014 and such a constraint MUST live in a Rule.",
+      "text": "A Reference MUST NOT state a constraint the reader has to satisfy — in RFC 2119 vocabulary or in plain declarative wording — and such a constraint MUST live in a Rule.",
       "hash": "3c520b7a6c",
       "ref": "pasika/reference-no-rfc-vocabulary",
       "note": "the reference-no-rfc-vocabulary check catches a constraint stated with RFC 2119 wording; recognizing one stated in plain declarative wording without keywords stays judgment"
@@ -769,7 +733,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points \u2014 intros, `Why:` explanations, table cells, and code comments \u2014 MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "text": "Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "ref": "pasika/rfc-only-in-bullets",
       "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
@@ -827,6 +791,40 @@
       "note": "the documentation parser skips folders whose names start with an underscore"
     },
     {
+      "doc": "framework-adoption-guide/rules/cn-helper-rule.md",
+      "text": "A repository MUST define its `cn` helper by merging `clsx` and `tailwind-merge`.",
+      "hash": "45006b36c2",
+      "ref": "pasika/cn-helper",
+      "note": "TS rule checks the cn helper uses clsx and twMerge"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/dependency-version-rule.md",
+      "text": "A dependency or devDependency in package.json MUST pin an exact version, never a range.",
+      "hash": "99af19d32a",
+      "ref": "pasika/exact-version",
+      "note": "JSON rule requires dependencies written as bare exact versions (e.g. 1.2.3), rejecting ^ ~ >= latest * ranges"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/dependency-version-rule.md",
+      "text": "A repository MUST keep every dependency in package.json within one major version of the latest release.",
+      "hash": "c1536547c2",
+      "note": "pre-commit check-drift script blocks commits when a dependency is a major version behind"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npm run typecheck`, with a `prepare` script that runs `husky`.",
+      "hash": "77558cd015",
+      "ref": "pasika/husky-hook",
+      "note": "JSON rule checks prepare and .husky/pre-commit contents"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/tech-stack-rule.md",
+      "text": "A repository adopting the framework MUST list every package the Tech Stack Reference names as a dependency or devDependency in package.json.",
+      "hash": "96ffabae78",
+      "ref": "pasika/tech-stack",
+      "note": "JSON rule checks package.json for every required stack package"
+    },
+    {
       "doc": "repository-policy.md",
       "text": "Runtime validation MUST use Zod schemas rather than ad hoc type guards.",
       "hash": "b5facfa0c0",
@@ -851,13 +849,6 @@
       "hash": "06590f6d0c",
       "ref": "pasika/config-baseline",
       "note": "pasika doctor checks the eslint config and tsconfig against the pasika/zirka baseline"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "`zirka` MUST be listed in package.json as a devDependency.",
-      "hash": "f5599738cb",
-      "ref": "pasika/zirka-installed",
-      "note": "JSON rule checks package.json for zirka"
     },
     {
       "doc": "repository-policy.md",
@@ -895,6 +886,42 @@
       "doc": "repository-policy.md",
       "text": "A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.",
       "hash": "974bc3e794",
+      "note": "grants permission, so there is nothing to check"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A commit MUST NOT use the `--no-verify` flag.",
+      "hash": "e1c615452f",
+      "note": "how git was invoked is not observable from the repository"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.",
+      "hash": "628ab4f6a6",
+      "note": "reports eslint-disable directives"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
+      "hash": "2b3f806581",
+      "note": "pasika/no-cache-flag was deleted; rule never ran (not wired into eslint config)"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "Browser behavior a task depends on MUST be verified with `agent-browser`.",
+      "hash": "034197e9d7",
+      "note": "whether a task depends on browser behavior is not observable"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "`agent-browser upgrade` MUST run before `agent-browser` is used in a task.",
+      "hash": "aea9247939",
+      "note": "tool invocation order within a task is not observable"
+    },
+    {
+      "doc": "repository-policy.md",
+      "text": "An agent MAY discover available commands with `agent-browser --help` and command-specific usage with `agent-browser <command> --help`.",
+      "hash": "8370ec5f41",
       "note": "grants permission, so there is nothing to check"
     },
     {

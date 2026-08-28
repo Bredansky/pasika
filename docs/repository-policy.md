@@ -11,7 +11,6 @@ Repo-wide requirements for the repository's code, tooling, documentation, and ag
 ## Linting and Formatting
 
 - A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.
-- `zirka` MUST be listed in package.json as a devDependency.
 
 ## Documentation Management
 
