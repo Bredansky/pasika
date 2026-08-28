@@ -873,8 +873,8 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "`vulyk` MUST run as an ephemeral command such as `npx github:Bredansky/vulyk`.",
-      "hash": "9a3f996cc9",
+      "text": "`vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.",
+      "hash": "1cba3c61e8",
       "ref": "pasika/no-vulyk-dependency",
       "note": "reports vulyk in package.json dependencies instead of run ephemerally"
     },
@@ -887,8 +887,8 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "A user MAY discover available commands with `npx github:Bredansky/vulyk --help` and command-specific usage with `npx github:Bredansky/vulyk <command> --help`.",
-      "hash": "41505fa797",
+      "text": "A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.",
+      "hash": "974bc3e794",
       "note": "grants permission, so there is nothing to check"
     },
     {

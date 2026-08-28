@@ -1,7 +1,7 @@
 import { describe, jsonRuleTester } from "./rule-tester";
 import { noVulykDependencyRule } from "./no-vulyk-dependency";
 
-void describe("Vulyk MUST NOT be added to package.json in order to run its CLI.", () => {
+void describe("`vulyk` MUST NOT be added to `package.json` in order to run its CLI.", () => {
   jsonRuleTester.run("no-vulyk-dependency", noVulykDependencyRule, {
     valid: [
       // No vulyk anywhere
@@ -38,7 +38,7 @@ void describe("Vulyk MUST NOT be added to package.json in order to run its CLI."
   });
 });
 
-void describe("Vulyk MUST run as an ephemeral command such as npx vulyk@latest.", () => {
+void describe("`vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.", () => {
   jsonRuleTester.run("no-vulyk-dependency", noVulykDependencyRule, {
     valid: [
       // No vulyk dependency means it is run ephemerally

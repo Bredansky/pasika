@@ -52,7 +52,7 @@ function collectTestTitles(rulesDir: string): Set<string> {
       const titlePattern = /\b(?:describe|test|it)\(\s*(?:"(?<double>(?:[^"\\]|\\.)*)"|'(?<single>(?:[^'\\]|\\.)*)')/g;
       for (const match of body.matchAll(titlePattern)) {
         const title = match.groups?.double ?? match.groups?.single ?? "";
-        titles.add(title.replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
+        titles.add(title.replaceAll('`', '').replaceAll('\\\\"', '"').replaceAll("\\\\'", "'"));
       }
     }
   };
