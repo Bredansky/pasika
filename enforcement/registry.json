@@ -854,14 +854,14 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.",
-      "hash": "8177201b42",
+      "text": "Documentation written outside this repository MUST be consumed through `vulyk` rather than copied in.",
+      "hash": "f5059f8918",
       "note": "recognizing a document as copied from elsewhere is not decidable from the repository"
     },
     {
       "doc": "repository-policy.md",
-      "text": "A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.",
-      "hash": "27247db8eb",
+      "text": "A change to the `vulyk` registry MUST use `vulyk` commands rather than edits to generated files.",
+      "hash": "87e429ab57",
       "ref": "pasika/managed-file-edit",
       "note": "pasika doctor warns when a file listed in the .vulyk manifest is newer than it"
     },
@@ -874,15 +874,15 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.",
-      "hash": "c8aaf8ce02",
+      "text": "`vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.",
+      "hash": "1cba3c61e8",
       "ref": "pasika/no-vulyk-dependency",
       "note": "reports vulyk in package.json dependencies instead of run ephemerally"
     },
     {
       "doc": "repository-policy.md",
-      "text": "Vulyk MUST NOT be added to `package.json` in order to run its CLI.",
-      "hash": "1061447825",
+      "text": "`vulyk` MUST NOT be added to `package.json` in order to run its CLI.",
+      "hash": "411577f10c",
       "ref": "pasika/no-vulyk-dependency",
       "note": "reports vulyk in package.json dependencies instead of run ephemerally"
     },

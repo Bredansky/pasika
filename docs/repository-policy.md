@@ -14,8 +14,8 @@ Repo-wide requirements for the repository's code, tooling, and documentation. Th
 
 ## Documentation Management
 
-- Documentation written outside this repository MUST be consumed through Vulyk rather than copied in.
-- A change to the Vulyk registry MUST use Vulyk commands rather than edits to generated files.
+- Documentation written outside this repository MUST be consumed through `vulyk` rather than copied in.
+- A change to the `vulyk` registry MUST use `vulyk` commands rather than edits to generated files.
 - A file listed in a `.vulyk` manifest MUST NOT be edited by hand.
-- Vulyk MUST run as an ephemeral command such as `npx vulyk@latest`.
-- Vulyk MUST NOT be added to `package.json` in order to run its CLI.
+- `vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.
+- `vulyk` MUST NOT be added to `package.json` in order to run its CLI.
