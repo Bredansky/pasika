@@ -10,8 +10,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - A bullet MUST contain at least one RFC 2119 keyword, and a bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.
 - Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.
 - A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
-- A Rule MUST contain at least one Incorrect/Correct pair.
-- A Rule MAY contain multiple Incorrect/Correct pairs.
+- A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.
 - An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
 - A Rule MUST NOT link to References, Guides, or other Rules.
 

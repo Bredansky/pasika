@@ -770,16 +770,10 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MUST contain at least one Incorrect/Correct pair.",
-      "hash": "099da63c35",
+      "text": "A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.",
+      "hash": "d59a80ca7c",
       "ref": "pasika/rule-paired-examples",
       "note": "docs-check: a Rule must contain at least one Incorrect/Correct pair"
-    },
-    {
-      "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule MAY contain multiple Incorrect/Correct pairs.",
-      "hash": "f6d4ce8fa7",
-      "note": "grants permission, so there is nothing to check"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
