@@ -4,10 +4,10 @@ Authoring without a template makes every doc invent its own title, orientation, 
 
 - Authors MUST start from the template that matches the chosen document kind and structure.
 - Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.
-- Authors MUST delete template branches that do not apply to the document being written.
+- Authors MUST delete sections that do not apply to the document being written.
 - Documentation support assets MAY live in folders whose names start with an underscore.
 
-## Incorrect — Template Prompts and Unused Branches Kept
+## Incorrect — Template Prompts and Unused Sections Kept
 
 ```markdown
 # Example Guide
@@ -31,7 +31,7 @@ Authoring without a template makes every doc invent its own title, orientation, 
 
 Why: committed doc still contains bracketed prompts, and the unused "Another Workflow" section was not deleted.
 
-## Correct — Template Prompts Replaced and Unused Branches Removed
+## Correct — Template Prompts Replaced and Unused Sections Removed
 
 ```markdown
 # Example Guide
@@ -46,4 +46,4 @@ Run this before every release.
 2. Run the deploy script.
 ```
 
-Why: all bracketed prompts are replaced, unused template branches are deleted, and no leftover brackets remain.
+Why: all bracketed prompts are replaced, unused sections are deleted, and no leftover brackets remain.

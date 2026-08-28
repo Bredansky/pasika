@@ -804,8 +804,8 @@
     },
     {
       "doc": "documentation-guide/rules/template-usage-rule.md",
-      "text": "Authors MUST delete template branches that do not apply to the document being written.",
-      "hash": "dbe2070bf9",
+      "text": "Authors MUST delete sections that do not apply to the document being written.",
+      "hash": "d25774ad5e",
       "note": "an unused branch is only recognizable by comparing against the template"
     },
     {
