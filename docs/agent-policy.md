@@ -11,3 +11,4 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 ## Code Quality
 
 - A commit MUST NOT use the `--no-verify` flag.
+- Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
