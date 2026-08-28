@@ -847,8 +847,8 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.",
-      "hash": "12553abd17",
+      "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
+      "hash": "06590f6d0c",
       "ref": "pasika/config-baseline",
       "note": "pasika doctor checks the eslint config and tsconfig against the pasika/zirka baseline"
     },

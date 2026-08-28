@@ -10,7 +10,7 @@ Repo-wide requirements for the repository's code, tooling, and documentation. Th
 
 ## Linting and Formatting
 
-- A repository MUST take its lint, format, and TypeScript configuration from `pasika` and `zirka` rather than restating it locally.
+- A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.
 
 ## Documentation Management
 
