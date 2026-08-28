@@ -12,3 +12,4 @@ Repo-wide requirements for AI agents working in this repository. They apply to e
 
 - A commit MUST NOT use the `--no-verify` flag.
 - Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
+- A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.

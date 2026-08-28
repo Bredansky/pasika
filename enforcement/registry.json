@@ -688,7 +688,7 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT state a constraint the reader has to satisfy — in RFC 2119 vocabulary or in plain declarative wording — and such a constraint MUST live in a Rule.",
+      "text": "A Reference MUST NOT state a constraint the reader has to satisfy \u2014 in RFC 2119 vocabulary or in plain declarative wording \u2014 and such a constraint MUST live in a Rule.",
       "hash": "3c520b7a6c",
       "ref": "pasika/reference-no-rfc-vocabulary",
       "note": "the reference-no-rfc-vocabulary check catches a constraint stated with RFC 2119 wording; recognizing one stated in plain declarative wording without keywords stays judgment"
@@ -757,7 +757,7 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
+      "text": "Prose outside bullet points \u2014 intros, `Why:` explanations, table cells, and code comments \u2014 MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.",
       "hash": "961d7db3b9",
       "ref": "pasika/rfc-only-in-bullets",
       "note": "docs-check: RFC 2119 vocabulary appears only in bullets"
@@ -840,7 +840,7 @@
       "note": "reports eslint-disable directives"
     },
     {
-      "doc": "repository-policy.md",
+      "doc": "agent-policy.md",
       "text": "A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.",
       "hash": "2b3f806581",
       "ref": "pasika/no-cache-flag",

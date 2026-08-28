@@ -11,7 +11,6 @@ Repo-wide requirements for the repository's code, tooling, and documentation. Th
 ## Code Quality
 
 - Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
-- A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.
 
 ## Framework
 
