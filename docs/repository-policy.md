@@ -2,6 +2,12 @@
 
 Repo-wide requirements for the repository's code, tooling, documentation, and agent workflows. They apply to every change, whichever guide covers the code being modified.
 
+## Agent Conventions
+
+- A commit MUST NOT use the `--no-verify` flag.
+- Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
+- A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.
+
 ## Data Contracts
 
 - Runtime validation MUST use Zod schemas rather than ad hoc type guards.
@@ -11,7 +17,6 @@ Repo-wide requirements for the repository's code, tooling, documentation, and ag
 ## Linting and Formatting
 
 - A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.
-- `zirka` MUST be listed in package.json as a devDependency.
 
 ## Documentation Management
 
@@ -21,12 +26,6 @@ Repo-wide requirements for the repository's code, tooling, documentation, and ag
 - `vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.
 - `vulyk` MUST NOT be added to `package.json` in order to run its CLI.
 - A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.
-
-## Agent Conventions
-
-- A commit MUST NOT use the `--no-verify` flag.
-- Code MUST NOT use `eslint-disable` directives, and a reported violation MUST be fixed instead.
-- A lint command MUST NOT pass ESLint's `--cache` flag, because rules that compare a file against the rest of the tree need every file in the run.
 
 ## Browser Verification
 

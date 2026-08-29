@@ -1,6 +1,6 @@
 # pasika
 
-Documentation, the lint rules derived from it, and the CLI that applies and diagnoses both.
+Documentation, the lint rules derived from it, and the checks that apply and diagnose both.
 
 `pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule or `pasika` check governs it — or, when none does, how a reviewer or agent applies it by hand. CI fails when a requirement has no recorded answer.
 
@@ -8,20 +8,24 @@ Documentation, the lint rules derived from it, and the CLI that applies and diag
 
 ```text
 docs/
-  repository-policy.md                 # agent-conduct requirements (Policy)
   repository-policy.md            # repo-wide code and documentation requirements (Policy)
   code-organization-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
   framework-adoption-guide/       # adopting and updating the framework
   styling-guide/                  # Tailwind theme, composition, variants, states
-enforcement/
+scripts/
   registry.json                   # requirement → enforcement, keyed by content hash
   coverage.ts                     # reconciles the docs against the registry
+  utils/                          # doc parsing, classification, registry IO
+  types/                          # registry schema
+constants/
+  rfc2119.ts                      # single source of truth for RFC 2119 vocabulary
 eslint/
-  pasika/rules/                   # the lint rules, with fixture tests beside them
-  pasika/rules/md/                # the documentation-guide rules, linting docs/ itself
-cli/
-  index.ts                        # the `pasika` command
+  rules/                          # the lint rules, with fixture tests beside them
+  rules/documentation/            # the documentation-guide rules, linting docs/ itself
+  rules/tailwind/                 # the Tailwind stylesheet rules
+  rules/package-json/             # the package.json rules
+  rules/husky/                    # the husky-hook rules
 ```
 
 ## Documentation
@@ -46,27 +50,36 @@ The `text` field is the bullet as written in the document (markdown links and co
 
 Every requirement carries a `note` explaining how it is met: what the ref'd rule or doctor check does and where it falls short, or — with no `ref` — how a reviewer or agent applies it by hand. When a rule governs the requirement's subject without fully deciding it (e.g. its placement), the `ref` still names that rule and the `note` says what stays judgment, so a partial check never reads as a complete one.
 
-`pasika coverage` fails when a requirement has no recorded answer, when its text changed, when it disappeared, when its `ref` names a rule or doctor check that does not exist, or when a requirement a rule governs has no test titled with its text. Confirm a reworded requirement with `pasika coverage --accept`.
+`npm run coverage` fails when a requirement has no recorded answer, when its text changed, when it disappeared, when its `ref` names a rule or doctor check that does not exist, or when a requirement a rule governs has no test titled with its text. Confirm a reworded requirement with `npx tsx scripts/coverage.ts --accept`.
 
 ## Commands
 
 The documentation guide itself is linted: the `pasika/*` markdown rules run over `docs/**/*.md` and report title, overview, structure, example-pairing, and RFC 2119 violations at the exact node.
 
-```bash
-npx pasika coverage            # check that every requirement has recorded enforcement
-npx pasika coverage --accept   # record reworded and removed requirements
-```
-
-Both accept `--json` for agent use.
-
-A requirement `coverage` reports as `new` is classified with the hash it prints:
+The coverage checks are standalone scripts under `scripts/`, run with `tsx`; the drift check is the published `libyear` tool — there is no `pasika` binary:
 
 ```bash
-npx pasika coverage --classify d311a1457a --ref pasika/import-boundaries --note "reports imports that cross a feature boundary"
-npx pasika coverage --classify 041b665bd7 --note "no check can compare against the previous state"
+npm run coverage             # check that every requirement has recorded enforcement
+npm run coverage -- --accept # record reworded and removed requirements
+npx libyear --limit-major-individual=1   # fail when a dependency trails the latest by >1 major (drift check)
 ```
 
-The command refuses a hash no requirement has, a `ref` naming a rule or doctor check that does not exist, and an entry without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry.
+Both acceptance and the report accept `--json` for agent use:
+
+```bash
+npx tsx scripts/coverage.ts            # text report
+npx tsx scripts/coverage.ts --json     # full report as JSON
+npx tsx scripts/coverage.ts --accept   # record accepted changes
+```
+
+A requirement the report shows as `new` is classified with the hash it prints:
+
+```bash
+npx tsx scripts/coverage.ts --classify d311a1457a --ref pasika/import-boundaries --note "reports imports that cross a feature boundary"
+npx tsx scripts/coverage.ts --classify 041b665bd7 --note "no check can compare against the previous state"
+```
+
+The script refuses a hash no requirement has, a `ref` naming a rule or doctor check that does not exist, and a classification without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry. All of it reads and writes `scripts/registry.json`.
 
 ## ESLint ruleset
 
@@ -90,14 +103,14 @@ export default eslintConfig;
 
 ### Without Zirka
 
-```ts
+````ts
 // eslint.config.ts
-import { pasikaConfig } from "pasika/eslint";
+import { pasikaNext } from "pasika/eslint";
 
-export default [pasikaConfig];
-```
+export default pasikaNext;
+``` `pasikaNext` is the full flat-config array: the `src/**` TS/TSX and Tailwind stylesheet blocks plus everything in `pasikaRepo`. `pasikaRepo` is the repository-level preset — every block that does not touch `src/**` (the package.json manifest, husky hooks, and docs) — and is a strict subset of `pasikaNext`. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
 
-`pasikaConfig` applies the TS/TSX rules to `src/**` only, so a repository without a `src/` tree passes it trivially. The CSS, JSON, and markdown language configs are composed by `zirka`'s `styleguide()`; the individual rule objects (`cssRules`, `jsonRules`, `mdRules`) are exported for manual wiring.
+Because the preset blocks wire ESLint's language plugins, using `pasikaNext` directly (without `zirka`) requires `@eslint/css`, `@eslint/json`, and `@eslint/markdown` to be installed in the consuming project — they are `peerDependencies` of `pasika`. A `zirka`-based setup gets them automatically.
 
 ### TS/TSX rules
 
@@ -140,11 +153,11 @@ export default [pasikaConfig];
 | `pasika/shared-style-dedup` †      | A className combo used by two or more components becomes a named utility                                            |
 | `pasika/repeated-structure`        | A block of elements repeated two or more times is extracted as a named component                                    |
 | `pasika/sole-state-owner`          | A contiguous JSX part that is the sole consumer of a useState hook is extracted into a named component              |
-| `pasika/no-eslint-disable`         | No `eslint-disable` directives                                                                                      |
+| `pasika/config-baseline`           | `eslint.config.*` references zirka and `tsconfig.json` exists                                                       |
 | `pasika/zod-schema-validation`     | Runtime validation through Zod schemas, not hand-written type guards                                                |
 | `pasika/source-under-src`          | Application source lives under `src/`, not in root-level folders                                                    |
 
-### CSS rules
+### Tailwind rules
 
 Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` with tolerant Tailwind v4 parsing.
 
@@ -161,20 +174,21 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 | `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                 |
 | `pasika/global-css-location`      | Global CSS lives in the correct entry point                                   |
 
-### JSON rules
+### Package.json rules
 
-Applied to `package.json` through `@eslint/json`.
+Applied to `package.json` through `@eslint/json`. The framework-agnostic subset (`no-vulyk-dependency`, `exact-version`) applies to any repository, including pasika itself; `nextjs-stack` applies to a Next.js/React application.
 
-| Rule                         | Enforces                          |
-| ---------------------------- | --------------------------------- |
-| `pasika/no-cache-flag`       | Lint scripts don't pass `--cache` |
-| `pasika/no-vulyk-dependency` | `vulyk` is not in `dependencies`  |
+| Rule                         | Enforces                                                                            |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `pasika/no-vulyk-dependency` | `vulyk` is not in `dependencies`                                                    |
+| `pasika/exact-version`       | Dependency and devDependency versions are pinned exactly, never ranges              |
+| `pasika/nextjs-stack`        | All Tech Stack Reference packages are listed in `package.json` (Next.js/React apps) |
 
 ### Documentation rules
 
-The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (24 rules): file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `pasika coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run lint`).
+The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (24 rules): file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `npm run coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run lint`).
 
-Run `pasika coverage --json` for the exact requirement each rule covers.
+Run `npx tsx scripts/coverage.ts --json` for the exact requirement each rule covers.
 
 ### † Cross-file rules
 
@@ -185,6 +199,10 @@ Where a component, hook, value, type, or style belongs depends on which files us
 
 All are inert in a repository with no `src/` tree.
 
+## Runtime dependency on typescript
+
+Many of the TS/TSX rules call the TypeScript compiler API directly at lint time, so the published package imports `typescript` at runtime. `tsup` keeps it external (unbundled); `pasika` lists it as a pinned `dependency` so an installing consumer gets a version known to work with the rules. There is no `typescript` `peerDependency`.
+
 ## Development
 
 ```bash
@@ -193,4 +211,4 @@ npm run typecheck
 npm run test
 npm run coverage
 npm run build
-```
+````

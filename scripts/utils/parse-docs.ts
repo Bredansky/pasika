@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { hashRequirement, normalizeRequirement } from "./normalize";
+import { RFC_2119_PATTERN as RFC_2119 } from "../../constants/rfc2119";
 
 /** The four document kinds the documentation guide defines. */
 export type DocKind = "guide" | "rule" | "reference" | "policy";
@@ -11,9 +12,6 @@ const KIND_BY_SUFFIX: [suffix: string, kind: DocKind][] = [
   ["-reference.md", "reference"],
   ["-policy.md", "policy"],
 ];
-
-/** Words that carry requirement strength, longest first so `MUST NOT` wins over `MUST`. */
-const RFC_2119 = /\b(?<keyword>MUST NOT|MUST|SHOULD NOT|SHOULD|MAY)\b/;
 
 export interface ParsedRequirement {
   /** Canonical text used for identity. */
