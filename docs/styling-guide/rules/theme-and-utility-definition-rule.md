@@ -8,6 +8,8 @@ This rule decides when styling stays with one component or becomes a shared util
 - A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas` or `text-<role>-ink`.
 - A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
+- A custom utility MUST be used by at least one file in the repository's source.
+- A utility class a component references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Property-Specific Color Exposed Broadly
 
@@ -84,3 +86,65 @@ Why: property-specific colors are exposed as broad Tailwind colors, and the repe
 ```
 
 Why: canvas and ink CSS variables are used only by `primary-surface`, and the repeated combination has one named owner.
+
+## Incorrect — Custom Utility No Source Uses
+
+```css
+@utility primary-surface {
+  @apply bg-(--primary-canvas) text-(--primary-ink);
+}
+```
+
+Why: no component or stylesheet references `primary-surface`, so the utility is dead and only inflates the global stylesheet.
+
+## Correct — Custom Utility a Component Uses
+
+```css
+@utility primary-surface {
+  @apply bg-(--primary-canvas) text-(--primary-ink);
+}
+```
+
+```tsx
+<button className="primary-surface">Save</button>
+```
+
+Why: the component references `primary-surface`, so the utility has a live consumer and stays.
+
+## Incorrect — Component References a Nonexistent Utility
+
+```tsx
+<button className="bg-primay-canvas text-primary-ink">Save</button>
+```
+
+Why: `bg-primay-canvas` is a typo — no `--color-primay-canvas` theme variable generates it, no `@utility bg-primay-canvas` defines it, and it is not a built-in Tailwind utility, so the class silently styles nothing.
+
+## Correct — Component References Utilities That Exist
+
+```tsx
+<button className="bg-primary-canvas text-primary-ink">Save</button>
+```
+
+Why: `bg-primary-canvas` and `text-primary-ink` are generated from the `--color-primary-canvas` and `--color-primary-ink` theme variables.
+
+## Incorrect — Built-in Default After the Theme Reset
+
+```tsx
+<button className="bg-red-500">Delete</button>
+```
+
+Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, so `--color-red-500` does not exist and `bg-red-500` generates nothing, exactly like a typo.
+
+## Correct — Built-in Default Re-Declared in the Theme
+
+```css
+@theme {
+  --color-red-500: #ef4444;
+}
+```
+
+```tsx
+<button className="bg-red-500">Delete</button>
+```
+
+Why: re-declaring `--color-red-500` in the project theme turns `bg-red-500` into a theme-generated utility again.

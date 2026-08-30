@@ -122,6 +122,7 @@ Because the preset blocks wire ESLint's language plugins, using them directly (w
 | `pasika/import-boundaries`         | The shorter of the relative path and the `@/*` alias, and the layer boundaries                                      |
 | `pasika/no-mixed-concerns`         | One exported React component per `.tsx` file                                                                        |
 | `pasika/no-arbitrary-tailwind`     | No arbitrary `-[value]` classes, including inside `cn()` conditionals                                               |
+| `pasika/unknown-utility`           | Component class names are a custom `@utility`, a theme-generated utility, or a built-in the reset keeps             |
 | `pasika/enforce-cn-merge`          | `cn()` instead of `+` or template literals; at most five classes per group                                          |
 | `pasika/enforce-cva-variant-props` | `VariantProps<typeof …>` instead of hand-written unions                                                             |
 | `pasika/cva-appearance-props`      | Visual option props (`size`, `variant`, …) declared through CVA appearance props                                    |
@@ -175,6 +176,7 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 | `pasika/surface-utility`          | Repeated canvas+ink combos become a named surface utility                     |
 | `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                 |
 | `pasika/global-css-location`      | Global CSS lives in the correct entry point                                   |
+| `pasika/unused-utility`           | A custom `@utility` no source file references is reported as dead             |
 
 ### Package.json rules
 

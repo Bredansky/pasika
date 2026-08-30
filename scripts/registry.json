@@ -1133,6 +1133,20 @@
       "hash": "a61de0650b",
       "ref": "pasika/custom-utility-apply",
       "note": "reports a custom utility that does not use @apply for its styling declarations"
+    },
+    {
+      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A custom utility MUST be used by at least one file in the repository's source.",
+      "hash": "f989755af3",
+      "ref": "pasika/unused-utility",
+      "note": "CSS rule reads the src tree and reports @utility blocks no file references; dynamically constructed class names are not detected"
+    },
+    {
+      "doc": "styling-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A utility class a component references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
+      "hash": "2b2d4ebcc2",
+      "ref": "pasika/unknown-utility",
+      "note": "source rule checks className/cn() classes against the repo's @utility names and @theme variables (including value namespaces like animate/ease) plus a curated Tailwind v4 built-in inventory; when the stylesheet resets the default theme with --*: initial, default-token utilities count as unknown since the reset disables them; plain CSS classes in the stylesheet are not recognized as utilities; spacing and structural utilities, variants, arbitrary values, and dynamically built class names are not checked"
     }
   ]
 }

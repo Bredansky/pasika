@@ -12,6 +12,7 @@ import { surfaceUtilityRule } from "./surface-utility";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { globalCssLocationRule } from "./global-css-location";
 import { globalStylesheetRule } from "./global-stylesheet";
+import { unusedUtilityRule } from "./unused-utility";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
@@ -25,6 +26,7 @@ export const tailwindRules = {
   "theme-variable-namespace": themeVariableNamespaceRule,
   "global-css-location": globalCssLocationRule,
   "global-stylesheet": globalStylesheetRule,
+  "unused-utility": unusedUtilityRule,
 };
 
 export type TailwindRuleName = keyof typeof tailwindRules;
