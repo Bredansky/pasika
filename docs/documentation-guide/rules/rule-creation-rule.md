@@ -3,7 +3,7 @@
 Rules without a consistent creation process invent their own structure and enforcement language. This rule defines how to create a Rule document.
 
 - Rule file names MUST match the document title in kebab-case and use the `-rule` suffix (e.g., `foo-rule.md`).
-- A Rule overview MUST contain one or two short sentences naming the problem the rule solves.
+- A Rule overview MUST contain one or two short sentences naming the problem the rule solves, and MUST NOT contain instructions or links to other documentation.
 - A Rule MUST state requirements about one subject.
 - A Rule MUST contain at least one bullet point that uses [RFC 2119 vocabulary](https://datatracker.ietf.org/doc/html/rfc2119) (`MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`).
 - RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.

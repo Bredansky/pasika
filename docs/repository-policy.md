@@ -14,10 +14,6 @@ Repo-wide requirements for the repository's code, tooling, documentation, and ag
 - A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.
 - A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.
 
-## Linting and Formatting
-
-- A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.
-
 ## Documentation Management
 
 - Skills, tracked docs, and generated agent files MUST be consumed through `vulyk` rather than copied in.

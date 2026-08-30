@@ -1,38 +1,25 @@
 # Framework Adoption Guide
 
-This guide covers how a repository starts using the framework, how it moves to a later framework release, and how it plans the work either one requires. It applies to any repository that consumes the framework's packages and documentation.
+This guide covers how a repository adopts the framework, whether it is a Next.js application or a plain TypeScript repository. An existing project may adopt it gradually by suppressing the ESLint rules it is not ready for yet, rather than migrating everything at once.
 
 ## How To Adopt the Framework in a Repository
 
-Run this once, when a repository starts using the framework.
+Run this once, when a repository starts using the framework. The Next.js steps — declaring the framework stack and defining `cn` — apply to a Next.js application only; every other step applies to any repository.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
-2. Read the [Tech Stack Reference](references/tech-stack-reference.md) to learn which packages the framework requires and what each one is responsible for.
-3. Run `npx pasika init` to install the framework packages and write the lint, format, TypeScript, git-hook, and documentation configuration.
-4. Run `npx pasika doctor` to list every remaining gap between the repository and the framework baseline.
-5. Fix each gap the report names, starting with the packages and configuration it lists first.
-6. Run `npm run lint` to list the code and structure violations the framework's ruleset reports.
-7. Follow [How To Plan the Work an Adoption or Update Requires](#how-to-plan-the-work-an-adoption-or-update-requires) when that list is too large to fix in one pass.
-8. Repeat steps 4 to 6 until both commands report no findings.
+1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a tracked doc from a managed file or an agent file before a workflow names one.
+2. Read the [Tech Stack Reference](references/tech-stack-reference.md) so you know which packages the framework requires and what each one is responsible for.
+3. Declare the toolchain packages — `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` — in `devDependencies`, each pinned to an exact version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting.
+4. If the repository is a Next.js application, declare the framework stack in package.json per the [Next.js Stack Rule](rules/next-js-stack-rule.md) so the runtime packages land in `dependencies` and the toolchain packages in `devDependencies`.
+5. If the repository is a Next.js application, define the `cn` helper per the [cn Helper Rule](rules/cn-helper-rule.md) so conflicting Tailwind utilities resolve predictably.
+6. Import the lint, format, and TypeScript configuration from `zirka` per the [Zirka Baseline Rule](rules/zirka-baseline-rule.md) so the framework's rules run without restating them locally.
+7. Configure the git hook per the [Husky Hook Rule](rules/husky-hook-rule.md) so the staged-file, typecheck, and drift checks run before every commit.
+8. Run `npx vulyk@latest init`, `npx vulyk@latest add`, and `npx vulyk@latest agents` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's docs from `pasika` and the agent files that route to them are generated.
+9. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
 
 ## How To Update a Repository to the Latest Framework Release
 
-Run this whenever the framework publishes a release.
+Run this whenever the framework publishes a release. It applies to both Next.js applications and plain TypeScript repositories.
 
-1. Run `npx pasika update` to move the framework packages and every tracked doc to their latest release.
-2. Read the update report to learn which tracked documents changed since the repository's last release.
-3. Run `npx pasika doctor` to list the gaps the new release introduced.
-4. Run `npm run lint` to list the violations the new and changed rules report.
-5. Follow [How To Plan the Work an Adoption or Update Requires](#how-to-plan-the-work-an-adoption-or-update-requires) when the combined list is too large to fix in one pass.
-6. Repeat steps 3 and 4 until both commands report no findings.
-
-## How To Plan the Work an Adoption or Update Requires
-
-Use this when the reported findings are too large to fix in one change set.
-
-1. Group every finding by the document its message names so each group has one source of truth.
-2. Order the groups so file placement lands before file naming, and file naming before import paths.
-3. Turn each group into one milestone that leaves the repository lint-clean when it lands.
-4. Record the milestone list and each group's finding count before changing any code.
-5. Complete one milestone per change set, re-running `npx pasika doctor` and `npm run lint` before starting the next.
-6. Re-plan the remaining milestones whenever fixing one reveals findings that belong to another group.
+1. Bump the framework packages within one major version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting past the latest release.
+2. Run `npx vulyk@latest sync` and then `npx vulyk@latest agents` so every tracked doc, managed file, and agent file is updated from its pinned source.
+3. Run `npm run lint -- --fix --suppress-all` to list the violations the new and changed rules report, so the fixable ones are fixed and the rest are suppressed until the repository is ready for them.

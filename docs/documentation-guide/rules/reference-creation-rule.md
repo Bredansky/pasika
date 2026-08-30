@@ -5,7 +5,7 @@ References without a consistent creation process scatter lookup material. This r
 - Reference file names MUST match the document title in kebab-case and use the `-reference` suffix (e.g., `foo-reference.md`).
 - A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.
 - A Reference MUST NOT state a constraint the reader has to satisfy — in RFC 2119 vocabulary or in plain declarative wording — and such a constraint MUST live in a Rule.
-- A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences.
+- A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences, and MUST NOT contain instructions or links to other documentation.
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 
@@ -48,9 +48,9 @@ Why: the cell describes what the layer holds, leaving the requirement to the Rul
 ## Incorrect — Reference States a Constraint Without RFC 2119 Vocabulary
 
 ```markdown
-| Layer      | Path                      | Permitted contents                                                          |
-| ---------- | ------------------------- | --------------------------------------------------------------------------- |
-| `features` | `src/features/<feature>/` | `src/features/` itself holds feature folders only — never support folders    |
+| Layer      | Path                      | Permitted contents                                                        |
+| ---------- | ------------------------- | ------------------------------------------------------------------------- |
+| `features` | `src/features/<feature>/` | `src/features/` itself holds feature folders only — never support folders |
 ```
 
 Why: the cell reads as description but tells the reader what is forbidden, so the constraint has no Rule that owns it and can be changed in the Reference without anyone noticing the Rule now disagrees.
@@ -58,9 +58,9 @@ Why: the cell reads as description but tells the reader what is forbidden, so th
 ## Correct — Reference Describes and the Rule Constrains
 
 ```markdown
-| Layer      | Path                      | Contents                                   |
-| ---------- | ------------------------- | ------------------------------------------ |
-| `features` | `src/features/<feature>/` | One folder per feature, holding its files  |
+| Layer      | Path                      | Contents                                  |
+| ---------- | ------------------------- | ----------------------------------------- |
+| `features` | `src/features/<feature>/` | One folder per feature, holding its files |
 ```
 
 Why: the Reference says what the layer contains, and the Rule that owns the structure states what may not appear there.

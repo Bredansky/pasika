@@ -3,9 +3,7 @@
  */
 import { docKindSuffixRule } from "./doc-kind-suffix";
 import { titleMatchesFileNameRule } from "./title-matches-file-name";
-import { overviewPresentRule } from "./overview-present";
-import { overviewLengthRule } from "./overview-length";
-import { guideOverviewNoLinksRule } from "./guide-overview-no-links";
+import { overviewRule } from "./overview";
 import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
 import { guideStepSingleLinkRule } from "./guide-step-single-link";
 import { guideStatesNoRequirementRule } from "./guide-states-no-requirement";
@@ -25,13 +23,12 @@ import { policySubjectHeadingsRule } from "./policy-subject-headings";
 import { guideLinkAnchorsRule } from "./guide-link-anchors";
 import { noNestedHowToRule } from "./no-nested-how-to";
 import { glossaryTermLinkingRule } from "./glossary-term-linking";
+import { guideMentionsDocumentsRule } from "./guide-mentions-documents";
 
 export const documentationRules = {
   "doc-kind-suffix": docKindSuffixRule,
   "title-matches-file-name": titleMatchesFileNameRule,
-  "overview-present": overviewPresentRule,
-  "overview-length": overviewLengthRule,
-  "guide-overview-no-links": guideOverviewNoLinksRule,
+  overview: overviewRule,
   "guide-step-single-sentence": guideStepSingleSentenceRule,
   "guide-step-single-link": guideStepSingleLinkRule,
   "guide-states-no-requirement": guideStatesNoRequirementRule,
@@ -51,6 +48,7 @@ export const documentationRules = {
   "guide-link-anchors": guideLinkAnchorsRule,
   "no-nested-how-to": noNestedHowToRule,
   "glossary-term-linking": glossaryTermLinkingRule,
+  "guide-mentions-documents": guideMentionsDocumentsRule,
 };
 
 export type DocumentationRuleName = keyof typeof documentationRules;

@@ -55,10 +55,10 @@ void describe("classifyRequirement", () => {
     assert.throws(() => classify({ hash: mustRequirement.hash, note: "  " }), /--note is required/);
   });
 
-  void it("rejects a ref that is neither a rule nor a doctor check", () => {
+  void it("rejects a ref that is not a rule", () => {
     assert.throws(
       () => classify({ hash: mustRequirement.hash, ref: "pasika/not-a-rule", note: "why" }),
-      /is not a rule or doctor check/,
+      /is not a rule/,
     );
   });
 
@@ -71,15 +71,6 @@ void describe("classifyRequirement", () => {
     assert.equal(requirement.ref, "pasika/filename-case");
     assert.equal(requirement.note, "reports a default export where the file exports values");
     assert.equal("kind" in requirement, false, "kind is gone from the registry entry");
-  });
-
-  void it("accepts a doctor check ref", () => {
-    const { requirement } = classify({
-      hash: mayRequirement.hash,
-      ref: "pasika/config-baseline",
-      note: "pasika doctor checks the eslint config against the baseline",
-    });
-    assert.equal(requirement.ref, "pasika/config-baseline");
   });
 
   void it("accepts an entry without a ref, applied by judgment", () => {
@@ -117,10 +108,10 @@ void describe("classifyRequirement", () => {
   void it("accepts several rule refs for one requirement", () => {
     const { requirement } = classify({
       hash: mustRequirement.hash,
-      ref: "pasika/overview-length, pasika/no-template-prompt",
+      ref: "pasika/overview, pasika/no-template-prompt",
       note: "docs-check: two rules cover it",
     });
-    assert.equal(requirement.ref, "pasika/overview-length, pasika/no-template-prompt");
+    assert.equal(requirement.ref, "pasika/overview, pasika/no-template-prompt");
   });
 });
 

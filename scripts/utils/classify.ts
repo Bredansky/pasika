@@ -5,7 +5,7 @@ import type { Registry, Requirement } from "../types";
 export interface ClassifyInput {
   /** Hash of the requirement, as `coverage` prints it. */
   hash: string;
-  /** Rule or doctor check ids that govern it, comma-separated; absent when judgment applies it. */
+  /** Rule ids that govern it, comma-separated; absent when judgment applies it. */
   ref?: string;
   /** How the requirement is met; required on every entry. */
   note?: string;
@@ -53,7 +53,7 @@ export function classifyRequirement(options: {
   const refs = refParts(input.ref);
   const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
   if (unknown.length > 0) {
-    throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule or doctor check.`);
+    throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule.`);
   }
 
   const requirement: Requirement = {

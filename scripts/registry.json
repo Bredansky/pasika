@@ -541,8 +541,8 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.",
       "hash": "694bfba1ab",
-      "ref": "pasika/overview-length, pasika/guide-overview-no-links",
-      "note": "docs-check: an overview must contain one or two short sentences and must not link"
+      "ref": "pasika/overview",
+      "note": "docs-check: overview present, one or two sentences, no links"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
@@ -607,6 +607,20 @@
       "note": "docs-check: compare glossary terms against the guide's steps"
     },
     {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Guide entry point MUST reference each Rule it owns from within a How To step, MUST mention every Reference it owns, and MUST NOT link a document that does not exist.",
+      "hash": "370780d518",
+      "ref": "pasika/guide-mentions-documents",
+      "note": "docs-check: guide entry references each owned Rule in a How To step, mentions References, no dead links"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.",
+      "hash": "a2d85b9ad4",
+      "ref": "pasika/guide-states-no-requirement",
+      "note": "docs-check: guides state workflow steps, never RFC requirement bullets"
+    },
+    {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
       "text": "Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).",
       "hash": "e83fddcd78",
@@ -615,10 +629,10 @@
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.",
-      "hash": "cd5ad978b1",
-      "ref": "pasika/overview-length",
-      "note": "docs-check: an overview must contain one or two short sentences"
+      "text": "A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to, and MUST NOT contain instructions or links to other documentation.",
+      "hash": "0fbd4d59ca",
+      "ref": "pasika/overview",
+      "note": "docs-check: overview present, one or two sentences, no links"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
@@ -671,10 +685,10 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences.",
-      "hash": "829df330c7",
-      "ref": "pasika/overview-length",
-      "note": "docs-check: an overview must contain one or two short sentences"
+      "text": "A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences, and MUST NOT contain instructions or links to other documentation.",
+      "hash": "404f4b0f07",
+      "ref": "pasika/overview",
+      "note": "docs-check: the document overview is present, one or two sentences, and link-free; headed lookup block overviews are not separately checked"
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
@@ -699,10 +713,10 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
-      "text": "A Rule overview MUST contain one or two short sentences naming the problem the rule solves.",
-      "hash": "ab67bac18e",
-      "ref": "pasika/overview-length",
-      "note": "docs-check: an overview must contain one or two short sentences"
+      "text": "A Rule overview MUST contain one or two short sentences naming the problem the rule solves, and MUST NOT contain instructions or links to other documentation.",
+      "hash": "091dfac338",
+      "ref": "pasika/overview",
+      "note": "docs-check: overview present, one or two sentences, no links"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -832,6 +846,27 @@
       "note": "JSON rule checks each package is in the manifest section its doc bullet names"
     },
     {
+      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
+      "text": "A repository adopting the framework MUST track the framework's docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "3f06dc7db8",
+      "ref": "pasika/vulyk-docs",
+      "note": "JSON rule on package.json reads vulyk.config.ts and requires it to reference the pasika repository"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
+      "text": "A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.",
+      "hash": "a8752f2d50",
+      "ref": "pasika/vulyk-docs",
+      "note": "JSON rule on package.json requires the AGENTS.md file vulyk generates for the tracked docs"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/zirka-baseline-rule.md",
+      "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
+      "hash": "06590f6d0c",
+      "ref": "pasika/zirka-baseline",
+      "note": "zirka-baseline runs on eslint.config.* and checks it imports zirka, tsconfig.json extends zirka/typescript, and a prettier config references zirka"
+    },
+    {
       "doc": "repository-policy.md",
       "text": "A commit MUST NOT use the `--no-verify` flag.",
       "hash": "e1c615452f",
@@ -867,13 +902,6 @@
       "text": "A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.",
       "hash": "e765276ded",
       "note": "recognizing a compatibility shim requires knowing the change's intent"
-    },
-    {
-      "doc": "repository-policy.md",
-      "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
-      "hash": "06590f6d0c",
-      "ref": "pasika/config-baseline",
-      "note": "pasika doctor checks the eslint config and tsconfig against the pasika/zirka baseline"
     },
     {
       "doc": "repository-policy.md",
@@ -1020,7 +1048,7 @@
       "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
       "hash": "4f548b26c4",
       "ref": "pasika/global-stylesheet",
-      "note": "pasika doctor checks the repository has a global stylesheet registering Tailwind"
+      "note": "the global-stylesheet CSS rule flags a missing global stylesheet entry point that registers Tailwind"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",

@@ -17,9 +17,8 @@ export const requirementSchema = z.object({
   /** Short hash of `text`. */
   hash: z.string(),
   /**
-   * Identifier of the rule or doctor check that governs this requirement, or
-   * absent when a reviewer or agent applies it by hand. Several ids are
-   * comma-separated.
+   * Identifier of the rule that governs this requirement, or absent when a
+   * reviewer or agent applies it by hand. Several ids are comma-separated.
    */
   ref: z.string().optional(),
   /**

@@ -38,7 +38,7 @@ Why: `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge
     "prettier": "3.8.1",
     "husky": "9.1.7",
     "lint-staged": "17.4.1",
-    "zirka": "0.0.45"
+    "zirka": "0.0.47"
   }
 }
 ```

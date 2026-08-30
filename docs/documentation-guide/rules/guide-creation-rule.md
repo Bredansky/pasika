@@ -14,6 +14,8 @@ Guides without a consistent creation process invent their own structure. This ru
 - A Rule file that a Guide owns MUST live in a `rules/` subfolder inside the Guide's folder.
 - A Reference file that a Guide owns MUST live in a `references/` subfolder inside the Guide's folder.
 - A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.
+- A Guide entry point MUST reference each Rule it owns from within a How To step, MUST mention every Reference it owns, and MUST NOT link a document that does not exist.
+- A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.
 
 ## Incorrect — Support Documents Mixed at the Guide Root
 

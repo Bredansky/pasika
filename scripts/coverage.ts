@@ -34,6 +34,7 @@ const ISSUE_LABELS: Record<CoverageIssue["kind"], string> = {
   removed: "removed   ",
   "unknown-ref": "bad ref   ",
   "missing-test": "no test   ",
+  "unassigned-rule": "no mount  ",
 };
 
 function truncate(text: string, width: number): string {

@@ -1,41 +1,41 @@
 # Tech Stack Reference
 
-Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for. Packages are grouped by who owns them.
+Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for. Each table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all.
 
-## Application Packages
+## Dependencies
 
-These packages provide the runtime and authoring surfaces the framework's Rules describe. A repository that adopts the framework installs all of them.
+Runtime packages a Next.js application ships in `dependencies` — what `nextjsApp` adds beyond the `typescriptApp` baseline. A plain TypeScript repository lists none of them, so `typescriptApp` presumes no `dependencies` at all.
 
-| Package                    | Responsibility                                                                                 |
-| -------------------------- | ---------------------------------------------------------------------------------------------- |
-| `next`                     | App Router framework whose routing-file conventions define the `app` layer                      |
-| `react`                    | Component runtime the component Rules are written against                                       |
-| `react-dom`                | Browser renderer for React components                                                           |
-| `typescript`               | Typed source and the strict compiler settings the shared base config sets                       |
-| `tailwindcss`              | Utility classes, theme variables, and the `@utility` and `@apply` directives the styling Rules use |
-| `zod`                      | Runtime validation schemas the data-contract conventions require                                |
-| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants                                  |
-| `clsx`                     | Conditional class-name building block of `cn`                                                   |
-| `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                                           |
-| `eslint`                   | Runs the shared and framework rulesets                                                          |
-| `prettier`                 | Formats source, applied through the shared ESLint configuration                                 |
-| `husky`                    | Installs the git hooks that run checks before a commit lands                                    |
-| `lint-staged`              | Runs the lint and format commands against staged files                                          |
+| Package                    | Responsibility                                                             |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `next`                     | App Router framework whose routing-file conventions define the `app` layer |
+| `react`                    | Component runtime the component Rules are written against                  |
+| `react-dom`                | Browser renderer for React components                                      |
+| `zod`                      | Runtime validation schemas the data-contract conventions require           |
+| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants             |
+| `clsx`                     | Conditional class-name building block of `cn`                              |
+| `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                      |
 
-## Framework Packages
+## DevDependencies
 
-These packages are the framework itself. `pasika` and `zirka` are installed as development dependencies, while `vulyk` runs from the registry without being installed.
+Toolchain packages declared in `devDependencies` — the baseline both `typescriptApp` and `nextjsApp` build on. `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` apply to every repository; `tailwindcss` applies to a Next.js application only.
 
-| Package  | Responsibility                                                                                            |
-| -------- | --------------------------------------------------------------------------------------------------------- |
-| `pasika` | Owns this documentation, the `pasika` ESLint ruleset derived from it, and the CLI that applies and diagnoses both |
-| `zirka`  | Combines third-party ESLint plugins, the Prettier configuration, and the shared TypeScript base config     |
-| `vulyk`  | Installs tracked docs from pinned sources and generates the agent files that route to them                 |
+| Package       | Applies to           | Responsibility                                                                                                             |
+| ------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `typescript`  | Every repository     | Typed source and the strict compiler settings the shared base config sets                                                  |
+| `tailwindcss` | Next.js applications | Utility classes, theme variables, and the `@utility` and `@apply` directives the styling Rules use                         |
+| `eslint`      | Every repository     | Runs the shared and framework rulesets                                                                                     |
+| `prettier`    | Every repository     | Formats source, applied through the shared ESLint configuration                                                            |
+| `husky`       | Every repository     | Installs the git hooks that run checks before a commit lands                                                               |
+| `lint-staged` | Every repository     | Runs the lint and format commands against staged files                                                                     |
+| `zirka`       | Every repository     | Combines third-party ESLint plugins, the Prettier configuration, the shared TypeScript base config, and the pasika ruleset |
 
-## Agent Tooling
+## Not Declared
 
-These tools are invoked by agents during a task rather than installed into a project.
+Packages that never go into package.json. `pasika`'s rules reach a repository through `zirka`, `vulyk` runs ephemerally with `npx vulyk@latest`, and `agent-browser` is invoked by agents during a task.
 
-| Tool            | Responsibility                                                    |
-| --------------- | ----------------------------------------------------------------- |
-| `agent-browser` | Drives a real browser so an agent can verify browser behavior      |
+| Package         | Responsibility                                                                                                        |
+| --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `pasika`        | Owns this documentation and the pasika ESLint rulesets — the `typescriptApp` and `nextjsApp` presets `zirka` composes |
+| `vulyk`         | Installs tracked docs from pinned sources and generates the agent files that route to them                            |
+| `agent-browser` | Drives a real browser so an agent can verify browser behavior                                                         |

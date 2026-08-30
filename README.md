@@ -48,9 +48,9 @@ Requirements are identified by a hash of their canonical text, not by a hand-wri
 
 The `text` field is the bullet as written in the document (markdown links and code spans intact), so it is greppable in the doc it came from; the `hash` is computed from the same text with links collapsed to their text and code spans unwrapped, so editing a URL or adding backticks does not read as a change.
 
-Every requirement carries a `note` explaining how it is met: what the ref'd rule or doctor check does and where it falls short, or — with no `ref` — how a reviewer or agent applies it by hand. When a rule governs the requirement's subject without fully deciding it (e.g. its placement), the `ref` still names that rule and the `note` says what stays judgment, so a partial check never reads as a complete one.
+Every requirement carries a `note` explaining how it is met: what the ref'd rule does and where it falls short, or — with no `ref` — how a reviewer or agent applies it by hand. When a rule governs the requirement's subject without fully deciding it (e.g. its placement), the `ref` still names that rule and the `note` says what stays judgment, so a partial check never reads as a complete one.
 
-`npm run coverage` fails when a requirement has no recorded answer, when its text changed, when it disappeared, when its `ref` names a rule or doctor check that does not exist, or when a requirement a rule governs has no test titled with its text. Confirm a reworded requirement with `npx tsx scripts/coverage.ts --accept`.
+`npm run coverage` fails when a requirement has no recorded answer, when its text changed, when it disappeared, when its `ref` names a rule that does not exist, or when a requirement a rule governs has no test titled with its text. Confirm a reworded requirement with `npx tsx scripts/coverage.ts --accept`.
 
 ## Commands
 
@@ -79,38 +79,40 @@ npx tsx scripts/coverage.ts --classify d311a1457a --ref pasika/import-boundaries
 npx tsx scripts/coverage.ts --classify 041b665bd7 --note "no check can compare against the previous state"
 ```
 
-The script refuses a hash no requirement has, a `ref` naming a rule or doctor check that does not exist, and a classification without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry. All of it reads and writes `scripts/registry.json`.
+The script refuses a hash no requirement has, a `ref` naming a rule that does not exist, and a classification without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry. All of it reads and writes `scripts/registry.json`.
 
 ## ESLint ruleset
 
 ### With Zirka (recommended)
 
 ```ts
-// eslint.config.ts
+// eslint.config.ts — Next.js application
 import { RuleSeverity, styleguide } from "zirka";
 
 const { eslintConfig } = styleguide({
   next: RuleSeverity.Error,
   node: RuleSeverity.Error,
   typescript: RuleSeverity.Error,
-  pasika: RuleSeverity.Error,
+  pasikaNextjsApp: RuleSeverity.Error,
 });
 
 export default eslintConfig;
 ```
 
-`zirka` composes the full pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
+For a plain TypeScript repository, enable `pasikaTypescriptApp` instead of `pasikaNextjsApp`. `zirka` composes the pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
 
 ### Without Zirka
 
-````ts
-// eslint.config.ts
-import { pasikaNext } from "pasika/eslint";
+```ts
+// eslint.config.ts — plain TypeScript repository
+import { typescriptApp } from "pasika/eslint";
 
-export default pasikaNext;
-``` `pasikaNext` is the full flat-config array: the `src/**` TS/TSX and Tailwind stylesheet blocks plus everything in `pasikaRepo`. `pasikaRepo` is the repository-level preset — every block that does not touch `src/**` (the package.json manifest, husky hooks, and docs) — and is a strict subset of `pasikaNext`. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
+export default typescriptApp;
+```
 
-Because the preset blocks wire ESLint's language plugins, using `pasikaNext` directly (without `zirka`) requires `@eslint/css`, `@eslint/json`, and `@eslint/markdown` to be installed in the consuming project — they are `peerDependencies` of `pasika`. A `zirka`-based setup gets them automatically.
+`typescriptApp` is the plain-TypeScript-repository preset — the package.json manifest, the zirka configuration contract, the `src/**` TypeScript app source, and the docs. `nextjsApp` is the full framework preset: everything in `typescriptApp` plus the Next.js-stack manifest requirement, the Next.js app source rules, and the Tailwind stylesheet blocks. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
+
+Because the preset blocks wire ESLint's language plugins, using them directly (without `zirka`) requires `@eslint/css`, `@eslint/json`, and `@eslint/markdown` to be installed in the consuming project — they are `peerDependencies` of `pasika`. A `zirka`-based setup gets them automatically.
 
 ### TS/TSX rules
 
@@ -153,7 +155,7 @@ Because the preset blocks wire ESLint's language plugins, using `pasikaNext` dir
 | `pasika/shared-style-dedup` †      | A className combo used by two or more components becomes a named utility                                            |
 | `pasika/repeated-structure`        | A block of elements repeated two or more times is extracted as a named component                                    |
 | `pasika/sole-state-owner`          | A contiguous JSX part that is the sole consumer of a useState hook is extracted into a named component              |
-| `pasika/config-baseline`           | `eslint.config.*` references zirka and `tsconfig.json` exists                                                       |
+| `pasika/zirka-baseline`            | eslint, prettier, and TypeScript configuration come from zirka instead of being restated locally                    |
 | `pasika/zod-schema-validation`     | Runtime validation through Zod schemas, not hand-written type guards                                                |
 | `pasika/source-under-src`          | Application source lives under `src/`, not in root-level folders                                                    |
 
@@ -176,17 +178,18 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 
 ### Package.json rules
 
-Applied to `package.json` through `@eslint/json`. The framework-agnostic subset (`no-vulyk-dependency`, `exact-version`) applies to any repository, including pasika itself; `nextjs-stack` applies to a Next.js/React application.
+Applied to `package.json` through `@eslint/json`. The framework-agnostic subset (`no-vulyk-dependency`, `exact-version`) applies to any repository, including pasika itself; `nextjs-stack` applies to a Next.js/React application, and `vulyk-docs` to a repository adopting the framework.
 
 | Rule                         | Enforces                                                                            |
 | ---------------------------- | ----------------------------------------------------------------------------------- |
 | `pasika/no-vulyk-dependency` | `vulyk` is not in `dependencies`                                                    |
 | `pasika/exact-version`       | Dependency and devDependency versions are pinned exactly, never ranges              |
 | `pasika/nextjs-stack`        | All Tech Stack Reference packages are listed in `package.json` (Next.js/React apps) |
+| `pasika/vulyk-docs`          | `vulyk.config.ts` tracks the framework's docs from pasika and `AGENTS.md` exists    |
 
 ### Documentation rules
 
-The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (24 rules): file-name suffixes and titles, overview presence and length, guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `npm run coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run lint`).
+The `pasika/*` markdown rules enforce the documentation guide over `docs/**/*.md` (22 rules): file-name suffixes and titles, overview shape (presence, sentence count, links), guide step structure, Incorrect/Correct pairing, policy document shape, reference block headings, RFC 2119 placement, template hygiene, link anchoring, and glossary-term linking. They run through `@eslint/markdown`; `npm run coverage` verifies each has a test and a registry entry. Pasika's own `docs/` are linted by them in CI (`npm run lint`).
 
 Run `npx tsx scripts/coverage.ts --json` for the exact requirement each rule covers.
 
@@ -211,4 +214,4 @@ npm run typecheck
 npm run test
 npm run coverage
 npm run build
-````
+```

@@ -6,7 +6,7 @@ import { parseDocs, type ParsedRequirement } from "./parse-docs";
 import type { Registry, Requirement } from "../types";
 
 export interface CoverageIssue {
-  kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test";
+  kind: "new" | "changed" | "removed" | "unknown-ref" | "missing-test" | "unassigned-rule";
   doc: string;
   line?: number;
   text: string;
@@ -71,7 +71,7 @@ function hasEslintRef(requirement: Requirement): boolean {
   return refParts(requirement.ref).some((part) => allPasikaRuleIds.includes(part));
 }
 
-/** A ref names an ESLint rule or a known doctor check. */
+/** A ref names a known ESLint rule id. */
 function isRefKnown(requirement: Requirement): boolean {
   const parts = refParts(requirement.ref);
   if (parts.length === 0) return true;
@@ -160,6 +160,22 @@ export function buildCoverageReport(options: {
       doc: entry.doc,
       text: entry.text,
       detail: `recorded with ${entry.ref ? `ref ${entry.ref}` : "no check"} but the bullet is gone`,
+    });
+  }
+
+  // Reverse direction: every exported rule must be assigned to a requirement.
+  // A rule with no requirement behind it is dead/undocumented surface.
+  const assignedRefs = new Set<string>();
+  for (const entry of registry.requirements) {
+    for (const part of refParts(entry.ref)) assignedRefs.add(part);
+  }
+  for (const ruleId of allPasikaRuleIds) {
+    if (assignedRefs.has(ruleId)) continue;
+    issues.push({
+      kind: "unassigned-rule",
+      doc: "*",
+      text: ruleId,
+      detail: "exported rule is not assigned to any documented requirement",
     });
   }
 

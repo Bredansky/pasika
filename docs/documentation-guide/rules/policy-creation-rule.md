@@ -3,7 +3,7 @@
 Some requirements apply to the whole repository and span subjects too unrelated to share one Rule. This rule defines how to collect them in one document without turning it into a dumping ground.
 
 - Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).
-- A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to.
+- A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to, and MUST NOT contain instructions or links to other documentation.
 - A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
 - A Policy document MUST group its bullets under a heading per subject.
 - A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
