@@ -70,6 +70,22 @@ void describe("pasika presets", () => {
     );
   });
 
+  void it("no plugin name is redefined with a different object across a preset's blocks", () => {
+    for (const preset of [typescriptApp, nextjsApp]) {
+      const seen = new Map<string, unknown>();
+      for (const block of preset) {
+        for (const [name, plugin] of Object.entries(block.plugins ?? {})) {
+          const existing = seen.get(name);
+          if (existing === undefined) {
+            seen.set(name, plugin);
+          } else {
+            assert.equal(plugin, existing, `plugin ${name} must be the same object across the preset's blocks`);
+          }
+        }
+      }
+    }
+  });
+
   void it("both presets enforce the vulyk docs contract on the manifest", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));

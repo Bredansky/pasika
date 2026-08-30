@@ -121,6 +121,32 @@ export const pasikaRules = {
 
 export { documentationRules, tailwindRules, repoPackageJsonRules, nextPackageJsonRules, huskyRules, vulykRules };
 
+/**
+ * One plugin object every preset block references. ESLint only permits a
+ * plugin name to be redefined across configs when the value is the same
+ * object reference, and several blocks share file scopes (`src/**`, the
+ * manifest, `globals.css`), so a per-block plugin object would collide when
+ * the blocks merge.
+ */
+export const pasikaPlugin = {
+  rules: {
+    ...pasikaRules,
+    ...documentationRules,
+    ...tailwindRules,
+    ...repoPackageJsonRules,
+    ...nextPackageJsonRules,
+    ...huskyRules,
+    ...vulykRules,
+  },
+};
+
+/**
+ * One JSON-language plugin object shared by both manifest blocks, for the same
+ * reason `pasikaPlugin` is shared: ESLint rejects a plugin name redefined with
+ * a different object, and both blocks apply to `package.json`.
+ */
+const jsonLanguagePlugin = { languages: { json: jsonPlugin.languages.json } };
+
 /** `pasika/<name>` ids for a rules object, in declaration order. */
 function ruleIds(rules: Record<string, unknown>): string[] {
   return Object.keys(rules).map((name) => `pasika/${name}`);
@@ -153,7 +179,7 @@ export const allPasikaRuleIds = [
 const typescriptAppBlock: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
   plugins: {
-    pasika: { rules: typescriptAppRules },
+    pasika: pasikaPlugin,
   },
   rules: Object.fromEntries(typescriptAppRuleIds.map((id) => [id, "error"])),
 };
@@ -162,7 +188,7 @@ const typescriptAppBlock: Linter.Config = {
 const nextjsAppBlock: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
   plugins: {
-    pasika: { rules: nextjsAppRules },
+    pasika: pasikaPlugin,
   },
   rules: Object.fromEntries(nextjsAppRuleIds.map((id) => [id, "error"])),
 };
@@ -172,7 +198,7 @@ const tailwindGlobalsBlock: Linter.Config = {
   files: ["src/**/globals.css"],
   plugins: {
     css,
-    pasika: { rules: tailwindRules },
+    pasika: pasikaPlugin,
   },
   language: "css/css",
   languageOptions: { tolerant: true },
@@ -186,7 +212,7 @@ const tailwindAnyCssBlock: Linter.Config = {
   files: ["src/**/*.css"],
   plugins: {
     css,
-    pasika: { rules: tailwindRules },
+    pasika: pasikaPlugin,
   },
   language: "css/css",
   languageOptions: { tolerant: true },
@@ -201,8 +227,8 @@ const tailwindAnyCssBlock: Linter.Config = {
 const repoManifestBlock: Linter.Config = {
   files: ["package.json"],
   plugins: {
-    json: { languages: { json: jsonPlugin.languages.json } },
-    pasika: { rules: { ...repoPackageJsonRules, ...huskyRules, ...vulykRules } },
+    json: jsonLanguagePlugin,
+    pasika: pasikaPlugin,
   },
   language: "json/json",
   rules: Object.fromEntries([...repoPackageJsonRuleIds, ...huskyRuleIds, ...vulykRuleIds].map((id) => [id, "error"])),
@@ -216,8 +242,8 @@ const repoManifestBlock: Linter.Config = {
 const nextManifestBlock: Linter.Config = {
   files: ["package.json"],
   plugins: {
-    json: { languages: { json: jsonPlugin.languages.json } },
-    pasika: { rules: nextPackageJsonRules },
+    json: jsonLanguagePlugin,
+    pasika: pasikaPlugin,
   },
   language: "json/json",
   rules: Object.fromEntries(nextPackageJsonRuleIds.map((id) => [id, "error"])),
@@ -230,7 +256,7 @@ const nextManifestBlock: Linter.Config = {
  */
 const zirkaBlock: Linter.Config = {
   files: ["eslint.config.{ts,mts,cts,js,mjs,cjs}"],
-  plugins: { pasika: { rules: { "zirka-baseline": zirkaBaselineRule } } },
+  plugins: { pasika: pasikaPlugin },
   rules: { "pasika/zirka-baseline": "error" },
 };
 
@@ -240,7 +266,7 @@ const docsBlock: Linter.Config = {
   ignores: ["**/_*/**"],
   plugins: {
     markdown,
-    pasika: { rules: documentationRules },
+    pasika: pasikaPlugin,
   },
   language: "markdown/gfm",
   rules: Object.fromEntries(documentationRuleIds.map((id) => [id, "error"])),
