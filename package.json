@@ -51,7 +51,7 @@
     "tsup": "8.5.1",
     "tsx": "4.23.12",
     "typescript": "6.0.3",
-    "zirka": "0.0.46",
+    "zirka": "0.0.47",
     "zod": "4.4.3"
   },
   "peerDependencies": {
