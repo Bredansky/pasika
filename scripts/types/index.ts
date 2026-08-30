@@ -22,10 +22,11 @@ export const requirementSchema = z.object({
    */
   ref: z.string().optional(),
   /**
-   * How the requirement is met: what the ref'd check does and where it falls
-   * short, or — with no ref — how a reviewer or agent applies it.
+   * How a judgment requirement (no `ref`) is applied by a reviewer or agent.
+   * Rule-governed requirements carry no note: the ref and its test already
+   * record the enforcement.
    */
-  note: z.string(),
+  note: z.string().optional(),
 });
 
 export const registrySchema = z.object({

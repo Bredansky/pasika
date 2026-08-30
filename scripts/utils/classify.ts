@@ -46,14 +46,17 @@ export function classifyRequirement(options: {
     throw new Error(`No requirement in the documentation has hash "${input.hash}". Run coverage to list them.`);
   }
 
-  if ((input.note ?? "").trim() === "") {
-    throw new Error("--note is required: how the ref'd check governs it, or how judgment applies it.");
-  }
-
   const refs = refParts(input.ref);
   const unknown = refs.filter((ref) => !allPasikaRuleIds.includes(ref));
   if (unknown.length > 0) {
     throw new Error(`--ref ${unknown.map((ref) => `"${ref}"`).join(", ")} is not a rule.`);
+  }
+
+  const trimmedNote = (input.note ?? "").trim();
+  // Judgment requirements (no rule) must explain how a reviewer applies them;
+  // a rule-governed requirement needs no note.
+  if (refs.length === 0 && trimmedNote === "") {
+    throw new Error("--note is required when no rule governs a judgment requirement.");
   }
 
   const requirement: Requirement = {
@@ -61,7 +64,8 @@ export function classifyRequirement(options: {
     text: match.requirement.raw,
     hash: match.requirement.hash,
     ...(refs.length > 0 ? { ref: refs.join(", ") } : {}),
-    note: (input.note ?? "").trim(),
+    // Notes live only on judgment requirements: a rule-governed entry carries none.
+    ...(refs.length === 0 && trimmedNote !== "" ? { note: trimmedNote } : {}),
   };
 
   const requirements = registry.requirements.filter((entry) => entry.hash !== input.hash);

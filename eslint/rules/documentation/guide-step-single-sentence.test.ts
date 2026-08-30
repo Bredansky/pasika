@@ -1,7 +1,7 @@
 import { describe, documentationRuleTester } from "./rule-tester";
 import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
 
-void describe("Each How To step MUST be concise and use one sentence.", () => {
+void describe("Each How To step MUST use one sentence.", () => {
   documentationRuleTester.run("guide-step-single-sentence", guideStepSingleSentenceRule, {
     valid: [
       {

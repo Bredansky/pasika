@@ -2,7 +2,7 @@
 
 Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
 
-- Each How To step MUST be concise and use one sentence.
+- Each How To step MUST use one sentence.
 - A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.

@@ -1,7 +1,7 @@
 import { describe, documentationRuleTester } from "./rule-tester";
 import { rfcKeywordInEveryBulletRule } from "./rfc-keyword-in-every-bullet";
 
-void describe("A bullet MUST contain at least one RFC 2119 keyword, and a bullet MUST use MUST or MUST NOT only when the requirement admits no exception, SHOULD or SHOULD NOT only when exceptions are possible, and MAY only when the behavior is optional.", () => {
+void describe("A bullet MUST contain at least one RFC 2119 keyword.", () => {
   documentationRuleTester.run("rfc-keyword-in-every-bullet", rfcKeywordInEveryBulletRule, {
     valid: [
       {

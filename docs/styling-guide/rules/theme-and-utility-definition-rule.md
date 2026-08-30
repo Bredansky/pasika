@@ -8,8 +8,8 @@ This rule decides when styling stays with one component or becomes a shared util
 - A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas` or `text-<role>-ink`.
 - A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
-- A custom utility MUST be used by at least one file in the repository's source.
-- A utility class a component references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
+- A custom utility MUST be statically referenced by at least one file in the repository's source.
+- A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Property-Specific Color Exposed Broadly
 

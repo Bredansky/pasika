@@ -70,12 +70,25 @@ function componentFromVariable(node: ts.VariableDeclaration): ComponentInfo | un
   };
 }
 
-export function parseComponentInfo(text: string, filename: string): ComponentInfo[] {
+/**
+ * Find component definitions in a `.tsx` source.
+ *
+ * By default, only exported components are returned, which is what filename and
+ * placement rules look for. Pass `includeNonExported` to collect every component
+ * definition, exported or private, so a rule can enforce a one-component-per-file
+ * limit that also counts the components a file keeps to itself.
+ */
+export function parseComponentInfo(
+  text: string,
+  filename: string,
+  options?: { includeNonExported?: boolean },
+): ComponentInfo[] {
   const sourceFile = ts.createSourceFile(path.resolve(filename), text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const components: ComponentInfo[] = [];
 
   for (const statement of sourceFile.statements) {
-    if (!isExported(statement)) continue;
+    const exported = isExported(statement);
+    if (!exported && !options?.includeNonExported) continue;
     if (ts.isFunctionDeclaration(statement)) {
       const component = componentFromFunction(statement);
       if (component) components.push(component);

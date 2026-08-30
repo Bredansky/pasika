@@ -2,7 +2,7 @@
 
 One component per file keeps components easy to find and change independently. This rule fixes how many components a component file holds.
 
-- A `.tsx` file that defines a component MUST contain exactly one component.
+- A `.tsx` file that defines a component MUST NOT contain a second component.
 
 ## Incorrect — Two Components in One File
 

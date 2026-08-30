@@ -6,6 +6,7 @@ const TEMPLATE_MESSAGE = `Use cn() instead of template literals with conditional
 const PLUS_MESSAGE = `Use cn() instead of + operator for className. ${DOC}`;
 const STATIC_MESSAGE = `Static className with more than 5 classes must use cn() with grouped string literals. ${DOC}`;
 const GROUP_MESSAGE = `Each cn() string argument must contain at most 5 class names. Group by styling concern. ${DOC}`;
+const CONDITIONAL_MESSAGE = `Use cn() for conditional classes in className. ${DOC}`;
 
 /** Assembled from parts so this file holds no literal template-expression sequence of its own. */
 const INTERPOLATION_START = "$";
@@ -28,6 +29,16 @@ void describe("Components MUST use cn or the project's equivalent class-merging 
         code: CONDITIONAL_TEMPLATE_CLASS,
         filename: srcFile("shared/button.tsx"),
         errors: [{ message: TEMPLATE_MESSAGE }],
+      },
+      {
+        code: '<button className={active && "primary-surface"} />',
+        filename: srcFile("shared/button.tsx"),
+        errors: [{ message: CONDITIONAL_MESSAGE }],
+      },
+      {
+        code: '<button className={active ? "primary-surface" : "muted-surface"} />',
+        filename: srcFile("shared/button.tsx"),
+        errors: [{ message: CONDITIONAL_MESSAGE }],
       },
     ],
   });

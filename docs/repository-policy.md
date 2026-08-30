@@ -10,7 +10,7 @@ Repo-wide requirements for the repository's code, tooling, documentation, and ag
 
 ## Data Contracts
 
-- Runtime validation MUST use Zod schemas rather than ad hoc type guards.
+- Runtime validation MUST use Zod schemas rather than hand-written type predicates over `unknown` or `any`.
 - A data contract's fields MUST be required unless runtime evidence shows they are optional or nullable.
 - A change MUST update every in-repo call site rather than preserve backward compatibility, unless the user asks for compatibility.
 

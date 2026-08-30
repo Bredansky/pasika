@@ -50,9 +50,13 @@ void describe("classifyRequirement", () => {
     assert.throws(() => classify({ hash: "deadbeef00", note: "why" }), /has hash "deadbeef00"/);
   });
 
-  void it("rejects an entry without a note, because the note is the whole content", () => {
-    assert.throws(() => classify({ hash: mustRequirement.hash, ref: "pasika/filename-case" }), /--note is required/);
-    assert.throws(() => classify({ hash: mustRequirement.hash, note: "  " }), /--note is required/);
+  void it("requires a note only for a judgment requirement, and never stores one on a rule", () => {
+    // A rule-governed entry needs no note.
+    const ruled = classify({ hash: mustRequirement.hash, ref: "pasika/filename-case" });
+    assert.equal(ruled.requirement.ref, "pasika/filename-case");
+    assert.equal(ruled.requirement.note, undefined);
+    // A judgment entry still requires one.
+    assert.throws(() => classify({ hash: mustRequirement.hash, note: "  " }), /judgment/);
   });
 
   void it("rejects a ref that is not a rule", () => {
@@ -69,7 +73,7 @@ void describe("classifyRequirement", () => {
       note: "reports a default export where the file exports values",
     });
     assert.equal(requirement.ref, "pasika/filename-case");
-    assert.equal(requirement.note, "reports a default export where the file exports values");
+    assert.equal(requirement.note, undefined, "a rule-governed entry carries no note");
     assert.equal("kind" in requirement, false, "kind is gone from the registry entry");
   });
 

@@ -1,11 +1,10 @@
 /**
  * ESLint rule: pasika/locale-key-shape
  *
- * A locale key MUST be camelCase English based on the text, unless a direct
- * translation would be unclear or unwieldy. In that case, it MAY describe the
- * message's purpose instead. A key longer than MAX_KEY_LENGTH characters is an
- * unwieldy translation, so it must be purpose-based: it must end in an element
- * role from the WAI-ARIA vocabulary (button, link, dialog, ...).
+ * A locale key MUST be English camelCase based on the text. A key longer than
+ * MAX_KEY_LENGTH characters is an unwieldy translation, so it must be
+ * purpose-based: it must end in an element role from the WAI-ARIA vocabulary
+ * (button, link, dialog, ...).
  *
  * @see docs/code-organization-guide/rules/locales-rule.md
  * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles
@@ -70,6 +69,9 @@ const ROLE_POSTFIXES = new Set([
 
 const CAMEL_CASE = /^[a-z][a-zA-Z0-9]*$/;
 
+/** A key uses the Latin alphabet only (English). ASCII separators pass through to the camelCase check. */
+const ENGLISH = /^[A-Za-z0-9_]*$/;
+
 function isLocalesFile(filename: string): boolean {
   const segments = path.resolve(filename).split(path.sep);
   const srcIdx = segments.lastIndexOf("src");
@@ -88,6 +90,15 @@ function reportFor(context: Rule.RuleContext, node: ESTree.Node, message: string
 
 /** Checks one leaf locale key (a property whose value is a string). */
 function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string): void {
+  if (!ENGLISH.test(name)) {
+    reportFor(
+      context,
+      node,
+      `Locale key "${name}" must be English; write it in the Latin alphabet. See docs/code-organization-guide/rules/locales-rule.md`,
+    );
+    return;
+  }
+
   if (!CAMEL_CASE.test(name)) {
     reportFor(
       context,
@@ -105,8 +116,8 @@ function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string
     context,
     node,
     `Locale key "${name}" is longer than ${String(MAX_KEY_LENGTH)} characters, so it must describe ` +
-      "the message's purpose instead of the text; end it with an element role such as \"Button\", " +
-      "\"Link\", or \"Dialog\" (see WAI-ARIA roles). See docs/code-organization-guide/rules/locales-rule.md",
+      'the message\'s purpose instead of the text; end it with an element role such as "Button", ' +
+      '"Link", or "Dialog" (see WAI-ARIA roles). See docs/code-organization-guide/rules/locales-rule.md',
   );
 }
 

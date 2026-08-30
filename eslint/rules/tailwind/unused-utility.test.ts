@@ -34,7 +34,7 @@ process.chdir(root);
 
 const globalsPath = path.join(root, "src", "globals.css");
 
-void describe("A custom utility MUST be used by at least one file in the repository's source.", () => {
+void describe("A custom utility MUST be statically referenced by at least one file in the repository's source.", () => {
   tailwindRuleTester.run("unused-utility", unusedUtilityRule, {
     valid: [
       // Only the referenced utilities are defined here.

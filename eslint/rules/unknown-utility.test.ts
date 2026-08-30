@@ -45,7 +45,7 @@ process.chdir(root);
 const message = (className: string): string =>
   `Utility class "${className}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`;
 
-void describe("A utility class a component references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
+void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
     valid: [
       // Theme-generated utilities from the project's @theme.

@@ -3,7 +3,7 @@ import { localeKeyShapeRule } from "./locale-key-shape";
 
 const localesFile = srcFile("locales/index.ts");
 
-void describe("A locale key MUST be camelCase English based on the text. A direct translation longer than 30 characters is unwieldy, so such a key MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as Button, Link, or Dialog. A shorter key MAY describe the message's purpose instead when the direct translation would be unclear.", () => {
+void describe("A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.", () => {
   ruleTester.run("locale-key-shape", localeKeyShapeRule, {
     valid: [
       // Short text-based keys, top-level and namespaced.
@@ -26,6 +26,17 @@ void describe("A locale key MUST be camelCase English based on the text. A direc
       },
     ],
     invalid: [
+      // Not English: written with a non-Latin alphabet.
+      {
+        code: 'export const locales = { стрим: "Дивитись прямий ефір" };',
+        filename: localesFile,
+        errors: [
+          {
+            message:
+              'Locale key "стрим" must be English; write it in the Latin alphabet. See docs/code-organization-guide/rules/locales-rule.md',
+          },
+        ],
+      },
       // Not camelCase: describes the element with a separator or casing that is not camelCase.
       {
         code: 'export const locales = { watch_live_stream: "Дивитись прямий ефір" };',

@@ -6,7 +6,7 @@ const MESSAGE =
   "Use a Zod schema instead: schema.safeParse(value) returns a discriminated result " +
   "whose .success narrows the type. See docs/repository-policy.md";
 
-void describe("Runtime validation MUST use Zod schemas rather than ad hoc type guards.", () => {
+void describe("Runtime validation MUST use Zod schemas rather than hand-written type predicates over `unknown` or `any`.", () => {
   ruleTester.run("zod-schema-validation", zodSchemaValidationRule, {
     valid: [
       // Delegates to a Zod schema: allowed.
