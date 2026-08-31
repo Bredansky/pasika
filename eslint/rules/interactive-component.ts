@@ -7,6 +7,7 @@
  * @see docs/code-organization-guide/rules/interactive-component-rule.md
  */
 
+import path from "node:path";
 import type { Rule } from "eslint";
 import type { JsxElementNode, MaybeJsxElement } from "../ast-types";
 
@@ -23,6 +24,31 @@ const INTERACTIVE_TAGS = new Set([
   "video",
 ]);
 
+const NEXT_ROUTING_FILES = new Set([
+  "default",
+  "error",
+  "global-error",
+  "instrumentation",
+  "layout",
+  "loading",
+  "middleware",
+  "not-found",
+  "page",
+  "route",
+  "template",
+  // File conventions Next.js requires to keep their exact names in src/app/
+  "apple-icon",
+  "icon",
+  "manifest",
+  "opengraph-image",
+  "robots",
+  "sitemap",
+  "twitter-image",
+]);
+
+/** Attributes that make an HTML element actually interactive (handler or link target). */
+const INTERACTIVE_ATTRIBUTES = new Set(["onClick", "onChange", "onSubmit", "href", "onKeyDown", "onKeyUp", "onFocus", "onBlur", "htmlFor"]);
+
 function tagName(node: MaybeJsxElement): string | undefined {
   const name = node.openingElement?.name;
   if (name?.type !== "JSXIdentifier") return undefined;
@@ -31,7 +57,20 @@ function tagName(node: MaybeJsxElement): string | undefined {
 
 function isInteractive(node: MaybeJsxElement): boolean {
   const name = tagName(node);
-  return name !== undefined && INTERACTIVE_TAGS.has(name);
+  if (name === undefined || !INTERACTIVE_TAGS.has(name)) return false;
+  // A decorative element that merely looks interactive (a showcase button with
+  // no handler) is not a component boundary. Only elements that actually carry
+  // a handler or link target are interactive content.
+  const attributes = node.openingElement?.attributes;
+  if (!attributes) return false;
+  return attributes.some(
+    (attribute) =>
+      attribute.type === "JSXAttribute" &&
+      typeof attribute.name === "object" &&
+      "name" in attribute.name &&
+      typeof attribute.name.name === "string" &&
+      INTERACTIVE_ATTRIBUTES.has(attribute.name.name),
+  );
 }
 
 function isComponentElement(node: MaybeJsxElement): boolean {
@@ -55,6 +94,12 @@ export const interactiveComponentRule: Rule.RuleModule = {
   },
   create(context) {
     if (!context.filename.endsWith(".tsx") && !context.filename.endsWith(".jsx")) return {};
+    const filename = path.resolve(context.filename);
+    const base = path.basename(filename, path.extname(filename));
+    // Next.js App Router framework files have a rigid structure (error
+    // boundaries must render a full document, metadata files are single
+    // exports) and are exempt, matching the other framework-aware rules.
+    if (NEXT_ROUTING_FILES.has(base)) return {};
 
     return {
       JSXElement(node: JsxElementNode) {
