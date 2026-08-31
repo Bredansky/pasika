@@ -23,6 +23,28 @@ void describe("A smart component file name MUST be PascalCase.tsx.", () => {
   });
 });
 
+void describe("An async server component fetches data, so it is smart and MUST be PascalCase.tsx.", () => {
+  ruleTester.run("filename-case", filenameCaseRule, {
+    valid: [
+      {
+        code: "export async function HomeFeed() { const data = await fetchFeed(); return <section />; }",
+        filename: srcFile("features/home/HomeFeed.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: "export async function HomeFeed() { const data = await fetchFeed(); return <section />; }",
+        filename: srcFile("features/home/home-feed.tsx"),
+        errors: [
+          {
+            message: 'Smart component files must use PascalCase.tsx. Filename "home-feed.tsx" is not PascalCase.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A dumb component file name MUST be kebab-case.tsx.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {
     valid: [

@@ -52,10 +52,16 @@ function containsSmartCall(node: ts.Node): boolean {
   return found;
 }
 
+function isAsyncFunction(node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression): boolean {
+  return (ts.getModifiers(node) ?? []).some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword);
+}
+
 function componentFromFunction(node: ts.FunctionDeclaration): ComponentInfo | undefined {
   const name = node.name?.text;
   if (!name || !isPascalCase(name) || !containsJsx(node)) return undefined;
-  return { name, declaration: node, smart: containsSmartCall(node) };
+  // Async server components fetch data (server-side), which is what makes a
+  // component smart; the hook-based detector misses them.
+  return { name, declaration: node, smart: containsSmartCall(node) || isAsyncFunction(node) };
 }
 
 function componentFromVariable(node: ts.VariableDeclaration): ComponentInfo | undefined {
