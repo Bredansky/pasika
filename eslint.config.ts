@@ -4,7 +4,7 @@ import markdown from "@eslint/markdown";
 import jsonPlugin from "@eslint/json";
 import { documentationRules, repoPackageJsonRules, huskyRules } from "./eslint/index";
 
-const docsBlock: Linter.Config = {
+const documentationBlock: Linter.Config = {
   files: ["docs/**/*.md"],
   ignores: ["**/_*/**"],
   plugins: { markdown, pasika: { rules: documentationRules } },
@@ -28,7 +28,7 @@ const { eslintConfig } = styleguide({
   node: RuleSeverity.Error,
   typescript: RuleSeverity.Error,
   ignores: ["dist/**", "node_modules/**"],
-  additionalConfigs: [docsBlock, manifestBlock],
+  additionalConfigs: [documentationBlock, manifestBlock],
 });
 
 export default eslintConfig;

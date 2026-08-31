@@ -16,6 +16,7 @@ import type { Rule } from "eslint";
 import type { ProjectIndex } from "../project/index";
 import { getProjectIndex } from "../project/index";
 import { segmentsOf } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 /** Static className string literals; dynamic class lists are not comparable across files. */
 const CLASS_NAME = /className="(?<classes>[^"]+)"/g;
@@ -67,7 +68,7 @@ export const sharedStyleDedupRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
     if (segments.length === 0) return {};

@@ -24,6 +24,7 @@ import {
   segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 /**
  * Support folders a configuration module keeps regardless of who imports them: a
@@ -52,7 +53,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const supportFile = path.resolve(context.filename);
     const currentFolder = folderSegmentsOf(supportFile, sourceRoot);
     const supportFolder = currentFolder[currentFolder.length - 1];

@@ -16,6 +16,7 @@ docs/
 scripts/
   registry.json                   # requirement → enforcement, keyed by content hash
   coverage.ts                     # reconciles the docs against the registry
+  dogfood.ts                      # lints sibling repos with the built presets
   utils/                          # doc parsing, classification, registry IO
   types/                          # registry schema
 constants/
@@ -81,6 +82,21 @@ npx tsx scripts/coverage.ts --classify 041b665bd7 --note "no check can compare a
 
 The script refuses a hash no requirement has, a `ref` naming a rule that does not exist, and a classification without a note — so a mismatch cannot reach the registry by hand. Re-running it on an already-recorded requirement replaces the earlier entry. All of it reads and writes `scripts/registry.json`.
 
+## Dogfooding
+
+`npm run dogfood` lints an arbitrary repository with pasika's built presets, without modifying the target. It exists to find flaws in pasika itself by running it against sibling repos — it does not fix the target. Run `npm run build` first, then point it at a repo:
+
+```bash
+npm run build
+npm run dogfood -- ../some/repo                 # nextjsApp preset (default)
+npm run dogfood -- ../some/repo --preset=typescriptApp
+npm run dogfood -- ../some/repo --pasika-only   # tally only pasika/* rules
+npm run dogfood -- ../some/repo --rule=css-entry-point --findings
+npm run dogfood -- ../some/repo --json          # machine-readable report
+```
+
+The script writes a temporary standalone `eslint.config.mjs` that imports the preset from this repo's `dist`, so it exercises exactly the config a consuming repository would write. The exit code reports whether the run succeeded; the target's problem count is informational (printed as `Exit code would be`). A missing `dist` build or an unknown flag exits non-zero.
+
 ## ESLint ruleset
 
 ### With Zirka (recommended)
@@ -99,7 +115,7 @@ const { eslintConfig } = styleguide({
 export default eslintConfig;
 ```
 
-For a plain TypeScript repository, enable `pasikaTypescriptApp` instead of `pasikaNextjsApp`. `zirka` composes the pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
+For a plain TypeScript repository, enable `pasikaTypescriptApp` instead of `pasikaNextjsApp`; that preset covers the manifest, the zirka contract, and the docs only — the `src/**` source rules belong to the Next.js app preset. `zirka` composes the pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
 
 ### Without Zirka
 
@@ -110,9 +126,11 @@ import { typescriptApp } from "pasika/eslint";
 export default typescriptApp;
 ```
 
-`typescriptApp` is the plain-TypeScript-repository preset — the package.json manifest, the zirka configuration contract, the `src/**` TypeScript app source, and the docs. `nextjsApp` is the full framework preset: everything in `typescriptApp` plus the Next.js-stack manifest requirement, the Next.js app source rules, and the Tailwind stylesheet blocks. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
+`typescriptApp` is the plain-TypeScript-repository preset — the package.json manifest, the zirka configuration contract, and the docs. It carries no `src/**` source block: source linting is the Next.js app's job. `nextjsApp` is the full framework preset: everything in `typescriptApp` plus the Next.js-stack manifest requirement, the `src/**` app source rules, and the Tailwind stylesheet blocks. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
 
-Because the preset blocks wire ESLint's language plugins, using them directly (without `zirka`) requires `@eslint/css`, `@eslint/json`, and `@eslint/markdown` to be installed in the consuming project — they are `peerDependencies` of `pasika`. A `zirka`-based setup gets them automatically.
+The `src/**` blocks ship `@typescript-eslint/parser` themselves, so a standalone preset parses `.ts`/`.tsx` correctly on its own (`pasika` lists it as a runtime dependency).
+
+Because the preset blocks also wire ESLint's language plugins, using them directly (without `zirka`) requires `@eslint/css`, `@eslint/json`, and `@eslint/markdown` to be installed in the consuming project — they are `peerDependencies` of `pasika`. A `zirka`-based setup gets them automatically.
 
 ### TS/TSX rules
 
@@ -164,19 +182,19 @@ Because the preset blocks wire ESLint's language plugins, using them directly (w
 
 Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` with tolerant Tailwind v4 parsing.
 
-| Rule                              | Enforces                                                                      |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| `pasika/theme-reset`              | A `--*: initial` theme reset is present                                       |
-| `pasika/root-variables`           | `:root` defines the CSS custom properties                                     |
-| `pasika/apply-usage`              | `@layer base` uses `@apply` for declarations                                  |
-| `pasika/base-layer-pair`          | The base layer applies `base-canvas` and `base-ink`                           |
-| `pasika/stylesheet-ordering`      | Imports → `@custom-variant` → `:root` → `@theme` → `@utility` → `@layer base` |
-| `pasika/css-variable-naming`      | Background vars named `--<role>-canvas`, text vars `--<role>-ink`             |
-| `pasika/custom-utility-apply`     | `@utility` blocks use `@apply`                                                |
-| `pasika/surface-utility`          | Repeated canvas+ink combos become a named surface utility                     |
-| `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                 |
-| `pasika/global-css-location`      | Global CSS lives in the correct entry point                                   |
-| `pasika/unused-utility`           | A custom `@utility` no source file references is reported as dead             |
+| Rule                              | Enforces                                                                                              |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `pasika/theme-reset`              | A `--*: initial` theme reset is present                                                               |
+| `pasika/root-variables`           | `:root` defines the CSS custom properties                                                             |
+| `pasika/apply-usage`              | `@layer base` uses `@apply` for declarations                                                          |
+| `pasika/base-layer-pair`          | The base layer applies `base-canvas` and `base-ink`                                                   |
+| `pasika/stylesheet-ordering`      | Imports → `@custom-variant` → `:root` → `@theme` → `@utility` → `@layer base`                         |
+| `pasika/css-variable-naming`      | Background vars named `--<role>-canvas`, text vars `--<role>-ink`                                     |
+| `pasika/custom-utility-apply`     | `@utility` blocks use `@apply`                                                                        |
+| `pasika/surface-utility`          | Repeated canvas+ink combos become a named surface utility                                             |
+| `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                                         |
+| `pasika/css-entry-point` †        | One global entry, imported by one module, project CSS only in a stylesheet the entry imports directly |
+| `pasika/unused-utility`           | A custom `@utility` no source file references is reported as dead                                     |
 
 ### Package.json rules
 
@@ -197,7 +215,7 @@ Run `npx tsx scripts/coverage.ts --json` for the exact requirement each rule cov
 
 ### † Cross-file rules
 
-Where a component, hook, value, type, or style belongs depends on which files use it, so the rules marked † index the whole `src/` tree instead of looking at one file. Two consequences:
+Where a component, hook, value, type, or style belongs depends on which files use it — and whether a stylesheet sits inside the global import graph depends on the whole `src/` tree — so the rules marked † index the whole `src/` tree instead of looking at one file. Two consequences:
 
 - **Do not pass `--cache`.** Move a file and the finding belongs to a _different_ file, whose cache entry is unchanged — so ESLint would replay a stale verdict. `repository-policy.md` requires lint commands to run without it.
 - The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
@@ -216,4 +234,5 @@ npm run typecheck
 npm run test
 npm run coverage
 npm run build
+npm run dogfood -- ../some/repo   # requires a build; see Dogfooding above
 ```

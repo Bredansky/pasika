@@ -14,6 +14,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { parseModule, type ExportKind } from "../project/parse-module";
 import { segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);
 const ROUTING_FILES = new Set([
@@ -120,7 +121,7 @@ export const applicationStructureRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = path.resolve(context.filename);
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const segments = segmentsOf(filename, sourceRoot);
     if (segments.length === 0) return {};
 

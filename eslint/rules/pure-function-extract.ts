@@ -10,6 +10,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import type { FunctionDeclarationNode } from "../ast-types";
+import { sourceRootOf } from "./project-root";
 
 function isComponentLikeName(name: string): boolean {
   return /^[A-Z]/.test(name);
@@ -42,7 +43,7 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     const filename = context.filename;
     if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx")) return {};
 
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const relative = path.relative(sourceRoot, filename);
     if (relative.startsWith("..")) return {};
 

@@ -10,11 +10,10 @@
  */
 import { existsSync } from "node:fs";
 import path from "node:path";
-/* eslint-disable no-console -- coverage-script-reports-to-terminal */
-
 import { buildCoverageReport, type CoverageIssue } from "./utils/coverage-report";
 import { classifyRequirement } from "./utils/classify";
 import { readRegistry, writeRegistry } from "./utils/registry";
+import { log, logError } from "./utils/logger";
 
 const REGISTRY_RELATIVE_PATH = path.join("scripts", "registry.json");
 
@@ -54,13 +53,13 @@ for (let i = 0; i < args.length; i++) {
 
 const root = findRegistryRoot(process.cwd());
 if (!root) {
-  console.error(`No ${REGISTRY_RELATIVE_PATH} found in this directory or any parent.`);
+  logError(`No ${REGISTRY_RELATIVE_PATH} found in this directory or any parent.`);
   process.exit(1);
 }
 
 const docsRoot = path.join(root, "docs");
 if (!existsSync(docsRoot)) {
-  console.error(`No documentation folder at ${docsRoot}. Run coverage inside the pasika repository.`);
+  logError(`No documentation folder at ${docsRoot}. Run coverage inside the pasika repository.`);
   process.exit(1);
 }
 
@@ -80,9 +79,9 @@ if (classifyHash !== undefined) {
     });
     writeRegistry(registryPath, result.registry, docsRoot);
     const check = result.requirement.ref ? `governed by ${result.requirement.ref}` : "applied by judgment";
-    console.log(`✓ recorded as ${check}: ${result.requirement.text}`);
+    log(`✓ recorded as ${check}: ${result.requirement.text}`);
   } catch (err) {
-    console.error(`✗ ${err instanceof Error ? err.message : String(err)}`);
+    logError(`✗ ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);
   }
 }
@@ -94,17 +93,17 @@ const report = buildCoverageReport({
 });
 
 if (flags.has("json")) {
-  console.log(JSON.stringify(report, undefined, 2));
+  log(JSON.stringify(report, undefined, 2));
   process.exit(report.issues.length > 0 ? 1 : 0);
 }
 
 for (const issue of report.issues) {
   const where = issue.line === undefined ? issue.doc : `${issue.doc}:${String(issue.line)}`;
-  console.log(`  ✗ ${ISSUE_LABELS[issue.kind]} ${truncate(issue.text, 76)}`);
-  console.log(`              ${where}${issue.detail ? `\n              ${issue.detail}` : ""}`);
+  log(`  ✗ ${ISSUE_LABELS[issue.kind]} ${truncate(issue.text, 76)}`);
+  log(`              ${where}${issue.detail ? `\n              ${issue.detail}` : ""}`);
 }
 
-console.log(
+log(
   [
     "",
     `${String(report.total)} requirements`,
@@ -116,11 +115,9 @@ console.log(
 if (flags.has("accept")) {
   writeRegistry(registryPath, report.nextRegistry, docsRoot);
   const accepted = report.issues.filter((issue) => issue.kind === "changed" || issue.kind === "removed");
-  console.log(`\nAccepted ${String(accepted.length)} change(s) into ${REGISTRY_RELATIVE_PATH}.`);
-  console.log("Requirements reported as new still need a classification.");
+  log(`\nAccepted ${String(accepted.length)} change(s) into ${REGISTRY_RELATIVE_PATH}.`);
+  log("Requirements reported as new still need a classification.");
   process.exit(report.issues.some((issue) => issue.kind === "new") ? 1 : 0);
 }
 
 process.exit(report.issues.length > 0 ? 1 : 0);
-
-/* eslint-enable no-console -- re-enable after coverage script output block */

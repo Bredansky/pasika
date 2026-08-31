@@ -16,6 +16,7 @@ import type { Rule } from "eslint";
 import ts from "typescript";
 import { getProjectIndex, resolveSpecifier } from "../project/index";
 import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 /** The first segment of a `locales.<key>` read. */
 const LOCALE_ACCESS = /\blocales\.(?<key>[A-Za-z_$][\w$]*)/g;
@@ -77,7 +78,7 @@ export const localePlacementRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
     if (segments.length === 0) return {};

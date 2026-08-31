@@ -10,7 +10,7 @@ import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { surfaceUtilityRule } from "./surface-utility";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
-import { globalCssLocationRule } from "./global-css-location";
+import { cssEntryPointRule } from "./css-entry-point";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { unusedUtilityRule } from "./unused-utility";
 
@@ -24,7 +24,7 @@ export const tailwindRules = {
   "custom-utility-apply": customUtilityApplyRule,
   "surface-utility": surfaceUtilityRule,
   "theme-variable-namespace": themeVariableNamespaceRule,
-  "global-css-location": globalCssLocationRule,
+  "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
 };

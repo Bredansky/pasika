@@ -6,14 +6,14 @@
  * as lint-enforced has a test behind it.
  */
 import { describe, it } from "node:test";
-import { RuleTester } from "eslint";
 import css from "@eslint/css";
+import { CwdAwareRuleTester } from "../../rule-tester";
 import { tailwindRules } from "../../index";
 
-RuleTester.describe = describe;
-RuleTester.it = it;
+CwdAwareRuleTester.describe = describe;
+CwdAwareRuleTester.it = it;
 
-export const tailwindRuleTester = new RuleTester({
+export const tailwindRuleTester = new CwdAwareRuleTester({
   language: "css/css",
   languageOptions: { tolerant: true },
   plugins: {

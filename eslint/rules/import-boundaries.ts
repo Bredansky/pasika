@@ -10,13 +10,13 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import { sourceRootOf } from "./project-root";
 
-const sourceRoot = path.resolve("src");
 const rootSupportFolders = new Set(["config", "constants", "hooks", "locales", "schemas", "types", "utils"]);
 const moduleExtensions = new Set([".cjs", ".cts", ".js", ".jsx", ".mjs", ".mts", ".ts", ".tsx"]);
 const styleExtensions = new Set([".css", ".less", ".sass", ".scss"]);
 
-function resolveSourceImport(filename: string, importPath: string): string | undefined {
+function resolveSourceImport(sourceRoot: string, filename: string, importPath: string): string | undefined {
   if (importPath.startsWith("@/")) {
     return path.resolve(sourceRoot, importPath.slice(2));
   }
@@ -28,7 +28,7 @@ function resolveSourceImport(filename: string, importPath: string): string | und
   return undefined;
 }
 
-function sourceSegments(absolutePath: string): string[] | undefined {
+function sourceSegments(sourceRoot: string, absolutePath: string): string[] | undefined {
   const relativePath = path.relative(sourceRoot, absolutePath);
 
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
@@ -45,8 +45,8 @@ function relativeSpecifier(filename: string, resolvedPath: string): string {
 }
 
 /** The `@/*` form of an import. */
-function aliasSpecifier(resolvedPath: string): string {
-  return `@/${(sourceSegments(resolvedPath) ?? []).join("/")}`;
+function aliasSpecifier(sourceRoot: string, resolvedPath: string): string {
+  return `@/${(sourceSegments(sourceRoot, resolvedPath) ?? []).join("/")}`;
 }
 
 /** Segments in a specifier: one per `../` step and one per name, ignoring a leading `./`. */
@@ -67,8 +67,8 @@ function describeSegments(count: number): string {
  * while the alias spells the same tail, the alias always wins for a
  * cross-layer import without this needing to know what a layer is.
  */
-function prefersRelative(filename: string, resolvedPath: string): boolean {
-  return segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(resolvedPath));
+function prefersRelative(sourceRoot: string, filename: string, resolvedPath: string): boolean {
+  return segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(sourceRoot, resolvedPath));
 }
 
 export const importBoundariesRule: Rule.RuleModule = {
@@ -78,6 +78,7 @@ export const importBoundariesRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = context.filename;
+    const sourceRoot = sourceRootOf(context);
 
     if (!filename) {
       return {};
@@ -89,14 +90,14 @@ export const importBoundariesRule: Rule.RuleModule = {
       }
 
       const importPath = source.value;
-      const resolvedPath = resolveSourceImport(filename, importPath);
+      const resolvedPath = resolveSourceImport(sourceRoot, filename, importPath);
 
       if (!resolvedPath) {
         return;
       }
 
-      const importer = sourceSegments(filename);
-      const imported = sourceSegments(resolvedPath);
+      const importer = sourceSegments(sourceRoot, filename);
+      const imported = sourceSegments(sourceRoot, resolvedPath);
 
       if (!importer || !imported || importer.length === 0 || imported.length === 0) {
         return;
@@ -146,7 +147,7 @@ export const importBoundariesRule: Rule.RuleModule = {
       }
 
       const relativeForm = relativeSpecifier(filename, resolvedPath);
-      const aliasForm = aliasSpecifier(resolvedPath);
+      const aliasForm = aliasSpecifier(sourceRoot, resolvedPath);
       const relativeSegments = segmentCount(relativeForm);
       const aliasSegments = segmentCount(aliasForm);
 
@@ -163,7 +164,7 @@ export const importBoundariesRule: Rule.RuleModule = {
         );
       }
 
-      if (prefersRelative(filename, resolvedPath) && importPath.startsWith("@/")) {
+      if (prefersRelative(sourceRoot, filename, resolvedPath) && importPath.startsWith("@/")) {
         context.report({
           node: source,
           message: describeChoice(relativeForm, relativeSegments, aliasForm, aliasSegments),
@@ -171,7 +172,7 @@ export const importBoundariesRule: Rule.RuleModule = {
         return;
       }
 
-      if (!prefersRelative(filename, resolvedPath) && importPath.startsWith(".")) {
+      if (!prefersRelative(sourceRoot, filename, resolvedPath) && importPath.startsWith(".")) {
         context.report({
           node: source,
           message: describeChoice(aliasForm, aliasSegments, relativeForm, relativeSegments),

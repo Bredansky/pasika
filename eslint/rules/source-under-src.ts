@@ -56,7 +56,7 @@ export const sourceUnderSrcRule: Rule.RuleModule = {
     const filename = path.resolve(context.filename);
     if (!MODULE_EXTENSION.test(filename)) return {};
 
-    const relative = path.relative(process.cwd(), filename).replace(/\\/g, "/");
+    const relative = path.relative(context.cwd, filename).replace(/\\/g, "/");
     if (relative === "src" || relative.startsWith("src/")) return {};
 
     const topLevel = relative.split("/")[0] ?? "";

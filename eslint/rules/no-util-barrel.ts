@@ -12,7 +12,7 @@ export const noUtilBarrelRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = path.resolve(context.filename);
-    const sourceRoot = sourceRootOf(filename);
+    const sourceRoot = sourceRootOf(context, filename);
 
     return {
       Program(node) {
@@ -44,8 +44,11 @@ function importSpecifiers(source: string): string[] {
   return specifiers;
 }
 
-function sourceRootOf(filename: string): string {
+function sourceRootOf(context: { cwd?: string }, filename: string): string {
   const marker = `${path.sep}src${path.sep}`;
   const srcIndex = filename.lastIndexOf(marker);
-  return srcIndex >= 0 ? filename.slice(0, srcIndex + marker.length - 1) : path.resolve("src");
+  // Prefer the src root implied by the linted file's own path, which is immune
+  // to cwd entirely; fall back to ESLint's cwd rather than the process cwd.
+  if (srcIndex >= 0) return filename.slice(0, srcIndex + marker.length - 1);
+  return path.resolve(context.cwd ?? process.cwd(), "src");
 }

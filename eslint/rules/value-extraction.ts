@@ -14,6 +14,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex } from "../project/index";
 import { describeConsumers, segmentsOf } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 export const valueExtractionRule: Rule.RuleModule = {
   meta: {
@@ -24,7 +25,7 @@ export const valueExtractionRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
     if (segments.length === 0 || segments[0] !== "app") return {};

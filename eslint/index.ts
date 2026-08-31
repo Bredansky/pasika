@@ -10,6 +10,7 @@ import type { Linter } from "eslint";
 import css from "@eslint/css";
 import jsonPlugin from "@eslint/json";
 import markdown from "@eslint/markdown";
+import tsParser from "@typescript-eslint/parser";
 import { filenameCaseRule } from "./rules/filename-case";
 import { importBoundariesRule } from "./rules/import-boundaries";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
@@ -54,15 +55,19 @@ import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { zirkaBaselineRule } from "./rules/zirka-baseline";
 import { documentationRules } from "./rules/documentation/index";
 import { tailwindRules } from "./rules/tailwind/index";
-import { repoPackageJsonRules, nextPackageJsonRules } from "./rules/package-json/index";
+import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { huskyRules } from "./rules/husky/index";
 import { vulykRules } from "./rules/vulyk/index";
 
 /**
- * TypeScript app rules: file naming, imports, exports, folder conventions,
- * package hygiene. These apply to any TypeScript repository.
+ * The `src/**` app rules: every source rule the framework enforces. The
+ * file-naming, import, export, folder, extraction, and hygiene rules apply to
+ * any TypeScript repository; the React, JSX, hooks, Tailwind, CVA, and i18n
+ * rules assume a Next.js/React application with a Tailwind theme and are inert
+ * in other codebases.
  */
-const typescriptAppRules = {
+const nextjsAppRules = {
+  // Framework-agnostic TypeScript rules.
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
   "named-exports": namedExportsRule,
@@ -78,14 +83,7 @@ const typescriptAppRules = {
   "zod-schema-validation": zodSchemaValidationRule,
   "source-under-src": sourceUnderSrcRule,
   "zirka-baseline": zirkaBaselineRule,
-};
-
-/**
- * Next.js app rules: React components, JSX, hooks, Tailwind, CVA variants,
- * UI state, feature-folder i18n. These assume a Next.js/React application with
- * a Tailwind theme and are inert in other codebases.
- */
-const nextjsAppRules = {
+  // Next.js/React application rules.
   "component-placement": componentPlacementRule,
   "application-structure": applicationStructureRule,
   "data-testid-case": dataTestIdCaseRule,
@@ -115,13 +113,7 @@ const nextjsAppRules = {
   "repeated-structure": repeatedStructureRule,
 };
 
-/** Every source rule, merged so the Next.js preset applies them all. */
-export const pasikaRules = {
-  ...typescriptAppRules,
-  ...nextjsAppRules,
-};
-
-export { documentationRules, tailwindRules, repoPackageJsonRules, nextPackageJsonRules, huskyRules, vulykRules };
+export { documentationRules, tailwindRules, repoPackageJsonRules, nextjsPackageJsonRules, huskyRules, vulykRules };
 
 /**
  * One plugin object every preset block references. ESLint only permits a
@@ -132,22 +124,24 @@ export { documentationRules, tailwindRules, repoPackageJsonRules, nextPackageJso
  */
 export const pasikaPlugin = {
   rules: {
-    ...pasikaRules,
+    // The shared plugin must register every rule the preset blocks reference,
+    // so all rule sets live here.
+    ...nextjsAppRules,
     ...documentationRules,
     ...tailwindRules,
     ...repoPackageJsonRules,
-    ...nextPackageJsonRules,
+    ...nextjsPackageJsonRules,
     ...huskyRules,
     ...vulykRules,
   },
 };
 
 /**
- * One JSON-language plugin object shared by both manifest blocks, for the same
- * reason `pasikaPlugin` is shared: ESLint rejects a plugin name redefined with
- * a different object, and both blocks apply to `package.json`.
+ * The JSON language object shared by both manifest blocks, for the same reason
+ * `pasikaPlugin` is shared: ESLint rejects a plugin name redefined with a
+ * different object, and both blocks apply to `package.json`.
  */
-const jsonLanguagePlugin = { languages: { json: jsonPlugin.languages.json } };
+const jsonLanguage = { languages: { json: jsonPlugin.languages.json } };
 
 /** `pasika/<name>` ids for a rules object, in declaration order. */
 function ruleIds(rules: Record<string, unknown>): string[] {
@@ -156,47 +150,57 @@ function ruleIds(rules: Record<string, unknown>): string[] {
 
 // Rule-id groups, used internally to assemble the preset blocks and
 // `allPasikaRuleIds`. Only `allPasikaRuleIds` is part of the public API.
-const typescriptAppRuleIds = ruleIds(typescriptAppRules);
 const nextjsAppRuleIds = ruleIds(nextjsAppRules);
-const pasikaRuleIds = ruleIds(pasikaRules);
 const documentationRuleIds = ruleIds(documentationRules);
 const tailwindRuleIds = ruleIds(tailwindRules); // Tailwind stylesheet rules belong to the Next presets.
 const repoPackageJsonRuleIds = ruleIds(repoPackageJsonRules);
-const nextPackageJsonRuleIds = ruleIds(nextPackageJsonRules);
+const nextjsPackageJsonRuleIds = ruleIds(nextjsPackageJsonRules);
 const huskyRuleIds = ruleIds(huskyRules);
 const vulykRuleIds = ruleIds(vulykRules);
 
 /** Every rule id, as they appear in configuration and in lint output. */
 export const allPasikaRuleIds = [
-  ...pasikaRuleIds,
+  ...nextjsAppRuleIds,
   ...documentationRuleIds,
   ...tailwindRuleIds,
   ...repoPackageJsonRuleIds,
-  ...nextPackageJsonRuleIds,
+  ...nextjsPackageJsonRuleIds,
   ...huskyRuleIds,
   ...vulykRuleIds,
 ];
 
-/** The TypeScript app's TS/TSX source (`src/**`), running the TS app rules. */
-const typescriptAppBlock: Linter.Config = {
-  files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
-  plugins: {
-    pasika: pasikaPlugin,
+/**
+ * The parser the `src/**` blocks ship. The TS/TSX source rules read ESTree
+ * nodes and many re-parse with the TypeScript compiler API, so the preset
+ * must parse `.ts`/`.tsx` as TypeScript even when used standalone (without
+ * `zirka`, which otherwise supplies the parser). `@typescript-eslint/parser`
+ * is a runtime dependency so an installing consumer always gets it.
+ */
+const typescriptAppLanguageOptions: Linter.Config["languageOptions"] = {
+  parser: tsParser,
+  parserOptions: {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    ecmaFeatures: { jsx: true },
   },
-  rules: Object.fromEntries(typescriptAppRuleIds.map((id) => [id, "error"])),
 };
 
-/** The Next.js app's TS/TSX source, adding the Next.js app rules on top. */
-const nextjsAppBlock: Linter.Config = {
+/** The app's TS/TSX source (`src/**`), running every source rule. */
+const nextjsAppConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
+  languageOptions: typescriptAppLanguageOptions,
   plugins: {
     pasika: pasikaPlugin,
   },
   rules: Object.fromEntries(nextjsAppRuleIds.map((id) => [id, "error"])),
 };
 
-/** Tailwind stylesheet block: the global stylesheet (theme/utility rules). */
-const tailwindGlobalsBlock: Linter.Config = {
+/**
+ * The `globals.css` entry under `src` — marked by `@import "tailwindcss"`.
+ * The Tailwind structural rules run only here: each assumes this file IS the
+ * entry point, so they'd misreport any other stylesheet.
+ */
+const tailwindStructureRules: Linter.Config = {
   files: ["src/**/globals.css"],
   plugins: {
     css,
@@ -205,12 +209,17 @@ const tailwindGlobalsBlock: Linter.Config = {
   language: "css/css",
   languageOptions: { tolerant: true },
   rules: Object.fromEntries(
-    tailwindRuleIds.filter((id) => id !== "pasika/global-css-location").map((id) => [id, "error"]),
+    tailwindRuleIds.filter((id) => id !== "pasika/css-entry-point").map((id) => [id, "error"]),
   ),
 };
 
-/** Tailwind stylesheet block for every other stylesheet (`global-css-location` only). */
-const tailwindAnyCssBlock: Linter.Config = {
+/**
+ * Every stylesheet under `src` — the cross-file `css-entry-point` import-graph
+ * rule, applied once over all files so a stray sheet or one reached two hops
+ * away is caught. Kept apart from the structural rules because those assume
+ * the entry point and can't run here.
+ */
+const tailwindImportGraph: Linter.Config = {
   files: ["src/**/*.css"],
   plugins: {
     css,
@@ -218,7 +227,7 @@ const tailwindAnyCssBlock: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: { "pasika/global-css-location": "error" },
+  rules: { "pasika/css-entry-point": "error" },
 };
 
 /**
@@ -226,10 +235,10 @@ const tailwindAnyCssBlock: Linter.Config = {
  * manifest rules plus the husky (git-hook) and vulyk (docs) rules, on the JSON
  * language.
  */
-const repoManifestBlock: Linter.Config = {
+const typescriptAppPackageJsonConfig: Linter.Config = {
   files: ["package.json"],
   plugins: {
-    json: jsonLanguagePlugin,
+    json: jsonLanguage,
     pasika: pasikaPlugin,
   },
   language: "json/json",
@@ -241,14 +250,14 @@ const repoManifestBlock: Linter.Config = {
  * on the JSON language. Kept out of `typescriptApp` so a repository that does
  * not adopt the framework is never forced to list its packages.
  */
-const nextManifestBlock: Linter.Config = {
+const nextjsAppPackageJsonConfig: Linter.Config = {
   files: ["package.json"],
   plugins: {
-    json: jsonLanguagePlugin,
+    json: jsonLanguage,
     pasika: pasikaPlugin,
   },
   language: "json/json",
-  rules: Object.fromEntries(nextPackageJsonRuleIds.map((id) => [id, "error"])),
+  rules: Object.fromEntries(nextjsPackageJsonRuleIds.map((id) => [id, "error"])),
 };
 
 /**
@@ -256,14 +265,14 @@ const nextManifestBlock: Linter.Config = {
  * repository's eslint config file and verifies it takes its lint, format, and
  * TypeScript configuration from zirka rather than restating it locally.
  */
-const zirkaBlock: Linter.Config = {
+const zirkaConfig: Linter.Config = {
   files: ["eslint.config.{ts,mts,cts,js,mjs,cjs}"],
   plugins: { pasika: pasikaPlugin },
   rules: { "pasika/zirka-baseline": "error" },
 };
 
 /** Markdown/docs block: the documentation-guide rules, on the gfm language. */
-const docsBlock: Linter.Config = {
+const documentationConfig: Linter.Config = {
   files: ["docs/**/*.md"],
   ignores: ["**/_*/**"],
   plugins: {
@@ -277,21 +286,26 @@ const docsBlock: Linter.Config = {
 /**
  * TypeScript app preset: the framework-agnostic baseline — the package.json
  * manifest (incl. husky hook and vulyk requirements), the zirka configuration
- * contract, the `src/**` TS/TSX source, and the documentation markdown rules.
- * Use this for a plain TypeScript repository.
+ * contract, and the documentation markdown rules. It carries no `src/**`
+ * source block: source linting is the Next.js app's job.
+ * Use this for a plain TypeScript repository that does not adopt the framework.
  */
-export const typescriptApp: Linter.Config[] = [repoManifestBlock, zirkaBlock, typescriptAppBlock, docsBlock];
+export const typescriptApp: Linter.Config[] = [
+  typescriptAppPackageJsonConfig,
+  zirkaConfig,
+  documentationConfig,
+];
 
 /**
  * Next.js app preset: the full adopted-to-the-framework stack. Anything in
  * `typescriptApp` plus the framework-only blocks — the Next.js-stack manifest
- * requirement, the Next.js app source rules, and the Tailwind stylesheet
+ * requirement, the `src/**` app source rules, and the Tailwind stylesheet
  * rules. `typescriptApp` is a strict subset of `nextjsApp`.
  */
 export const nextjsApp: Linter.Config[] = [
   ...typescriptApp,
-  nextManifestBlock,
-  nextjsAppBlock,
-  tailwindGlobalsBlock,
-  tailwindAnyCssBlock,
+  nextjsAppPackageJsonConfig,
+  nextjsAppConfig,
+  tailwindStructureRules,
+  tailwindImportGraph,
 ];

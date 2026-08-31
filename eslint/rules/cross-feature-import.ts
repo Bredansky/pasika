@@ -8,6 +8,7 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import { sourceRootOf } from "./project-root";
 
 const FEATURES_SEGMENT = "features";
 
@@ -32,7 +33,7 @@ export const crossFeatureImportRule: Rule.RuleModule = {
     const filename = context.filename;
     if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx")) return {};
 
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const fileRelative = path.relative(sourceRoot, filename);
     if (fileRelative.startsWith("..")) return {};
 

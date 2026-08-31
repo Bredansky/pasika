@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -20,6 +20,7 @@
   "scripts": {
     "build": "tsup",
     "coverage": "tsx scripts/coverage.ts",
+    "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "prepack": "npm run build",
@@ -32,6 +33,7 @@
     "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npx eslint --fix"
   },
   "dependencies": {
+    "@typescript-eslint/parser": "8.68.0",
     "typescript": "6.0.3"
   },
   "devDependencies": {
@@ -43,7 +45,6 @@
     "@types/estree": "1.0.9",
     "@types/mdast": "4.0.4",
     "@types/node": "26.4.0",
-    "@typescript-eslint/parser": "8.68.0",
     "eslint": "10.9.1",
     "husky": "9.1.7",
     "lint-staged": "17.4.1",

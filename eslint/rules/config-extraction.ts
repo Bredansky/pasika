@@ -15,6 +15,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex, symbolKey } from "../project/index";
 import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 export const configExtractionRule: Rule.RuleModule = {
   meta: {
@@ -25,7 +26,7 @@ export const configExtractionRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
     // A configuration module file: src/config/<name>/<file>. Support folders are

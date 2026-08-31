@@ -14,6 +14,7 @@ import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
 import type { FunctionDeclarationNode } from "../ast-types";
+import { sourceRootOf } from "./project-root";
 
 const REACT_HOOKS = new Set([
   "useState",
@@ -73,7 +74,7 @@ export const hookComplexityRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = context.filename;
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const relative = path.relative(sourceRoot, filename);
     if (relative.startsWith("..")) return {};
 

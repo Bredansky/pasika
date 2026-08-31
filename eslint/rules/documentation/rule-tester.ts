@@ -6,14 +6,14 @@
  * as lint-enforced has a test behind it.
  */
 import { describe, it } from "node:test";
-import { RuleTester } from "eslint";
 import markdown from "@eslint/markdown";
+import { CwdAwareRuleTester } from "../../rule-tester";
 import { documentationRules } from "../../index";
 
-RuleTester.describe = describe;
-RuleTester.it = it;
+CwdAwareRuleTester.describe = describe;
+CwdAwareRuleTester.it = it;
 
-export const documentationRuleTester = new RuleTester({
+export const documentationRuleTester = new CwdAwareRuleTester({
   language: "markdown/gfm",
   plugins: {
     markdown,

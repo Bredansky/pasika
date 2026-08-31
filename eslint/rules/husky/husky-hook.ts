@@ -34,7 +34,7 @@ export const huskyHookRule: JSONRuleDefinition = {
         if (!scriptName.endsWith("package.json")) return;
 
         // pre-commit hook must exist and run lint-staged + typecheck + libyear drift check
-        const hookPath = path.join(process.cwd(), ".husky", "pre-commit");
+        const hookPath = path.join(context.cwd, ".husky", "pre-commit");
         if (!existsSync(hookPath)) {
           context.report({
             node,

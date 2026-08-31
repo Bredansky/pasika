@@ -15,9 +15,9 @@ export const repoPackageJsonRules = {
 };
 
 /** Package.json rules specific to a Next.js (or React) application. */
-export const nextPackageJsonRules = {
+export const nextjsPackageJsonRules = {
   "nextjs-stack": nextjsStackRule,
 };
 
 export type RepoPackageJsonRuleName = keyof typeof repoPackageJsonRules;
-export type NextPackageJsonRuleName = keyof typeof nextPackageJsonRules;
+export type NextjsPackageJsonRuleName = keyof typeof nextjsPackageJsonRules;

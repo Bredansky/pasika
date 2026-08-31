@@ -9,37 +9,12 @@
  * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import path from "node:path";
+import { statSync } from "node:fs";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, preludeIdentifiers } from "./helpers";
-
-/** File kinds that can reference a utility class: source modules and stylesheets. */
-const SOURCE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".css"];
-
-/** Every file under `dir` that could reference a utility class, recursively. */
-function sourceFiles(dir: string): string[] {
-  let entries: string[];
-  try {
-    entries = readdirSync(dir);
-  } catch {
-    return [];
-  }
-
-  return entries.flatMap((entry) => {
-    if (entry.startsWith(".") || entry === "node_modules") return [];
-    const entryPath = path.join(dir, entry);
-    let stats;
-    try {
-      stats = statSync(entryPath);
-    } catch {
-      return [];
-    }
-    if (stats.isDirectory()) return sourceFiles(entryPath);
-    return SOURCE_EXTENSIONS.includes(path.extname(entry)) ? [entryPath] : [];
-  });
-}
+import { sourceRootOf } from "../project-root";
+import { SOURCE_EXTENSIONS, cachedTextReader, escapeRegExp, findFiles } from "./source-files";
 
 /**
  * A usage regex for one utility name. The lookarounds require the name to be a
@@ -48,8 +23,7 @@ function sourceFiles(dir: string): string[] {
  * never counts as a use of `surface-primary`.
  */
 function usagePattern(name: string): RegExp {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(?<![\\w-])${escaped}(?![\\w-])`);
+  return new RegExp(`(?<![\\w-])${escapeRegExp(name)}(?![\\w-])`);
 }
 
 export const unusedUtilityRule: CSSRuleDefinition = {
@@ -61,31 +35,17 @@ export const unusedUtilityRule: CSSRuleDefinition = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     let files: string[];
     try {
       if (!statSync(sourceRoot).isDirectory()) return {};
-      files = sourceFiles(sourceRoot);
+      files = findFiles(sourceRoot, SOURCE_EXTENSIONS);
     } catch {
       // No src/ tree: the rule is inert, like the other cross-file rules.
       return {};
     }
 
-    // Read every file once per linted stylesheet, so one utility never forces
-    // a re-read of the same file.
-    const texts = new Map<string, string>();
-    const textOf = (file: string): string => {
-      let text = texts.get(file);
-      if (text === undefined) {
-        try {
-          text = readFileSync(file, "utf8");
-        } catch {
-          text = "";
-        }
-        texts.set(file, text);
-      }
-      return text;
-    };
+    const textOf = cachedTextReader();
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {

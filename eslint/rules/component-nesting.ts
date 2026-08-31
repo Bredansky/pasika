@@ -13,6 +13,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex } from "../project/index";
 import { segmentsOf } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 export const componentNestingRule: Rule.RuleModule = {
   meta: {
@@ -23,7 +24,7 @@ export const componentNestingRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
     // A component file directly inside a feature subfolder:

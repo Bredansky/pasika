@@ -2,14 +2,14 @@
  * Shared RuleTester wiring for the husky/git-hook rule tests.
  */
 import { describe, it } from "node:test";
-import { RuleTester } from "eslint";
 import jsonPlugin from "@eslint/json";
+import { CwdAwareRuleTester } from "../../rule-tester";
 import { huskyRules } from "../../index";
 
-RuleTester.describe = describe;
-RuleTester.it = it;
+CwdAwareRuleTester.describe = describe;
+CwdAwareRuleTester.it = it;
 
-export const huskyRuleTester = new RuleTester({
+export const huskyRuleTester = new CwdAwareRuleTester({
   language: "json/json",
   plugins: {
     json: { languages: { json: jsonPlugin.languages.json } },

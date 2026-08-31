@@ -28,6 +28,11 @@ const GLOBALS = `@theme {
 @utility primary-surface {
   @apply bg-(--primary-canvas) text-(--primary-ink);
 }
+
+/* Defined as a plain selector, not @utility or @theme. */
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
 `;
 
 const FIXTURE: Record<string, string> = {
@@ -44,6 +49,8 @@ process.chdir(root);
 
 const message = (className: string): string =>
   `Utility class "${className}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`;
+const plainMessage = (className: string): string =>
+  `Utility class "${className}" is defined as a plain CSS selector in a stylesheet, not as an @utility (or @theme variable). Define it with @utility so the framework can own and validate it.`;
 
 void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
@@ -65,7 +72,36 @@ void describe("A utility class a component statically references MUST be a custo
       {
         code: '<div className="text-sm animate-float ease-custom aspect-video" />',
         filename: srcFile("shared/card.tsx"),
-      }, // Built-in values and numeric scales that do not depend on theme tokens.
+      },
+      // aspect-auto and aspect-square are static Tailwind built-ins that survive the reset.
+      {
+        code: '<div className="aspect-auto aspect-square" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // Static value tokens Tailwind bakes in, which survive the reset: rounded-full/none,
+      // leading-none, blur-none, backdrop-blur-none, animate-none, ease-linear, z-auto.
+      // ease-initial is also a static built-in even though it is not in DEFAULT_TOKENS.
+      {
+        code: '<div className="rounded-full rounded-none leading-none blur-none backdrop-blur-none animate-none ease-linear ease-initial z-auto" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // blur-sm is a project re-declared @theme token, so it survives the reset;
+      // only non-re-declared value tokens die.
+      {
+        code: '<div className="blur-sm backdrop-blur-sm" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // ease-custom is a project @theme token in the bare ease namespace.
+      {
+        code: '<div className="ease-custom" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // transparent/current/inherit are static color keywords that survive the reset.
+      {
+        code: '<div className="via-transparent bg-current text-inherit" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // Built-in values and numeric scales that do not depend on theme tokens.
       {
         code: '<div className="border-2 border-x-2 divide-x divide-y-2 ring-inset outline-offset-2 decoration-2 stroke-2 from-primary-canvas to-t fill-none accent-auto" />',
         filename: srcFile("shared/card.tsx"),
@@ -131,6 +167,12 @@ void describe("A utility class a component statically references MUST be a custo
         filename: srcFile("shared/card.tsx"),
         errors: [{ message: message("primary-surfce") }],
       },
+      // A class defined as a plain CSS selector is real but must be an @utility.
+      {
+        code: '<div className="animate-blink" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: plainMessage("animate-blink") }],
+      },
       // A project family with a shade the project does not define.
       {
         code: '<div className="bg-brand-600" />',
@@ -144,15 +186,54 @@ void describe("A utility class a component statically references MUST be a custo
         errors: [{ message: message("ring-offset-background") }],
       },
       // Font-size and value tokens the project did not re-declare after the reset are dead.
+      // (ease-linear is now known as a static built-in; ease-in is still theme-derived.)
       {
-        code: '<div className="text-2xl animate-chromatic ease-linear aspect-square" />',
+        code: '<div className="text-2xl animate-chromatic ease-in" />',
         filename: srcFile("shared/card.tsx"),
         errors: [
           { message: message("text-2xl") },
           { message: message("animate-chromatic") },
-          { message: message("ease-linear") },
-          { message: message("aspect-square") },
+          { message: message("ease-in") },
         ],
+      },
+      // leading-normal and rounded-sm are theme-derived, so they die under the reset unless re-declared.
+      {
+        code: '<div className="leading-normal rounded-sm" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: message("leading-normal") },
+          { message: message("rounded-sm") },
+        ],
+      },
+      // The non-static ease values (in/out/in-out) are theme-derived and die under the
+      // reset; only the static ease-linear/ease-initial survive. ease-custom lives because
+      // the project re-declared it. This locks in the static-vs-theme split for the ease namespace.
+      {
+        code: '<div className="ease-in ease-out ease-in-out" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: message("ease-in") },
+          { message: message("ease-out") },
+          { message: message("ease-in-out") },
+        ],
+      },
+      // Non-re-declared blur values are theme-derived and die under the reset; only blur-none
+      // (static) and re-declared blur-sm survive. Confirms the static-vs-theme split for blur.
+      {
+        code: '<div className="blur-md blur-xs blur-2xl backdrop-blur-md" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: message("blur-md") },
+          { message: message("blur-xs") },
+          { message: message("blur-2xl") },
+          { message: message("backdrop-blur-md") },
+        ],
+      },
+      // white/black are theme-derived colors and die under the reset (only transparent/current/inherit are static).
+      {
+        code: '<div className="bg-white" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: message("bg-white") }],
       },
       // The default-theme reset disables Tailwind's defaults, so palette classes are dead too.
       {

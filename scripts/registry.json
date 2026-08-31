@@ -926,9 +926,9 @@
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",
-      "text": "The project's global CSS MUST live in the global stylesheet entry point and MUST NOT be imported from another file.",
-      "hash": "dce78502d3",
-      "ref": "pasika/global-css-location"
+      "text": "The global stylesheet entry point MUST be imported by exactly one module (the root layout), every other stylesheet MUST be reachable from it via `@import`, and one holding project CSS MUST be imported by the entry point directly.",
+      "hash": "ab192b1f21",
+      "ref": "pasika/css-entry-point"
     },
     {
       "doc": "styling-guide/rules/global-stylesheet-rule.md",

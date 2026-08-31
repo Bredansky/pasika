@@ -23,6 +23,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
+import { sourceRootOf } from "./project-root";
 
 /** The theme-variable namespaces Tailwind turns into utilities, and the utility prefixes that consume each one. */
 const PREFIX_NAMESPACES: Record<string, string[]> = {
@@ -195,7 +196,30 @@ const DEFAULT_TOKENS: Record<string, string[]> = {
   blur: ["none", "xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
   animate: ["none", "spin", "ping", "pulse", "bounce"],
   ease: ["linear", "in", "out", "in-out"],
-  aspect: ["auto", "video", "square"],
+  // Note: aspect's auto/square, radius's none/full, leading's none, blur's
+  // none, animate's none, and ease's linear are static built-ins covered by
+  // STATIC_VALUE_TOKENS; the remainder are theme-derived.
+  aspect: ["video"],
+};
+
+/**
+ * Value namespaces whose leading tokens Tailwind v4 bakes in as static
+ * utilities, independent of any theme variable, so they survive a
+ * `--*: initial` reset. Enumerated from Tailwind v4's `staticValues` tables;
+ * each key maps to the theme namespace (the utility prefix for bare
+ * namespaces like `aspect`, or the namespace an existing prefix like `rounded`
+ * reads from). Treating them as dead theme tokens under the reset reads
+ * built-in utilities as unknowns, so the static ones are known regardless of
+ * the reset.
+ */
+const STATIC_VALUE_TOKENS: Record<string, string[]> = {
+  aspect: ["auto", "square"],
+  radius: ["none", "full"],
+  leading: ["none"],
+  blur: ["none"],
+  animate: ["none"],
+  ease: ["linear", "initial"],
+  z: ["auto"],
 };
 
 /** The default palette families and shades; `--color-*` tokens also cover project families. */
@@ -225,6 +249,8 @@ const DEFAULT_PALETTE_FAMILIES = new Set([
 ]);
 const DEFAULT_PALETTE_SHADES = new Set(["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"]);
 const DEFAULT_COLOR_SPECIALS = new Set(["white", "black", "transparent", "current", "inherit"]);
+/** Color specials Tailwind v4 bakes in as static keywords, surviving a `--*: initial` reset. */
+const STATIC_COLOR_SPECIALS = new Set(["transparent", "current", "inherit"]);
 
 /** Numeric-scale values like `border-2`, `to-50%`, `leading-6`, `rounded-2.5`. */
 const NUMERIC_TOKEN_RE = /^-?(?:\d+\.?\d*|\.\d+)(?:%|px|rem|em)?$/;
@@ -240,6 +266,8 @@ interface Inventory {
   themeTokens: Map<string, Set<string>>;
   /** The stylesheets reset Tailwind's default theme with `--*: initial`, disabling the default tokens. */
   defaultsReset: boolean;
+  /** Class names defined as plain CSS selectors (not `@utility`), so existing-but-unregistered classes get an accurate message. */
+  plainClasses: Set<string>;
 }
 
 /** Every `.css` file under `dir`, recursively, skipping dot-directories and node_modules. */
@@ -284,11 +312,44 @@ function themeBlocks(css: string): string[] {
   return blocks;
 }
 
+/** Class names declared as `.<name>` selectors in a stylesheet, i.e. defined outside `@utility`/`@theme`. */
+function classSelectors(css: string): string[] {
+  // Do not descend into @utility blocks, whose `@apply` bodies can contain
+  // parenthesized variable utilities like `bg-(--primary-canvas)`.
+  const blocks: string[] = [];
+  let index = 0;
+  while (index < css.length) {
+    const match = /@utility\s*\{/.exec(css.slice(index));
+    if (!match) break;
+    const open = index + match.index + match[0].length - 1;
+    let depth = 1;
+    let cursor = open + 1;
+    for (; cursor < css.length && depth > 0; cursor++) {
+      if (css[cursor] === "{") depth++;
+      else if (css[cursor] === "}") depth--;
+    }
+    blocks.push(css.slice(open + 1, cursor - 1));
+    index = cursor;
+  }
+  let selectors = css;
+  for (const block of blocks) selectors = selectors.replace(block, "");
+  const names: string[] = [];
+  // A class name in a selector is followed by optional whitespace then one of
+  // `{`, `,`, `.`, `:`, `#`, `>`, or end of string. This skips `url(...)` and
+  // value tokens, which never precede those characters directly after a name.
+  for (const match of selectors.matchAll(/\.(?<className>[a-z][a-z0-9_-]*)(?=\s*[.,:#>{]|$)/gi)) {
+    const className = match.groups?.className;
+    if (className) names.push(className);
+  }
+  return names;
+}
+
 /** Builds the repository's custom-utility and theme-token inventory from its stylesheets. */
 function readInventory(files: string[]): Inventory {
   const utilities = new Set<string>();
   const utilityPrefixes = new Set<string>();
   const themeTokensByNamespace = new Map<string, Set<string>>();
+  const plainClasses = new Set<string>();
   let defaultsReset = false;
   for (const file of files) {
     let css: string;
@@ -304,6 +365,7 @@ function readInventory(files: string[]): Inventory {
       const dash = utilityName.indexOf("-");
       if (dash > 0) utilityPrefixes.add(utilityName.slice(0, dash));
     }
+    for (const plainClass of classSelectors(css)) plainClasses.add(plainClass);
     for (const block of themeBlocks(css)) {
       if (/--\*\s*:\s*initial\b/.test(block)) defaultsReset = true;
       for (const decl of block.matchAll(/--(?<namespace>[a-z][a-z0-9]*)-(?<token>[a-z0-9][a-z0-9_-]*)\s*:/g)) {
@@ -319,11 +381,14 @@ function readInventory(files: string[]): Inventory {
       }
     }
   }
-  return { utilities, utilityPrefixes, themeTokens: themeTokensByNamespace, defaultsReset };
+  return { utilities, utilityPrefixes, themeTokens: themeTokensByNamespace, defaultsReset, plainClasses };
 }
 
 function isColorToken(token: string, inventory: Inventory): boolean {
   if (inventory.themeTokens.get("color")?.has(token)) return true;
+  // `transparent`, `current`, and `inherit` are static keywords that survive a
+  // `--*: initial` reset; `white`/`black` and the palette are theme-derived.
+  if (STATIC_COLOR_SPECIALS.has(token)) return true;
   if (inventory.defaultsReset) return false; // --*: initial disables the default palette
   if (DEFAULT_COLOR_SPECIALS.has(token)) return true;
   const hyphen = token.lastIndexOf("-");
@@ -352,6 +417,10 @@ function isKnown(className: string, inventory: Inventory): boolean {
   if (inventory.utilities.has(utility)) return true;
   const namespaces = PREFIX_NAMESPACES[prefix];
   if (!namespaces) {
+    // A static value built in to Tailwind (aspect-auto, aspect-square) is
+    // known even when the project resets the default theme — the project may
+    // also define its own tokens in the same namespace (`--aspect-video`).
+    if (STATIC_VALUE_TOKENS[prefix]?.includes(token)) return true;
     // A bare prefix is either a theme namespace the project defines itself
     // (`--animate-float` makes `animate-float` valid) or a custom-utility
     // family (`primary-surfce` is a typo of `primary-surface`). Classes like
@@ -372,6 +441,8 @@ function isKnown(className: string, inventory: Inventory): boolean {
       continue;
     }
     if (inventory.themeTokens.get(namespace)?.has(token)) return true;
+    // Static built-ins (leading-none, rounded-full) exist even after the reset.
+    if (STATIC_VALUE_TOKENS[namespace]?.includes(token)) return true;
     // Without the reset the default tokens exist; with `--*: initial` they are dead.
     if (!inventory.defaultsReset && DEFAULT_TOKENS[namespace]?.includes(token)) return true;
   }
@@ -400,7 +471,7 @@ export const unknownUtilityRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     let inventory: Inventory;
     try {
       if (!statSync(sourceRoot).isDirectory()) return {};
@@ -415,12 +486,25 @@ export const unknownUtilityRule: Rule.RuleModule = {
       for (const candidate of value.split(/\s+/)) {
         if (!candidate || seen.has(candidate)) continue;
         seen.add(candidate);
-        if (!isKnown(candidate, inventory)) {
+        if (isKnown(candidate, inventory)) continue;
+        // A class defined as a plain CSS selector is real but not registered as
+        // an @utility/theme utility. Give it an actionable message instead of the
+        // unknown-verdict that reads like a typo; the framework requires the
+        // utility be defined with @utility (or a @theme variable).
+        const plainBase = candidate.replace(/!+$/, "").split(":").pop() ?? "";
+        if (inventory.plainClasses.has(plainBase)) {
           context.report({
             node,
-            message: `Utility class "${candidate}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`,
+            message:
+              `Utility class "${candidate}" is defined as a plain CSS selector in a stylesheet, not as an ` +
+              "@utility (or @theme variable). Define it with @utility so the framework can own and validate it.",
           });
+          continue;
         }
+        context.report({
+          node,
+          message: `Utility class "${candidate}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`,
+        });
       }
     }
 

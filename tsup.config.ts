@@ -17,8 +17,9 @@ export default defineConfig({
   splitting: false,
   minify: false,
   target: "esnext",
-  // The pasika presets ship the language blocks, so the ESLint language
-  // plugins they wire at runtime stay external imports (never inlined). They
-  // are declared as peerDependencies; consumers already install them.
-  external: ["@eslint/css", "@eslint/json", "@eslint/markdown"],
+  // The pasika presets ship the parser and the ESLint language blocks, so the
+  // TypeScript parser and the ESLint language plugins they wire at runtime stay
+  // external imports (never inlined). The parser is a runtime dependency; the
+  // language plugins are peerDependencies that consumers already install.
+  external: ["@typescript-eslint/parser", "@eslint/css", "@eslint/json", "@eslint/markdown"],
 });

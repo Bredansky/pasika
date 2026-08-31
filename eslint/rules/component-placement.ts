@@ -20,6 +20,7 @@ import {
   resolveComponentPlacement,
   segmentsOf,
 } from "../project/ccf";
+import { sourceRootOf } from "./project-root";
 
 const REASON_TEXT: Record<string, string> = {
   ccf: "that is the closest folder its consumers share",
@@ -42,7 +43,7 @@ export const componentPlacementRule: Rule.RuleModule = {
     const filename = context.filename;
     if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx")) return {};
 
-    const sourceRoot = path.resolve("src");
+    const sourceRoot = sourceRootOf(context);
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
