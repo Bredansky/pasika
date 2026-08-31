@@ -740,8 +740,14 @@
     },
     {
       "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
-      "text": "A repository adopting the framework MUST track the framework's docs from `pasika` in `vulyk.config.ts`.",
-      "hash": "3f06dc7db8",
+      "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `framework-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "6b4942ddef",
+      "ref": "pasika/vulyk-docs"
+    },
+    {
+      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
+      "text": "A repository adopting the framework's Next.js app preset MUST additionally track the framework's `code-organization-guide` and `styling-guide` docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "08d4340ee1",
       "ref": "pasika/vulyk-docs"
     },
     {
