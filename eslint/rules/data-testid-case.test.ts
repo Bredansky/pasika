@@ -39,6 +39,28 @@ void describe("A smart component with one outer DOM element in every rendered re
   });
 });
 
+void describe("A smart component that conditionally renders nothing MAY return null as a guard; the single rendered element MUST still set data-testid.", () => {
+  ruleTester.run("data-testid-case", dataTestIdCaseRule, {
+    valid: [
+      {
+        code: `export function AccountPanel() {\n  const [enabled] = useState(false);\n  if (!enabled) return null;\n  return <section data-testid="AccountPanel">{String(enabled)}</section>;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: `export function AccountPanel() {\n  const [enabled] = useState(false);\n  if (!enabled) return null;\n  return <section>{String(enabled)}</section>;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+        errors: [
+          {
+            message: 'Smart component "AccountPanel" with one outer DOM element must set data-testid="AccountPanel".',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A dumb component MAY set data-testid on its root element, and the value MUST be kebab-case.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
@@ -112,6 +134,14 @@ void describe("Next.js App Router routing files MUST use their required kebab-ca
       {
         code: `export default function Layout({ children }: { children: React.ReactNode }) {\n  return <div>{children}</div>;\n}`,
         filename: srcFile("app/layout.tsx"),
+      },
+      {
+        code: `export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {\n  return <html><body>{String(error.message)}<button onClick={reset}>retry</button></body></html>;\n}`,
+        filename: srcFile("app/global-error.tsx"),
+      },
+      {
+        code: `export default function NotFound() {\n  return <main data-testid="NotFound">Missing</main>;\n}`,
+        filename: srcFile("app/not-found.tsx"),
       },
     ],
     invalid: [],

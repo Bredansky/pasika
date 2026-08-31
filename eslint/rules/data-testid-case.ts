@@ -16,16 +16,25 @@ import type { Rule } from "eslint";
 import { findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions";
 
 const NEXT_ROUTING_FILES = new Set([
-  "page",
+  "default",
+  "error",
+  "global-error",
+  "instrumentation",
   "layout",
   "loading",
-  "error",
+  "middleware",
   "not-found",
+  "page",
   "route",
   "template",
-  "default",
-  "middleware",
-  "instrumentation",
+  // File conventions Next.js requires to keep their exact names in src/app/
+  "apple-icon",
+  "icon",
+  "manifest",
+  "opengraph-image",
+  "robots",
+  "sitemap",
+  "twitter-image",
 ]);
 
 const isPascalCase = (value: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(value);

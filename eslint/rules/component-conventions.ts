@@ -154,8 +154,13 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
     ts.forEachChild(node, visit);
   };
   visit(body);
-  if (returns.length !== 1) return undefined;
-  const expression = returns[0]?.expression;
+  // `return null` renders nothing, so it does not count as a rendered result:
+  // a component that guards `if (condition) return null;` and otherwise renders
+  // one element still has exactly one outer DOM element in every rendered
+  // result, and the element must carry the data-testid.
+  const rendered = returns.filter((statement) => statement.expression?.kind !== ts.SyntaxKind.NullKeyword);
+  if (rendered.length !== 1) return undefined;
+  const expression = rendered[0]?.expression;
   return expression && ts.isExpression(expression) ? rootFromExpression(expression) : undefined;
 }
 
