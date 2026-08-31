@@ -1,5 +1,32 @@
+import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { enforceCnMergeRule } from "./enforce-cn-merge";
+
+/**
+ * The package-component exemption resolves imports through the project index,
+ * so it needs a real tree on disk: one file imports an icon from a package, one
+ * imports a project component from a local module.
+ */
+const FIXTURE: Record<string, string> = {
+  // A project component: its consumers must pass only outer-layout classes.
+  "shared/card.tsx": 'export function Card() { return <div />; }\n',
+  // A consumer that imports both a package icon and the project component.
+  "features/player/player.tsx":
+    'import { Play } from "lucide-react";\nimport { Card } from "../../shared/card";\n' +
+    'export function Player() { return <><Play className="text-primary h-4 w-4" /><Card className="w-full" /></>; }\n',
+};
+
+const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-enforce-cn-")));
+for (const [relativePath, contents] of Object.entries(FIXTURE)) {
+  const filePath = path.join(root, "src", relativePath);
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, contents);
+}
+process.chdir(root);
+
+const pkgFile = (): string => path.join(root, "src", "features/player/player.tsx");
 
 const DOC = "See docs/styling-guide/rules/class-composition-rule.md";
 const TEMPLATE_MESSAGE = `Use cn() instead of template literals with conditionals for className. ${DOC}`;
@@ -73,6 +100,11 @@ void describe("A className passed to a component MUST contain only outer-layout 
         code: '<Card className={cn("w-full", className)} />',
         filename: srcFile("features/dashboard/card.tsx"),
       },
+      // A package component (lucide icon) is styled exclusively through className.
+      {
+        code: FIXTURE["features/player/player.tsx"] ?? "",
+        filename: pkgFile(),
+      },
     ],
     invalid: [
       {
@@ -81,6 +113,19 @@ void describe("A className passed to a component MUST contain only outer-layout 
         errors: 1,
       },
     ],
+  });
+});
+
+void describe("A className passed to a component imported from a package (an icon, next/link, next/image) MAY contain any utility: package components expose no typed variant props, so their className is their only styling API.", () => {
+  ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
+    valid: [
+      // The package icon's non-layout className is its styling API.
+      {
+        code: FIXTURE["features/player/player.tsx"] ?? "",
+        filename: pkgFile(),
+      },
+    ],
+    invalid: [],
   });
 });
 

@@ -884,6 +884,12 @@
     },
     {
       "doc": "styling-guide/rules/class-composition-rule.md",
+      "text": "A `className` passed to a component imported from a package (an icon, `next/link`, `next/image`) MAY contain any utility: package components expose no typed variant props, so their `className` is their only styling API.",
+      "hash": "0c88101add",
+      "ref": "pasika/enforce-cn-merge"
+    },
+    {
+      "doc": "styling-guide/rules/class-composition-rule.md",
       "text": "A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.",
       "hash": "2c58fa578d",
       "ref": "pasika/enforce-cn-merge"

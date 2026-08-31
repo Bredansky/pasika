@@ -6,6 +6,7 @@
 - Components MUST NOT concatenate class strings with template literals or `+` when any part is conditional.
 - A `className` passed to a component MUST contain only outer-layout utilities: margins, sizing, flex or grid item placement, and `z-index`.
 - A component MUST expose its supported appearance and size variants through typed props, not through a passed `className` or separate class-name props for internal elements.
+- A `className` passed to a component imported from a package (an icon, `next/link`, `next/image`) MAY contain any utility: package components expose no typed variant props, so their `className` is their only styling API.
 - A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.
 
 ## Incorrect — Conditional Classes Concatenated Manually

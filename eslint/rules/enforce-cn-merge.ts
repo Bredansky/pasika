@@ -6,9 +6,12 @@
  * @see docs/styling-guide/rules/class-composition-rule.md
  */
 
+import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import type { JsxAttributeNode, JsxIdentifier, JsxMemberExpression } from "../ast-types";
+import { getProjectIndex } from "../project/index";
+import { sourceRootOf } from "./project-root";
 
 function classCount(str: string): number {
   return str.split(/\s+/).filter(Boolean).length;
@@ -41,11 +44,30 @@ function stringArguments(node: ESTree.Node | null | undefined): string[] {
 export const enforceCnMergeRule = {
   meta: { schema: [], type: "problem" as const, docs: { description: "Enforce cn() for conditional class merging." } },
   create(context: Rule.RuleContext) {
+    // Components imported from a package (lucide icons, next/link, next/image)
+    // expose className as their only styling API — typed variant props do not
+    // exist there, so the outer-layout contract applies only to components the
+    // project defines itself. Names imported from a bare specifier are package
+    // components; anything else (local imports, same-file definitions) stays
+    // governed by the contract.
+    const packageComponents = new Set<string>();
+    const index = getProjectIndex(sourceRootOf(context));
+    const module = index?.modules.get(path.resolve(context.filename));
+    for (const moduleImport of module?.imports ?? []) {
+      if (moduleImport.specifier.startsWith(".") || moduleImport.specifier.startsWith("@/")) continue;
+      for (const name of moduleImport.names) {
+        if (/^[A-Z]/.test(name)) packageComponents.add(name);
+      }
+    }
+
     return {
       JSXAttribute(node: JsxAttributeNode) {
         const attributeName = node.name?.name ?? "";
         const element = node.parent.parent;
-        const isComponentProp = isComponentName(element.openingElement?.name);
+        const componentName = element.openingElement?.name;
+        const isComponentProp = isComponentName(componentName);
+        const isPackageComponent =
+          componentName?.type === "JSXIdentifier" && packageComponents.has(componentName.name);
         if (isComponentProp && attributeName !== "className" && attributeName.endsWith("ClassName")) {
           context.report({
             node,
@@ -58,6 +80,9 @@ export const enforceCnMergeRule = {
         const valueNode = node.value;
         if (!valueNode) return;
         if (isComponentProp && attributeName === "className") {
+          // A package component is styled exclusively through className, so the
+          // typed-variant contract does not apply to it.
+          if (isPackageComponent) return;
           const expression = valueNode.type === "JSXExpressionContainer" ? valueNode.expression : valueNode;
           const invalidClass = stringArguments(expression)
             .flatMap((value) => value.split(/\s+/).filter(Boolean))
