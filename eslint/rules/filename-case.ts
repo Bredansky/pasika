@@ -21,12 +21,21 @@ const NEXT_ROUTING_FILES = new Set([
   "layout",
   "loading",
   "error",
+  "global-error",
   "not-found",
   "route",
   "template",
   "default",
   "middleware",
   "instrumentation",
+  // File conventions that Next.js requires to keep their exact kebab-case names
+  "apple-icon",
+  "icon",
+  "manifest",
+  "opengraph-image",
+  "robots",
+  "sitemap",
+  "twitter-image",
 ]);
 
 /** Suffixes that form a compound extension with the real extension (e.g. .example.tsx, .test.ts). */

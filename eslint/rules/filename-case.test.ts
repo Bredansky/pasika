@@ -45,6 +45,34 @@ void describe("A dumb component file name MUST be kebab-case.tsx.", () => {
   });
 });
 
+void describe("Next.js routing files and file conventions MUST keep their required kebab-case names regardless of the component they export.", () => {
+  ruleTester.run("filename-case", filenameCaseRule, {
+    valid: [
+      {
+        code: "export default function GlobalError() { return <html><body /></html>; }",
+        filename: srcFile("app/global-error.tsx"),
+      },
+      {
+        code: "export default function robots() { return {}; }",
+        filename: srcFile("app/robots.ts"),
+      },
+      {
+        code: "export default function Icon() { return null; }",
+        filename: srcFile("app/icon.tsx"),
+      },
+      {
+        code: "export default function AppleIcon() { return null; }",
+        filename: srcFile("app/apple-icon.tsx"),
+      },
+      {
+        code: "export default function sitemap() { return []; }",
+        filename: srcFile("app/sitemap.ts"),
+      },
+    ],
+    invalid: [],
+  });
+});
+
 void describe("A file that does not define a component MUST have a kebab-case name.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {
     valid: [

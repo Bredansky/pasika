@@ -11,14 +11,24 @@ import path from "node:path";
 import type { Rule } from "eslint";
 
 const FRAMEWORK_DEFAULT_EXPORT_FILES = new Set([
+  // App Router routing files
   "default",
   "error",
+  "global-error",
   "layout",
   "loading",
   "not-found",
   "page",
   "route",
   "template",
+  // File conventions (metadata, icons) that must default-export their handler
+  "apple-icon",
+  "icon",
+  "manifest",
+  "opengraph-image",
+  "robots",
+  "sitemap",
+  "twitter-image",
 ]);
 
 function isFrameworkDefaultExportFile(filename: string): boolean {

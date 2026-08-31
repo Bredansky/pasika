@@ -11,6 +11,12 @@ void describe("A file that exports values MUST use named exports unless a framew
       { code: "export function formatDate() {}", filename: srcFile("utils/format-date.ts") },
       { code: "export default function Page() { return <main />; }", filename: srcFile("app/page.tsx") },
       { code: "export default function Layout() { return <main />; }", filename: srcFile("app/account/layout.tsx") },
+      // Next.js routing files and file conventions require default exports.
+      { code: "export default function GlobalError() { return <html><body /></html>; }", filename: srcFile("app/global-error.tsx") },
+      { code: "export default function robots() { return {}; }", filename: srcFile("app/robots.ts") },
+      { code: "export default function sitemap() { return []; }", filename: srcFile("app/sitemap.ts") },
+      { code: "export default function Icon() { return null; }", filename: srcFile("app/icon.tsx") },
+      { code: "export default function AppleIcon() { return null; }", filename: srcFile("app/apple-icon.tsx") },
     ],
     invalid: [
       {

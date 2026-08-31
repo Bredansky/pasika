@@ -8,6 +8,13 @@ void describe("A smart component with one outer DOM element in every rendered re
         code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section data-testid="AccountPanel">{String(open)}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
+      {
+        // `return (...)` wraps the JSX in a ParenthesizedExpression, which is the
+        // formatting prettier produces for multi-line returns. The root must be
+        // found through the parens, not reported as "no single outer element".
+        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return (\n    <section data-testid="AccountPanel">{String(open)}</section>\n  );\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+      },
     ],
     invalid: [
       {
@@ -20,7 +27,7 @@ void describe("A smart component with one outer DOM element in every rendered re
         ],
       },
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section data-testid="account-panel">{String(open)}</section>;\n}`,
+        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return (\n    <section data-testid="account-panel">{String(open)}</section>\n  );\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {

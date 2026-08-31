@@ -116,15 +116,21 @@ function jsxTagName(element: ts.JsxElement | ts.JsxSelfClosingElement): string |
 }
 
 function rootFromExpression(expression: ts.Expression): SimpleRoot | undefined {
-  if (ts.isJsxSelfClosingElement(expression)) {
-    const tagName = jsxTagName(expression);
+  // `return (<div />)` wraps the JSX in a ParenthesizedExpression, which is the
+  // formatting prettier produces for multi-line returns. Unwrap it so the rule
+  // sees the actual root element instead of reporting "no single outer element"
+  // for every conventionally formatted component.
+  let unwrapped = expression;
+  while (ts.isParenthesizedExpression(unwrapped)) unwrapped = unwrapped.expression;
+  if (ts.isJsxSelfClosingElement(unwrapped)) {
+    const tagName = jsxTagName(unwrapped);
     if (!tagName?.startsWith(tagName[0]?.toLowerCase() ?? "")) return undefined;
-    return { tagName, attributes: [...expression.attributes.properties] };
+    return { tagName, attributes: [...unwrapped.attributes.properties] };
   }
-  if (ts.isJsxElement(expression)) {
-    const tagName = jsxTagName(expression);
+  if (ts.isJsxElement(unwrapped)) {
+    const tagName = jsxTagName(unwrapped);
     if (!tagName?.startsWith(tagName[0]?.toLowerCase() ?? "")) return undefined;
-    return { tagName, attributes: [...expression.openingElement.attributes.properties] };
+    return { tagName, attributes: [...unwrapped.openingElement.attributes.properties] };
   }
   return undefined;
 }
