@@ -184,7 +184,21 @@ void describe("A feature folder, src/compositions/, src/shared/, and a nested co
 
 void describe("src/app/ MUST contain Next.js App Router framework-convention files and assets, plus styles required by routing files, but MUST NOT contain ordinary components or support folders.", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
-    valid: [{ code: "export default function Page() { return <span />; }", filename: file("app/invoices/page.tsx") }],
+    valid: [
+      { code: "export default function Page() { return <span />; }", filename: file("app/invoices/page.tsx") },
+      // Framework-convention files keep their Next.js-mandated names in src/app/.
+      { code: "export default function GlobalError() { return <html />; }", filename: file("app/global-error.tsx") },
+      { code: "export default function Icon() { return <svg />; }", filename: file("app/icon.tsx") },
+      { code: "export default function AppleIcon() { return <svg />; }", filename: file("app/apple-icon.tsx") },
+      { code: 'export default function Robots() { return "robots"; }', filename: file("app/robots.ts") },
+      { code: 'export default function Sitemap() { return "sitemap"; }', filename: file("app/sitemap.ts") },
+      // A route handler under src/app/api/ keeps its folder: the route exports a
+      // function, but Next.js dictates the location, not the support-folder rule.
+      {
+        code: "export async function GET() { return Response.json({}); }\n",
+        filename: file("app/api/donation-progress/route.ts"),
+      },
+    ],
     invalid: [
       {
         code: "export function InvoicePanel() { return <span />; }",

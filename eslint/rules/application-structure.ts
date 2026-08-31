@@ -20,6 +20,7 @@ const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx",
 const ROUTING_FILES = new Set([
   "default",
   "error",
+  "global-error",
   "instrumentation",
   "layout",
   "loading",
@@ -28,6 +29,14 @@ const ROUTING_FILES = new Set([
   "page",
   "route",
   "template",
+  // File conventions Next.js requires to keep their exact names in src/app/
+  "apple-icon",
+  "icon",
+  "manifest",
+  "opengraph-image",
+  "robots",
+  "sitemap",
+  "twitter-image",
 ]);
 const EXPECTED_SUPPORT_FOLDER: Partial<Record<ExportKind, string>> = {
   hook: "hooks",
@@ -199,6 +208,11 @@ export const applicationStructureRule: Rule.RuleModule = {
           "src/app/ may contain routing files and framework assets, but ordinary components and support files must live outside src/app/.",
         );
       }
+      // Routing files are exempt from the support-folder placement rules below:
+      // Next.js dictates their location (e.g. src/app/api/<name>/route.ts), and
+      // the route handler exports a function, which the support-folder check
+      // would otherwise demand moving to src/utils/.
+      if (ROUTING_FILES.has(basename) || path.extname(filename) === ".css") return {};
     }
 
     const currentFolder = path.basename(path.dirname(filename));
