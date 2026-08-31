@@ -33,6 +33,12 @@ void describe("An interactive HTML element MUST be extracted to a component with
         code: `export function VideoHeroPlayer({ onPlay }: { onPlay: () => void }) {\n  return (\n    <div className="h-full w-full">\n      <button type="button" onClick={onPlay} aria-label="Play video">\n        <Play className="h-16 w-16" />\n      </button>\n    </div>\n  );\n}`,
         filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
       },
+      {
+        // A clickable card whose whole surface is the anchor (a conditional
+        // branch of the return) is the component's purpose, not mixed content.
+        code: `export function ContactMethodCard({ href, name }: { href?: string; name: string }) {\n  const content = <div><h2>{name}</h2><p>Description</p></div>;\n  return href ? <a href={href} target="_blank" rel="noopener noreferrer">{content}</a> : <div>{content}</div>;\n}`,
+        filename: srcFile("features/contact/contact-method-card.tsx"),
+      },
     ],
     invalid: [
       {

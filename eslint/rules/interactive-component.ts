@@ -84,6 +84,34 @@ function isComponentReturn(node: JsxElementNode): boolean {
   return parent.type === "ArrowFunctionExpression" && parent.body === node;
 }
 
+/**
+ * True when the interactive element is the root of the component's return,
+ * possibly through `(parens)` or a conditional branch: `return href ? <a>…</a> : <div>…</div>`.
+ * A clickable card whose whole surface is the anchor is the component's
+ * purpose, not interactive content mixed with unrelated content.
+ */
+function isComponentRoot(node: Rule.Node): boolean {
+  let current: Rule.Node = node;
+  const visited = new Set<Rule.Node>();
+  while (!visited.has(current)) {
+    visited.add(current);
+    const parent: Rule.Node | null | undefined = current.parent;
+    if (!parent) return false;
+    // The TS/JSX parser emits ParenthesizedExpression for `return (<a />)` and
+    // ConditionalExpression for `return href ? <a /> : <div />`; the ESTree
+    // typings lack both, so the walk uses the raw node type.
+    const parentType: string | undefined = parent.type;
+    if (parentType === "ReturnStatement") return true;
+    if (parentType === "ArrowFunctionExpression") return true;
+    if (parentType === "ConditionalExpression" || parentType === "ParenthesizedExpression") {
+      current = parent;
+      continue;
+    }
+    return false;
+  }
+  return false;
+}
+
 /** The JSX child shape this rule reads: text, expressions, and nested elements. */
 interface JsxChild {
   type?: string;
@@ -206,6 +234,9 @@ export const interactiveComponentRule: Rule.RuleModule = {
           return;
         }
         if (isComponentReturn(node)) {
+          return;
+        }
+        if (isComponentRoot(node)) {
           return;
         }
         if (isSoleContentOfWrapper(node)) {
