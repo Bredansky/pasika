@@ -8,6 +8,7 @@
  * @see docs/code-organization-guide/rules/component-placement-rule.md
  */
 
+import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex } from "../project/index";
@@ -30,6 +31,21 @@ const REASON_TEXT: Record<string, string> = {
 
 const sameFolder = (left: string[], right: string[]): boolean =>
   left.length === right.length && left.every((segment, depth) => segment === right[depth]);
+
+/**
+ * A component folder (a folder holding a same-named .tsx) may sit one level
+ * inside the folder its consumers imply: stay-flat requires nesting a component
+ * with exclusive children, and the nesting folder is the CCF plus the component
+ * name. Without this, stay-flat and component-placement would contradict each
+ * other for every nested component.
+ */
+function isNestedInside(expectedFolder: string[], currentFolder: string[], componentFile: string): boolean {
+  if (currentFolder.length !== expectedFolder.length + 1) return false;
+  if (!sameFolder(currentFolder.slice(0, -1), expectedFolder)) return false;
+  const folderName = currentFolder[currentFolder.length - 1];
+  if (!folderName) return false;
+  return fs.existsSync(path.join(path.dirname(componentFile), `${folderName}.tsx`));
+}
 
 export const componentPlacementRule: Rule.RuleModule = {
   meta: {
@@ -78,6 +94,7 @@ export const componentPlacementRule: Rule.RuleModule = {
         }
 
         if (sameFolder(currentFolder, placement.expectedFolder)) return;
+        if (isNestedInside(placement.expectedFolder, currentFolder, componentFile)) return;
 
         const explanation = REASON_TEXT[placement.reason] ?? "that is where its consumers place it";
 

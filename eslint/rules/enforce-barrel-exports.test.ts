@@ -23,9 +23,30 @@ function createNestedComponentFolder(): string {
 const componentDir = createNestedComponentFolder();
 const barrel = path.join(componentDir, "index.ts");
 
+/** A kebab folder holding a dumb component: the barrel must re-export the
+ * component's PascalCase name, not the folder name. */
+function createKebabComponentFolder(): string {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-"));
+  const milestoneDir = path.join(root, "blog", "milestone");
+  mkdirSync(milestoneDir, { recursive: true });
+  writeFileSync(
+    path.join(milestoneDir, "milestone.tsx"),
+    "export function Milestone() { return <section />; }\n",
+  );
+  return milestoneDir;
+}
+
+const kebabComponentDir = createKebabComponentFolder();
+const kebabBarrel = path.join(kebabComponentDir, "index.ts");
+
 void describe("The nested folder's index.ts MUST named-re-export the nested component and MUST NOT re-export its exclusive children.", () => {
   ruleTester.run("enforce-barrel-exports", enforceBarrelExportsRule, {
-    valid: [{ code: 'export { BlogPage } from "./BlogPage";', filename: barrel }],
+    valid: [
+      { code: 'export { BlogPage } from "./BlogPage";', filename: barrel },
+      // A kebab folder (dumb component) re-exports the component's PascalCase
+      // name; the folder name "milestone" must not be demanded.
+      { code: 'export { Milestone } from "./milestone";', filename: kebabBarrel },
+    ],
     invalid: [
       {
         code: 'export { BlogPage } from "./BlogPage";\nexport { BlogHeader } from "./blog-header";',

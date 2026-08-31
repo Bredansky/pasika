@@ -9,6 +9,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import type { Rule } from "eslint";
+import { parseModule } from "../project/parse-module";
 
 function isPascalCase(str: string): boolean {
   return /^[A-Z][A-Za-z0-9]*$/.test(str);
@@ -19,6 +20,24 @@ function isKebabCase(str: string): boolean {
 }
 
 const SUPPORT_FOLDERS = new Set(["types", "schemas", "hooks", "constants", "utils", "config", "locales"]);
+
+/**
+ * The name the barrel must re-export: the component exported by the folder's
+ * own `.tsx` file. For a smart component the folder and the component share a
+ * PascalCase name (BlogPage/ → BlogPage), but a kebab folder holds a dumb
+ * component whose PascalCase export differs from the folder name
+ * (milestone/ → Milestone), so the folder name alone cannot identify it.
+ */
+function parentComponentName(dirPath: string, folderName: string): string | undefined {
+  const componentFile = path.join(dirPath, `${folderName}.tsx`);
+  if (!fs.existsSync(componentFile)) return undefined;
+  try {
+    const exports = parseModule(componentFile).exports;
+    return exports.find((moduleExport) => moduleExport.kind === "component")?.name;
+  } catch {
+    return undefined;
+  }
+}
 
 export const enforceBarrelExportsRule: Rule.RuleModule = {
   meta: {
@@ -42,8 +61,8 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
     if (SUPPORT_FOLDERS.has(folderName)) return {};
     if (!isPascalCase(folderName) && !isKebabCase(folderName)) return {};
 
-    const matchingTsx = fs.existsSync(path.join(dirPath, `${folderName}.tsx`)) ? folderName : null;
-    if (!matchingTsx) return {};
+    const parentName = parentComponentName(dirPath, folderName);
+    if (!parentName) return {};
 
     if (!isPascalCase(parentFolderName) && !isKebabCase(parentFolderName)) return {};
 
@@ -62,23 +81,23 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
       "Program:exit"() {
         if (reExportedNames.size === 0) return;
 
-        if (!reExportedNames.has(matchingTsx)) {
+        if (!reExportedNames.has(parentName)) {
           context.report({
             loc: { line: 1, column: 0 },
             message:
-              `index.ts in "${folderName}/" must re-export "${matchingTsx}". ` +
+              `index.ts in "${folderName}/" must re-export "${parentName}". ` +
               "See docs/code-organization-guide/rules/folder-nesting-rule.md",
           });
           return;
         }
 
-        const nonParentExports = [...reExportedNames].filter((n) => n !== matchingTsx);
+        const nonParentExports = [...reExportedNames].filter((n) => n !== parentName);
         if (nonParentExports.length > 0) {
           context.report({
             loc: { line: 1, column: 0 },
             message:
               `index.ts must not re-export exclusive children: ${nonParentExports.join(", ")}. ` +
-              `Only "${matchingTsx}" may be re-exported. ` +
+              `Only "${parentName}" may be re-exported. ` +
               "See docs/code-organization-guide/rules/folder-nesting-rule.md",
           });
         }

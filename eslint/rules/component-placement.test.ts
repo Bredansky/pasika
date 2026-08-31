@@ -27,6 +27,20 @@ const FIXTURE: Record<string, string> = {
   // Misplaced in shared: its only counting consumer is one feature.
   "shared/product-badge.tsx": "export function ProductBadge() { return <span />; }\n",
 
+  // A component with exclusive children is nested in a folder named after it,
+  // one level inside the CCF its consumers imply: stay-flat requires the
+  // nesting, so placement must accept it. The consumer is in the same feature,
+  // so the CCF is the feature folder and the nested folder adds the component
+  // name.
+  "features/catalog/CatalogPanel/index.ts": 'export { CatalogPanel } from "./CatalogPanel";\n',
+  "features/catalog/CatalogPanel/CatalogPanel.tsx":
+    'import { CatalogItem } from "../catalog-item";\nimport { CatalogPanelHeader } from "./catalog-panel-header";\nexport function CatalogPanel() { return <CatalogItem />; }\n',
+  "features/catalog/CatalogPanel/catalog-panel-header.tsx":
+    "export function CatalogPanelHeader() { return <header />; }\n",
+  "features/catalog/catalog-item.tsx": "export function CatalogItem() { return <span />; }\n",
+  "features/catalog/catalog-page.tsx":
+    'import { CatalogPanel } from "./CatalogPanel";\nexport function CatalogPage() { return <CatalogPanel />; }\n',
+
   // Compositions consumers count only when every consumer is one.
   "compositions/checkout.tsx":
     'import { Total } from "@/features/payments/total";\nimport { Subtotal } from "./subtotal";\nimport { StatusBadge } from "@/shared/status-badge";\nexport function Checkout() { return <Total />; }\n',
@@ -100,6 +114,19 @@ void describe("A component with at least one consumer outside src/app/ and confi
         ],
       },
     ],
+  });
+});
+
+void describe("A component with exclusive children may be nested in a folder named after it one level inside its CCF.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [
+      // The nested folder is the CCF plus the component name: stay-flat nesting.
+      {
+        code: read("features/catalog/CatalogPanel/CatalogPanel.tsx"),
+        filename: file("features/catalog/CatalogPanel/CatalogPanel.tsx"),
+      },
+    ],
+    invalid: [],
   });
 });
 
