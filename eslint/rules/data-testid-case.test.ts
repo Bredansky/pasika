@@ -61,6 +61,28 @@ void describe("A smart component that conditionally renders nothing MAY return n
   });
 });
 
+void describe("A smart component whose rendered branches all resolve to the same outer tag MUST set data-testid on it once; branches rendering different tags MUST wrap in one outer element.", () => {
+  ruleTester.run("data-testid-case", dataTestIdCaseRule, {
+    valid: [
+      {
+        code: `export function VideoHeroPlayer() {\n  const [isPlaying, setIsPlaying] = useState(false);\n  if (isPlaying) {\n    return (\n      <div data-testid="VideoHeroPlayer" className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div data-testid="VideoHeroPlayer" className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
+        filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: `export function VideoHeroPlayer() {\n  const [isPlaying, setIsPlaying] = useState(false);\n  if (isPlaying) {\n    return (\n      <div className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
+        filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
+        errors: [
+          {
+            message: 'Smart component "VideoHeroPlayer" with one outer DOM element must set data-testid="VideoHeroPlayer".',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A dumb component MAY set data-testid on its root element, and the value MUST be kebab-case.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [

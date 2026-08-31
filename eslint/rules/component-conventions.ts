@@ -159,9 +159,17 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
   // one element still has exactly one outer DOM element in every rendered
   // result, and the element must carry the data-testid.
   const rendered = returns.filter((statement) => statement.expression?.kind !== ts.SyntaxKind.NullKeyword);
-  if (rendered.length !== 1) return undefined;
-  const expression = rendered[0]?.expression;
-  return expression && ts.isExpression(expression) ? rootFromExpression(expression) : undefined;
+  const roots = rendered
+    .map((statement) => (statement.expression && ts.isExpression(statement.expression) ? rootFromExpression(statement.expression) : undefined))
+    .filter((root): root is SimpleRoot => root !== undefined);
+  // Every rendered result must resolve to the same outer tag: a component that
+  // branches (if/else or ternary) into different DOM trees still has one outer
+  // element when every branch renders the same tag, and that tag carries the
+  // data-testid. If the branches differ, there is no single outer element.
+  if (roots.length !== rendered.length || roots.length === 0) return undefined;
+  const firstTag = roots[0]?.tagName;
+  if (roots.some((root) => root.tagName !== firstTag)) return undefined;
+  return roots[0];
 }
 
 export function getTestId(root: SimpleRoot): { value?: string; attribute?: ts.JsxAttribute } {
