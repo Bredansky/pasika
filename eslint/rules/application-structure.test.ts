@@ -21,6 +21,27 @@ write("config/home-feed/index.ts", "export const homeFeedConfig = {};\n");
 write("features/billing/helpers/format-date.ts", 'export function formatDate() { return ""; }\n');
 write("config/home-feed/helpers/build-url.ts", 'export function buildUrl() { return ""; }\n');
 write("features/billing/utils/invoice-row.tsx", "export function InvoiceRow() { return <div />; }\n");
+// Mixed-kind support files: a file's folder matches its primary purpose, not
+// incidental type exports (zod's inferred types, return-type interfaces, keyof
+// types).
+write(
+  "features/billing/schemas/invoice-schema.ts",
+  "import { z } from \"zod\";\nexport const invoiceSchema = z.object({});\nexport type Invoice = z.infer<typeof invoiceSchema>;\n",
+);
+write(
+  "features/billing/utils/format-invoice.ts",
+  "export interface FormattedInvoice { total: number; }\nexport function formatInvoice(input: FormattedInvoice) { return input; }\n",
+);
+write(
+  "features/billing/constants/status-colors.ts",
+  "export const statusColors = { paid: \"#000\", open: \"#fff\" };\nexport type StatusColor = keyof typeof statusColors;\n",
+);
+write("features/billing/types/invoice.ts", "export interface InvoiceRow { id: string; }\n");
+// A schema-plus-type file parked in utils/ must still be sent to schemas/.
+write(
+  "features/billing/utils/misplaced-schema.ts",
+  "import { z } from \"zod\";\nexport const paymentSchema = z.object({});\nexport type Payment = z.infer<typeof paymentSchema>;\n",
+);
 // A proper nested component folder: same-named component + index that re-exports it.
 write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');
 write("features/billing/InvoicePanel/InvoicePanel.tsx", "export function InvoicePanel() { return <main />; }\n");
@@ -71,11 +92,24 @@ void describe("src/features/ MUST contain only feature folders.", () => {
 
 void describe("A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds.", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
-    valid: [valid("features/billing/utils/format-date.ts")],
+    valid: [
+      valid("features/billing/utils/format-date.ts"),
+      // A file's primary kind decides its folder; inferred types do not make a
+      // schema file a types file, and return-type interfaces do not make a
+      // utils file a types file.
+      valid("features/billing/schemas/invoice-schema.ts"),
+      valid("features/billing/utils/format-invoice.ts"),
+      valid("features/billing/constants/status-colors.ts"),
+      valid("features/billing/types/invoice.ts"),
+    ],
     invalid: [
       {
         ...valid("features/billing/helpers/format-date.ts"),
         errors: [{ message: "Move this file to a utils/ folder; helpers/ is not a recognized support folder." }],
+      },
+      {
+        ...valid("features/billing/utils/misplaced-schema.ts"),
+        errors: [{ message: "Move this file to a schemas/ folder; utils/ is reserved for schemas." }],
       },
     ],
   });

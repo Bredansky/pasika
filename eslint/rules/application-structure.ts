@@ -71,7 +71,11 @@ function exportedKinds(filename: string): Set<ExportKind> {
 }
 
 function expectedSupportFolder(kinds: Set<ExportKind>): string | undefined {
-  for (const kind of ["component", "hook", "type", "schema", "constant", "function"] as const) {
+  // `type` is the fallback: a file that exports a schema plus its inferred
+  // type, or functions plus their return-type interfaces, is a schema or utils
+  // file, not a types file. A folder is a types/ folder only when types are all
+  // the file holds.
+  for (const kind of ["component", "hook", "schema", "function", "constant", "type"] as const) {
     if (kinds.has(kind)) return EXPECTED_SUPPORT_FOLDER[kind];
   }
   return undefined;
