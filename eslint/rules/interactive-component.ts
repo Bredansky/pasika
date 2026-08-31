@@ -84,6 +84,101 @@ function isComponentReturn(node: JsxElementNode): boolean {
   return parent.type === "ArrowFunctionExpression" && parent.body === node;
 }
 
+/** The JSX child shape this rule reads: text, expressions, and nested elements. */
+interface JsxChild {
+  type?: string;
+  value?: unknown;
+  expression?: unknown;
+  openingElement?: unknown;
+  parent?: JsxChild | MaybeJsxElement;
+  children?: JsxChild[];
+}
+
+/** A JSX element child (has an openingElement), kept structurally minimal. */
+interface JsxElementChild extends JsxChild {
+  openingElement: { name?: unknown };
+}
+
+/** A JSX element with its children, for the local walk. */
+interface JsxElementWithChildren extends JsxElementChild {
+  children?: JsxChild[];
+}
+
+function isJsxElementWithChildren(node: JsxChild): node is JsxElementWithChildren {
+  return "children" in node && Array.isArray(node.children);
+}
+
+function isJsxElementChild(node: JsxChild | MaybeJsxElement): node is JsxElementChild {
+  return "openingElement" in node;
+}
+
+function decorativeTagName(node: JsxElementChild): string | undefined {
+  const name = node.openingElement.name;
+  if (name && typeof name === "object" && "name" in name && typeof name.name === "string") return name.name;
+  return undefined;
+}
+
+/** Structural equivalents of isInteractive/isComponentElement for the walk. */
+function isInteractiveChild(node: JsxElementChild): boolean {
+  const name = decorativeTagName(node);
+  return name !== undefined && INTERACTIVE_TAGS.has(name);
+}
+
+function isComponentChild(node: JsxElementChild): boolean {
+  const name = decorativeTagName(node);
+  return name !== undefined && /^[A-Z]/.test(name);
+}
+
+/**
+ * A decorative JSX element is one whose content is not the unit's purpose:
+ * icons, images, and text-free visual containers (play glyphs, gradients).
+ */
+function isDecorative(node: JsxElementChild): boolean {
+  const name = decorativeTagName(node);
+  if (name === undefined) return false;
+  if (INTERACTIVE_TAGS.has(name)) return false;
+  if (/^[A-Z]/.test(name)) return false; // a component child is real content
+  const children = node.children ?? [];
+  const meaningfulText = children.some(
+    (child) => child.type === "JSXText" && typeof child.value === "string" && child.value.trim().length > 0,
+  );
+  return !meaningfulText && !isContentElement(name);
+}
+
+/** Elements whose presence marks a wrapper as carrying real content. */
+function isContentElement(name: string): boolean {
+  return /^(?:h[1-6]|p|li|dt|dd|blockquote|pre|code|figcaption|caption|th|td|form|fieldset|select|textarea)$/.test(name);
+}
+
+// The AST here is parsed by @typescript-eslint/parser, whose ESTree types do
+// not model JSXElement children. The walk reads children structurally
+// (JsxChild) and reuses the rule's own tag helpers, which the type system
+// cannot see as the same object, so the structural narrowing is intentional.
+function isSoleContentOfWrapper(node: JsxElementNode): boolean {
+  const parent = node.parent;
+  if (!isJsxElementChild(parent)) return false;
+  let current: JsxElementChild | undefined = parent;
+  while (current && isJsxElementWithChildren(current) && !isInteractiveChild(current) && !isComponentChild(current)) {
+    const children = current.children ?? [];
+    const siblings = children.filter(isJsxElementChild);
+    const meaningful = siblings.filter((sibling) => !isDecorative(sibling));
+    const textContent = children.some(
+      (child) => child.type === "JSXText" && typeof child.value === "string" && child.value.trim().length > 0,
+    );
+    const expressionContent = children.some((child) => {
+      if (child.type !== "JSXExpressionContainer") return false;
+      const expression = child.expression;
+      return typeof expression === "object" && expression !== null && "type" in expression && expression.type !== "Literal";
+    });
+    if (meaningful.length <= 1 && !textContent && !expressionContent) {
+      return true;
+    }
+    const nextParent = current.parent;
+    current = nextParent !== undefined && isJsxElementChild(nextParent) ? nextParent : undefined;
+  }
+  return false;
+}
+
 export const interactiveComponentRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -111,6 +206,9 @@ export const interactiveComponentRule: Rule.RuleModule = {
           return;
         }
         if (isComponentReturn(node)) {
+          return;
+        }
+        if (isSoleContentOfWrapper(node)) {
           return;
         }
 

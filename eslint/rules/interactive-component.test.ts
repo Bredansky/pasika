@@ -27,6 +27,12 @@ void describe("An interactive HTML element MUST be extracted to a component with
         code: `export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {\n  return <html><body><p>{String(error.message)}</p><button type="button" onClick={reset}>retry</button></body></html>;\n}`,
         filename: srcFile("app/global-error.tsx"),
       },
+      {
+        // The interactive element is the component's whole purpose: the button
+        // is the sole meaningful child of a decorative wrapper.
+        code: `export function VideoHeroPlayer({ onPlay }: { onPlay: () => void }) {\n  return (\n    <div className="h-full w-full">\n      <button type="button" onClick={onPlay} aria-label="Play video">\n        <Play className="h-16 w-16" />\n      </button>\n    </div>\n  );\n}`,
+        filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
+      },
     ],
     invalid: [
       {
@@ -44,6 +50,13 @@ void describe("An interactive HTML element MUST be extracted to a component with
         // file is still a violation.
         code: "export function ContactCard() { return <section><h2>Contact</h2><a href=\"/about\">About</a></section>; }",
         filename: srcFile("features/contact/contact-card.tsx"),
+        errors: 1,
+      },
+      {
+        // A wrapper carrying real text content alongside the interactive
+        // element is still a violation.
+        code: "export function ErrorFallback() { return <div><h2>Error</h2><p>Message</p><button type=\"button\" onClick={reset}>Retry</button></div>; }",
+        filename: srcFile("shared/error-fallback.tsx"),
         errors: 1,
       },
     ],
