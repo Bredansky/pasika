@@ -23,7 +23,7 @@ function isComponentName(name: JsxIdentifier | JsxMemberExpression | undefined):
 
 function isOuterLayoutClass(className: string): boolean {
   const utility = className.split(":").pop() ?? className;
-  return /^(?:-?m[trblsexy]?-.+|(?:min-|max-)?[wh]-.+|size-.+|(?:flex-(?:1|auto|initial|none|grow|shrink|basis-.+)|grow(?:-.+)?|shrink(?:-.+)?|basis-.+|order-.+|(?:col|row)-(?:auto|span-.+|start-.+|end-.+)|(?:self|place-self|justify-self)-.+|z-.+|gap-.+|space-[xy]-.+))$/.test(
+  return /^(?:-?(?:m|p)[trblsexy]?-.+|(?:min-|max-)?[wh]-.+|size-.+|inset(?:-[xy])?-.+|(?:-?(?:top|right|bottom|left)-.+)|overflow(?:-[xy])?-(?:auto|hidden|clip|visible|scroll)|(?:flex-(?:1|auto|initial|none|grow|shrink|basis-.+)|grow(?:-.+)?|shrink(?:-.+)?|basis-.+|order-.+|(?:col|row)-(?:auto|span-.+|start-.+|end-.+)|(?:self|place-self|justify-self)-.+|z-.+|gap-.+|space-[xy]-.+))$/.test(
     utility,
   );
 }

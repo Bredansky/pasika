@@ -100,6 +100,11 @@ void describe("A className passed to a component MUST contain only outer-layout 
         code: '<Card className={cn("w-full", className)} />',
         filename: srcFile("features/dashboard/card.tsx"),
       },
+      {
+        // Padding, positioning, and overflow are outer-layout utilities.
+        code: '<Card className="p-8 px-0 pt-4 -top-4 -bottom-4 inset-x-0 overflow-hidden" />',
+        filename: srcFile("features/dashboard/card.tsx"),
+      },
       // A package component (lucide icon) is styled exclusively through className.
       {
         code: FIXTURE["features/player/player.tsx"] ?? "",
