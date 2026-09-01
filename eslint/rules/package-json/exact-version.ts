@@ -7,7 +7,7 @@
  * peerDependencies are excluded: a library declares a compatibility range for
  * its consumers' resolvers there, it does not install them itself.
  *
- * @see docs/framework-adoption-guide/rules/dependency-version-rule.md
+ * @see docs/pasika-adoption-guide/rules/dependency-version-rule.md
  */
 
 import type { JSONRuleDefinition } from "@eslint/json";

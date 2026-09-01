@@ -9,7 +9,7 @@
  * and styling docs in a Next.js app — and the `AGENTS.md` agent file vulyk
  * generates for them.
  *
- * @see docs/framework-adoption-guide/rules/vulyk-docs-rule.md
+ * @see docs/pasika-adoption-guide/rules/vulyk-docs-rule.md
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -23,7 +23,7 @@ const PASIKA_REPO = "Bredansky/pasika";
 /** Docs any framework-adopting repository must track from pasika. */
 const BASE_REQUIRED_DOCS = [
   { name: "documentation-guide", path: "docs/documentation-guide" },
-  { name: "framework-adoption-guide", path: "docs/framework-adoption-guide" },
+  { name: "pasika-adoption-guide", path: "docs/pasika-adoption-guide" },
   { name: "repository-policy", path: "docs/repository-policy.md" },
 ] as const;
 

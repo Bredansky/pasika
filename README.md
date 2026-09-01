@@ -11,7 +11,7 @@ docs/
   repository-policy.md            # repo-wide code and documentation requirements (Policy)
   code-organization-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
-  framework-adoption-guide/       # adopting and updating the framework
+  pasika-adoption-guide/          # adopting and updating the framework
   styling-guide/                  # Tailwind theme, composition, variants, states
 scripts/
   registry.json                   # requirement → enforcement, keyed by content hash

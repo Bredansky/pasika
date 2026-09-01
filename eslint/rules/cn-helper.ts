@@ -5,7 +5,7 @@
  * on the module that defines `cn` and checks that its implementation uses both
  * `clsx` and `twMerge` (or tailwind-merge's default export).
  *
- * @see docs/framework-adoption-guide/rules/cn-helper-rule.md
+ * @see docs/pasika-adoption-guide/rules/cn-helper-rule.md
  */
 
 import type { Rule } from "eslint";

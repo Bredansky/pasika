@@ -2,7 +2,7 @@
 
 The framework distributes its documentation as tracked docs that a repository consumes through `vulyk` rather than copying in. This rule requires the repository's `vulyk.config.ts` to track the framework's required docs from `pasika` and the agent files that route to them to be generated.
 
-- A repository adopting the framework MUST track the framework's `documentation-guide`, `framework-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.
+- A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.
 - A repository adopting the framework's Next.js app preset MUST additionally track the framework's `code-organization-guide` and `styling-guide` docs from `pasika` in `vulyk.config.ts`.
 - A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.
 
@@ -36,8 +36,8 @@ export default defineConfig({
       source: "https://github.com/Bredansky/pasika/tree/main/docs/documentation-guide",
       targets: ["."],
     },
-    "framework-adoption-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/framework-adoption-guide",
+    "pasika-adoption-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/pasika-adoption-guide",
       targets: ["."],
     },
     "repository-policy": {

@@ -703,61 +703,61 @@
       "note": "the documentation parser skips folders whose names start with an underscore"
     },
     {
-      "doc": "framework-adoption-guide/rules/cn-helper-rule.md",
+      "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
       "text": "A repository MUST define its `cn` helper by merging `clsx` and `tailwind-merge`.",
       "hash": "45006b36c2",
       "ref": "pasika/cn-helper"
     },
     {
-      "doc": "framework-adoption-guide/rules/dependency-version-rule.md",
+      "doc": "pasika-adoption-guide/rules/dependency-version-rule.md",
       "text": "A dependency or devDependency in package.json MUST pin an exact version, never a range.",
       "hash": "99af19d32a",
       "ref": "pasika/exact-version"
     },
     {
-      "doc": "framework-adoption-guide/rules/dependency-version-rule.md",
+      "doc": "pasika-adoption-guide/rules/dependency-version-rule.md",
       "text": "A repository MUST keep every dependency in package.json within one major version of the latest release.",
       "hash": "c1536547c2",
       "note": "pre-commit npx libyear --limit-major-individual=1 blocks commits when a dependency trails the latest release by more than one major version"
     },
     {
-      "doc": "framework-adoption-guide/rules/husky-hook-rule.md",
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
       "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged`, `npm run typecheck`, and `npx libyear --limit-major-individual=1`, with a `prepare` script that runs `husky`.",
       "hash": "a5873fcf4d",
       "ref": "pasika/husky-hook"
     },
     {
-      "doc": "framework-adoption-guide/rules/next-js-stack-rule.md",
+      "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
       "text": "A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
       "hash": "9e209eaf1f",
       "ref": "pasika/nextjs-stack"
     },
     {
-      "doc": "framework-adoption-guide/rules/next-js-stack-rule.md",
+      "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
       "text": "A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` as a devDependency in package.json.",
       "hash": "8de02b309b",
       "ref": "pasika/nextjs-stack"
     },
     {
-      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
-      "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `framework-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
-      "hash": "6b4942ddef",
+      "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
+      "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "e60dfe3e9a",
       "ref": "pasika/vulyk-docs"
     },
     {
-      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
+      "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework's Next.js app preset MUST additionally track the framework's `code-organization-guide` and `styling-guide` docs from `pasika` in `vulyk.config.ts`.",
       "hash": "08d4340ee1",
       "ref": "pasika/vulyk-docs"
     },
     {
-      "doc": "framework-adoption-guide/rules/vulyk-docs-rule.md",
+      "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.",
       "hash": "a8752f2d50",
       "ref": "pasika/vulyk-docs"
     },
     {
-      "doc": "framework-adoption-guide/rules/zirka-baseline-rule.md",
+      "doc": "pasika-adoption-guide/rules/zirka-baseline-rule.md",
       "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
       "hash": "06590f6d0c",
       "ref": "pasika/zirka-baseline"

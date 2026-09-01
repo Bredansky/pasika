@@ -1,4 +1,4 @@
-# Framework Adoption Guide
+# Pasika Adoption Guide
 
 This guide covers how a repository adopts the framework, whether it is a Next.js application or a plain TypeScript repository. An existing project may adopt it gradually by suppressing the ESLint rules it is not ready for yet, rather than migrating everything at once.
 

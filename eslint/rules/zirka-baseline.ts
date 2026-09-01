@@ -6,7 +6,7 @@
  * verifies that it imports zirka, that tsconfig.json extends zirka's
  * TypeScript base config, and that a prettier config references zirka.
  *
- * @see docs/framework-adoption-guide/rules/zirka-baseline-rule.md
+ * @see docs/pasika-adoption-guide/rules/zirka-baseline-rule.md
  */
 
 import fs from "node:fs";

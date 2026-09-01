@@ -13,8 +13,8 @@ export default defineConfig({
       source: "https://github.com/Bredansky/pasika/tree/main/docs/documentation-guide",
       targets: ["."],
     },
-    "framework-adoption-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/framework-adoption-guide",
+    "pasika-adoption-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/pasika-adoption-guide",
       targets: ["."],
     },
     "repository-policy": {
@@ -40,8 +40,8 @@ export default defineConfig({
       source: "https://github.com/Bredansky/pasika/tree/main/docs/documentation-guide",
       targets: ["."],
     },
-    "framework-adoption-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/framework-adoption-guide",
+    "pasika-adoption-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/pasika-adoption-guide",
       targets: ["."],
     },
     "repository-policy": {
@@ -77,7 +77,7 @@ const project = (files: Record<string, string>): Project => {
   return created;
 };
 
-void describe("A repository adopting the framework MUST track the framework's `documentation-guide`, `framework-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.", () => {
+void describe("A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.", () => {
   vulykRuleTester.run("vulyk-docs", vulykDocsRule, {
     valid: [
       {
@@ -139,7 +139,7 @@ export default defineConfig({
         errors: [
           {
             message:
-              "vulyk.config.ts must track the framework's framework-adoption-guide docs from pasika (Bredansky/pasika/docs/framework-adoption-guide).",
+              "vulyk.config.ts must track the framework's pasika-adoption-guide docs from pasika (Bredansky/pasika/docs/pasika-adoption-guide).",
           },
           {
             message:

@@ -5,7 +5,7 @@
  * npm run typecheck, and npx libyear --limit-major-individual=1, with a
  * "prepare": "husky" script in package.json.
  *
- * @see docs/framework-adoption-guide/rules/husky-hook-rule.md
+ * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
 
 import { existsSync, readFileSync } from "node:fs";

@@ -5,7 +5,7 @@
  * doc names in `dependencies` and the toolchain packages it names in
  * `devDependencies`.
  *
- * @see docs/framework-adoption-guide/rules/next-js-stack-rule.md
+ * @see docs/pasika-adoption-guide/rules/next-js-stack-rule.md
  */
 
 import type { JSONRuleDefinition } from "@eslint/json";
