@@ -6,7 +6,7 @@
  * whether it is exported or kept private, so a file that defines a second
  * component of either kind must move it to its own file.
  *
- * @see docs/code-organization-guide/rules/no-mixed-concerns-rule.md
+ * @see docs/next-codebase-guide/rules/no-mixed-concerns-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -36,7 +36,7 @@ export const noMixedConcernsRule: Rule.RuleModule = {
             message:
               `File defines multiple components. "${extra.name}" is an extra component. ` +
               "Move it to its own file. Each component file MUST define exactly one component. " +
-              "See docs/code-organization-guide/rules/no-mixed-concerns-rule.md",
+              "See docs/next-codebase-guide/rules/no-mixed-concerns-rule.md",
           });
         }
       },

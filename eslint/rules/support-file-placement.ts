@@ -4,12 +4,12 @@
  * Enforces where a hook, type, schema, constant, or utility lives, which depends
  * on the files that import it and so cannot be decided from one file.
  *
- * @see docs/code-organization-guide/rules/types-and-schemas-rule.md
- * @see docs/code-organization-guide/rules/constants-rule.md
- * @see docs/code-organization-guide/rules/utilities-rule.md
- * @see docs/code-organization-guide/rules/hook-extraction-rule.md
- * @see docs/code-organization-guide/rules/configuration-rule.md
- * @see docs/code-organization-guide/rules/folder-nesting-rule.md
+ * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
+ * @see docs/next-codebase-guide/rules/constants-rule.md
+ * @see docs/next-codebase-guide/rules/utilities-rule.md
+ * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
+ * @see docs/next-codebase-guide/rules/configuration-rule.md
+ * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
 
 import path from "node:path";

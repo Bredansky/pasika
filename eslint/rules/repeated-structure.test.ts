@@ -122,7 +122,7 @@ void describe("A block of elements MUST be extracted as a named component when t
             message:
               "The same arrangement of elements appears 2 times here; extract it as a named component. " +
               "Different data or labels do not prevent extraction. " +
-              "See docs/code-organization-guide/rules/repeated-structure-rule.md",
+              "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
           },
         ],
       },
@@ -154,7 +154,7 @@ void describe("A block of elements MUST be extracted as a named component when t
             message:
               "The same arrangement of elements appears 3 times here; extract it as a named component. " +
               "Different data or labels do not prevent extraction. " +
-              "See docs/code-organization-guide/rules/repeated-structure-rule.md",
+              "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
           },
         ],
       },

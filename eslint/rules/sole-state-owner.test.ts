@@ -97,7 +97,7 @@ void describe(
               message:
                 'Component "DashboardView" uses state "isHelpOpen" in 2 contiguous top-level JSX parts; ' +
                 "extract that part into a named component that owns useState instead of reading it in the parent. " +
-                "See docs/code-organization-guide/rules/sole-state-owner-rule.md",
+                "See docs/next-codebase-guide/rules/sole-state-owner-rule.md",
             },
           ],
         },

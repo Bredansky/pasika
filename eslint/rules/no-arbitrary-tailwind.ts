@@ -3,7 +3,7 @@
  *
  * Enforces the "Arbitrary Value Rule" — no arbitrary-value Tailwind classes.
  *
- * @see docs/styling-guide/rules/arbitrary-value-rule.md
+ * @see docs/next-tailwind-guide/rules/arbitrary-value-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -55,7 +55,7 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
         message:
           `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
           "Use a named token or custom utility. " +
-          "See docs/styling-guide/rules/arbitrary-value-rule.md",
+          "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
       });
     }
 

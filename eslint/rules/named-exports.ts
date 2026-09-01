@@ -5,7 +5,7 @@
  * files such as Next.js page.tsx and layout.tsx to use their required default
  * export contract.
  *
- * @see docs/code-organization-guide/rules/exports-and-imports-rule.md
+ * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
@@ -55,7 +55,7 @@ export const namedExportsRule: Rule.RuleModule = {
           node,
           message:
             "Files that export values must use named exports unless a framework or third-party package requires a different export style for that file. " +
-            "See docs/code-organization-guide/rules/exports-and-imports-rule.md",
+            "See docs/next-codebase-guide/rules/exports-and-imports-rule.md",
         });
       },
     };

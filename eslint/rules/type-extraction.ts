@@ -7,7 +7,7 @@
  * another file needs it without using the code in that file. Importing the
  * type alongside the component that defines it never requires extraction.
  *
- * @see docs/code-organization-guide/rules/types-and-schemas-rule.md
+ * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
  */
 
 import path from "node:path";
@@ -60,7 +60,7 @@ export const typeExtractionRule: Rule.RuleModule = {
           message:
             `${exp.kind} "${exp.name}" is imported by ${describeConsumers(independent, sourceRoot)} without ` +
             `the component "${componentExport.name}" that defines it. Extract it to a types/ or schemas/ folder. ` +
-            "See docs/code-organization-guide/rules/types-and-schemas-rule.md",
+            "See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
         });
         continue;
       }
@@ -78,7 +78,7 @@ export const typeExtractionRule: Rule.RuleModule = {
         message:
           `${exp.kind} "${exp.name}" is imported by ${describeConsumers(independent, sourceRoot)} without using ` +
           "the code in this file. Extract it to a types/ or schemas/ folder. " +
-          "See docs/code-organization-guide/rules/types-and-schemas-rule.md",
+          "See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
       });
     }
 

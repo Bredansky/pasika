@@ -5,7 +5,7 @@
  * - If a boolean variant appears in both CVA and cn(), report it —
  *   it belongs in exactly one place.
  *
- * @see docs/styling-guide/rules/component-variant-rule.md
+ * @see docs/next-tailwind-guide/rules/component-variant-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -101,7 +101,7 @@ export const cvaBooleanVariantsRule: Rule.RuleModule = {
                 `Boolean prop "${propName}" is used as a standalone conditional in cn() ` +
                 "but is also defined as a CVA variant. Move it to one place: " +
                 "either CVA (with both true/false treatments) or cn() (standalone). " +
-                "See docs/styling-guide/rules/component-variant-rule.md",
+                "See docs/next-tailwind-guide/rules/component-variant-rule.md",
             });
           }
         }

@@ -126,7 +126,7 @@ void describe("A smart component MUST render exactly one outer DOM element in ev
             message:
               'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
               'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
-              "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },
@@ -138,7 +138,7 @@ void describe("A smart component MUST render exactly one outer DOM element in ev
             message:
               'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
               'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
-              "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },

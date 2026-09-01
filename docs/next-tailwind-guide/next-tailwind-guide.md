@@ -1,4 +1,4 @@
-# Styling Guide
+# Next Tailwind Guide
 
 This guide keeps component styling predictable without making consumers learn a component's DOM or a project's CSS internals. It applies whenever UI styling is added or changed.
 

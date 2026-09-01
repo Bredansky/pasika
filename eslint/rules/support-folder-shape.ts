@@ -55,7 +55,7 @@ export const supportFolderShapeRule: Rule.RuleModule = {
           node,
           message:
             `${folder}/index.ts must named-re-export every support file: ${missing.join(", ")}. ` +
-            `See docs/code-organization-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`,
+            `See docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`,
         });
       },
     };

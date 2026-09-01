@@ -3,7 +3,7 @@
  *
  * Keeps calculations and complex conditions out of JSX children and attributes.
  *
- * @see docs/code-organization-guide/rules/jsx-hygiene-rule.md
+ * @see docs/next-codebase-guide/rules/jsx-hygiene-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -107,7 +107,7 @@ export const jsxHygieneRule: Rule.RuleModule = {
         node,
         message:
           `Extract ${violation} from JSX before return. ` +
-          "See docs/code-organization-guide/rules/jsx-hygiene-rule.md",
+          "See docs/next-codebase-guide/rules/jsx-hygiene-rule.md",
       });
     }
 

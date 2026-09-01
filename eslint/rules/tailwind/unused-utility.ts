@@ -6,7 +6,7 @@
  * from disk and reports @utility blocks whose name appears nowhere, because a
  * stylesheet alone cannot see what the components use.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import { statSync } from "node:fs";

@@ -37,7 +37,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/folder-nesting-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/folder-nesting-rule.md";
 
 void describe("A component MUST NOT be nested only because it has support files.", () => {
   ruleTester.run("component-nesting", componentNestingRule, {

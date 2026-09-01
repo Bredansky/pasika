@@ -33,7 +33,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "usePlayerSetup" has 2 imperative categories and must be extracted to a hooks/ folder. See docs/code-organization-guide/rules/hook-extraction-rule.md',
+              'Hook "usePlayerSetup" has 2 imperative categories and must be extracted to a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -44,7 +44,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "useSort" has fewer than two imperative categories and must stay inline in its consumer file. See docs/code-organization-guide/rules/hook-extraction-rule.md',
+              'Hook "useSort" has fewer than two imperative categories and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },

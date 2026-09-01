@@ -51,7 +51,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/types-and-schemas-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 
 void describe(
   "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",

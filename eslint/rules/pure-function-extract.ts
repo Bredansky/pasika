@@ -3,7 +3,7 @@
  *
  * A pure function MUST be extracted to utils/, even when it has one consumer.
  *
- * @see docs/code-organization-guide/rules/utilities-rule.md
+ * @see docs/next-codebase-guide/rules/utilities-rule.md
  */
 
 import path from "node:path";
@@ -58,7 +58,7 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     function report(node: Rule.Node, name: string): void {
       context.report({
         node,
-        message: `Extract pure function "${name}" to utils/. See docs/code-organization-guide/rules/utilities-rule.md`,
+        message: `Extract pure function "${name}" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md`,
       });
     }
 

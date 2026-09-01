@@ -10,7 +10,9 @@ JSX should show the component's structure, not its calculations. This rule moves
 ```tsx
 return (
   <div>
-    <span>{Math.floor((Date.now() - new Date(record.updatedAt).getTime()) / 86400000)} {locales.daysAgo}</span>
+    <span>
+      {Math.floor((Date.now() - new Date(record.updatedAt).getTime()) / 86400000)} {locales.daysAgo}
+    </span>
     <ul>
       {items
         .filter((x) => x.active)
@@ -50,7 +52,9 @@ if (isLoading) {
 
 return (
   <div>
-    <span>{daysSinceUpdate} {locales.daysAgo}</span>
+    <span>
+      {daysSinceUpdate} {locales.daysAgo}
+    </span>
     <ul>{activeItems.map(renderItem)}</ul>
     <p>
       {updatedLabel} — {total}

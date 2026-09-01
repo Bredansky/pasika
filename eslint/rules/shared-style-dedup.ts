@@ -7,7 +7,7 @@
  * utility classes. The rule compares className lists across the whole tree,
  * because a single file cannot see what other components use.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import path from "node:path";
@@ -94,7 +94,7 @@ export const sharedStyleDedupRule: Rule.RuleModule = {
             message:
               `Class combination "${combo}" is used by ${String(users.size)} components and should change ` +
               "together; create a named custom Tailwind utility for it. " +
-              "See docs/styling-guide/rules/theme-and-utility-definition-rule.md",
+              "See docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
           });
         }
       },

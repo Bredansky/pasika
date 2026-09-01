@@ -1,4 +1,4 @@
-# Code Organization Guide
+# Next Codebase Guide
 
 This guide covers how to organize code in the repository's `src/` tree — placement, extraction, and module conventions — so structure stays consistent across contributors and reviewers.
 

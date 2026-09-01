@@ -3,7 +3,7 @@ import { namedExportsRule } from "./named-exports";
 
 const MESSAGE =
   "Files that export values must use named exports unless a framework or third-party package requires a different export style for that file. " +
-  "See docs/code-organization-guide/rules/exports-and-imports-rule.md";
+  "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 void describe("A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.", () => {
   ruleTester.run("named-exports", namedExportsRule, {

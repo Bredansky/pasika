@@ -42,7 +42,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/hook-extraction-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/hook-extraction-rule.md";
 
 void describe("A custom hook MUST be extracted to its own file when two or more consumers use it.", () => {
   ruleTester.run("hook-extraction", hookExtractionRule, {

@@ -3,7 +3,7 @@
  *
  * The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

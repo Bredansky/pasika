@@ -3,7 +3,7 @@
  *
  * Enforces native or ARIA state expression and Tailwind state variants.
  *
- * @see docs/styling-guide/rules/component-ui-state-rule.md
+ * @see docs/next-tailwind-guide/rules/component-ui-state-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -75,7 +75,7 @@ export const uiStateRule: Rule.RuleModule = {
               node: attribute,
               message:
                 `UI state prop "${name}" should be expressed with a native or ARIA state attribute. ` +
-                "See docs/styling-guide/rules/component-ui-state-rule.md",
+                "See docs/next-tailwind-guide/rules/component-ui-state-rule.md",
             });
           }
         }
@@ -98,7 +98,7 @@ export const uiStateRule: Rule.RuleModule = {
                 node: attribute,
                 message:
                   "Use a Tailwind state variant for a UI state instead of conditional replacement classes. " +
-                  "See docs/styling-guide/rules/component-ui-state-rule.md",
+                  "See docs/next-tailwind-guide/rules/component-ui-state-rule.md",
               });
             }
           }

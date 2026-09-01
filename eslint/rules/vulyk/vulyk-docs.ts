@@ -29,8 +29,8 @@ const BASE_REQUIRED_DOCS = [
 
 /** Docs a Next.js app (the nextjsApp preset, which includes typescriptApp) must additionally track. */
 const NEXTJS_REQUIRED_DOCS = [
-  { name: "code-organization-guide", path: "docs/code-organization-guide" },
-  { name: "styling-guide", path: "docs/styling-guide" },
+  { name: "next-codebase-guide", path: "docs/next-codebase-guide" },
+  { name: "next-tailwind-guide", path: "docs/next-tailwind-guide" },
 ] as const;
 
 function memberName(member: MemberNode): string {

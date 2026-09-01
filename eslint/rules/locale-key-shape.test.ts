@@ -33,7 +33,7 @@ void describe("A locale key MUST be English camelCase. A direct translation long
         errors: [
           {
             message:
-              'Locale key "стрим" must be English; write it in the Latin alphabet. See docs/code-organization-guide/rules/locales-rule.md',
+              'Locale key "стрим" must be English; write it in the Latin alphabet. See docs/next-codebase-guide/rules/locales-rule.md',
           },
         ],
       },
@@ -44,7 +44,7 @@ void describe("A locale key MUST be English camelCase. A direct translation long
         errors: [
           {
             message:
-              'Locale key "watch_live_stream" must be camelCase English based on the text. See docs/code-organization-guide/rules/locales-rule.md',
+              'Locale key "watch_live_stream" must be camelCase English based on the text. See docs/next-codebase-guide/rules/locales-rule.md',
           },
         ],
       },
@@ -54,7 +54,7 @@ void describe("A locale key MUST be English camelCase. A direct translation long
         errors: [
           {
             message:
-              'Locale key "WatchLiveStream" must be camelCase English based on the text. See docs/code-organization-guide/rules/locales-rule.md',
+              'Locale key "WatchLiveStream" must be camelCase English based on the text. See docs/next-codebase-guide/rules/locales-rule.md',
           },
         ],
       },
@@ -67,7 +67,7 @@ void describe("A locale key MUST be English camelCase. A direct translation long
             message:
               'Locale key "youSuccessfullySubscribedToUpdates" is longer than 30 characters, so it must describe ' +
               'the message\'s purpose instead of the text; end it with an element role such as "Button", ' +
-              '"Link", or "Dialog" (see WAI-ARIA roles). See docs/code-organization-guide/rules/locales-rule.md',
+              '"Link", or "Dialog" (see WAI-ARIA roles). See docs/next-codebase-guide/rules/locales-rule.md',
           },
         ],
       },

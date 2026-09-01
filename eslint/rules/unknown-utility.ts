@@ -16,7 +16,7 @@
  * variants, arbitrary values — pass through unchecked, so the rule only claims
  * the surface it can validate soundly.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import { readdirSync, readFileSync, statSync } from "node:fs";

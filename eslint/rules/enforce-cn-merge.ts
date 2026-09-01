@@ -3,7 +3,7 @@
  *
  * Enforces the "Class Composition Rule".
  *
- * @see docs/styling-guide/rules/class-composition-rule.md
+ * @see docs/next-tailwind-guide/rules/class-composition-rule.md
  */
 
 import path from "node:path";
@@ -72,7 +72,7 @@ export const enforceCnMergeRule = {
           context.report({
             node,
             message:
-              "Expose appearance through typed variant props instead of separate internal class-name props. See docs/styling-guide/rules/class-composition-rule.md",
+              "Expose appearance through typed variant props instead of separate internal class-name props. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
         }
@@ -90,7 +90,7 @@ export const enforceCnMergeRule = {
           if (invalidClass) {
             context.report({
               node,
-              message: `Passed className contains non-layout utility "${invalidClass}". Expose appearance through typed variant props. See docs/styling-guide/rules/class-composition-rule.md`,
+              message: `Passed className contains non-layout utility "${invalidClass}". Expose appearance through typed variant props. See docs/next-tailwind-guide/rules/class-composition-rule.md`,
             });
           }
           return;
@@ -100,7 +100,7 @@ export const enforceCnMergeRule = {
             context.report({
               node,
               message:
-                "Static className with more than 5 classes must use cn() with grouped string literals. See docs/styling-guide/rules/class-composition-rule.md",
+                "Static className with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
             });
           }
           return;
@@ -111,7 +111,7 @@ export const enforceCnMergeRule = {
           context.report({
             node,
             message:
-              "Use cn() instead of + operator for className. See docs/styling-guide/rules/class-composition-rule.md",
+              "Use cn() instead of + operator for className. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
         }
@@ -119,7 +119,7 @@ export const enforceCnMergeRule = {
           context.report({
             node,
             message:
-              "Use cn() instead of template literals with conditionals for className. See docs/styling-guide/rules/class-composition-rule.md",
+              "Use cn() instead of template literals with conditionals for className. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
         }
@@ -129,7 +129,7 @@ export const enforceCnMergeRule = {
           context.report({
             node,
             message:
-              "Use cn() for conditional classes in className. See docs/styling-guide/rules/class-composition-rule.md",
+              "Use cn() for conditional classes in className. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
         }
@@ -137,7 +137,7 @@ export const enforceCnMergeRule = {
           context.report({
             node,
             message:
-              "Static className with more than 5 classes must use cn() with grouped string literals. See docs/styling-guide/rules/class-composition-rule.md",
+              "Static className with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
         }
@@ -147,7 +147,7 @@ export const enforceCnMergeRule = {
               context.report({
                 node: arg,
                 message:
-                  "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/styling-guide/rules/class-composition-rule.md",
+                  "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/next-tailwind-guide/rules/class-composition-rule.md",
               });
             }
           }

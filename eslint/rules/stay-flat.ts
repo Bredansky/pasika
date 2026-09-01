@@ -6,7 +6,7 @@
  * child is a sibling component that only this component uses, so a flat
  * component that owns such children must move into a folder named after it.
  *
- * @see docs/code-organization-guide/rules/folder-nesting-rule.md
+ * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
 
 import path from "node:path";
@@ -73,7 +73,7 @@ export const stayFlatRule: Rule.RuleModule = {
           message:
             `This component has exclusive child component(s) ${childNames.join(", ")}; ` +
             `nest it in a folder named after it inside src/features/${featureName}/. ` +
-            "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+            "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
         });
       },
     };

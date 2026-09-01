@@ -13,7 +13,7 @@
  * `unused-utility`), because a single stylesheet cannot see what other files
  * import it or what the entry point pulls in.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import { statSync } from "node:fs";

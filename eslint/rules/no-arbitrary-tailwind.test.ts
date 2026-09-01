@@ -3,7 +3,7 @@ import { noArbitraryTailwindRule } from "./no-arbitrary-tailwind";
 
 const message = (className: string): string =>
   `Tailwind arbitrary-value class "${className}" is not allowed. Use a named token or custom utility. ` +
-  "See docs/styling-guide/rules/arbitrary-value-rule.md";
+  "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md";
 
 void describe("Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.", () => {
   ruleTester.run("no-arbitrary-tailwind", noArbitraryTailwindRule, {

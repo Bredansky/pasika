@@ -39,7 +39,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/configuration-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/configuration-rule.md";
 
 void describe(
   "A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.",

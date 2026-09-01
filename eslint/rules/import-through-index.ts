@@ -31,7 +31,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
             node,
             message:
               `Import support files through ${expected} instead of "${specifier}". ` +
-              "See the code-organization-guide exports and imports rules.",
+              "See the next-codebase-guide exports and imports rules.",
           });
         }
       },

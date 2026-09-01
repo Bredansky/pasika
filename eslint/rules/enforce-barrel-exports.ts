@@ -3,7 +3,7 @@
  *
  * Enforces the "Folder Nesting Rule" — index.ts only re-exports parent component.
  *
- * @see docs/code-organization-guide/rules/folder-nesting-rule.md
+ * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
 
 import path from "node:path";
@@ -86,7 +86,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
             loc: { line: 1, column: 0 },
             message:
               `index.ts in "${folderName}/" must re-export "${parentName}". ` +
-              "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+              "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           });
           return;
         }
@@ -98,7 +98,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
             message:
               `index.ts must not re-export exclusive children: ${nonParentExports.join(", ")}. ` +
               `Only "${parentName}" may be re-exported. ` +
-              "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+              "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           });
         }
       },

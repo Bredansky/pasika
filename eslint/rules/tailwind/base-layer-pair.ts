@@ -4,7 +4,7 @@
  * The global base layer MUST apply base-canvas and base-ink to the document
  * body as the default page pair.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

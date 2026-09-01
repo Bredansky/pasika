@@ -35,7 +35,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/locales-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
 void describe(
   "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",

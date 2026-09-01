@@ -6,7 +6,7 @@
  *    a tie going to the relative path.
  *  - Layer boundary enforcement (app → compositions → features → shared → root).
  *
- * @see docs/code-organization-guide/rules/exports-and-imports-rule.md
+ * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";

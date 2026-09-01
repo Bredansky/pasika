@@ -4,7 +4,7 @@
  * A component that imports from two or more feature folders MUST live in
  * src/compositions/.
  *
- * @see docs/code-organization-guide/rules/component-placement-rule.md
+ * @see docs/next-codebase-guide/rules/component-placement-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
@@ -70,7 +70,7 @@ export const crossFeatureImportRule: Rule.RuleModule = {
             node,
             message:
               `This component imports from two or more feature folders (${names}) and must live in src/compositions/. ` +
-              "See docs/code-organization-guide/rules/component-placement-rule.md",
+              "See docs/next-codebase-guide/rules/component-placement-rule.md",
           });
         }
       },

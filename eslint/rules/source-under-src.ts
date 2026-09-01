@@ -5,7 +5,7 @@
  * linted JS/TS module whose path is outside `src/`, unless it is a config
  * file, a declaration file, or lives in a tooling directory.
  *
- * @see docs/code-organization-guide/rules/application-structure-rule.md
+ * @see docs/next-codebase-guide/rules/application-structure-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";

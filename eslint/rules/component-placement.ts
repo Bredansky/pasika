@@ -5,7 +5,7 @@
  * reading the whole source tree, because where a component belongs depends on
  * which files import it — something a single-file pass cannot see.
  *
- * @see docs/code-organization-guide/rules/component-placement-rule.md
+ * @see docs/next-codebase-guide/rules/component-placement-rule.md
  */
 
 import fs from "node:fs";
@@ -87,7 +87,7 @@ export const componentPlacementRule: Rule.RuleModule = {
               message:
                 `This component has no consumer outside src/app/ or a configuration module, ` +
                 `so it belongs in the feature folder it represents, not in ${formatFolder(currentFolder)}. ` +
-                "See docs/code-organization-guide/rules/component-placement-rule.md",
+                "See docs/next-codebase-guide/rules/component-placement-rule.md",
             });
           }
           return;
@@ -104,7 +104,7 @@ export const componentPlacementRule: Rule.RuleModule = {
           message:
             `Move this component to ${formatFolder(placement.expectedFolder)} — ${explanation}. ` +
             `Imported by ${describeConsumers(placement.countedConsumers, sourceRoot)}. ` +
-            "See docs/code-organization-guide/rules/component-placement-rule.md",
+            "See docs/next-codebase-guide/rules/component-placement-rule.md",
         });
       },
     };

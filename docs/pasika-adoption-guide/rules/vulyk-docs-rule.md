@@ -3,7 +3,7 @@
 The framework distributes its documentation as tracked docs that a repository consumes through `vulyk` rather than copying in. This rule requires the repository's `vulyk.config.ts` to track the framework's required docs from `pasika` and the agent files that route to them to be generated.
 
 - A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.
-- A repository adopting the framework's Next.js app preset MUST additionally track the framework's `code-organization-guide` and `styling-guide` docs from `pasika` in `vulyk.config.ts`.
+- A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` docs from `pasika` in `vulyk.config.ts`.
 - A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.
 
 ## Incorrect — Required Docs Missing
@@ -44,12 +44,12 @@ export default defineConfig({
       source: "https://github.com/Bredansky/pasika/blob/main/docs/repository-policy.md",
       targets: ["."],
     },
-    "code-organization-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/code-organization-guide",
+    "next-codebase-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/next-codebase-guide",
       targets: ["."],
     },
-    "styling-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/styling-guide",
+    "next-tailwind-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/next-tailwind-guide",
       targets: ["."],
     },
   },

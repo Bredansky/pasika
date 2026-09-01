@@ -6,7 +6,7 @@
  * purpose-based: it must end in an element role from the WAI-ARIA vocabulary
  * (button, link, dialog, ...).
  *
- * @see docs/code-organization-guide/rules/locales-rule.md
+ * @see docs/next-codebase-guide/rules/locales-rule.md
  * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles
  */
 
@@ -94,7 +94,7 @@ function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string
     reportFor(
       context,
       node,
-      `Locale key "${name}" must be English; write it in the Latin alphabet. See docs/code-organization-guide/rules/locales-rule.md`,
+      `Locale key "${name}" must be English; write it in the Latin alphabet. See docs/next-codebase-guide/rules/locales-rule.md`,
     );
     return;
   }
@@ -103,7 +103,7 @@ function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string
     reportFor(
       context,
       node,
-      `Locale key "${name}" must be camelCase English based on the text. See docs/code-organization-guide/rules/locales-rule.md`,
+      `Locale key "${name}" must be camelCase English based on the text. See docs/next-codebase-guide/rules/locales-rule.md`,
     );
     return;
   }
@@ -117,7 +117,7 @@ function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string
     node,
     `Locale key "${name}" is longer than ${String(MAX_KEY_LENGTH)} characters, so it must describe ` +
       'the message\'s purpose instead of the text; end it with an element role such as "Button", ' +
-      '"Link", or "Dialog" (see WAI-ARIA roles). See docs/code-organization-guide/rules/locales-rule.md',
+      '"Link", or "Dialog" (see WAI-ARIA roles). See docs/next-codebase-guide/rules/locales-rule.md',
   );
 }
 

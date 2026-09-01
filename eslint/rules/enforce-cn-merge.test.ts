@@ -28,7 +28,7 @@ process.chdir(root);
 
 const pkgFile = (): string => path.join(root, "src", "features/player/player.tsx");
 
-const DOC = "See docs/styling-guide/rules/class-composition-rule.md";
+const DOC = "See docs/next-tailwind-guide/rules/class-composition-rule.md";
 const TEMPLATE_MESSAGE = `Use cn() instead of template literals with conditionals for className. ${DOC}`;
 const PLUS_MESSAGE = `Use cn() instead of + operator for className. ${DOC}`;
 const STATIC_MESSAGE = `Static className with more than 5 classes must use cn() with grouped string literals. ${DOC}`;

@@ -36,7 +36,7 @@ void describe("A component that imports from two or more feature folders MUST li
         errors: [
           {
             message:
-              "This component imports from two or more feature folders (billing, home) and must live in src/compositions/. See docs/code-organization-guide/rules/component-placement-rule.md",
+              "This component imports from two or more feature folders (billing, home) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
           },
         ],
       },
@@ -46,7 +46,7 @@ void describe("A component that imports from two or more feature folders MUST li
         errors: [
           {
             message:
-              "This component imports from two or more feature folders (donation, stream) and must live in src/compositions/. See docs/code-organization-guide/rules/component-placement-rule.md",
+              "This component imports from two or more feature folders (donation, stream) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
           },
         ],
       },
@@ -56,7 +56,7 @@ void describe("A component that imports from two or more feature folders MUST li
         errors: [
           {
             message:
-              "This component imports from two or more feature folders (a, b) and must live in src/compositions/. See docs/code-organization-guide/rules/component-placement-rule.md",
+              "This component imports from two or more feature folders (a, b) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
           },
         ],
       },

@@ -5,7 +5,7 @@
  * variables and the selectors that override them, @theme definitions, custom
  * utilities, base styles, and keyframes in that order.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

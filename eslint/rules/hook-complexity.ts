@@ -6,7 +6,7 @@
  * - A custom hook with one consumer that contains fewer than two imperative
  *   categories MUST stay inline in its consumer file.
  *
- * @see docs/code-organization-guide/rules/hook-extraction-rule.md
+ * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
  */
 
 import path from "node:path";
@@ -100,14 +100,14 @@ export const hookComplexityRule: Rule.RuleModule = {
           node,
           message:
             `Hook "${name}" has ${String(imperativeCount)} imperative categories and must be extracted to a hooks/ folder. ` +
-            "See docs/code-organization-guide/rules/hook-extraction-rule.md",
+            "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
         });
       } else if (imperativeCount < 2 && inSupportFolder) {
         context.report({
           node,
           message:
             `Hook "${name}" has fewer than two imperative categories and must stay inline in its consumer file. ` +
-            "See docs/code-organization-guide/rules/hook-extraction-rule.md",
+            "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
         });
       }
     }

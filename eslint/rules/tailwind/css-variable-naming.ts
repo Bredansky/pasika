@@ -4,7 +4,7 @@
  * A CSS variable intended only for a background MUST be named --<role>-canvas,
  * and one intended only for readable text MUST be named --<role>-ink.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

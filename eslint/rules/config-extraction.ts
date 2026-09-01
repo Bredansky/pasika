@@ -8,7 +8,7 @@
  * the module's types/ or schemas/ folder — or, once a consumer outside the
  * module imports it, in the matching root support folder.
  *
- * @see docs/code-organization-guide/rules/configuration-rule.md
+ * @see docs/next-codebase-guide/rules/configuration-rule.md
  */
 
 import path from "node:path";
@@ -55,7 +55,7 @@ export const configExtractionRule: Rule.RuleModule = {
           message:
             `${exp.kind} "${exp.name}" in a configuration module is imported by ` +
             `${describeConsumers(outsideConfig, sourceRoot)} outside src/config/. Move it to the ` +
-            "matching root support folder. See docs/code-organization-guide/rules/configuration-rule.md",
+            "matching root support folder. See docs/next-codebase-guide/rules/configuration-rule.md",
         });
       } else if (consumers.length > 0) {
         findings.push({
@@ -63,7 +63,7 @@ export const configExtractionRule: Rule.RuleModule = {
           message:
             `${exp.kind} "${exp.name}" is used only to implement this configuration module; ` +
             `extract it to the module's ${exp.kind === "schema" ? "schemas/" : "types/"} folder even with one consumer. ` +
-            "See docs/code-organization-guide/rules/configuration-rule.md",
+            "See docs/next-codebase-guide/rules/configuration-rule.md",
         });
       }
     }

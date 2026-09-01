@@ -71,7 +71,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/component-placement-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/component-placement-rule.md";
 
 const moveMessage = (folder: string, explanation: string, consumers: string[]): string =>
   `Move this component to ${folder} — ${explanation}. Imported by ${consumers.join(", ")}. ${DOC}`;

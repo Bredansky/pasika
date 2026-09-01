@@ -6,7 +6,7 @@
  *  - Dumb components: kebab-case.tsx
  *  - Non-component files: kebab-case
  *
- * @see docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
+ * @see docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";

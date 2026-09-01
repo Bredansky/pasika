@@ -55,7 +55,7 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
           {
             message:
               'index.ts must not re-export exclusive children: BlogHeader. Only "BlogPage" may be re-exported. ' +
-              "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+              "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],
       },
@@ -66,7 +66,7 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
           {
             message:
               'index.ts in "BlogPage/" must re-export "BlogPage". ' +
-              "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+              "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],
       },

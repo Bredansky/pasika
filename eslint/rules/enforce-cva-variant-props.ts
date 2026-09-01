@@ -3,7 +3,7 @@
  *
  * Enforces the "Component Variant Rule" — VariantProps from CVA.
  *
- * @see docs/styling-guide/rules/component-variant-rule.md
+ * @see docs/next-tailwind-guide/rules/component-variant-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -92,7 +92,7 @@ export const enforceCvaVariantPropsRule: Rule.RuleModule = {
                   message:
                     `Variant prop "${keyName}" duplicates CVA variant values. ` +
                     "Use VariantProps<typeof variants> instead of manually writing union types. " +
-                    "See docs/styling-guide/rules/component-variant-rule.md",
+                    "See docs/next-tailwind-guide/rules/component-variant-rule.md",
                 });
                 return;
               }

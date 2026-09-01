@@ -8,7 +8,7 @@
  * expression contents that carry data, because a block's structure is what a
  * reader sees as repeated.
  *
- * @see docs/code-organization-guide/rules/repeated-structure-rule.md
+ * @see docs/next-codebase-guide/rules/repeated-structure-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -171,7 +171,7 @@ export const repeatedStructureRule: Rule.RuleModule = {
           message:
             `The same arrangement of elements appears ${String(group.length)} times here; ` +
             "extract it as a named component. Different data or labels do not prevent extraction. " +
-            "See docs/code-organization-guide/rules/repeated-structure-rule.md",
+            "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
         });
       }
     }

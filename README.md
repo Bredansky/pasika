@@ -9,10 +9,10 @@ Documentation, the lint rules derived from it, and the checks that apply and dia
 ```text
 docs/
   repository-policy.md            # repo-wide code and documentation requirements (Policy)
-  code-organization-guide/        # placement, extraction, module conventions
+  next-codebase-guide/        # placement, extraction, module conventions
   documentation-guide/            # how documents themselves are written
   pasika-adoption-guide/          # adopting and updating the framework
-  styling-guide/                  # Tailwind theme, composition, variants, states
+  next-tailwind-guide/                  # Tailwind theme, composition, variants, states
 scripts/
   registry.json                   # requirement → enforcement, keyed by content hash
   coverage.ts                     # reconciles the docs against the registry
@@ -39,7 +39,7 @@ Requirements are identified by a hash of their canonical text, not by a hand-wri
 
 ```jsonc
 {
-  "doc": "code-organization-guide/rules/no-mixed-concerns-rule.md",
+  "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
   "text": "A .tsx file that defines a component MUST contain exactly one component.",
   "hash": "b19fe3bd34",
   "ref": "pasika/no-mixed-concerns",

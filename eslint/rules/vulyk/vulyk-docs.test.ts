@@ -21,12 +21,12 @@ export default defineConfig({
       source: "https://github.com/Bredansky/pasika/blob/main/docs/repository-policy.md",
       targets: ["."],
     },
-    "code-organization-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/code-organization-guide",
+    "next-codebase-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/next-codebase-guide",
       targets: ["."],
     },
-    "styling-guide": {
-      source: "https://github.com/Bredansky/pasika/tree/main/docs/styling-guide",
+    "next-tailwind-guide": {
+      source: "https://github.com/Bredansky/pasika/tree/main/docs/next-tailwind-guide",
       targets: ["."],
     },
   },
@@ -109,7 +109,7 @@ void describe("A repository adopting the framework MUST track the framework's `d
   });
 });
 
-void describe("A repository adopting the framework's Next.js app preset MUST additionally track the framework's `code-organization-guide` and `styling-guide` docs from `pasika` in `vulyk.config.ts`.", () => {
+void describe("A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` docs from `pasika` in `vulyk.config.ts`.", () => {
   vulykRuleTester.run("vulyk-docs", vulykDocsRule, {
     valid: [
       {
@@ -154,11 +154,11 @@ export default defineConfig({
         errors: [
           {
             message:
-              "vulyk.config.ts must track the framework's code-organization-guide docs from pasika (Bredansky/pasika/docs/code-organization-guide).",
+              "vulyk.config.ts must track the framework's next-codebase-guide docs from pasika (Bredansky/pasika/docs/next-codebase-guide).",
           },
           {
             message:
-              "vulyk.config.ts must track the framework's styling-guide docs from pasika (Bredansky/pasika/docs/styling-guide).",
+              "vulyk.config.ts must track the framework's next-tailwind-guide docs from pasika (Bredansky/pasika/docs/next-tailwind-guide).",
           },
         ],
       },

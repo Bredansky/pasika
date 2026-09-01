@@ -6,7 +6,7 @@
  * only contents are the component, its index, and support folders must be
  * flattened.
  *
- * @see docs/code-organization-guide/rules/folder-nesting-rule.md
+ * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
 
 import path from "node:path";
@@ -68,7 +68,7 @@ export const componentNestingRule: Rule.RuleModule = {
           message:
             `This component is nested in src/${folder.join("/")}/ but its folder has no exclusive ` +
             `child components — only support files. Flatten it back into src/${flatFolder}/. ` +
-            "See docs/code-organization-guide/rules/folder-nesting-rule.md",
+            "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
         });
       },
     };

@@ -5,7 +5,7 @@
  * Tailwind. This rule verifies that when CSS files are linted, at least
  * one CSS file contains `@import "tailwindcss"`.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

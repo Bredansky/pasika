@@ -4,7 +4,7 @@
  * A repeated combination of canvas, ink, and related styles MUST become a
  * *-surface custom Tailwind utility that owns the combination.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

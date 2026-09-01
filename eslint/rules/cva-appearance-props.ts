@@ -4,7 +4,7 @@
  * Enforces that components exposing visual option props (size, variant, etc.)
  * define them via a cva() call rather than raw union types.
  *
- * @see docs/styling-guide/rules/component-variant-rule.md
+ * @see docs/next-tailwind-guide/rules/component-variant-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -73,7 +73,7 @@ export const cvaAppearancePropsRule: Rule.RuleModule = {
               node,
               message:
                 `Visual option prop "${keyName}" must be defined through a cva() call ` +
-                "rather than a manual union type. See docs/styling-guide/rules/component-variant-rule.md",
+                "rather than a manual union type. See docs/next-tailwind-guide/rules/component-variant-rule.md",
             });
           }
         }

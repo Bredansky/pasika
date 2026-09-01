@@ -9,7 +9,7 @@
  * in one outer element instead, so tests always have a stable element to
  * anchor data-testid to.
  *
- * @see docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md
+ * @see docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
@@ -83,7 +83,7 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
               message:
                 `Smart component "${component.name}" has no single outer element; wrap its content in one outer ` +
                 `element with data-testid="${component.name}" instead of rendering multiple roots. ` +
-                "See docs/code-organization-guide/rules/smart-vs-dumb-component-rule.md",
+                "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
             });
           }
         }

@@ -48,7 +48,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         errors: [
           {
             message:
-              'Extract pure function "formatPrice" to utils/. See docs/code-organization-guide/rules/utilities-rule.md',
+              'Extract pure function "formatPrice" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
@@ -59,7 +59,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         errors: [
           {
             message:
-              'Extract pure function "clamp" to utils/. See docs/code-organization-guide/rules/utilities-rule.md',
+              'Extract pure function "clamp" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
@@ -70,7 +70,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         errors: [
           {
             message:
-              'Extract pure function "formatCurrency" to utils/. See docs/code-organization-guide/rules/utilities-rule.md',
+              'Extract pure function "formatCurrency" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
@@ -81,7 +81,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         errors: [
           {
             message:
-              'Extract pure function "formatDate" to utils/. See docs/code-organization-guide/rules/utilities-rule.md',
+              'Extract pure function "formatDate" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },

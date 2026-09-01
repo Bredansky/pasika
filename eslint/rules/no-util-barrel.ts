@@ -26,7 +26,7 @@ export const noUtilBarrelRule: Rule.RuleModule = {
             node,
             message:
               `Import utilities directly instead of through "${specifier}". ` +
-              "See docs/code-organization-guide/rules/utilities-rule.md",
+              "See docs/next-codebase-guide/rules/utilities-rule.md",
           });
         }
       },

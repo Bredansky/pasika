@@ -6,17 +6,17 @@ Use this reference to look up the styling terms this guide's rules use, and the 
 
 These terms name the styling roles, helpers, and states the styling workflow refers to.
 
-| Term                     | Definition                                                                                                                                                                       |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Term                     | Definition                                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Project styling          | Styling that expresses the project's own design decisions, as opposed to values that arrive from content or data at runtime.                                                      |
-| Global stylesheet        | The single CSS entry point that registers Tailwind and defines the project's theme, custom utilities, base styles, and keyframes.                                                  |
-| Theme variable namespace | One of [Tailwind's theme-variable groups](https://tailwindcss.com/docs/theme#theme-variable-namespaces), such as `--color-*` or `--radius-*`, whose variables generate utilities.   |
-| Custom utility           | A utility the project defines with Tailwind's `@utility` directive.                                                                                                              |
+| Global stylesheet        | The single CSS entry point that registers Tailwind and defines the project's theme, custom utilities, base styles, and keyframes.                                                 |
+| Theme variable namespace | One of [Tailwind's theme-variable groups](https://tailwindcss.com/docs/theme#theme-variable-namespaces), such as `--color-*` or `--radius-*`, whose variables generate utilities. |
+| Custom utility           | A utility the project defines with Tailwind's `@utility` directive.                                                                                                               |
 | Canvas                   | A value used only as a background, exposed as `--<role>-canvas` and applied through `bg-<role>-canvas`.                                                                           |
 | Ink                      | A value used only as readable text, exposed as `--<role>-ink` and applied through `text-<role>-ink`.                                                                              |
 | Surface                  | A custom utility that owns a repeated combination of canvas, ink, and related styles, named `<role>-surface`.                                                                     |
 | UI state                 | A condition a component can be in that changes its appearance: interaction, disabled, selected, loading, or error.                                                                |
-| State variant            | A Tailwind variant prefix that targets a state, such as `hover:`, `focus-visible:`, `disabled:`, or `aria-busy:`.                                                                |
+| State variant            | A Tailwind variant prefix that targets a state, such as `hover:`, `focus-visible:`, `disabled:`, or `aria-busy:`.                                                                 |
 | `cva`                    | Class Variance Authority, which defines a component's visual options and derives their TypeScript API through `VariantProps`.                                                     |
 
 ## Class Merging Helper

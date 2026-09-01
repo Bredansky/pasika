@@ -7,7 +7,7 @@
  * consumer outside src/app/ reaching into one means a value has crossed the
  * independence threshold.
  *
- * @see docs/code-organization-guide/rules/constants-rule.md
+ * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 
 import path from "node:path";
@@ -45,7 +45,7 @@ export const valueExtractionRule: Rule.RuleModule = {
           message:
             `This file in src/app/ is imported by ${describeConsumers(outsideApp, sourceRoot)} ` +
             "outside src/app/. Extract the value to a shared or feature folder so it can be " +
-            "imported independently. See docs/code-organization-guide/rules/constants-rule.md",
+            "imported independently. See docs/next-codebase-guide/rules/constants-rule.md",
         });
       },
     };

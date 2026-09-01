@@ -78,10 +78,7 @@ type HeaderSectionProps = {
   searchPlaceholder: string;
 };
 
-export function HeaderSection({
-  onMenuClick,
-  searchPlaceholder,
-}: HeaderSectionProps): React.JSX.Element {
+export function HeaderSection({ onMenuClick, searchPlaceholder }: HeaderSectionProps): React.JSX.Element {
   return (
     <header>
       <h1>{locales.layout.headerTitle}</h1>

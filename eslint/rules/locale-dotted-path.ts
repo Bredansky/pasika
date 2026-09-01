@@ -4,7 +4,7 @@
  * A namespaced locale MUST be read through its full dotted path
  * (locales.stream.watchLiveStream) rather than destructured.
  *
- * @see docs/code-organization-guide/rules/locales-rule.md
+ * @see docs/next-codebase-guide/rules/locales-rule.md
  */
 
 import path from "node:path";

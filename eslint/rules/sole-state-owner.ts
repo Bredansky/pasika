@@ -10,7 +10,7 @@
  * that run is a self-contained part that should own the hook, so extraction is
  * required.
  *
- * @see docs/code-organization-guide/rules/sole-state-owner-rule.md
+ * @see docs/next-codebase-guide/rules/sole-state-owner-rule.md
  */
 
 import path from "node:path";
@@ -147,7 +147,7 @@ export const soleStateOwnerRule: Rule.RuleModule = {
                 `Component "${component.name}" uses state "${hook.value}" in ${String(run)} contiguous ` +
                 `top-level JSX part${run === 1 ? "" : "s"}; extract that part into a named component that owns ` +
                 `useState instead of reading it in the parent. ` +
-                "See docs/code-organization-guide/rules/sole-state-owner-rule.md",
+                "See docs/next-codebase-guide/rules/sole-state-owner-rule.md",
             });
           }
         }

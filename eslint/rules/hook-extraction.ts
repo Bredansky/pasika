@@ -5,7 +5,7 @@
  * use it. The file must be read across the tree, because how many files import
  * a hook is not visible from one file.
  *
- * @see docs/code-organization-guide/rules/hook-extraction-rule.md
+ * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
  */
 
 import path from "node:path";
@@ -53,7 +53,7 @@ export const hookExtractionRule: Rule.RuleModule = {
             message:
               `Hook "${exp.name}" has ${String(consumers?.size ?? 0)} consumers; ` +
               "extract it to its own file in a hooks/ folder. " +
-              "See docs/code-organization-guide/rules/hook-extraction-rule.md",
+              "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
           });
         }
       },

@@ -4,7 +4,7 @@
  * Style declarations added by the project inside global selectors MUST use
  * @apply.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

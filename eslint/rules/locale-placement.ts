@@ -7,7 +7,7 @@
  * in an object with the camelCase form of its feature folder name. The rule
  * reads which keys the tree uses, because a single file cannot see them.
  *
- * @see docs/code-organization-guide/rules/locales-rule.md
+ * @see docs/next-codebase-guide/rules/locales-rule.md
  */
 
 import path from "node:path";
@@ -139,7 +139,7 @@ export const localePlacementRule: Rule.RuleModule = {
             line: current.line,
             message:
               `Locale "${key}" is read by ${describeConsumers([...readers], sourceRoot)} and must live ` +
-              "at the top level of locales. See docs/code-organization-guide/rules/locales-rule.md",
+              "at the top level of locales. See docs/next-codebase-guide/rules/locales-rule.md",
           });
         }
         continue;
@@ -154,14 +154,14 @@ export const localePlacementRule: Rule.RuleModule = {
           line: current.line,
           message:
             `Locale "${key}" is read only by the ${featureName} feature; it must live in an object ` +
-            `named "${expected}". See docs/code-organization-guide/rules/locales-rule.md`,
+            `named "${expected}". See docs/next-codebase-guide/rules/locales-rule.md`,
         });
       } else if (current?.kind === "nested" && key !== expected) {
         findings.push({
           line: current.line,
           message:
             `Locale "${key}" is read only by the ${featureName} feature; it must live in an object ` +
-            `named "${expected}", not "${key}". See docs/code-organization-guide/rules/locales-rule.md`,
+            `named "${expected}", not "${key}". See docs/next-codebase-guide/rules/locales-rule.md`,
         });
       }
     }

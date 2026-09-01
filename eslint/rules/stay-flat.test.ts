@@ -42,7 +42,7 @@ process.chdir(root);
 const file = (relativePath: string): string => path.join(root, "src", relativePath);
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
-const DOC = "See docs/code-organization-guide/rules/folder-nesting-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/folder-nesting-rule.md";
 
 void describe(
   "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",

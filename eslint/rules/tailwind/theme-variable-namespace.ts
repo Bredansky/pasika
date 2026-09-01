@@ -5,7 +5,7 @@
  * theme-variable namespace MUST use that namespace and have the same name in
  * :root.
  *
- * @see docs/styling-guide/rules/theme-and-utility-definition-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

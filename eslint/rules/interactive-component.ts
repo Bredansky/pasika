@@ -4,7 +4,7 @@
  * Interactive elements are component boundaries when they are mixed with other
  * content in the same component. Standalone interactive components are valid.
  *
- * @see docs/code-organization-guide/rules/interactive-component-rule.md
+ * @see docs/next-codebase-guide/rules/interactive-component-rule.md
  */
 
 import path from "node:path";
@@ -249,7 +249,7 @@ export const interactiveComponentRule: Rule.RuleModule = {
           node,
           message:
             `Extract the interactive <${name}> into a descriptive component. ` +
-            "See docs/code-organization-guide/rules/interactive-component-rule.md",
+            "See docs/next-codebase-guide/rules/interactive-component-rule.md",
         });
       },
     };

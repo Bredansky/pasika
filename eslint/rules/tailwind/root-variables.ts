@@ -5,7 +5,7 @@
  * in :root, and a Tailwind theme variable MUST reference that CSS variable
  * through @theme inline.
  *
- * @see docs/styling-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";

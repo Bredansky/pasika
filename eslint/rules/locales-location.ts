@@ -5,7 +5,7 @@
  * src/locales/index.ts. User-facing strings defined outside the locales
  * directory are reported.
  *
- * @see docs/code-organization-guide/rules/locales-rule.md
+ * @see docs/next-codebase-guide/rules/locales-rule.md
  */
 
 import path from "node:path";

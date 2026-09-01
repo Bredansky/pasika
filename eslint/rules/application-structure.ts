@@ -5,9 +5,9 @@
  * and Component Placement rules. Questions about ownership or extraction stay
  * with the cross-file rules because they need the project graph.
  *
- * @see docs/code-organization-guide/rules/application-structure-rule.md
- * @see docs/code-organization-guide/rules/configuration-rule.md
- * @see docs/code-organization-guide/rules/component-placement-rule.md
+ * @see docs/next-codebase-guide/rules/application-structure-rule.md
+ * @see docs/next-codebase-guide/rules/configuration-rule.md
+ * @see docs/next-codebase-guide/rules/component-placement-rule.md
  */
 import fs from "node:fs";
 import path from "node:path";
