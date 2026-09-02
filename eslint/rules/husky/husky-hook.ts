@@ -5,7 +5,9 @@
  * npm run typecheck, and npx libyear --limit-major-individual=1, with a
  * "prepare": "husky" script in package.json. A repository that tracks
  * eslint-suppressions.json must also prune it between the typecheck and the
- * drift check, staging the shrink locally and failing on any diff in CI.
+ * drift check, staging the shrink locally and failing on any diff in CI. A
+ * repository that declares vitest and @vitest/coverage-v8 must also run the
+ * coverage-gated test suite in the hook.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -25,7 +27,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged, typecheck, the suppression-file ratchet, and the libyear drift check.",
+        "Require a pre-commit hook that runs lint-staged, typecheck, the suppression-file ratchet, the coverage-gated test suite, and the libyear drift check.",
     },
   },
   create(context) {
@@ -75,6 +77,20 @@ export const huskyHookRule: JSONRuleDefinition = {
             context.report({
               node,
               message: ".husky/pre-commit must stage the eslint-suppressions.json shrink locally.",
+            });
+          }
+        }
+
+        // once the repo declares vitest + @vitest/coverage-v8, the hook must run the coverage-gated test suite
+        const devDependencies = root.members.find((member) => memberName(member) === "devDependencies");
+        const devDependencyNames = new Set(
+          devDependencies?.value.type === "Object" ? devDependencies.value.members.map(memberName) : [],
+        );
+        if (devDependencyNames.has("vitest") && devDependencyNames.has("@vitest/coverage-v8")) {
+          if (!content.includes("vitest run --coverage") && !content.includes("vitest --coverage")) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must run the coverage-gated test suite (vitest run --coverage).",
             });
           }
         }

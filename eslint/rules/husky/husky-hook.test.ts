@@ -78,3 +78,56 @@ void describe("A repository that tracks eslint-suppressions.json MUST prune it b
     ],
   });
 });
+
+const FULL_HOOK = `npx lint-staged
+npm run typecheck
+if [ -f eslint-suppressions.json ]; then
+  npx eslint . --prune-suppressions
+  if [ "$CI" = "true" ]; then
+    git diff --exit-code eslint-suppressions.json
+  else
+    git add eslint-suppressions.json
+  fi
+fi
+npx vitest run --coverage
+npx libyear --limit-major-individual=1
+`;
+
+const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1.5" };
+
+void describe("A repository that declares vitest and @vitest/coverage-v8 in devDependencies MUST run the coverage-gated test suite in .husky/pre-commit.", () => {
+  // vitest not declared, so the coverage run is not required even though the hook omits it
+  const noVitest = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(noVitest));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: '{"scripts":{"prepare":"husky"}}', filename: noVitest }],
+    invalid: [],
+  });
+
+  // vitest + @vitest/coverage-v8 declared and the hook runs the coverage-gated suite
+  const withCoverage = buildFixture(FULL_HOOK);
+  process.chdir(path.dirname(withCoverage));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [
+      {
+        code: JSON.stringify({ scripts: { prepare: "husky" }, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
+        filename: withCoverage,
+      },
+    ],
+    invalid: [],
+  });
+
+  // vitest + @vitest/coverage-v8 declared but the hook never runs the coverage-gated suite
+  const missingCoverage = buildFixture(RATCHET_HOOK);
+  process.chdir(path.dirname(missingCoverage));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: { prepare: "husky" }, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
+        filename: missingCoverage,
+        errors: [{ message: ".husky/pre-commit must run the coverage-gated test suite (vitest run --coverage)." }],
+      },
+    ],
+  });
+});
