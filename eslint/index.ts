@@ -11,6 +11,7 @@ import css from "@eslint/css";
 import jsonPlugin from "@eslint/json";
 import markdown from "@eslint/markdown";
 import tsParser from "@typescript-eslint/parser";
+import { assertTypescriptAlignment } from "./ts-alignment";
 import { filenameCaseRule } from "./rules/filename-case";
 import { importBoundariesRule } from "./rules/import-boundaries";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
@@ -300,15 +301,41 @@ export const typescriptApp: Linter.Config[] = [
 ];
 
 /**
+ * Wrap the `nextjsApp` preset so the TypeScript alignment diagnostic runs the
+ * first time the array is consumed (spread into a config, iterated, measured),
+ * instead of at module load. That keeps `typescriptApp`-only repositories —
+ * which never use pasika's bundled parser — completely unaffected: they can
+ * stay on whatever TypeScript major they pin. A nextjsApp consumer whose
+ * hoisted TypeScript has a different major than the compiler pasika bundles
+ * gets a load-time error urging the upgrade, instead of crashing later inside
+ * the type-aware rules. See `./ts-alignment`.
+ */
+const nextjsAppWithDiagnostic = <T extends Linter.Config[]>(preset: T): T => {
+  let checked = false;
+  return new Proxy(preset, {
+    get(target, property, receiver) {
+      if (!checked && (property === Symbol.iterator || property === "length")) {
+        checked = true;
+        assertTypescriptAlignment();
+      }
+      return Reflect.get(target, property, receiver);
+    },
+  });
+};
+
+/**
  * Next.js app preset: the full adopted-to-the-framework stack. Anything in
  * `typescriptApp` plus the framework-only blocks — the Next.js-stack manifest
  * requirement, the `src/**` app source rules, and the Tailwind stylesheet
- * rules. `typescriptApp` is a strict subset of `nextjsApp`.
+ * rules. `typescriptApp` is a strict subset of `nextjsApp`. Consuming this
+ * preset (spreading or iterating it) runs the TypeScript alignment diagnostic
+ * first, so a mismatched compiler major fails config load with an actionable
+ * error instead of crashing every type-aware rule later.
  */
-export const nextjsApp: Linter.Config[] = [
+export const nextjsApp: Linter.Config[] = nextjsAppWithDiagnostic([
   ...typescriptApp,
   nextjsAppPackageJsonConfig,
   nextjsAppConfig,
   tailwindStructureRules,
   tailwindImportGraph,
-];
+]);

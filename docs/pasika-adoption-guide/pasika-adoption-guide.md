@@ -16,6 +16,8 @@ Run this once, when a repository starts using the framework. The Next.js steps â
 8. Run `npx vulyk@latest init`, `npx vulyk@latest add`, and `npx vulyk@latest agents` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's docs from `pasika` and the agent files that route to them are generated.
 9. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
 
+> **TypeScript alignment.** The `nextjsApp` preset parses `src/**` with the `@typescript-eslint/parser` pasika bundles, which runs on the TypeScript version pasika depends on. The type-aware rules you enable through zirka run on whatever TypeScript your repository hoists. When those two copies have different majors, the types the parser builds use a different `TypeFlags` layout than the rules expect and every type-aware rule crashes. The preset checks the alignment when your config consumes it: keep your declared `typescript` on the same major pasika ships (the bundled compiler is the reference, so a newer major is a signal to update pasika in turn), and the check stays silent.
+
 ## How To Update a Repository to the Latest Framework Release
 
 Run this whenever the framework publishes a release. It applies to both Next.js applications and plain TypeScript repositories.
