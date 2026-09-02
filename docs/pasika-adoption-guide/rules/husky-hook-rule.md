@@ -2,8 +2,8 @@
 
 Checks that land before a commit only protect the repository if the hook runs them. This rule requires the hook to run lint-staged and the libyear drift check directly, and to run the typecheck, suppression-file ratchet, and coverage-gated test suite through named package.json scripts.
 
-- A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`.
 - A repository MUST declare a `prepare` script in package.json that runs `husky`.
+- A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`.
 - A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.
 - A repository that declares `vitest` and `@vitest/coverage-v8` in devDependencies MUST declare a `test:unit:coverage` script in package.json and run it (`npm run test:unit:coverage`) in `.husky/pre-commit`.
