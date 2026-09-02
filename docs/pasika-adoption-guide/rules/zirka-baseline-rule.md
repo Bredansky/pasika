@@ -21,7 +21,7 @@ import { RuleSeverity, styleguide } from "zirka";
 
 const { eslintConfig } = styleguide({
   typescript: RuleSeverity.Error,
-  pasikaTypescriptApp: RuleSeverity.Error,
+  pasikaApp: RuleSeverity.Error,
 });
 
 export default eslintConfig;

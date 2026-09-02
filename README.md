@@ -88,8 +88,8 @@ The script refuses a hash no requirement has, a `ref` naming a rule that does no
 
 ```bash
 npm run build
-npm run dogfood -- ../some/repo                 # nextjsApp preset (default)
-npm run dogfood -- ../some/repo --preset=typescriptApp
+npm run dogfood -- ../some/repo                 # pasikaNextjsApp preset (default)
+npm run dogfood -- ../some/repo --preset=pasikaApp
 npm run dogfood -- ../some/repo --pasika-only   # tally only pasika/* rules
 npm run dogfood -- ../some/repo --rule=css-entry-point --findings
 npm run dogfood -- ../some/repo --json          # machine-readable report
@@ -115,18 +115,18 @@ const { eslintConfig } = styleguide({
 export default eslintConfig;
 ```
 
-For a plain TypeScript repository, enable `pasikaTypescriptApp` instead of `pasikaNextjsApp`; that preset covers the manifest, the zirka contract, and the docs only — the `src/**` source rules belong to the Next.js app preset. `zirka` composes the pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
+For a plain TypeScript repository, enable `pasikaApp` instead of `pasikaNextjsApp`; that preset covers the manifest, the zirka contract, and the docs only — the `src/**` source rules belong to the Next.js app preset. `zirka` composes the pasika ruleset over four file scopes: TS/TSX under `src/**`, `globals.css` and other stylesheets, `package.json`, and markdown — each with its own ESLint language.
 
 ### Without Zirka
 
 ```ts
 // eslint.config.ts — plain TypeScript repository
-import { typescriptApp } from "pasika/eslint";
+import { pasikaApp } from "pasika/eslint";
 
-export default typescriptApp;
+export default pasikaApp;
 ```
 
-`typescriptApp` is the plain-TypeScript-repository preset — the package.json manifest, the zirka configuration contract, and the docs. It carries no `src/**` source block: source linting is the Next.js app's job. `nextjsApp` is the full framework preset: everything in `typescriptApp` plus the Next.js-stack manifest requirement, the `src/**` app source rules, and the Tailwind stylesheet blocks. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
+`pasikaApp` is the plain-TypeScript-repository preset — the package.json manifest, the zirka configuration contract, and the docs. It carries no `src/**` source block: source linting is the Next.js app's job. `pasikaNextjsApp` is the full framework preset: everything in `pasikaApp` plus the Next.js-stack manifest requirement, the `src/**` app source rules, and the Tailwind stylesheet blocks. The granular rule objects (`tailwindRules`, `repoPackageJsonRules`, `documentationRules`) stay exported for manual wiring.
 
 The `src/**` blocks ship `@typescript-eslint/parser` themselves, so a standalone preset parses `.ts`/`.tsx` correctly on its own (`pasika` lists it as a runtime dependency).
 

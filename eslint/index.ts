@@ -67,7 +67,7 @@ import { vulykRules } from "./rules/vulyk/index";
  * rules assume a Next.js/React application with a Tailwind theme and are inert
  * in other codebases.
  */
-const nextjsAppRules = {
+const pasikaNextjsAppRules = {
   // Framework-agnostic TypeScript rules.
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
@@ -127,7 +127,7 @@ export const pasikaPlugin = {
   rules: {
     // The shared plugin must register every rule the preset blocks reference,
     // so all rule sets live here.
-    ...nextjsAppRules,
+    ...pasikaNextjsAppRules,
     ...documentationRules,
     ...tailwindRules,
     ...repoPackageJsonRules,
@@ -151,7 +151,7 @@ function ruleIds(rules: Record<string, unknown>): string[] {
 
 // Rule-id groups, used internally to assemble the preset blocks and
 // `allPasikaRuleIds`. Only `allPasikaRuleIds` is part of the public API.
-const nextjsAppRuleIds = ruleIds(nextjsAppRules);
+const pasikaNextjsAppRuleIds = ruleIds(pasikaNextjsAppRules);
 const documentationRuleIds = ruleIds(documentationRules);
 const tailwindRuleIds = ruleIds(tailwindRules); // Tailwind stylesheet rules belong to the Next presets.
 const repoPackageJsonRuleIds = ruleIds(repoPackageJsonRules);
@@ -161,7 +161,7 @@ const vulykRuleIds = ruleIds(vulykRules);
 
 /** Every rule id, as they appear in configuration and in lint output. */
 export const allPasikaRuleIds = [
-  ...nextjsAppRuleIds,
+  ...pasikaNextjsAppRuleIds,
   ...documentationRuleIds,
   ...tailwindRuleIds,
   ...repoPackageJsonRuleIds,
@@ -177,7 +177,7 @@ export const allPasikaRuleIds = [
  * `zirka`, which otherwise supplies the parser). `@typescript-eslint/parser`
  * is a runtime dependency so an installing consumer always gets it.
  */
-const typescriptAppLanguageOptions: Linter.Config["languageOptions"] = {
+const pasikaAppLanguageOptions: Linter.Config["languageOptions"] = {
   parser: tsParser,
   parserOptions: {
     ecmaVersion: "latest",
@@ -187,13 +187,13 @@ const typescriptAppLanguageOptions: Linter.Config["languageOptions"] = {
 };
 
 /** The app's TS/TSX source (`src/**`), running every source rule. */
-const nextjsAppConfig: Linter.Config = {
+const pasikaNextjsAppConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
-  languageOptions: typescriptAppLanguageOptions,
+  languageOptions: pasikaAppLanguageOptions,
   plugins: {
     pasika: pasikaPlugin,
   },
-  rules: Object.fromEntries(nextjsAppRuleIds.map((id) => [id, "error"])),
+  rules: Object.fromEntries(pasikaNextjsAppRuleIds.map((id) => [id, "error"])),
 };
 
 /**
@@ -236,7 +236,7 @@ const tailwindImportGraph: Linter.Config = {
  * manifest rules plus the husky (git-hook) and vulyk (docs) rules, on the JSON
  * language.
  */
-const typescriptAppPackageJsonConfig: Linter.Config = {
+const pasikaAppPackageJsonConfig: Linter.Config = {
   files: ["package.json"],
   plugins: {
     json: jsonLanguage,
@@ -248,10 +248,10 @@ const typescriptAppPackageJsonConfig: Linter.Config = {
 
 /**
  * `package.json` block for the framework only: the Next.js-stack requirement,
- * on the JSON language. Kept out of `typescriptApp` so a repository that does
+ * on the JSON language. Kept out of `pasikaApp` so a repository that does
  * not adopt the framework is never forced to list its packages.
  */
-const nextjsAppPackageJsonConfig: Linter.Config = {
+const pasikaNextjsAppPackageJsonConfig: Linter.Config = {
   files: ["package.json"],
   plugins: {
     json: jsonLanguage,
@@ -294,23 +294,23 @@ const documentationConfig: Linter.Config = {
  * source block: source linting is the Next.js app's job.
  * Use this for a plain TypeScript repository that does not adopt the framework.
  */
-export const typescriptApp: Linter.Config[] = [
-  typescriptAppPackageJsonConfig,
+export const pasikaApp: Linter.Config[] = [
+  pasikaAppPackageJsonConfig,
   zirkaConfig,
   documentationConfig,
 ];
 
 /**
- * Wrap the `nextjsApp` preset so the TypeScript alignment diagnostic runs the
+ * Wrap the `pasikaNextjsApp` preset so the TypeScript alignment diagnostic runs the
  * first time the array is consumed (spread into a config, iterated, measured),
- * instead of at module load. That keeps `typescriptApp`-only repositories —
+ * instead of at module load. That keeps `pasikaApp`-only repositories —
  * which never use pasika's bundled parser — completely unaffected: they can
- * stay on whatever TypeScript major they pin. A nextjsApp consumer whose
+ * stay on whatever TypeScript major they pin. A pasikaNextjsApp consumer whose
  * hoisted TypeScript has a different major than the compiler pasika bundles
  * gets a load-time error urging the upgrade, instead of crashing later inside
  * the type-aware rules. See `./ts-alignment`.
  */
-const nextjsAppWithDiagnostic = <T extends Linter.Config[]>(preset: T): T => {
+const pasikaNextjsAppWithDiagnostic = <T extends Linter.Config[]>(preset: T): T => {
   let checked = false;
   return new Proxy(preset, {
     get(target, property, receiver) {
@@ -325,17 +325,17 @@ const nextjsAppWithDiagnostic = <T extends Linter.Config[]>(preset: T): T => {
 
 /**
  * Next.js app preset: the full adopted-to-the-framework stack. Anything in
- * `typescriptApp` plus the framework-only blocks — the Next.js-stack manifest
+ * `pasikaApp` plus the framework-only blocks — the Next.js-stack manifest
  * requirement, the `src/**` app source rules, and the Tailwind stylesheet
- * rules. `typescriptApp` is a strict subset of `nextjsApp`. Consuming this
+ * rules. `pasikaApp` is a strict subset of `pasikaNextjsApp`. Consuming this
  * preset (spreading or iterating it) runs the TypeScript alignment diagnostic
  * first, so a mismatched compiler major fails config load with an actionable
  * error instead of crashing every type-aware rule later.
  */
-export const nextjsApp: Linter.Config[] = nextjsAppWithDiagnostic([
-  ...typescriptApp,
-  nextjsAppPackageJsonConfig,
-  nextjsAppConfig,
+export const pasikaNextjsApp: Linter.Config[] = pasikaNextjsAppWithDiagnostic([
+  ...pasikaApp,
+  pasikaNextjsAppPackageJsonConfig,
+  pasikaNextjsAppConfig,
   tailwindStructureRules,
   tailwindImportGraph,
 ]);

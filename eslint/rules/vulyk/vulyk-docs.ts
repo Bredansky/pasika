@@ -27,7 +27,7 @@ const BASE_REQUIRED_DOCS = [
   { name: "repository-policy", path: "docs/repository-policy.md" },
 ] as const;
 
-/** Docs a Next.js app (the nextjsApp preset, which includes typescriptApp) must additionally track. */
+/** Docs a Next.js app (the pasikaNextjsApp preset, which includes pasikaApp) must additionally track. */
 const NEXTJS_REQUIRED_DOCS = [
   { name: "next-codebase-guide", path: "docs/next-codebase-guide" },
   { name: "next-tailwind-guide", path: "docs/next-tailwind-guide" },

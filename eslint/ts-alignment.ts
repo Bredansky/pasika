@@ -1,7 +1,7 @@
 /**
  * TypeScript alignment diagnostic.
  *
- * The `nextjsApp` preset ships its own `@typescript-eslint/parser` (a runtime
+ * The `pasikaNextjsApp` preset ships its own `@typescript-eslint/parser` (a runtime
  * dependency), which runs on the TypeScript version pasika bundles. The
  * type-aware rules a consumer enables through zirka run on whatever TypeScript
  * the consumer's `node_modules` hoists. When those two TypeScript copies have
@@ -83,7 +83,7 @@ export function alignmentError(bundled: string | null, resolved: string | null):
       : `Your repository is ahead of the compiler pasika ships. Pin typescript to ^${String(bundledMajor)} for now and upgrade pasika when it bundles the newer major.`;
 
   return new Error(
-    `[pasika] TypeScript major mismatch: the pasika nextjsApp preset parses src/** with its bundled ` +
+    `[pasika] TypeScript major mismatch: the pasikaNextjsApp preset parses src/** with its bundled ` +
       `@typescript-eslint/parser, which runs on typescript ${bundled}; your repository resolves typescript ` +
       `${resolved} for the type-aware rules. Two TypeScript majors mean the types the parser builds use a ` +
       `different TypeFlags layout than the rules expect, so every type-aware rule crashes (e.g. "undefined is ` +
@@ -93,8 +93,8 @@ export function alignmentError(bundled: string | null, resolved: string | null):
 
 /**
  * Run the diagnostic: resolve both copies and throw `alignmentError` when they
- * disagree. Called lazily the first time the `nextjsApp` preset is consumed, so
- * `typescriptApp`-only repositories are never blocked.
+ * disagree. Called lazily the first time the `pasikaNextjsApp` preset is consumed, so
+ * `pasikaApp`-only repositories are never blocked.
  */
 export function assertTypescriptAlignment(): void {
   const { bundled, resolved } = resolveTypescriptAlignment();

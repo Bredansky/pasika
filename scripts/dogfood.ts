@@ -11,7 +11,7 @@
  *   npx tsx scripts/dogfood.ts <path/to/target-repo> [options]
  *
  * Options:
- *   --preset <name>     nextjsApp (default) or typescriptApp
+ *   --preset <name>     pasikaNextjsApp (default) or pasikaApp
  *   --pasika-only       tally only pasika/* rules, skip the framework rules
  *   --rule <name>       tally a single rule (bare name or pasika/<name>)
  *   --findings          print every finding with its file and line
@@ -26,7 +26,7 @@ import path from "node:path";
 import { ESLint } from "eslint";
 import { log, logError } from "./utils/logger";
 
-const PRESETS = ["nextjsApp", "typescriptApp"] as const;
+const PRESETS = ["pasikaNextjsApp", "pasikaApp"] as const;
 type PresetName = (typeof PRESETS)[number];
 
 interface Flags {
@@ -57,7 +57,7 @@ interface Report {
 
 /** Parse argv manually (avoids a commander dependency), matching coverage.ts. */
 function parseArgs(argv: string[]): { target?: string; flags: Flags } {
-  const flags: Flags = { preset: "nextjsApp", pasikaOnly: false, findings: false, json: false };
+  const flags: Flags = { preset: "pasikaNextjsApp", pasikaOnly: false, findings: false, json: false };
   let target: string | undefined;
 
   for (let i = 0; i < argv.length; i++) {
@@ -70,7 +70,7 @@ function parseArgs(argv: string[]): { target?: string; flags: Flags } {
     switch (name) {
       case "--preset": {
         const preset = value();
-        if (preset !== "nextjsApp" && preset !== "typescriptApp") {
+        if (preset !== "pasikaNextjsApp" && preset !== "pasikaApp") {
           throw new Error(`--preset must be one of ${PRESETS.join(", ")} (got "${preset ?? ""}")`);
         }
         flags.preset = preset;
@@ -100,7 +100,7 @@ function parseArgs(argv: string[]): { target?: string; flags: Flags } {
 
 function printUsage(): void {
   logError(
-    "Usage: npx tsx scripts/dogfood.ts <path/to/target-repo> [--preset=nextjsApp|typescriptApp] [--pasika-only] [--rule=<name>] [--findings] [--json]",
+    "Usage: npx tsx scripts/dogfood.ts <path/to/target-repo> [--preset=pasikaNextjsApp|pasikaApp] [--pasika-only] [--rule=<name>] [--findings] [--json]",
   );
 }
 
