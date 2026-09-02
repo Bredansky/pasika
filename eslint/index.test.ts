@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { Linter } from "eslint";
-import { nextjsApp, typescriptApp } from "./index";
+import { pasikaNextjsApp, pasikaApp } from "./index";
 
 function fileGlobs(blocks: Linter.Config[]): string[] {
   const out: string[] = [];
@@ -17,85 +17,85 @@ function fileGlobs(blocks: Linter.Config[]): string[] {
 }
 
 void describe("pasika presets", () => {
-  void it("nextjsApp contains every typescriptApp block (typescriptApp is a subset)", () => {
-    assert.ok(nextjsApp.length > typescriptApp.length);
-    for (const repoBlock of typescriptApp) {
-      assert.ok(nextjsApp.includes(repoBlock), "nextjsApp should reuse the typescriptApp block by reference");
+  void it("pasikaNextjsApp contains every pasikaApp block (pasikaApp is a subset)", () => {
+    assert.ok(pasikaNextjsApp.length > pasikaApp.length);
+    for (const repoBlock of pasikaApp) {
+      assert.ok(pasikaNextjsApp.includes(repoBlock), "pasikaNextjsApp should reuse the pasikaApp block by reference");
     }
   });
 
-  void it("typescriptApp carries no src/** source block: manifest, zirka contract, and docs only", () => {
+  void it("pasikaApp carries no src/** source block: manifest, zirka contract, and docs only", () => {
     assert.ok(
-      !fileGlobs(typescriptApp).some((glob) => glob.includes("src/")),
-      "typescriptApp must not lint src/** — source linting belongs to nextjsApp",
+      !fileGlobs(pasikaApp).some((glob) => glob.includes("src/")),
+      "pasikaApp must not lint src/** — source linting belongs to pasikaNextjsApp",
     );
     assert.ok(
-      fileGlobs(typescriptApp).some((glob) => glob === "package.json"),
-      "typescriptApp must enforce the manifest rules",
+      fileGlobs(pasikaApp).some((glob) => glob === "package.json"),
+      "pasikaApp must enforce the manifest rules",
     );
     assert.ok(
-      fileGlobs(typescriptApp).some((glob) => glob.startsWith("eslint.config.")),
-      "typescriptApp must enforce the zirka contract",
+      fileGlobs(pasikaApp).some((glob) => glob.startsWith("eslint.config.")),
+      "pasikaApp must enforce the zirka contract",
     );
     assert.ok(
-      fileGlobs(typescriptApp).some((glob) => glob.startsWith("docs/")),
-      "typescriptApp must lint the docs",
+      fileGlobs(pasikaApp).some((glob) => glob.startsWith("docs/")),
+      "pasikaApp must lint the docs",
     );
   });
 
-  void it("nextjsApp runs every source rule on src/**", () => {
+  void it("pasikaNextjsApp runs every source rule on src/**", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
-    const next = ruleRefs(nextjsApp);
-    assert.ok(next.has("pasika/filename-case"), "nextjsApp must keep the TypeScript app rules");
-    assert.ok(next.has("pasika/cn-helper"), "nextjsApp must add the Next.js app rules");
+    const next = ruleRefs(pasikaNextjsApp);
+    assert.ok(next.has("pasika/filename-case"), "pasikaNextjsApp must keep the TypeScript app rules");
+    assert.ok(next.has("pasika/cn-helper"), "pasikaNextjsApp must add the Next.js app rules");
     assert.ok(
-      fileGlobs(nextjsApp).some((file) => file.includes("globals.css")),
+      fileGlobs(pasikaNextjsApp).some((file) => file.includes("globals.css")),
       "missing the Tailwind globals block",
     );
     assert.ok(
-      fileGlobs(nextjsApp).some((glob) => glob.includes("src/**/*.{")),
-      "nextjsApp must lint src/** with a source block",
+      fileGlobs(pasikaNextjsApp).some((glob) => glob.includes("src/**/*.{")),
+      "pasikaNextjsApp must lint src/** with a source block",
     );
   });
 
-  void it("the Next.js-stack requirement applies only to nextjsApp, not typescriptApp", () => {
+  void it("the Next.js-stack requirement applies only to pasikaNextjsApp, not pasikaApp", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
-    assert.ok(ruleRefs(nextjsApp).has("pasika/nextjs-stack"), "nextjsApp must enforce nextjs-stack");
+    assert.ok(ruleRefs(pasikaNextjsApp).has("pasika/nextjs-stack"), "pasikaNextjsApp must enforce nextjs-stack");
     assert.ok(
-      !ruleRefs(typescriptApp).has("pasika/nextjs-stack"),
-      "typescriptApp must not force the Next.js stack on plain repos",
+      !ruleRefs(pasikaApp).has("pasika/nextjs-stack"),
+      "pasikaApp must not force the Next.js stack on plain repos",
     );
   });
 
   void it("the src/** block ships a TypeScript/JSX parser so a standalone preset lints TS/TSX", () => {
     const srcBlocks = (preset: Linter.Config[]): Linter.Config[] =>
       preset.filter((block) => (block.files ?? []).some((glob) => glob.includes("src/**/*.{")));
-    const blocks = srcBlocks(nextjsApp);
-    assert.ok(blocks.length > 0, "nextjsApp must contain a src/** block");
+    const blocks = srcBlocks(pasikaNextjsApp);
+    assert.ok(blocks.length > 0, "pasikaNextjsApp must contain a src/** block");
     for (const block of blocks) {
       const parser = block.languageOptions?.parser;
       assert.ok(parser, "src/** block must specify a parser in languageOptions");
       assert.equal(typeof parser, "object", "src/** block parser must be an object (a parser instance)");
     }
-    assert.equal(srcBlocks(typescriptApp).length, 0, "typescriptApp carries no src/** block");
+    assert.equal(srcBlocks(pasikaApp).length, 0, "pasikaApp carries no src/** block");
   });
 
   void it("both presets enforce the zirka configuration contract on root config files", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
-    for (const preset of [typescriptApp, nextjsApp]) {
+    for (const preset of [pasikaApp, pasikaNextjsApp]) {
       assert.ok(ruleRefs(preset).has("pasika/zirka-baseline"), "preset must enforce zirka-baseline");
     }
     assert.ok(
-      fileGlobs(typescriptApp).some((glob) => glob.startsWith("eslint.config.")),
+      fileGlobs(pasikaApp).some((glob) => glob.startsWith("eslint.config.")),
       "zirka-baseline must run on the root eslint config file",
     );
   });
 
   void it("no plugin name is redefined with a different object across a preset's blocks", () => {
-    for (const preset of [typescriptApp, nextjsApp]) {
+    for (const preset of [pasikaApp, pasikaNextjsApp]) {
       const seen = new Map<string, unknown>();
       for (const block of preset) {
         for (const [name, plugin] of Object.entries(block.plugins ?? {})) {
@@ -113,7 +113,7 @@ void describe("pasika presets", () => {
   void it("both presets enforce the vulyk docs contract on the manifest", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
-    for (const preset of [typescriptApp, nextjsApp]) {
+    for (const preset of [pasikaApp, pasikaNextjsApp]) {
       assert.ok(ruleRefs(preset).has("pasika/vulyk-docs"), "preset must enforce vulyk-docs");
     }
   });
