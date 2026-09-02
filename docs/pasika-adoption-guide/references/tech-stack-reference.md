@@ -18,17 +18,23 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 
 ## DevDependencies
 
-Toolchain packages declared in `devDependencies` — the baseline both `pasikaApp` and `pasikaNextjsApp` build on. `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` apply to every repository; `tailwindcss` applies to a Next.js application only.
+Toolchain packages declared in `devDependencies` — the baseline both `pasikaApp` and `pasikaNextjsApp` build on. `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `vitest`, and `@vitest/coverage-v8` apply to every repository; `tailwindcss`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` apply to a Next.js application only.
 
-| Package       | Applies to           | Responsibility                                                                                                                                                               |
-| ------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `typescript`  | Every repository     | Typed source and the strict compiler settings the shared base config sets; a `pasikaNextjsApp` repository keeps it on the TypeScript major the bundled pasika parser runs on |
-| `tailwindcss` | Next.js applications | Utility classes, theme variables, and the `@utility` and `@apply` directives the styling Rules use                                                                           |
-| `eslint`      | Every repository     | Runs the shared and framework rulesets                                                                                                                                       |
-| `prettier`    | Every repository     | Formats source, applied through the shared ESLint configuration                                                                                                              |
-| `husky`       | Every repository     | Installs the git hooks that run checks before a commit lands                                                                                                                 |
-| `lint-staged` | Every repository     | Runs the lint and format commands against staged files                                                                                                                       |
-| `zirka`       | Every repository     | Combines third-party ESLint plugins, the Prettier configuration, the shared TypeScript base config, and the pasika ruleset                                                   |
+| Package                  | Applies to           | Responsibility                                                                                                                                                               |
+| ------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `typescript`             | Every repository     | Typed source and the strict compiler settings the shared base config sets; a `pasikaNextjsApp` repository keeps it on the TypeScript major the bundled pasika parser runs on |
+| `tailwindcss`            | Next.js applications | Utility classes, theme variables, and the `@utility` and `@apply` directives the styling Rules use                                                                           |
+| `eslint`                 | Every repository     | Runs the shared and framework rulesets                                                                                                                                       |
+| `prettier`               | Every repository     | Formats source, applied through the shared ESLint configuration                                                                                                              |
+| `husky`                  | Every repository     | Installs the git hooks that run checks before a commit lands                                                                                                                 |
+| `lint-staged`            | Every repository     | Runs the lint and format commands against staged files                                                                                                                       |
+| `zirka`                  | Every repository     | Combines third-party ESLint plugins, the Prettier configuration, the shared TypeScript base config, and the pasika ruleset                                                   |
+| `vitest`                 | Every repository     | Unit-test runner and coverage threshold gate, framework-agnostic so it also runs in a plain TypeScript repository                                                            |
+| `@vitest/coverage-v8`    | Every repository     | V8-based coverage provider the coverage thresholds measure against                                                                                                           |
+| `jsdom`                  | Next.js applications | DOM environment Vitest renders components into                                                                                                                               |
+| `@vitejs/plugin-react`   | Next.js applications | Vitest plugin that compiles JSX/TSX for component tests                                                                                                                      |
+| `@testing-library/react` | Next.js applications | Renders components and queries the DOM in component tests                                                                                                                    |
+| `@testing-library/dom`   | Next.js applications | DOM query utilities `@testing-library/react` builds on                                                                                                                       |
 
 ## Not Declared
 

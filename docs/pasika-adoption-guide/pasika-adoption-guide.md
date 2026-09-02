@@ -13,8 +13,9 @@ Run this once, when a repository starts using the framework. The Next.js steps â
 5. If the repository is a Next.js application, define the `cn` helper per the [cn Helper Rule](rules/cn-helper-rule.md) so conflicting Tailwind utilities resolve predictably.
 6. Import the lint, format, and TypeScript configuration from `zirka` per the [Zirka Baseline Rule](rules/zirka-baseline-rule.md) so the framework's rules run without restating them locally.
 7. Configure the git hook per the [Husky Hook Rule](rules/husky-hook-rule.md) so the staged-file, typecheck, and drift checks run before every commit.
-8. Run `npx vulyk@latest init`, `npx vulyk@latest add`, and `npx vulyk@latest agents` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's docs from `pasika` and the agent files that route to them are generated.
-9. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
+8. Declare and configure the test runner per the [Vitest Coverage Rule](rules/vitest-coverage-rule.md) so `vitest` and `@vitest/coverage-v8` are installed and the coverage thresholds actually gate the test run.
+9. Run `npx vulyk@latest init`, `npx vulyk@latest add`, and `npx vulyk@latest agents` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's docs from `pasika` and the agent files that route to them are generated.
+10. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
 
 ## How To Update a Repository to the Latest Framework Release
 
