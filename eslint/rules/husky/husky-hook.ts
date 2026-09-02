@@ -87,10 +87,12 @@ export const huskyHookRule: JSONRuleDefinition = {
           devDependencies?.value.type === "Object" ? devDependencies.value.members.map(memberName) : [],
         );
         if (devDependencyNames.has("vitest") && devDependencyNames.has("@vitest/coverage-v8")) {
-          if (!content.includes("vitest run --coverage") && !content.includes("vitest --coverage")) {
+          // matches either a raw `vitest run --coverage` or a wrapper script name like
+          // `npm run test:unit:coverage` — the hook does not have to invoke vitest directly.
+          if (!content.includes("coverage")) {
             context.report({
               node,
-              message: ".husky/pre-commit must run the coverage-gated test suite (vitest run --coverage).",
+              message: ".husky/pre-commit must run the coverage-gated test suite (e.g. vitest run --coverage).",
             });
           }
         }

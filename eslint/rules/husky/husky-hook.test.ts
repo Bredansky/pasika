@@ -93,6 +93,12 @@ npx vitest run --coverage
 npx libyear --limit-major-individual=1
 `;
 
+const WRAPPER_HOOK = `npx lint-staged
+npm run typecheck
+npm run test:unit:coverage
+npx libyear --limit-major-individual=1
+`;
+
 const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1.5" };
 
 void describe("A repository that declares vitest and @vitest/coverage-v8 in devDependencies MUST run the coverage-gated test suite in .husky/pre-commit.", () => {
@@ -104,7 +110,7 @@ void describe("A repository that declares vitest and @vitest/coverage-v8 in devD
     invalid: [],
   });
 
-  // vitest + @vitest/coverage-v8 declared and the hook runs the coverage-gated suite
+  // vitest + @vitest/coverage-v8 declared and the hook runs vitest directly
   const withCoverage = buildFixture(FULL_HOOK);
   process.chdir(path.dirname(withCoverage));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
@@ -112,6 +118,19 @@ void describe("A repository that declares vitest and @vitest/coverage-v8 in devD
       {
         code: JSON.stringify({ scripts: { prepare: "husky" }, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
         filename: withCoverage,
+      },
+    ],
+    invalid: [],
+  });
+
+  // vitest + @vitest/coverage-v8 declared and the hook runs a wrapper npm script instead
+  const withWrapperScript = buildFixture(WRAPPER_HOOK);
+  process.chdir(path.dirname(withWrapperScript));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [
+      {
+        code: JSON.stringify({ scripts: { prepare: "husky" }, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
+        filename: withWrapperScript,
       },
     ],
     invalid: [],
@@ -126,7 +145,7 @@ void describe("A repository that declares vitest and @vitest/coverage-v8 in devD
       {
         code: JSON.stringify({ scripts: { prepare: "husky" }, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
         filename: missingCoverage,
-        errors: [{ message: ".husky/pre-commit must run the coverage-gated test suite (vitest run --coverage)." }],
+        errors: [{ message: ".husky/pre-commit must run the coverage-gated test suite (e.g. vitest run --coverage)." }],
       },
     ],
   });
