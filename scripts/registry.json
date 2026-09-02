@@ -890,8 +890,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`, with a `prepare` script that runs `husky`.",
-      "hash": "0f9c528287",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`.",
+      "hash": "d0ec2069f5",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST declare a `prepare` script in package.json that runs `husky`.",
+      "hash": "f568f4d0ce",
       "ref": "pasika/husky-hook"
     },
     {

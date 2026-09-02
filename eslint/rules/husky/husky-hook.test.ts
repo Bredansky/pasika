@@ -4,12 +4,19 @@ import path from "node:path";
 import { describe, huskyRuleTester } from "./rule-tester";
 import { huskyHookRule } from "./husky-hook";
 
-void describe("A repository MUST configure .husky/pre-commit to run lint-staged and npx libyear --limit-major-individual=1, with a prepare script that runs husky.", () => {
+void describe("A repository MUST configure .husky/pre-commit to run lint-staged and npx libyear --limit-major-individual=1.", () => {
   huskyRuleTester.run("husky-hook", huskyHookRule, {
     valid: [
       // cwd is the repo, whose .husky/pre-commit runs lint-staged, typecheck, and libyear
       { code: '{"scripts":{"prepare":"husky","typecheck":"tsc --noEmit"}}', filename: "/repo/package.json" },
     ],
+    invalid: [],
+  });
+});
+
+void describe("A repository MUST declare a prepare script in package.json that runs husky.", () => {
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: '{"scripts":{"prepare":"husky","typecheck":"tsc --noEmit"}}', filename: "/repo/package.json" }],
     invalid: [
       {
         code: '{"scripts":{"prepare":"npm run build","typecheck":"tsc --noEmit"}}',
