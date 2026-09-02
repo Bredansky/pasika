@@ -1,13 +1,15 @@
 /**
  * ESLint rule: pasika/husky-hook
  *
- * A repository MUST configure .husky/pre-commit to run lint-staged,
- * npm run typecheck, and npx libyear --limit-major-individual=1, with a
- * "prepare": "husky" script in package.json. A repository that tracks
- * eslint-suppressions.json must also prune it between the typecheck and the
- * drift check, staging the shrink locally and failing on any diff in CI. A
- * repository that declares vitest and @vitest/coverage-v8 must also run the
- * coverage-gated test suite in the hook.
+ * A repository MUST configure .husky/pre-commit to run lint-staged and
+ * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
+ * script in package.json. Its typecheck, and — once the repository tracks
+ * eslint-suppressions.json or declares vitest + @vitest/coverage-v8 — its
+ * suppression-file ratchet and coverage-gated test suite, run through named
+ * package.json scripts (typecheck, lint:prune, test:unit:coverage) that the
+ * hook calls by name. What each named script does internally is the
+ * repository's choice; this rule only checks that the name exists in both
+ * places.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -27,7 +29,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged, typecheck, the suppression-file ratchet, the coverage-gated test suite, and the libyear drift check.",
+        "Require a pre-commit hook that runs lint-staged and the libyear drift check directly, and the typecheck, suppression-file ratchet, and coverage-gated test suite through named package.json scripts.",
     },
   },
   create(context) {
@@ -35,10 +37,8 @@ export const huskyHookRule: JSONRuleDefinition = {
       Document(node: DocumentNode) {
         const root = node.body;
         if (root.type !== "Object") return;
-        const scriptName = context.filename;
-        if (!scriptName.endsWith("package.json")) return;
+        if (!context.filename.endsWith("package.json")) return;
 
-        // pre-commit hook must exist and run lint-staged + typecheck + libyear drift check
         const hookPath = path.join(context.cwd, ".husky", "pre-commit");
         if (!existsSync(hookPath)) {
           context.report({
@@ -48,57 +48,44 @@ export const huskyHookRule: JSONRuleDefinition = {
           return;
         }
         const content = readFileSync(hookPath, "utf8");
+
+        const scripts = root.members.find((member) => memberName(member) === "scripts");
+        const scriptNames = new Set(scripts?.value.type === "Object" ? scripts.value.members.map(memberName) : []);
+
+        /** A named script must be declared in package.json and run by name (`npm run <name>`) in the hook. */
+        const requireNamedScript = (name: string): void => {
+          if (!scriptNames.has(name)) {
+            context.report({ node, message: `package.json must declare a "${name}" script.` });
+          }
+          if (!content.includes(`npm run ${name}`)) {
+            context.report({ node, message: `.husky/pre-commit must run npm run ${name}.` });
+          }
+        };
+
         if (!content.includes("lint-staged")) {
           context.report({ node, message: ".husky/pre-commit must run lint-staged." });
         }
-        if (!content.includes("typecheck")) {
-          context.report({ node, message: ".husky/pre-commit must run npm run typecheck." });
-        }
+        requireNamedScript("typecheck");
         if (!content.includes("libyear --limit-major-individual=1")) {
           context.report({ node, message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." });
         }
 
-        // once the repo tracks a suppressions file, the hook must prune it and ratchet it in CI
+        // once the repo tracks a suppressions file, the hook must keep it canonical through a named script
         const suppressionsPath = path.join(context.cwd, "eslint-suppressions.json");
         if (existsSync(suppressionsPath)) {
-          if (!content.includes("--prune-suppressions")) {
-            context.report({
-              node,
-              message: ".husky/pre-commit must prune eslint-suppressions.json (eslint . --prune-suppressions).",
-            });
-          }
-          if (!content.includes("git diff --exit-code eslint-suppressions.json")) {
-            context.report({
-              node,
-              message: ".husky/pre-commit must fail on any eslint-suppressions.json diff in CI ($CI = true).",
-            });
-          }
-          if (!content.includes("git add eslint-suppressions.json")) {
-            context.report({
-              node,
-              message: ".husky/pre-commit must stage the eslint-suppressions.json shrink locally.",
-            });
-          }
+          requireNamedScript("lint:prune");
         }
 
-        // once the repo declares vitest + @vitest/coverage-v8, the hook must run the coverage-gated test suite
+        // once the repo declares vitest + @vitest/coverage-v8, the hook must run the coverage-gated suite through a named script
         const devDependencies = root.members.find((member) => memberName(member) === "devDependencies");
         const devDependencyNames = new Set(
           devDependencies?.value.type === "Object" ? devDependencies.value.members.map(memberName) : [],
         );
         if (devDependencyNames.has("vitest") && devDependencyNames.has("@vitest/coverage-v8")) {
-          // matches either a raw `vitest run --coverage` or a wrapper script name like
-          // `npm run test:unit:coverage` — the hook does not have to invoke vitest directly.
-          if (!content.includes("coverage")) {
-            context.report({
-              node,
-              message: ".husky/pre-commit must run the coverage-gated test suite (e.g. vitest run --coverage).",
-            });
-          }
+          requireNamedScript("test:unit:coverage");
         }
 
         // prepare must run husky
-        const scripts = root.members.find((member) => memberName(member) === "scripts");
         if (scripts?.value.type === "Object") {
           const prepare = scripts.value.members.find((member) => memberName(member) === "prepare");
           if (prepare?.value.type === "String" && !prepare.value.value.includes("husky")) {

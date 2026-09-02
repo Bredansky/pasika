@@ -890,20 +890,26 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged`, `npm run typecheck`, and `npx libyear --limit-major-individual=1`, with a `prepare` script that runs `husky`.",
-      "hash": "a5873fcf4d",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`, with a `prepare` script that runs `husky`.",
+      "hash": "0f9c528287",
       "ref": "pasika/husky-hook"
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository that tracks `eslint-suppressions.json` MUST prune it between the typecheck and the drift check, staging the shrink locally and failing instead on any diff when `$CI` is `true`.",
-      "hash": "ee8fcf050d",
+      "text": "A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.",
+      "hash": "05884fed81",
       "ref": "pasika/husky-hook"
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository that declares `vitest` and `@vitest/coverage-v8` in devDependencies MUST run the coverage-gated test suite in `.husky/pre-commit`.",
-      "hash": "00c9b41a80",
+      "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.",
+      "hash": "7a7b7a670a",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository that declares `vitest` and `@vitest/coverage-v8` in devDependencies MUST declare a `test:unit:coverage` script in package.json and run it (`npm run test:unit:coverage`) in `.husky/pre-commit`.",
+      "hash": "50ed9c5404",
       "ref": "pasika/husky-hook"
     },
     {
