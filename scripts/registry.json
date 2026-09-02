@@ -895,6 +895,12 @@
       "ref": "pasika/husky-hook"
     },
     {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository that tracks `eslint-suppressions.json` MUST prune it between the typecheck and the drift check, staging the shrink locally and failing instead on any diff when `$CI` is `true`.",
+      "hash": "ee8fcf050d",
+      "ref": "pasika/husky-hook"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
       "text": "A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
       "hash": "9e209eaf1f",

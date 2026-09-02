@@ -3,7 +3,9 @@
  *
  * A repository MUST configure .husky/pre-commit to run lint-staged,
  * npm run typecheck, and npx libyear --limit-major-individual=1, with a
- * "prepare": "husky" script in package.json.
+ * "prepare": "husky" script in package.json. A repository that tracks
+ * eslint-suppressions.json must also prune it between the typecheck and the
+ * drift check, staging the shrink locally and failing on any diff in CI.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -22,7 +24,8 @@ export const huskyHookRule: JSONRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a pre-commit hook that runs lint-staged, typecheck, and the libyear drift check.",
+      description:
+        "Require a pre-commit hook that runs lint-staged, typecheck, the suppression-file ratchet, and the libyear drift check.",
     },
   },
   create(context) {
@@ -51,6 +54,29 @@ export const huskyHookRule: JSONRuleDefinition = {
         }
         if (!content.includes("libyear --limit-major-individual=1")) {
           context.report({ node, message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." });
+        }
+
+        // once the repo tracks a suppressions file, the hook must prune it and ratchet it in CI
+        const suppressionsPath = path.join(context.cwd, "eslint-suppressions.json");
+        if (existsSync(suppressionsPath)) {
+          if (!content.includes("--prune-suppressions")) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must prune eslint-suppressions.json (eslint . --prune-suppressions).",
+            });
+          }
+          if (!content.includes("git diff --exit-code eslint-suppressions.json")) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must fail on any eslint-suppressions.json diff in CI ($CI = true).",
+            });
+          }
+          if (!content.includes("git add eslint-suppressions.json")) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must stage the eslint-suppressions.json shrink locally.",
+            });
+          }
         }
 
         // prepare must run husky
