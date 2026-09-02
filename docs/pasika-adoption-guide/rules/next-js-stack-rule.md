@@ -3,7 +3,7 @@
 A repository that adopts the framework installs its packages through package.json. This rule requires the packages it names below to be declared in the section each belongs to.
 
 - A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.
-- A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` as a devDependency in package.json.
+- A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` as a devDependency in package.json.
 
 ## Incorrect — Stack Package Missing From the Manifest
 
@@ -16,7 +16,7 @@ A repository that adopts the framework installs its packages through package.jso
 }
 ```
 
-Why: `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` are absent from `dependencies`, so the app cannot render in the browser or resolve conflicting utilities. The manifest has no `devDependencies` section at all, so `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` are absent too.
+Why: `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` are absent from `dependencies`, so the app cannot render in the browser or resolve conflicting utilities. The manifest has no `devDependencies` section at all, so `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` are absent too.
 
 ## Correct — Every Stack Package Declared in Its Section
 
@@ -38,7 +38,11 @@ Why: `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge
     "prettier": "3.8.1",
     "husky": "9.1.7",
     "lint-staged": "17.4.1",
-    "zirka": "0.0.47"
+    "zirka": "0.0.47",
+    "jsdom": "29.1.1",
+    "@vitejs/plugin-react": "6.0.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/dom": "10.4.1"
   }
 }
 ```

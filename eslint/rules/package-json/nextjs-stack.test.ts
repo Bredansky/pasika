@@ -32,7 +32,7 @@ void describe("A repository adopting the framework MUST list next, react, react-
   });
 });
 
-void describe("A repository adopting the framework MUST list typescript, tailwindcss, eslint, prettier, husky, lint-staged, and zirka as a devDependency in package.json.", () => {
+void describe("A repository adopting the framework MUST list typescript, tailwindcss, eslint, prettier, husky, lint-staged, zirka, jsdom, @vitejs/plugin-react, @testing-library/react, and @testing-library/dom as a devDependency in package.json.", () => {
   packageJsonRuleTester.run("nextjs-stack", nextjsStackRule, {
     valid: [{ code: JSON.stringify(completePackage()) }],
     invalid: [

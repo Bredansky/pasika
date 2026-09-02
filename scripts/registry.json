@@ -908,9 +908,27 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
-      "text": "A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` as a devDependency in package.json.",
-      "hash": "8de02b309b",
+      "text": "A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` as a devDependency in package.json.",
+      "hash": "0d22796317",
       "ref": "pasika/nextjs-stack"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare `vitest` and `@vitest/coverage-v8` in devDependencies.",
+      "hash": "00d33dbfa3",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.",
+      "hash": "72a89731a4",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST measure coverage of its source files, not its test files.",
+      "hash": "ccad929cd6",
+      "note": "whether coverage.include targets source files rather than test files is a config-review judgment"
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",

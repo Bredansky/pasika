@@ -31,6 +31,10 @@ export const NEXTJS_STACK_DEV_DEPENDENCIES = [
   "husky",
   "lint-staged",
   "zirka",
+  "jsdom",
+  "@vitejs/plugin-react",
+  "@testing-library/react",
+  "@testing-library/dom",
 ] as const;
 
 function memberName(member: MemberNode): string {
