@@ -13,7 +13,7 @@ Checks that land before a commit only protect the repository if the hook runs th
 npx prettier --check .
 ```
 
-Why: lint-staged, the typecheck, the suppression-file ratchet, the coverage-gated test suite, and the drift check never run, so formatted-looking but type-broken, drifting, untested, or newly-suppressed changes can land. The drift check (`npx libyear --limit-major-individual=1`) is what keeps a dependency from trailing the latest release by more than one major version.
+Why: none of the required checks run, so type-broken, drifting, under-tested, or newly-suppressed changes can land. `npx libyear --limit-major-individual=1` specifically is what stops a dependency from trailing the latest release by more than one major version.
 
 ## Correct — prepare Installs the Hook, the Hook Runs Every Check
 
@@ -45,4 +45,4 @@ npx vitest run --coverage
 npx libyear --limit-major-individual=1
 ```
 
-Why: `prepare` installs the hook on `npm install`, and the hook runs the staged-file checks, the typecheck, the dependency-drift check (`npx libyear --limit-major-individual=1`), and — once the repository tracks `eslint-suppressions.json` — a prune that stages its shrink locally or fails a CI run on any diff it can't stage into, so a suppression added to hide a new violation can't land silently. The `if [ -f eslint-suppressions.json ]` guard keeps the same script correct for a repository that has not created the file yet. Declaring `vitest` and `@vitest/coverage-v8` commits the repository to running the coverage-gated suite (`npx vitest run --coverage`) in the same hook, so a change that drops coverage below its threshold fails before it is committed rather than only in CI.
+Why: `prepare` installs the hook, so lint-staged, the typecheck, and the drift check run before every commit. The `eslint-suppressions.json` block prunes stale entries and stages the shrink — or fails on a diff it can't stage into, in CI — so a suppression added to hide a new violation can't land silently; the `if [ -f eslint-suppressions.json ]` guard keeps the script correct before that file exists. Declaring `vitest` and `@vitest/coverage-v8` commits the hook to the same coverage-gated run, so a regression fails at commit time instead of only in CI.
