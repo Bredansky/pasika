@@ -3,6 +3,8 @@
 Coverage that measures nothing still passes. This rule requires a repository's test runner and coverage thresholds to actually gate its test run, whether or not it is a Next.js application.
 
 - A repository MUST declare `vitest` and `@vitest/coverage-v8` in devDependencies.
+- A repository MUST declare a `test:unit` script in package.json that runs Vitest without coverage.
+- A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
 
@@ -10,6 +12,9 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 
 ```json
 {
+  "scripts": {
+    "test:unit": "vitest run --coverage"
+  },
   "devDependencies": {
     "vitest": "4.1.5"
   }
@@ -30,12 +35,16 @@ export default defineConfig({
 });
 ```
 
-Why: `@vitest/coverage-v8` is absent from `devDependencies`, and every threshold is `0`, so `vitest run --coverage` passes regardless of how little of the codebase the tests exercise.
+Why: the normal unit-test command unnecessarily collects coverage, the coverage-specific command is absent, `@vitest/coverage-v8` is absent from `devDependencies`, and every threshold is `0`, so there is no correctly named coverage gate.
 
 ## Correct — Coverage Package Declared, Threshold Above Zero
 
 ```json
 {
+  "scripts": {
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage"
+  },
   "devDependencies": {
     "vitest": "4.1.5",
     "@vitest/coverage-v8": "4.1.5"
@@ -57,7 +66,7 @@ export default defineConfig({
 });
 ```
 
-Why: `@vitest/coverage-v8` is declared alongside `vitest`, and every threshold is above `0`, so `vitest run --coverage` fails the moment coverage regresses below the floor.
+Why: the normal and coverage-gated unit-test commands have stable names, `@vitest/coverage-v8` is declared alongside `vitest`, and every threshold is above `0`, so the coverage command fails the moment coverage regresses below the floor.
 
 ## Incorrect — Coverage Include Targets Test Files
 

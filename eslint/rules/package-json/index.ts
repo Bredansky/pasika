@@ -5,6 +5,7 @@
  * (or React) application.
  */
 import { exactVersionRule } from "./exact-version";
+import { lintSetupRule } from "./lint-setup";
 import { noVulykDependencyRule } from "./no-vulyk-dependency";
 import { nextjsStackRule } from "./nextjs-stack";
 import { vitestCoverageRule } from "./vitest-coverage";
@@ -13,6 +14,7 @@ import { vitestCoverageRule } from "./vitest-coverage";
 export const repoPackageJsonRules = {
   "no-vulyk-dependency": noVulykDependencyRule,
   "exact-version": exactVersionRule,
+  "lint-setup": lintSetupRule,
   "vitest-coverage": vitestCoverageRule,
 };
 

@@ -890,14 +890,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`.",
-      "hash": "d0ec2069f5",
+      "text": "A repository MUST declare a `prepare` script in package.json that runs `husky`.",
+      "hash": "f568f4d0ce",
       "ref": "pasika/husky-hook"
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST declare a `prepare` script in package.json that runs `husky`.",
-      "hash": "f568f4d0ce",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged` and `npx libyear --limit-major-individual=1`.",
+      "hash": "d0ec2069f5",
       "ref": "pasika/husky-hook"
     },
     {
@@ -919,6 +919,18 @@
       "ref": "pasika/husky-hook"
     },
     {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `lint` script in package.json that runs ESLint across the repository.",
+      "hash": "212c221034",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST configure `lint-staged` in package.json to run ESLint directly for staged JavaScript or TypeScript files.",
+      "hash": "4187126c9c",
+      "ref": "pasika/lint-setup"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
       "text": "A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
       "hash": "9e209eaf1f",
@@ -934,6 +946,18 @@
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
       "text": "A repository MUST declare `vitest` and `@vitest/coverage-v8` in devDependencies.",
       "hash": "00d33dbfa3",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit` script in package.json that runs Vitest without coverage.",
+      "hash": "8c214978eb",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.",
+      "hash": "ee75102da7",
       "ref": "pasika/vitest-coverage"
     },
     {
