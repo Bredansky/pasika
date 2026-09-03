@@ -22,6 +22,7 @@
     "coverage": "tsx scripts/coverage.ts",
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
+    "format": "prettier --check . --ignore-unknown",
     "lint": "eslint .",
     "prepack": "npm run build",
     "prepare": "husky",

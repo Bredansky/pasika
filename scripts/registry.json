@@ -926,8 +926,20 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `format` script in package.json that runs `prettier --check` across the repository.",
+      "hash": "e41c0cd9ea",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
       "text": "A repository MUST configure `lint-staged` in package.json to run ESLint directly for staged JavaScript or TypeScript files.",
       "hash": "4187126c9c",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST configure `lint-staged` in package.json to run prettier for staged files ESLint does not already format.",
+      "hash": "f46159b96c",
       "ref": "pasika/lint-setup"
     },
     {
