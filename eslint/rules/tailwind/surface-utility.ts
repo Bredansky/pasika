@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/surface-utility
  *
- * A repeated combination of canvas, ink, and related styles MUST become a
- * *-surface custom Tailwind utility that owns the combination.
+ * A repeated combination containing at least two of the canvas, ink, and edge
+ * roles plus any related styles MUST become a *-surface custom utility.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -11,12 +11,19 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, preludeIdentifiers } from "./helpers";
 
+const SURFACE_ROLES = ["canvas", "ink", "edge"];
+
+/** The semantic color roles represented by an applied class list. */
+function semanticRoles(classes: string[]): Set<string> {
+  return new Set(SURFACE_ROLES.filter((role) => classes.some((name) => name.includes(role))));
+}
+
 export const surfaceUtilityRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require repeated canvas+ink combinations to become a *-surface utility.",
+      description: "Require repeated combinations of semantic color roles to become a *-surface utility.",
     },
   },
   create(context) {
@@ -25,9 +32,7 @@ export const surfaceUtilityRule: CSSRuleDefinition = {
         const combinations = new Map<string, number>();
         for (const apply of atrulesNamed(node, "apply")) {
           const classes = preludeIdentifiers(apply);
-          if (!classes.some((name) => name.includes("canvas")) || !classes.some((name) => name.includes("ink"))) {
-            continue;
-          }
+          if (semanticRoles(classes).size < 2) continue;
           const key = [...classes].sort().join(" ");
           combinations.set(key, (combinations.get(key) ?? 0) + 1);
         }
