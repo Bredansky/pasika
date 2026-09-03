@@ -1,6 +1,6 @@
 /**
- * @fileoverview Top-level document, Guide workflow, and Reference lookup-block
- * overviews must exist, contain at most two sentences, and not link to other documents.
+ * @fileoverview Required documentation overviews must exist, contain at most
+ * two sentences, and not link to other documents.
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading, Nodes, Root } from "mdast";
@@ -23,7 +23,7 @@ export const overviewRule: MarkdownRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Top-level document, Guide workflow, and Reference lookup-block overviews must exist, contain at most two sentences, and not link to other documents.",
+        "Required documentation overviews must exist, contain at most two sentences, and not link to other documents.",
       recommended: true,
     },
   },
