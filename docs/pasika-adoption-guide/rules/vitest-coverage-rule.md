@@ -8,7 +8,7 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
 - A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.
-- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and set `coverage.changed` to `true` with a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so new or modified files are gated individually.
+- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage and passes `--coverage.changed`, `--coverage.thresholds.perFile` at `80` or above for lines, functions, branches, and statements, and `--coverage.thresholds.autoUpdate=false` as flags, and configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, so new or modified files are gated individually without corrupting the ratcheted aggregate.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
 
@@ -93,30 +93,13 @@ coverage: {
 
 Why: instrumenting the application's source and excluding the test files themselves makes the threshold reflect how much of the application the tests actually exercise.
 
-## Incorrect — Staged-Files Check Runs the Whole Suite, Not Wired to Staged Files
+## Incorrect — changed and perFile Live in the Shared Config
 
 ```json
 {
   "scripts": {
     "test:unit:coverage": "vitest run --coverage",
-    "test:unit:coverage:staged": "vitest run --coverage"
-  }
-}
-```
-
-Why: `vitest run` executes every test file regardless of what's staged, so the staged-files script costs as much as the full aggregate for a fraction of the value — and with no `lint-staged` entry calling it, nothing runs it before a commit anyway.
-
-## Correct — vitest related Scoped to Staged Files via lint-staged
-
-```json
-{
-  "scripts": {
-    "test:unit:coverage": "vitest run --coverage",
-    "test:unit:coverage:staged": "vitest related --run --coverage",
-    "lint:staged": "eslint --fix"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:coverage:staged --"]
+    "test:unit:coverage:staged": "vitest related --run --coverage"
   }
 }
 ```
@@ -136,4 +119,28 @@ coverage: {
 },
 ```
 
-Why: `autoUpdate` raises the stored thresholds as coverage improves and fails the run if it ever drops, so the floor only rises. `lint-staged` passes the staged files to both scripts, so `vitest related` only runs their tests and `coverage.changed` scopes the report to them, letting `perFile`'s 80% floor gate each one — a new or modified file can't land undertested behind a passing aggregate.
+Why: `test:unit:coverage` reads the same config, so `changed` applies to it too — on a clean CI checkout nothing is uncommitted, `changed` matches zero files, and the aggregate check passes without measuring anything. Locally, running `test:unit:coverage:staged` also triggers `autoUpdate`, which rewrites the aggregate thresholds using only the staged files' coverage, corrupting the ratchet. Neither script is wired into `lint-staged`, so nothing runs the staged check before a commit anyway.
+
+## Correct — changed, perFile, and autoUpdate=false Are Flags on the Staged Script
+
+```json
+{
+  "scripts": {
+    "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage:staged": "vitest related --run --coverage --coverage.changed --coverage.thresholds.perFile --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80 --coverage.thresholds.autoUpdate=false",
+    "lint:staged": "eslint --fix"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:coverage:staged --"]
+  }
+}
+```
+
+```ts
+// vitest.config.ts
+coverage: {
+  thresholds: { lines: 9, functions: 8, branches: 6, statements: 9, autoUpdate: true },
+},
+```
+
+Why: `changed`, `perFile`, and `autoUpdate=false` live only on `test:unit:coverage:staged`'s own command line, so `test:unit:coverage` and CI keep checking the whole repository's real aggregate, ratcheted up by `autoUpdate`. `lint-staged` passes the staged files to the staged script, so `vitest related` only runs their tests, `--coverage.changed` scopes the report to them, and the 80% `--coverage.thresholds.perFile` floor gates each one — without ever touching the stored aggregate thresholds.

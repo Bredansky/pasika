@@ -7,10 +7,13 @@
  * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
  * later regression back down still pass. A test:unit:coverage:staged script
  * running `vitest related` must be wired into lint-staged for staged
- * JavaScript or TypeScript files, and coverage.changed + perFile thresholds
- * gate those files at 80% individually, so a new or modified file can't land
- * undertested behind a passing whole-repository aggregate — the aggregate
- * itself stays a CI-only concern.
+ * JavaScript or TypeScript files, and pass --coverage.changed and an 80%
+ * --coverage.thresholds.perFile floor as CLI flags rather than vitest config,
+ * with --coverage.thresholds.autoUpdate=false alongside them — putting
+ * changed/perFile in the config would apply them to the aggregate script too,
+ * making it a no-op in CI (nothing is ever "changed" on a clean checkout), and
+ * without the autoUpdate override the staged run would ratchet the aggregate
+ * threshold using only the staged files' partial coverage.
  *
  * @see docs/pasika-adoption-guide/rules/vitest-coverage-rule.md
  */
@@ -50,8 +53,14 @@ const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
 const RELATED_PATTERN = /\brelated\b/;
 const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
-const CHANGED_PATTERN = /changed\s*:/;
-const EIGHTY_OR_ABOVE_PATTERN = /(?:lines|functions|branches|statements)\s*:\s*(?:8\d|9\d|100)\b/;
+const CHANGED_FLAG_PATTERN = /--coverage\.changed\b/;
+const PER_FILE_FLAG_PATTERN = /--coverage\.thresholds\.perFile\b/;
+const AUTO_UPDATE_DISABLED_FLAG_PATTERN = /--coverage\.thresholds\.autoUpdate=false\b/;
+
+/** Whether a CLI command sets a given coverage metric's threshold flag to 80% or above. */
+function hasEightyOrAboveFlag(command: string, metric: string): boolean {
+  return new RegExp(`--coverage\\.thresholds\\.${metric}=(?:8\\d|9\\d|100)\\b`).test(command);
+}
 
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
@@ -159,10 +168,20 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           });
         }
 
-        if (!CHANGED_PATTERN.test(content) || !content.includes("perFile") || !EIGHTY_OR_ABOVE_PATTERN.test(content)) {
+        const changedCoverageCommandText = changedCoverageCommand ?? "";
+        const hasEightyFloor = THRESHOLD_METRICS.every((metric) =>
+          hasEightyOrAboveFlag(changedCoverageCommandText, metric),
+        );
+        if (
+          !CHANGED_FLAG_PATTERN.test(changedCoverageCommandText) ||
+          !PER_FILE_FLAG_PATTERN.test(changedCoverageCommandText) ||
+          !hasEightyFloor ||
+          !AUTO_UPDATE_DISABLED_FLAG_PATTERN.test(changedCoverageCommandText)
+        ) {
           context.report({
-            node,
-            message: `${configName} must configure coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements.`,
+            node: changedCoverage ?? node,
+            message:
+              'package.json "test:unit:coverage:staged" script must pass --coverage.changed, a --coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false.',
           });
         }
       },

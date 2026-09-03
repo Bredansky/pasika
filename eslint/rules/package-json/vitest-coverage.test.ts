@@ -11,29 +11,27 @@ function buildFixture(vitestConfig?: string): string {
   return root;
 }
 
-// Satisfies every check this rule makes: nonzero base thresholds, autoUpdate,
-// coverage.changed, and a perFile threshold at 80.
+// Satisfies the config-side checks this rule makes: nonzero base thresholds
+// and autoUpdate. changed/perFile/autoUpdate=false live on the script instead.
 const RATCHETED_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      changed: true,
       thresholds: {
         lines: 9,
         functions: 8,
         branches: 6,
         statements: 9,
         autoUpdate: true,
-        perFile: { lines: 80, functions: 80, branches: 80, statements: 80 },
       },
     },
   },
 });
 `;
 
-// Has nonzero base thresholds but no autoUpdate, changed, or perFile at all.
+// Has nonzero base thresholds but no autoUpdate at all.
 const BARE_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
@@ -58,10 +56,12 @@ export default defineConfig({
 `;
 
 const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1.5" };
+const STAGED_COMMAND =
+  "vitest related --run --coverage --coverage.changed --coverage.thresholds.perFile --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80 --coverage.thresholds.autoUpdate=false";
 const COMPLETE_SCRIPTS = {
   "test:unit": "vitest run",
   "test:unit:coverage": "vitest run --coverage",
-  "test:unit:coverage:staged": "vitest related --run --coverage",
+  "test:unit:coverage:staged": STAGED_COMMAND,
   "lint:staged": "eslint --fix",
 };
 const COMPLETE_LINT_STAGED = {
@@ -118,7 +118,7 @@ void describe("A repository MUST declare a test:unit script in package.json that
         code: JSON.stringify({
           scripts: {
             "test:unit:coverage": "vitest run --coverage",
-            "test:unit:coverage:staged": "vitest related --run --coverage",
+            "test:unit:coverage:staged": STAGED_COMMAND,
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
@@ -147,7 +147,7 @@ void describe("A repository MUST declare a test:unit:coverage script in package.
         code: JSON.stringify({
           scripts: {
             "test:unit": "vitest run",
-            "test:unit:coverage:staged": "vitest related --run --coverage",
+            "test:unit:coverage:staged": STAGED_COMMAND,
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
@@ -209,7 +209,7 @@ void describe("A repository MUST configure its vitest config with a coverage thr
     valid: [],
     invalid: [
       {
-        // every threshold left at zero, and no autoUpdate/changed/perFile at all
+        // every threshold left at zero, and no autoUpdate at all
         code: JSON.stringify(COMPLETE_MANIFEST),
         filename: path.join(zeroed, "package.json"),
         errors: [
@@ -218,10 +218,6 @@ void describe("A repository MUST configure its vitest config with a coverage thr
           { message: "vitest.config.ts must set a coverage threshold above zero for branches." },
           { message: "vitest.config.ts must set a coverage threshold above zero for statements." },
           { message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." },
-          {
-            message:
-              "vitest.config.ts must configure coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements.",
-          },
         ],
       },
     ],
@@ -243,19 +239,13 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to true in i
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
         filename: path.join(bare, "package.json"),
-        errors: [
-          { message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." },
-          {
-            message:
-              "vitest.config.ts must configure coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements.",
-          },
-        ],
+        errors: [{ message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." }],
       },
     ],
   });
 });
 
-void describe("A repository MUST declare a test:unit:coverage:staged script in package.json that runs vitest related with coverage, configure lint-staged to run it (npm run test:unit:coverage:staged --) for staged JavaScript or TypeScript files, and set coverage.changed to true with a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, so new or modified files are gated individually.", () => {
+void describe("A repository MUST declare a test:unit:coverage:staged script in package.json that runs vitest related with coverage and passes --coverage.changed, --coverage.thresholds.perFile at 80 or above for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false as flags, and configure lint-staged to run it (npm run test:unit:coverage:staged --) for staged JavaScript or TypeScript files, so new or modified files are gated individually without corrupting the ratcheted aggregate.", () => {
   process.chdir(ratcheted);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
@@ -273,10 +263,14 @@ void describe("A repository MUST declare a test:unit:coverage:staged script in p
             message:
               'package.json must declare a "test:unit:coverage:staged" script that runs vitest related with coverage.',
           },
+          {
+            message:
+              'package.json "test:unit:coverage:staged" script must pass --coverage.changed, a --coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false.',
+          },
         ],
       },
       {
-        // script runs the whole suite instead of vitest related
+        // script runs the whole suite instead of vitest related, and carries none of the required flags
         code: JSON.stringify({
           scripts: { ...COMPLETE_SCRIPTS, "test:unit:coverage:staged": "vitest run --coverage" },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
@@ -287,6 +281,25 @@ void describe("A repository MUST declare a test:unit:coverage:staged script in p
           {
             message:
               'package.json must declare a "test:unit:coverage:staged" script that runs vitest related with coverage.',
+          },
+          {
+            message:
+              'package.json "test:unit:coverage:staged" script must pass --coverage.changed, a --coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false.',
+          },
+        ],
+      },
+      {
+        // runs vitest related with coverage, but carries none of the changed/perFile/autoUpdate=false flags
+        code: JSON.stringify({
+          scripts: { ...COMPLETE_SCRIPTS, "test:unit:coverage:staged": "vitest related --run --coverage" },
+          devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
+        }),
+        filename: path.join(ratcheted, "package.json"),
+        errors: [
+          {
+            message:
+              'package.json "test:unit:coverage:staged" script must pass --coverage.changed, a --coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false.',
           },
         ],
       },
@@ -313,26 +326,6 @@ void describe("A repository MUST declare a test:unit:coverage:staged script in p
           {
             message:
               'package.json lint-staged must run "npm run test:unit:coverage:staged" for staged JavaScript or TypeScript files.',
-          },
-        ],
-      },
-    ],
-  });
-
-  const bare = buildFixture(BARE_CONFIG);
-  process.chdir(bare);
-  packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
-    valid: [],
-    invalid: [
-      {
-        // vitest config has no coverage.changed or coverage.thresholds.perFile at all
-        code: JSON.stringify(COMPLETE_MANIFEST),
-        filename: path.join(bare, "package.json"),
-        errors: [
-          { message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." },
-          {
-            message:
-              "vitest.config.ts must configure coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements.",
           },
         ],
       },
