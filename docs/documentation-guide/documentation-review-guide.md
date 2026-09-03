@@ -4,6 +4,8 @@ This guide explains how to assess and improve repository documentation without a
 
 ## How To Assess a Document
 
+Use this workflow before changing an existing document or approving a documentation change.
+
 1. Identify whether the document is a Guide, Rule, Policy document, or Reference with the [Documentation Types Reference](references/documentation-types-reference.md).
 2. Read the matching template and its creation rule before judging the document's structure.
 3. Check that the overview states the document's scope and purpose in one or two short sentences, without instructions that belong in its body.
@@ -18,6 +20,8 @@ This guide explains how to assess and improve repository documentation without a
 12. Check related documents for duplicate, conflicting, outdated, or missing guidance whenever a change affects their shared subject, and verify that dependency chains between documents hold transitively.
 
 ## How To Fix Documentation Findings
+
+Use this workflow after identifying an issue during review.
 
 1. Fix the source document and its matching template or rule first when the finding affects more than one document.
 2. State each requirement once, in the appropriate Rule or Policy bullet, with RFC 2119 vocabulary that matches its strength.

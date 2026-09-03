@@ -37,12 +37,16 @@ void describe("A Guide MUST contain one or more level-two sections whose heading
   });
 });
 
-void describe("Every Guide section MUST consist of one numbered list of steps.", () => {
+void describe("Every Guide section MUST contain exactly one numbered list of steps.", () => {
   documentationRuleTester.run("guide-section-shape", guideSectionShapeRule, {
     valid: [
       {
         filename: "foo-guide.md",
         code: "# Foo Guide\n\n## How To Run It\n\n1. Run it.",
+      },
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\n## How To Run It\n\nUse this workflow when needed.\n\n1. Run it.",
       },
       {
         filename: "foo-guide.md",
@@ -53,17 +57,45 @@ void describe("Every Guide section MUST consist of one numbered list of steps.",
       {
         filename: "foo-guide.md",
         code: "# Foo Guide\n\n## How To Run It\n\n- Run it.",
-        errors: [{ message: 'guide section "How To Run It" must consist of one numbered list' }],
+        errors: [
+          {
+            message:
+              'guide section "How To Run It" must contain one numbered list, optionally preceded by one introductory paragraph',
+          },
+        ],
       },
+    ],
+  });
+});
+
+void describe("Content outside a Guide section's numbered list MUST be limited to one introductory paragraph immediately before the list.", () => {
+  documentationRuleTester.run("guide-section-shape", guideSectionShapeRule, {
+    valid: [
       {
         filename: "foo-guide.md",
         code: "# Foo Guide\n\n## How To Run It\n\nUse this workflow when needed.\n\n1. Run it.",
-        errors: [{ message: 'guide section "How To Run It" must consist of one numbered list' }],
+      },
+    ],
+    invalid: [
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\n## How To Run It\n\nFirst introduction.\n\nSecond introduction.\n\n1. Run it.",
+        errors: [
+          {
+            message:
+              'guide section "How To Run It" must contain one numbered list, optionally preceded by one introductory paragraph',
+          },
+        ],
       },
       {
         filename: "foo-guide.md",
         code: "# Foo Guide\n\n## How To Run It\n\n1. Run it.\n\nMore detail.",
-        errors: [{ message: 'guide section "How To Run It" must consist of one numbered list' }],
+        errors: [
+          {
+            message:
+              'guide section "How To Run It" must contain one numbered list, optionally preceded by one introductory paragraph',
+          },
+        ],
       },
     ],
   });

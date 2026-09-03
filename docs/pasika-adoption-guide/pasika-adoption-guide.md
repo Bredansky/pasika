@@ -4,6 +4,8 @@ This guide covers how a repository adopts the framework, whether it is a Next.js
 
 ## How To Adopt the Framework in a Repository
 
+Run this once, when a repository starts using the framework. The Next.js steps — declaring the framework stack and defining `cn` — apply to a Next.js application only; every other step applies to any repository.
+
 1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a tracked doc from a managed file or an agent file before a workflow names one.
 2. Read the [Tech Stack Reference](references/tech-stack-reference.md) so you know which packages the framework requires and what each one is responsible for.
 3. Declare the toolchain packages — `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` — in `devDependencies`, each pinned to an exact version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting.
@@ -17,6 +19,8 @@ This guide covers how a repository adopts the framework, whether it is a Next.js
 11. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
 
 ## How To Update a Repository to the Latest Framework Release
+
+Run this whenever the framework publishes a release. It applies to both Next.js applications and plain TypeScript repositories.
 
 1. Bump the framework packages within one major version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting past the latest release.
 2. Run `npx vulyk@latest sync` and then `npx vulyk@latest agents` so every tracked doc, managed file, and agent file is updated from its pinned source.

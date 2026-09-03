@@ -14,8 +14,14 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Every Guide section MUST consist of one numbered list of steps.",
-      "hash": "4339ea81b9",
+      "text": "Every Guide section MUST contain exactly one numbered list of steps.",
+      "hash": "867ff5b318",
+      "ref": "pasika/guide-section-shape"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "Content outside a Guide section's numbered list MUST be limited to one introductory paragraph immediately before the list.",
+      "hash": "8bb7e20d17",
       "ref": "pasika/guide-section-shape"
     },
     {
