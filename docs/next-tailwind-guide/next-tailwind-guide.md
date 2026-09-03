@@ -4,8 +4,6 @@ This guide keeps component styling predictable without making consumers learn a 
 
 ## How To Style a Component
 
-Use this workflow when implementing a component or changing its appearance.
-
 1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these steps use.
 2. Follow the [Global Stylesheet Rule](rules/global-stylesheet-rule.md) so one stylesheet entry point owns all of the project's global CSS.
 3. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS variables, Tailwind namespaces, and custom utilities expose only the intended API.

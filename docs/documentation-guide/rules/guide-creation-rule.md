@@ -4,7 +4,7 @@ Guides without a consistent creation process invent their own structure. This ru
 
 - Each How To step MUST use one sentence.
 - A Guide MUST contain one or more level-two sections whose headings start with `How To `.
-- Every Guide section MUST contain a numbered list of steps.
+- Every Guide section MUST consist of one numbered list of steps.
 - A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
@@ -46,24 +46,24 @@ Why: support files stay colocated with the entry point while being grouped by do
 ## Incorrect — Unstructured Guide Section
 
 ```markdown
-## Theme Tokens
+## How To Apply Theme Tokens
 
-- Pick a token.
-- Apply the token.
+Choose a semantic token before styling the component.
+
+1. Apply the token's Tailwind utility to the component.
 ```
 
-Why: the section heading does not describe a How To workflow, and bullets do not communicate an ordered procedure.
+Why: prose sits beside the numbered list instead of belonging to one of its steps.
 
 ## Correct — How To Section With Numbered Steps
 
 ```markdown
 ## How To Apply Theme Tokens
 
-1. Pick the semantic token for the intended role.
-2. Apply its Tailwind utility to the component.
+1. Pick the semantic token for the intended role, then apply its Tailwind utility to the component.
 ```
 
-Why: the How To heading names the workflow and the numbered list makes its sequence explicit.
+Why: the section consists of one numbered list, so every instruction belongs to a step.
 
 ## Incorrect — Step Links to Multiple Documents
 

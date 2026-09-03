@@ -1,5 +1,5 @@
 /**
- * @fileoverview Guide sections use How To headings and contain numbered steps.
+ * @fileoverview Guide sections use How To headings and consist of numbered steps.
  * @see docs/documentation-guide/rules/guide-creation-rule.md
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
@@ -16,7 +16,7 @@ export const guideSectionShapeRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
-      description: "Guide sections use How To headings and contain numbered steps.",
+      description: "Guide sections use How To headings and consist of numbered steps.",
       recommended: true,
     },
   },
@@ -53,11 +53,12 @@ export const guideSectionShapeRule: MarkdownRuleDefinition = {
 
           const nextSection = sections[sectionIndex + 1];
           const content = node.children.slice(section.index + 1, nextSection?.index ?? node.children.length);
-          const hasNumberedList = content.some((child) => child.type === "list" && child.ordered === true);
-          if (!hasNumberedList) {
+          const hasOnlyOneNumberedList =
+            content.length === 1 && content[0]?.type === "list" && content[0].ordered === true;
+          if (!hasOnlyOneNumberedList) {
             context.report({
               node: section.heading,
-              message: `guide section "${section.title}" must contain a numbered list`,
+              message: `guide section "${section.title}" must consist of one numbered list`,
             });
           }
         }
