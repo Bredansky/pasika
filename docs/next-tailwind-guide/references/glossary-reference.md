@@ -14,7 +14,8 @@ These terms name the styling roles, helpers, and states the styling workflow ref
 | Custom utility           | A utility the project defines with Tailwind's `@utility` directive.                                                                                                               |
 | Canvas                   | A value used only as a background, exposed as `--<role>-canvas` and applied through `bg-<role>-canvas`.                                                                           |
 | Ink                      | A value used only as readable text, exposed as `--<role>-ink` and applied through `text-<role>-ink`.                                                                              |
-| Surface                  | A custom utility that owns a repeated combination of canvas, ink, and related styles, named `<role>-surface`.                                                                     |
+| Edge                     | A value used only as a visual boundary such as a border, outline, ring, or stroke, exposed as `--<role>-edge` and applied through `<property>-<role>-edge`.                       |
+| Surface                  | A custom utility that owns a repeated combination containing at least two of the canvas, ink, and edge roles plus any related styles, named `<role>-surface`.                     |
 | UI state                 | A condition a component can be in that changes its appearance: interaction, disabled, selected, loading, or error.                                                                |
 | State variant            | A Tailwind variant prefix that targets a state, such as `hover:`, `focus-visible:`, `disabled:`, or `aria-busy:`.                                                                 |
 | `cva`                    | Class Variance Authority, which defines a component's visual options and derives their TypeScript API through `VariantProps`.                                                     |

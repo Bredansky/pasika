@@ -866,8 +866,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A repeated combination of canvas, ink, and related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.",
-      "hash": "0d965db624",
+      "text": "A repeated combination containing at least two of the canvas, ink, and edge roles plus any related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.",
+      "hash": "bb92b0cdfe",
       "ref": "pasika/surface-utility"
     },
     {
