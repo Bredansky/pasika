@@ -4,10 +4,10 @@ Guides without a consistent creation process invent their own structure. This ru
 
 - Each How To step MUST use one sentence.
 - A Guide MUST contain one or more level-two sections whose headings start with `How To `.
-- Every Guide section MUST contain exactly one numbered list of steps.
-- Content outside a Guide section's numbered list MUST be limited to one introductory paragraph immediately before the list.
+- Every Guide section MUST consist of its overview followed by exactly one numbered list of steps.
 - A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
+- The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
 - When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.
@@ -47,16 +47,13 @@ Why: support files stay colocated with the entry point while being grouped by do
 ## Incorrect — Unstructured Guide Section
 
 ```markdown
-## How To Apply Theme Tokens
+## Theme Tokens
 
-First introduction.
-
-Second introduction.
-
-1. Apply the token's Tailwind utility to the component.
+- Pick a token.
+- Apply the token.
 ```
 
-Why: two introductory paragraphs sit outside the numbered list.
+Why: the heading does not describe a How To workflow, the section has no overview, and bullets do not communicate an ordered procedure.
 
 ## Correct — How To Section With Numbered Steps
 
@@ -68,7 +65,7 @@ Choose a semantic token before styling the component.
 1. Apply the token's Tailwind utility to the component.
 ```
 
-Why: one introductory paragraph immediately precedes the section's one numbered list.
+Why: the section consists of its overview followed by one numbered list.
 
 ## Incorrect — Step Links to Multiple Documents
 

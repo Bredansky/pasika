@@ -1,6 +1,6 @@
 /**
- * @fileoverview A document's overview must exist, contain at most two sentences,
- * and not link to other documents.
+ * @fileoverview Document and Guide section overviews must exist, contain at
+ * most two sentences, and not link to other documents.
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Nodes, Root } from "mdast";
@@ -22,7 +22,8 @@ export const overviewRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
-      description: "Overview must exist, contain at most two sentences, and not link to other documents.",
+      description:
+        "Document and Guide section overviews must exist, contain at most two sentences, and not link to other documents.",
       recommended: true,
     },
   },
@@ -72,6 +73,38 @@ export const overviewRule: MarkdownRuleDefinition = {
 
         if (!found) {
           context.report({ node, message: "no overview follows the title" });
+        }
+
+        if (!filename.endsWith("-guide.md")) return;
+
+        for (const [index, child] of node.children.entries()) {
+          if (child.type !== "heading" || child.depth !== 2) continue;
+          const title = getTextContent(child).trim();
+          if (!/^How To \S/.test(title)) continue;
+
+          const overview = node.children[index + 1];
+          if (overview?.type !== "paragraph") {
+            context.report({
+              node: child,
+              message: `no overview follows guide section "${title}"`,
+            });
+            continue;
+          }
+
+          if (containsLink(overview)) {
+            context.report({
+              node: overview,
+              message: `overview of guide section "${title}" links another document`,
+            });
+          }
+
+          const sectionSentenceCount = countSentences(getTextContent(overview).trim());
+          if (sectionSentenceCount > 2) {
+            context.report({
+              node: overview,
+              message: `overview of guide section "${title}" uses ${String(sectionSentenceCount)} sentences, at most two are allowed`,
+            });
+          }
         }
       },
     };

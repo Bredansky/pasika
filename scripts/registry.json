@@ -14,14 +14,8 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Every Guide section MUST contain exactly one numbered list of steps.",
-      "hash": "867ff5b318",
-      "ref": "pasika/guide-section-shape"
-    },
-    {
-      "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "Content outside a Guide section's numbered list MUST be limited to one introductory paragraph immediately before the list.",
-      "hash": "8bb7e20d17",
+      "text": "Every Guide section MUST consist of its overview followed by exactly one numbered list of steps.",
+      "hash": "cff61beded",
       "ref": "pasika/guide-section-shape"
     },
     {
@@ -34,6 +28,12 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.",
       "hash": "694bfba1ab",
+      "ref": "pasika/overview"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.",
+      "hash": "d887189931",
       "ref": "pasika/overview"
     },
     {

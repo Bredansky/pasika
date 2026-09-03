@@ -24,6 +24,38 @@ void describe("A Guide overview MUST contain one or two short descriptive senten
   });
 });
 
+void describe("The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.", () => {
+  documentationRuleTester.run("overview", overviewRule, {
+    valid: [
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nThis workflow verifies the project. Run it before committing.\n\n1. Run it.",
+      },
+    ],
+    invalid: [
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\n1. Run it.",
+        errors: [{ message: 'no overview follows guide section "How To Run It"' }],
+      },
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nSee the [Run Guide](run-guide.md) first.\n\n1. Run it.",
+        errors: [{ message: 'overview of guide section "How To Run It" links another document' }],
+      },
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nThis is one sentence. This is another. This is too many.\n\n1. Run it.",
+        errors: [
+          {
+            message: 'overview of guide section "How To Run It" uses 3 sentences, at most two are allowed',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A Rule overview MUST contain one or two short sentences naming the problem the rule solves, and MUST NOT contain instructions or links to other documentation.", () => {
   documentationRuleTester.run("overview", overviewRule, {
     valid: [{ filename: "foo-rule.md", code: "# Foo Rule\n\nTwo sentences here. They are short." }],
