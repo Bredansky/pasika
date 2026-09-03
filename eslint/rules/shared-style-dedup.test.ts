@@ -19,6 +19,7 @@ const FIXTURE: Record<string, string> = {
   // A combination used by only one component stays local.
   "features/stream/stream-player.tsx":
     'export function StreamPlayer() { return <div className="rounded-lg p-4 shadow-sm" />; }\n',
+  "shared/avatar.jsx": 'export function Avatar() { return <div className="size-8 rounded-full" />; }\n',
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-shared-style-")));
@@ -47,6 +48,11 @@ void describe("A style or group of styles that two or more components use togeth
         code: read("features/stream/stream-player.tsx"),
         filename: file("features/stream/stream-player.tsx"),
       },
+      // JSX components participate in the same project index.
+      {
+        code: read("shared/avatar.jsx"),
+        filename: file("shared/avatar.jsx"),
+      },
     ],
     invalid: [
       {
@@ -54,7 +60,7 @@ void describe("A style or group of styles that two or more components use togeth
         filename: file("features/billing/bill-summary.tsx"),
         errors: [
           {
-            message: `Class combination "bg-primary-canvas text-primary-ink" is used by 2 components and should change together; create a named custom Tailwind utility for it. ${DOC}`,
+            message: `Class combination "bg-primary-canvas text-primary-ink" is used by 2 components and should change together; create a named *-skin Tailwind utility for it. ${DOC}`,
           },
         ],
       },

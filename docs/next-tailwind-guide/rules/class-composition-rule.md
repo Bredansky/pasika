@@ -21,7 +21,7 @@ Why: the condition and merge order are embedded in a string expression, which be
 
 ```tsx
 export function Card({ className, ...props }: CardProps): React.JSX.Element {
-  return <article className={cn("card-surface rounded-lg p-4", className)} {...props} />;
+  return <article className={cn("card-skin rounded-lg p-4", className)} {...props} />;
 }
 
 <Card className="w-full max-w-lg self-center" />;

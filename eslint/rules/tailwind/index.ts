@@ -8,7 +8,7 @@ import { baseLayerPairRule } from "./base-layer-pair";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
-import { surfaceUtilityRule } from "./surface-utility";
+import { skinUtilityRule } from "./skin-utility";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { cssEntryPointRule } from "./css-entry-point";
 import { globalStylesheetRule } from "./global-stylesheet";
@@ -22,7 +22,7 @@ export const tailwindRules = {
   "stylesheet-ordering": stylesheetOrderingRule,
   "css-variable-naming": cssVariableNamingRule,
   "custom-utility-apply": customUtilityApplyRule,
-  "surface-utility": surfaceUtilityRule,
+  "skin-utility": skinUtilityRule,
   "theme-variable-namespace": themeVariableNamespaceRule,
   "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
