@@ -2,9 +2,12 @@
  * ESLint rule: pasika/vitest-coverage
  *
  * A repository MUST declare vitest and @vitest/coverage-v8 in devDependencies,
- * expose normal and coverage-gated unit-test scripts, and set a coverage
- * threshold above zero for lines, functions, branches, and statements — a
- * zero threshold gates nothing.
+ * expose normal, coverage-gated, and changed-files-coverage unit-test scripts,
+ * and set a coverage threshold above zero for lines, functions, branches, and
+ * statements with autoUpdate enabled — a zero threshold gates nothing, and a
+ * fixed one lets a later regression back down still pass. Its
+ * coverage.changed + perFile thresholds gate new or modified files at 80%
+ * individually, so they can't land undertested behind a passing aggregate.
  *
  * @see docs/pasika-adoption-guide/rules/vitest-coverage-rule.md
  */
@@ -35,13 +38,17 @@ const VITEST_CONFIG_NAMES = [
 /** Coverage metrics a threshold must cover. */
 const THRESHOLD_METRICS = ["lines", "functions", "branches", "statements"] as const;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
+const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
+const CHANGED_PATTERN = /changed\s*:/;
+const EIGHTY_OR_ABOVE_PATTERN = /(?:lines|functions|branches|statements)\s*:\s*(?:8\d|9\d|100)\b/;
 
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require Vitest unit-test scripts, the V8 provider, and coverage thresholds above zero.",
+      description:
+        "Require Vitest unit-test scripts, the V8 provider, a rising coverage threshold, and an 80% floor on changed files.",
     },
   },
   create(context) {
@@ -101,6 +108,32 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           if (!new RegExp(`\\b${metric}\\s*:\\s*[1-9]\\d*`).test(content)) {
             context.report({ node, message: `${configName} must set a coverage threshold above zero for ${metric}.` });
           }
+        }
+
+        if (!AUTO_UPDATE_PATTERN.test(content)) {
+          context.report({
+            node,
+            message: `${configName} must set coverage.thresholds.autoUpdate to true.`,
+          });
+        }
+
+        const changedCoverage = scriptMembers.find((member) => memberName(member) === "test:unit:coverage:changed");
+        const changedCoverageCommand = memberValue(changedCoverage);
+        if (
+          changedCoverageCommand === undefined ||
+          !/\bvitest\b/.test(changedCoverageCommand) ||
+          !COVERAGE_FLAG_PATTERN.test(changedCoverageCommand)
+        ) {
+          context.report({
+            node: changedCoverage ?? node,
+            message: 'package.json must declare a "test:unit:coverage:changed" script that runs Vitest with coverage.',
+          });
+        }
+        if (!CHANGED_PATTERN.test(content) || !content.includes("perFile") || !EIGHTY_OR_ABOVE_PATTERN.test(content)) {
+          context.report({
+            node,
+            message: `${configName} must configure coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements.`,
+          });
         }
       },
     };

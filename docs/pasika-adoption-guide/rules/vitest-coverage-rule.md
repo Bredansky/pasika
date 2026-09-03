@@ -7,6 +7,44 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
+- A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.
+- A repository MUST declare a `test:unit:coverage:changed` script in package.json that runs Vitest with coverage, and configure its vitest config with `coverage.changed` and a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land.
+
+## Incorrect — Threshold Fixed in Place, No Gate on New Files
+
+```ts
+// vitest.config.ts
+coverage: {
+  thresholds: { lines: 9, functions: 8, branches: 6, statements: 9 },
+},
+```
+
+Why: coverage can climb well past `9`% without the threshold ever reflecting it, so a later regression back down to `9`% still passes — and nothing stops a new file from landing at `0`% as long as the aggregate holds.
+
+## Correct — Threshold Rises With Coverage, New Files Gated at 80%
+
+```json
+{
+  "scripts": {
+    "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage:changed": "COVERAGE_MODE=changed vitest run --coverage"
+  }
+}
+```
+
+```ts
+// vitest.config.ts
+const changedRun = process.env.COVERAGE_MODE === "changed";
+
+coverage: {
+  changed: changedRun ? (process.env.CI === "true" ? (process.env.GITHUB_BASE_REF ?? "main") : true) : undefined,
+  thresholds: changedRun
+    ? { perFile: true, lines: 80, functions: 80, branches: 80, statements: 80 }
+    : { lines: 9, functions: 8, branches: 6, statements: 9, autoUpdate: true },
+},
+```
+
+Why: `autoUpdate` rewrites the stored thresholds up when coverage improves and fails the run if coverage ever drops below the last stored value, so the floor only ever rises. `test:unit:coverage:changed` sets `COVERAGE_MODE=changed` and scopes `coverage.changed` to the repository's own uncommitted changes locally, or to the pull request's base branch in CI, so `perFile`'s 80% floor applies only to files that actually changed — the normal `test:unit:coverage` run keeps checking the whole repository's aggregate, unaffected by `changed`.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
 

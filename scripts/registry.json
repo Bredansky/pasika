@@ -985,6 +985,18 @@
       "note": "whether coverage.include targets source files rather than test files is a config-review judgment"
     },
     {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.",
+      "hash": "9d5f3d6450",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit:coverage:changed` script in package.json that runs Vitest with coverage, and configure its vitest config with `coverage.changed` and a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land.",
+      "hash": "2d570c4c4a",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
       "hash": "e60dfe3e9a",
