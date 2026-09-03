@@ -5,7 +5,7 @@
  * expose normal and coverage-gated unit-test scripts, and set a coverage
  * threshold above zero for lines, functions, branches, and statements with
  * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
- * later regression back down still pass. A test:unit:coverage:changed script
+ * later regression back down still pass. A test:unit:coverage:staged script
  * running `vitest related` must be wired into lint-staged for staged
  * JavaScript or TypeScript files, and coverage.changed + perFile thresholds
  * gate those files at 80% individually, so a new or modified file can't land
@@ -128,7 +128,7 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           });
         }
 
-        const changedCoverage = scriptMembers.find((member) => memberName(member) === "test:unit:coverage:changed");
+        const changedCoverage = scriptMembers.find((member) => memberName(member) === "test:unit:coverage:staged");
         const changedCoverageCommand = memberValue(changedCoverage);
         if (
           changedCoverageCommand === undefined ||
@@ -139,7 +139,7 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           context.report({
             node: changedCoverage ?? node,
             message:
-              'package.json must declare a "test:unit:coverage:changed" script that runs vitest related with coverage.',
+              'package.json must declare a "test:unit:coverage:staged" script that runs vitest related with coverage.',
           });
         }
 
@@ -149,13 +149,13 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           lintStaged.value.members.some(
             (member) =>
               SOURCE_GLOB_PATTERN.test(memberName(member)) &&
-              stringValues(member.value).some((command) => command.includes("npm run test:unit:coverage:changed")),
+              stringValues(member.value).some((command) => command.includes("npm run test:unit:coverage:staged")),
           );
         if (!hasStagedChangedCoverage) {
           context.report({
             node: lintStaged ?? node,
             message:
-              'package.json lint-staged must run "npm run test:unit:coverage:changed" for staged JavaScript or TypeScript files.',
+              'package.json lint-staged must run "npm run test:unit:coverage:staged" for staged JavaScript or TypeScript files.',
           });
         }
 

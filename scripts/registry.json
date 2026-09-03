@@ -992,8 +992,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST declare a `test:unit:coverage:changed` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:changed --`) for staged JavaScript or TypeScript files, and configure its vitest config with `coverage.changed` set to `true` and a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land — the whole-repository aggregate stays a CI-only concern.",
-      "hash": "5da8eec99c",
+      "text": "A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and configure its vitest config with `coverage.changed` set to `true` and a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land — the whole-repository aggregate stays a CI-only concern.",
+      "hash": "03a7cea8c7",
       "ref": "pasika/vitest-coverage"
     },
     {
