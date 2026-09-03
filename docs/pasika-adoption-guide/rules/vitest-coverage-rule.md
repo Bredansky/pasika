@@ -8,7 +8,7 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
 - A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.
-- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and configure its vitest config with `coverage.changed` set to `true` and a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land — the whole-repository aggregate stays a CI-only concern.
+- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and set `coverage.changed` to `true` with a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so new or modified files are gated individually while the whole-repository aggregate stays a CI-only concern.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
 
@@ -136,4 +136,4 @@ coverage: {
 },
 ```
 
-Why: `autoUpdate` rewrites the stored aggregate thresholds up when coverage improves and fails the run if coverage ever drops below the last stored value, so that floor only ever rises. `lint-staged` appends each staged file's path to `lint:staged` and `test:unit:coverage:staged` alike, since neither carries a repository-wide argument of its own, so `vitest related` runs only the tests that exercise those files, and `coverage.changed` scopes the report to the same files so `perFile`'s own 80% floor applies to them individually — a new or modified file can't land undertested behind a passing whole-repository aggregate.
+Why: `autoUpdate` raises the stored thresholds as coverage improves and fails the run if it ever drops, so the floor only rises. `lint-staged` passes the staged files to both scripts, so `vitest related` only runs their tests and `coverage.changed` scopes the report to them, letting `perFile`'s 80% floor gate each one — a new or modified file can't land undertested behind a passing aggregate.
