@@ -112,10 +112,11 @@ Why: `vitest run` executes every test file regardless of what changed, so the "c
 {
   "scripts": {
     "test:unit:coverage": "vitest run --coverage",
-    "test:unit:coverage:changed": "vitest related --run --coverage"
+    "test:unit:coverage:changed": "vitest related --run --coverage",
+    "lint:staged": "eslint --fix"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["eslint --fix", "npm run test:unit:coverage:changed --"]
+    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:coverage:changed --"]
   }
 }
 ```
@@ -135,4 +136,4 @@ coverage: {
 },
 ```
 
-Why: `autoUpdate` rewrites the stored aggregate thresholds up when coverage improves and fails the run if coverage ever drops below the last stored value, so that floor only ever rises. `lint-staged` appends each staged file's path to `test:unit:coverage:changed`, so `vitest related` runs only the tests that exercise those files, and `coverage.changed` scopes the report to the same files so `perFile`'s own 80% floor applies to them individually — a new or modified file can't land undertested behind a passing whole-repository aggregate.
+Why: `autoUpdate` rewrites the stored aggregate thresholds up when coverage improves and fails the run if coverage ever drops below the last stored value, so that floor only ever rises. `lint-staged` appends each staged file's path to `lint:staged` and `test:unit:coverage:changed` alike (see the Lint Setup Rule for why `lint:staged` itself carries no repository-wide argument), so `vitest related` runs only the tests that exercise those files, and `coverage.changed` scopes the report to the same files so `perFile`'s own 80% floor applies to them individually — a new or modified file can't land undertested behind a passing whole-repository aggregate.

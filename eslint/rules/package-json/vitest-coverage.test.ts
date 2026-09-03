@@ -62,9 +62,10 @@ const COMPLETE_SCRIPTS = {
   "test:unit": "vitest run",
   "test:unit:coverage": "vitest run --coverage",
   "test:unit:coverage:changed": "vitest related --run --coverage",
+  "lint:staged": "eslint --fix",
 };
 const COMPLETE_LINT_STAGED = {
-  "*.{js,jsx,ts,tsx}": ["eslint --fix", "npm run test:unit:coverage:changed --"],
+  "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:coverage:changed --"],
 };
 const COMPLETE_MANIFEST = {
   scripts: COMPLETE_SCRIPTS,
@@ -305,7 +306,7 @@ void describe("A repository MUST declare a test:unit:coverage:changed script in 
         code: JSON.stringify({
           scripts: COMPLETE_SCRIPTS,
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
-          "lint-staged": { "*.{js,jsx,ts,tsx}": ["eslint --fix"] },
+          "lint-staged": { "*.{js,jsx,ts,tsx}": ["npm run lint:staged --"] },
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [
