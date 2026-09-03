@@ -4,9 +4,10 @@ Guides without a consistent creation process invent their own structure. This ru
 
 - Each How To step MUST use one sentence.
 - A Guide MUST contain one or more level-two sections whose headings start with `How To `.
-- Every Guide section MUST contain a numbered list of steps.
+- Every Guide section MUST consist of its overview followed by exactly one numbered list of steps.
 - A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
+- The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
 - When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.
@@ -52,18 +53,20 @@ Why: support files stay colocated with the entry point while being grouped by do
 - Apply the token.
 ```
 
-Why: the section heading does not describe a How To workflow, and bullets do not communicate an ordered procedure.
+Why: the heading does not describe a How To workflow, the section has no overview, and bullets do not communicate an ordered procedure.
 
 ## Correct — How To Section With Numbered Steps
 
 ```markdown
 ## How To Apply Theme Tokens
 
+This workflow keeps component styling aligned with the theme and runs when adding or changing its visual role.
+
 1. Pick the semantic token for the intended role.
 2. Apply its Tailwind utility to the component.
 ```
 
-Why: the How To heading names the workflow and the numbered list makes its sequence explicit.
+Why: the overview explains the workflow's purpose and timing, and the numbered list contains its ordered steps.
 
 ## Incorrect — Step Links to Multiple Documents
 

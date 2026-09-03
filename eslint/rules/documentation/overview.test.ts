@@ -24,6 +24,38 @@ void describe("A Guide overview MUST contain one or two short descriptive senten
   });
 });
 
+void describe("The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.", () => {
+  documentationRuleTester.run("overview", overviewRule, {
+    valid: [
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nThis workflow verifies the project before a commit.\n\n1. Run it.",
+      },
+    ],
+    invalid: [
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\n1. Run it.",
+        errors: [{ message: 'no overview follows guide section "How To Run It"' }],
+      },
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nSee the [Run Guide](run-guide.md) first.\n\n1. Run it.",
+        errors: [{ message: 'overview of guide section "How To Run It" links another document' }],
+      },
+      {
+        filename: "foo-guide.md",
+        code: "# Foo Guide\n\nGuide overview.\n\n## How To Run It\n\nThis is one sentence. This is another. This is too many.\n\n1. Run it.",
+        errors: [
+          {
+            message: 'overview of guide section "How To Run It" uses 3 sentences, at most two are allowed',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A Rule overview MUST contain one or two short sentences naming the problem the rule solves, and MUST NOT contain instructions or links to other documentation.", () => {
   documentationRuleTester.run("overview", overviewRule, {
     valid: [{ filename: "foo-rule.md", code: "# Foo Rule\n\nTwo sentences here. They are short." }],
@@ -83,7 +115,13 @@ void describe("A Policy overview MUST contain one or two short sentences naming 
 
 void describe("A Reference overview and the overview of each headed lookup block MUST contain one or two short sentences, and MUST NOT contain instructions or links to other documentation.", () => {
   documentationRuleTester.run("overview", overviewRule, {
-    valid: [{ filename: "foo-reference.md", code: "# Foo Reference\n\nTwo sentences here. They are short." }],
+    valid: [
+      { filename: "foo-reference.md", code: "# Foo Reference\n\nTwo sentences here. They are short." },
+      {
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nReference overview.\n\n## First Block\n\nFirst block overview.\n\nLookup content.\n\n## Second Block\n\nSecond block overview.\n\nMore lookup content.",
+      },
+    ],
     invalid: [
       {
         filename: "foo-reference.md",
@@ -99,6 +137,30 @@ void describe("A Reference overview and the overview of each headed lookup block
         filename: "foo-reference.md",
         code: "# Foo Reference\n\n## Section\n\nContent lives here.",
         errors: [{ message: "no overview follows the title" }],
+      },
+      {
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nReference overview.\n\n## Palette\n\n| Token | Value |\n| --- | --- |\n| base | black |",
+        errors: [{ message: 'no overview follows reference block "Palette"' }],
+      },
+      {
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nReference overview.\n\n### Palette\n\n| Token | Value |\n| --- | --- |\n| base | black |",
+        errors: [{ message: 'no overview follows reference block "Palette"' }],
+      },
+      {
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nReference overview.\n\n## Palette\n\nSee the [Theme Reference](theme-reference.md).\n\nLookup content.",
+        errors: [{ message: 'overview of reference block "Palette" links another document' }],
+      },
+      {
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nReference overview.\n\n## Palette\n\nFirst sentence. Second sentence. Third sentence.\n\nLookup content.",
+        errors: [
+          {
+            message: 'overview of reference block "Palette" uses 3 sentences, at most two are allowed',
+          },
+        ],
       },
     ],
   });

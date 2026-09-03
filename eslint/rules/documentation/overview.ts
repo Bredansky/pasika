@@ -1,9 +1,9 @@
 /**
- * @fileoverview A document's overview must exist, contain at most two sentences,
- * and not link to other documents.
+ * @fileoverview Required documentation overviews must exist, contain at most
+ * two sentences, and not link to other documents.
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
-import type { Nodes, Root } from "mdast";
+import type { Heading, Nodes, Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers";
 
 function countSentences(text: string): number {
@@ -22,7 +22,8 @@ export const overviewRule: MarkdownRuleDefinition = {
   meta: {
     type: "problem",
     docs: {
-      description: "Overview must exist, contain at most two sentences, and not link to other documents.",
+      description:
+        "Required documentation overviews must exist, contain at most two sentences, and not link to other documents.",
       recommended: true,
     },
   },
@@ -72,6 +73,46 @@ export const overviewRule: MarkdownRuleDefinition = {
 
         if (!found) {
           context.report({ node, message: "no overview follows the title" });
+        }
+
+        const validateHeadedOverview = (heading: Heading, index: number, label: string): void => {
+          const overview = node.children[index + 1];
+          if (overview?.type !== "paragraph") {
+            context.report({
+              node: heading,
+              message: `no overview follows ${label}`,
+            });
+            return;
+          }
+
+          if (containsLink(overview)) {
+            context.report({
+              node: overview,
+              message: `overview of ${label} links another document`,
+            });
+          }
+
+          const sectionSentenceCount = countSentences(getTextContent(overview).trim());
+          if (sectionSentenceCount > 2) {
+            context.report({
+              node: overview,
+              message: `overview of ${label} uses ${String(sectionSentenceCount)} sentences, at most two are allowed`,
+            });
+          }
+        };
+
+        const isGuide = filename.endsWith("-guide.md");
+        const isReference = filename.endsWith("-reference.md");
+        if (!isGuide && !isReference) return;
+
+        for (const [index, child] of node.children.entries()) {
+          if (child.type !== "heading" || child.depth === 1) continue;
+          const title = getTextContent(child).trim();
+          if (isGuide && child.depth === 2 && /^How To \S/.test(title)) {
+            validateHeadedOverview(child, index, `guide section "${title}"`);
+          } else if (isReference) {
+            validateHeadedOverview(child, index, `reference block "${title}"`);
+          }
         }
       },
     };
