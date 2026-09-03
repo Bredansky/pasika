@@ -88,17 +88,13 @@ Every named `*:staged` script is wired into `lint-staged` against the glob it ap
 
 No pasika rule checks a CI workflow file today — everything above is verified locally, at commit time. The following is a recommended pattern, not a requirement:
 
-- Run the repository-wide scripts directly rather than `.husky/pre-commit` — `npx lint-staged` only acts on staged files, which a CI checkout has none of, so calling the hook script in CI would silently skip the checks that matter most (lint, format, and the full coverage aggregate).
-- Run `npm run test:unit:coverage`, not `test:unit:coverage:staged` — the staged, `perFile`-gated check is a commit-time concern; CI validates the whole repository against the ratcheted aggregate threshold instead.
-- Give `lint:prune` a CI-aware script body so drift fails the build instead of silently committing a new suppression file, e.g. `eslint --prune-suppressions && if [ "$CI" = "true" ]; then git diff --exit-code eslint-suppressions.json; else git add eslint-suppressions.json; fi` — the Husky Hook Rule only requires the script exist and run; its content is the repository's choice.
-
 ```yaml
 - run: npm run lint
 - run: npm run format
 - run: npm run typecheck
 - run: npm run test:unit:coverage
-- run: npm run lint:prune # only once eslint-suppressions.json is tracked
 - run: npx libyear --limit-major-individual=1
+- run: npm run build
 ```
 
 ## Not Declared
