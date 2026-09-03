@@ -36,7 +36,7 @@ function buildFixture(preCommit: string, suppressions?: string): string {
   return path.join(root, "package.json");
 }
 
-// Has lint-staged, typecheck, and libyear — everything but lint:prune and test:unit:coverage:changed.
+// Has lint-staged, typecheck, and libyear — everything but lint:prune.
 const BASE_HOOK = `npx lint-staged
 npm run typecheck
 npx libyear --limit-major-individual=1
@@ -45,7 +45,6 @@ npx libyear --limit-major-individual=1
 const FULL_HOOK = `npx lint-staged
 npm run typecheck
 npm run lint:prune
-npm run test:unit:coverage:changed
 npx libyear --limit-major-individual=1
 `;
 // Missing every named script, including typecheck.
@@ -53,12 +52,10 @@ const NO_TYPECHECK_HOOK = `npx lint-staged
 npx libyear --limit-major-individual=1
 `;
 
-const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1.5" };
 const COMPLETE_SCRIPTS = {
   prepare: "husky",
   typecheck: "tsc --noEmit",
   "lint:prune": "eslint . --prune-suppressions",
-  "test:unit:coverage:changed": "vitest run --coverage",
 };
 const BASE_SCRIPTS = { prepare: "husky", typecheck: "tsc --noEmit" };
 
@@ -117,46 +114,6 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
         errors: [
           { message: 'package.json must declare a "lint:prune" script.' },
           { message: ".husky/pre-commit must run npm run lint:prune." },
-        ],
-      },
-    ],
-  });
-});
-
-void describe("A repository that declares vitest and @vitest/coverage-v8 in devDependencies MUST declare a test:unit:coverage:changed script in package.json and run it (npm run test:unit:coverage:changed) in .husky/pre-commit.", () => {
-  // vitest not declared, so test:unit:coverage:changed is not required
-  const noVitest = buildFixture(BASE_HOOK);
-  process.chdir(path.dirname(noVitest));
-  huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: noVitest }],
-    invalid: [],
-  });
-
-  // vitest + @vitest/coverage-v8 declared, and the script + hook call both exist
-  const withCoverage = buildFixture(FULL_HOOK);
-  process.chdir(path.dirname(withCoverage));
-  huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [
-      {
-        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
-        filename: withCoverage,
-      },
-    ],
-    invalid: [],
-  });
-
-  // vitest + @vitest/coverage-v8 declared, but neither the script nor the hook's call to it are present
-  const withoutCoverage = buildFixture(BASE_HOOK);
-  process.chdir(path.dirname(withoutCoverage));
-  huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [],
-    invalid: [
-      {
-        code: JSON.stringify({ scripts: BASE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
-        filename: withoutCoverage,
-        errors: [
-          { message: 'package.json must declare a "test:unit:coverage:changed" script.' },
-          { message: ".husky/pre-commit must run npm run test:unit:coverage:changed." },
         ],
       },
     ],

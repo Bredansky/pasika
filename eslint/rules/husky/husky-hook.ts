@@ -4,12 +4,10 @@
  * A repository MUST configure .husky/pre-commit to run lint-staged and
  * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
  * script in package.json. Its typecheck, and — once the repository tracks
- * eslint-suppressions.json or declares vitest + @vitest/coverage-v8 — its
- * suppression-file ratchet and coverage-gated test suite, run through named
- * package.json scripts (typecheck, lint:prune, test:unit:coverage:changed)
- * that the hook calls by name. What each named script does internally is the
- * repository's choice; this rule only checks that the name exists in both
- * places.
+ * eslint-suppressions.json — its suppression-file ratchet, run through named
+ * package.json scripts (typecheck, lint:prune) that the hook calls by name.
+ * What each named script does internally is the repository's choice; this
+ * rule only checks that the name exists in both places.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -29,7 +27,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged and the libyear drift check directly, and the typecheck, suppression-file ratchet, and coverage-gated test suite through named package.json scripts.",
+        "Require a pre-commit hook that runs lint-staged and the libyear drift check directly, and the typecheck and suppression-file ratchet through named package.json scripts.",
     },
   },
   create(context) {
@@ -74,15 +72,6 @@ export const huskyHookRule: JSONRuleDefinition = {
         const suppressionsPath = path.join(context.cwd, "eslint-suppressions.json");
         if (existsSync(suppressionsPath)) {
           requireNamedScript("lint:prune");
-        }
-
-        // once the repo declares vitest + @vitest/coverage-v8, the hook must run the coverage-gated suite through a named script
-        const devDependencies = root.members.find((member) => memberName(member) === "devDependencies");
-        const devDependencyNames = new Set(
-          devDependencies?.value.type === "Object" ? devDependencies.value.members.map(memberName) : [],
-        );
-        if (devDependencyNames.has("vitest") && devDependencyNames.has("@vitest/coverage-v8")) {
-          requireNamedScript("test:unit:coverage:changed");
         }
 
         // prepare must run husky

@@ -12,18 +12,22 @@ function buildFixture(vitestConfig?: string): string {
 }
 
 // Satisfies every check this rule makes: nonzero base thresholds, autoUpdate,
-// and a changed-run branch with perFile thresholds at 80.
+// coverage.changed, and a perFile threshold at 80.
 const RATCHETED_CONFIG = `import { defineConfig } from "vitest/config";
-const changedRun = process.env.COVERAGE_MODE === "changed";
 export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      changed: changedRun ? (process.env.CI === "true" ? (process.env.GITHUB_BASE_REF ?? "main") : true) : undefined,
-      thresholds: changedRun
-        ? { perFile: true, lines: 80, functions: 80, branches: 80, statements: 80 }
-        : { lines: 9, statements: 9, functions: 8, branches: 6, autoUpdate: true },
+      changed: true,
+      thresholds: {
+        lines: 9,
+        functions: 8,
+        branches: 6,
+        statements: 9,
+        autoUpdate: true,
+        perFile: { lines: 80, functions: 80, branches: 80, statements: 80 },
+      },
     },
   },
 });
@@ -57,9 +61,16 @@ const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1
 const COMPLETE_SCRIPTS = {
   "test:unit": "vitest run",
   "test:unit:coverage": "vitest run --coverage",
-  "test:unit:coverage:changed": "COVERAGE_MODE=changed vitest run --coverage",
+  "test:unit:coverage:changed": "vitest related --run --coverage",
 };
-const COMPLETE_MANIFEST = { scripts: COMPLETE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES };
+const COMPLETE_LINT_STAGED = {
+  "*.{js,jsx,ts,tsx}": ["eslint --fix", "npm run test:unit:coverage:changed --"],
+};
+const COMPLETE_MANIFEST = {
+  scripts: COMPLETE_SCRIPTS,
+  devDependencies: COMPLETE_DEV_DEPENDENCIES,
+  "lint-staged": COMPLETE_LINT_STAGED,
+};
 
 // Every case in this file reads a vitest config from context.cwd, so each
 // fixture with distinct config content needs its own chdir before the Linter
@@ -77,7 +88,7 @@ void describe("A repository MUST declare vitest and @vitest/coverage-v8 in devDe
     ],
     invalid: [
       {
-        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS }),
+        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, "lint-staged": COMPLETE_LINT_STAGED }),
         filename: path.join(ratcheted, "package.json"),
         errors: [
           { message: "vitest must be listed in package.json as a devDependency." },
@@ -86,7 +97,11 @@ void describe("A repository MUST declare vitest and @vitest/coverage-v8 in devDe
       },
       {
         // only one package missing
-        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, devDependencies: { vitest: "4.1.5" } }),
+        code: JSON.stringify({
+          scripts: COMPLETE_SCRIPTS,
+          devDependencies: { vitest: "4.1.5" },
+          "lint-staged": COMPLETE_LINT_STAGED,
+        }),
         filename: path.join(ratcheted, "package.json"),
         errors: [{ message: "@vitest/coverage-v8 must be listed in package.json as a devDependency." }],
       },
@@ -102,9 +117,10 @@ void describe("A repository MUST declare a test:unit script in package.json that
         code: JSON.stringify({
           scripts: {
             "test:unit:coverage": "vitest run --coverage",
-            "test:unit:coverage:changed": "COVERAGE_MODE=changed vitest run --coverage",
+            "test:unit:coverage:changed": "vitest related --run --coverage",
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [{ message: 'package.json must declare a "test:unit" script that runs Vitest without coverage.' }],
@@ -113,6 +129,7 @@ void describe("A repository MUST declare a test:unit script in package.json that
         code: JSON.stringify({
           scripts: { ...COMPLETE_SCRIPTS, "test:unit": "vitest run --coverage" },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [{ message: 'package.json must declare a "test:unit" script that runs Vitest without coverage.' }],
@@ -129,9 +146,10 @@ void describe("A repository MUST declare a test:unit:coverage script in package.
         code: JSON.stringify({
           scripts: {
             "test:unit": "vitest run",
-            "test:unit:coverage:changed": "COVERAGE_MODE=changed vitest run --coverage",
+            "test:unit:coverage:changed": "vitest related --run --coverage",
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [
@@ -142,6 +160,7 @@ void describe("A repository MUST declare a test:unit:coverage script in package.
         code: JSON.stringify({
           scripts: { ...COMPLETE_SCRIPTS, "test:unit:coverage": "vitest run" },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [
@@ -235,7 +254,7 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to true in i
   });
 });
 
-void describe("A repository MUST declare a test:unit:coverage:changed script in package.json that runs Vitest with coverage, and configure its vitest config with coverage.changed and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land.", () => {
+void describe("A repository MUST declare a test:unit:coverage:changed script in package.json that runs vitest related with coverage, configure lint-staged to run it (npm run test:unit:coverage:changed --) for staged JavaScript or TypeScript files, and configure its vitest config with coverage.changed set to true and a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, so a new or modified file must be well-tested before it can land — the whole-repository aggregate stays a CI-only concern.", () => {
   process.chdir(ratcheted);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
@@ -245,11 +264,54 @@ void describe("A repository MUST declare a test:unit:coverage:changed script in 
         code: JSON.stringify({
           scripts: { "test:unit": "vitest run", "test:unit:coverage": "vitest run --coverage" },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
         }),
         filename: path.join(ratcheted, "package.json"),
         errors: [
           {
-            message: 'package.json must declare a "test:unit:coverage:changed" script that runs Vitest with coverage.',
+            message:
+              'package.json must declare a "test:unit:coverage:changed" script that runs vitest related with coverage.',
+          },
+        ],
+      },
+      {
+        // script runs the whole suite instead of vitest related
+        code: JSON.stringify({
+          scripts: { ...COMPLETE_SCRIPTS, "test:unit:coverage:changed": "vitest run --coverage" },
+          devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
+        }),
+        filename: path.join(ratcheted, "package.json"),
+        errors: [
+          {
+            message:
+              'package.json must declare a "test:unit:coverage:changed" script that runs vitest related with coverage.',
+          },
+        ],
+      },
+      {
+        // no lint-staged entry wires the script into staged files at all
+        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
+        filename: path.join(ratcheted, "package.json"),
+        errors: [
+          {
+            message:
+              'package.json lint-staged must run "npm run test:unit:coverage:changed" for staged JavaScript or TypeScript files.',
+          },
+        ],
+      },
+      {
+        // lint-staged exists but no glob entry calls the script
+        code: JSON.stringify({
+          scripts: COMPLETE_SCRIPTS,
+          devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": { "*.{js,jsx,ts,tsx}": ["eslint --fix"] },
+        }),
+        filename: path.join(ratcheted, "package.json"),
+        errors: [
+          {
+            message:
+              'package.json lint-staged must run "npm run test:unit:coverage:changed" for staged JavaScript or TypeScript files.',
           },
         ],
       },

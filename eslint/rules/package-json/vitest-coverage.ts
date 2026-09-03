@@ -2,12 +2,15 @@
  * ESLint rule: pasika/vitest-coverage
  *
  * A repository MUST declare vitest and @vitest/coverage-v8 in devDependencies,
- * expose normal, coverage-gated, and changed-files-coverage unit-test scripts,
- * and set a coverage threshold above zero for lines, functions, branches, and
- * statements with autoUpdate enabled — a zero threshold gates nothing, and a
- * fixed one lets a later regression back down still pass. Its
- * coverage.changed + perFile thresholds gate new or modified files at 80%
- * individually, so they can't land undertested behind a passing aggregate.
+ * expose normal and coverage-gated unit-test scripts, and set a coverage
+ * threshold above zero for lines, functions, branches, and statements with
+ * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
+ * later regression back down still pass. A test:unit:coverage:changed script
+ * running `vitest related` must be wired into lint-staged for staged
+ * JavaScript or TypeScript files, and coverage.changed + perFile thresholds
+ * gate those files at 80% individually, so a new or modified file can't land
+ * undertested behind a passing whole-repository aggregate — the aggregate
+ * itself stays a CI-only concern.
  *
  * @see docs/pasika-adoption-guide/rules/vitest-coverage-rule.md
  */
@@ -15,7 +18,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { JSONRuleDefinition } from "@eslint/json";
-import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
+import type { DocumentNode, MemberNode, ValueNode } from "@humanwhocodes/momoa";
 
 function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
@@ -23,6 +26,12 @@ function memberName(member: MemberNode): string {
 
 function memberValue(member: MemberNode | undefined): string | undefined {
   return member?.value.type === "String" ? member.value.value : undefined;
+}
+
+function stringValues(value: ValueNode): string[] {
+  if (value.type === "String") return [value.value];
+  if (value.type !== "Array") return [];
+  return value.elements.flatMap((element) => (element.value.type === "String" ? [element.value.value] : []));
 }
 
 /** Config file names Vitest resolves, in the order Vitest itself tries them. */
@@ -37,7 +46,9 @@ const VITEST_CONFIG_NAMES = [
 
 /** Coverage metrics a threshold must cover. */
 const THRESHOLD_METRICS = ["lines", "functions", "branches", "statements"] as const;
+const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
+const RELATED_PATTERN = /\brelated\b/;
 const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
 const CHANGED_PATTERN = /changed\s*:/;
 const EIGHTY_OR_ABOVE_PATTERN = /(?:lines|functions|branches|statements)\s*:\s*(?:8\d|9\d|100)\b/;
@@ -48,7 +59,7 @@ export const vitestCoverageRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require Vitest unit-test scripts, the V8 provider, a rising coverage threshold, and an 80% floor on changed files.",
+        "Require Vitest unit-test scripts, the V8 provider, a rising coverage threshold, and an 80% floor on staged files via lint-staged.",
     },
   },
   create(context) {
@@ -122,13 +133,32 @@ export const vitestCoverageRule: JSONRuleDefinition = {
         if (
           changedCoverageCommand === undefined ||
           !/\bvitest\b/.test(changedCoverageCommand) ||
+          !RELATED_PATTERN.test(changedCoverageCommand) ||
           !COVERAGE_FLAG_PATTERN.test(changedCoverageCommand)
         ) {
           context.report({
             node: changedCoverage ?? node,
-            message: 'package.json must declare a "test:unit:coverage:changed" script that runs Vitest with coverage.',
+            message:
+              'package.json must declare a "test:unit:coverage:changed" script that runs vitest related with coverage.',
           });
         }
+
+        const lintStaged = root.members.find((member) => memberName(member) === "lint-staged");
+        const hasStagedChangedCoverage =
+          lintStaged?.value.type === "Object" &&
+          lintStaged.value.members.some(
+            (member) =>
+              SOURCE_GLOB_PATTERN.test(memberName(member)) &&
+              stringValues(member.value).some((command) => command.includes("npm run test:unit:coverage:changed")),
+          );
+        if (!hasStagedChangedCoverage) {
+          context.report({
+            node: lintStaged ?? node,
+            message:
+              'package.json lint-staged must run "npm run test:unit:coverage:changed" for staged JavaScript or TypeScript files.',
+          });
+        }
+
         if (!CHANGED_PATTERN.test(content) || !content.includes("perFile") || !EIGHTY_OR_ABOVE_PATTERN.test(content)) {
           context.report({
             node,
