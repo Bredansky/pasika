@@ -860,8 +860,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A CSS variable intended only for a background MUST be named `--<role>-canvas`, and one intended only for readable text MUST be named `--<role>-ink`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas` or `text-<role>-ink`.",
-      "hash": "0fb98de16d",
+      "text": "A CSS variable intended only for a background MUST be named `--<role>-canvas`, one intended only for readable text MUST be named `--<role>-ink`, and one intended only for a visual boundary such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.",
+      "hash": "82fd569267",
       "ref": "pasika/css-variable-naming"
     },
     {
