@@ -82,7 +82,7 @@ Pick the size that matches the team's headcount and timeline.
 | B      | Large projects |
 ```
 
-Why: section heading is unnecessary and forces a duplicated intro covering what the reference is for and what the group contains.
+Why: section heading is unnecessary and forces duplicated overviews covering what the Reference is for and what the lookup block contains.
 
 ## Correct — Single Lookup Block Has No Heading
 
@@ -97,7 +97,7 @@ Use this reference to choose between the two supported project sizes when starti
 | B      | Large projects |
 ```
 
-Why: single lookup block sits directly under the intro without a heading.
+Why: the single lookup block sits directly under the Reference overview without a heading.
 
 ## Incorrect — First of Multiple Lookup Blocks Has No Heading
 
@@ -121,7 +121,7 @@ Each size carries a different approval bar.
 | B      | 2         |
 ```
 
-Why: the reference has two lookup blocks but only the second is headed, so the first table reads as part of the intro and cannot be scanned or linked as a group of its own.
+Why: the Reference has two lookup blocks but only the second is headed, so the first table reads as part of the overview and cannot be scanned or linked as a group of its own.
 
 ## Correct — Every Lookup Block Has a Heading
 

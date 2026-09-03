@@ -1,9 +1,9 @@
 /**
- * @fileoverview Document and Guide section overviews must exist, contain at
- * most two sentences, and not link to other documents.
+ * @fileoverview Top-level document, Guide workflow, and Reference lookup-block
+ * overviews must exist, contain at most two sentences, and not link to other documents.
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
-import type { Nodes, Root } from "mdast";
+import type { Heading, Nodes, Root } from "mdast";
 import { getFilename, getLine, getTextContent } from "./helpers";
 
 function countSentences(text: string): number {
@@ -23,7 +23,7 @@ export const overviewRule: MarkdownRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Document and Guide section overviews must exist, contain at most two sentences, and not link to other documents.",
+        "Top-level document, Guide workflow, and Reference lookup-block overviews must exist, contain at most two sentences, and not link to other documents.",
       recommended: true,
     },
   },
@@ -75,26 +75,20 @@ export const overviewRule: MarkdownRuleDefinition = {
           context.report({ node, message: "no overview follows the title" });
         }
 
-        if (!filename.endsWith("-guide.md")) return;
-
-        for (const [index, child] of node.children.entries()) {
-          if (child.type !== "heading" || child.depth !== 2) continue;
-          const title = getTextContent(child).trim();
-          if (!/^How To \S/.test(title)) continue;
-
+        const validateHeadedOverview = (heading: Heading, index: number, label: string): void => {
           const overview = node.children[index + 1];
           if (overview?.type !== "paragraph") {
             context.report({
-              node: child,
-              message: `no overview follows guide section "${title}"`,
+              node: heading,
+              message: `no overview follows ${label}`,
             });
-            continue;
+            return;
           }
 
           if (containsLink(overview)) {
             context.report({
               node: overview,
-              message: `overview of guide section "${title}" links another document`,
+              message: `overview of ${label} links another document`,
             });
           }
 
@@ -102,8 +96,22 @@ export const overviewRule: MarkdownRuleDefinition = {
           if (sectionSentenceCount > 2) {
             context.report({
               node: overview,
-              message: `overview of guide section "${title}" uses ${String(sectionSentenceCount)} sentences, at most two are allowed`,
+              message: `overview of ${label} uses ${String(sectionSentenceCount)} sentences, at most two are allowed`,
             });
+          }
+        };
+
+        const isGuide = filename.endsWith("-guide.md");
+        const isReference = filename.endsWith("-reference.md");
+        if (!isGuide && !isReference) return;
+
+        for (const [index, child] of node.children.entries()) {
+          if (child.type !== "heading" || child.depth === 1) continue;
+          const title = getTextContent(child).trim();
+          if (isGuide && child.depth === 2 && /^How To \S/.test(title)) {
+            validateHeadedOverview(child, index, `guide section "${title}"`);
+          } else if (isReference) {
+            validateHeadedOverview(child, index, `reference block "${title}"`);
           }
         }
       },
