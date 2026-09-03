@@ -191,7 +191,7 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 | `pasika/stylesheet-ordering`      | Imports → `@custom-variant` → `:root` → `@theme` → `@utility` → `@layer base`                         |
 | `pasika/css-variable-naming`      | Background vars named `--<role>-canvas`, text vars `--<role>-ink`                                     |
 | `pasika/custom-utility-apply`     | `@utility` blocks use `@apply`                                                                        |
-| `pasika/surface-utility`          | Repeated canvas+ink combos become a named surface utility                                             |
+| `pasika/skin-utility`             | Repeated semantic style combinations become a named skin utility                                      |
 | `pasika/theme-variable-namespace` | Utility class groups share a namespace prefix                                                         |
 | `pasika/css-entry-point` †        | One global entry, imported by one module, project CSS only in a stylesheet the entry imports directly |
 | `pasika/unused-utility`           | A custom `@utility` no source file references is reported as dead                                     |

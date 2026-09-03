@@ -31,11 +31,7 @@ function combosFor(index: ProjectIndex): Map<string, Set<string>> {
 
   let fingerprint = "";
   for (const file of files) {
-    try {
-      fingerprint += String(statSync(file).mtimeMs);
-    } catch {
-      fingerprint += "0";
-    }
+    fingerprint += String(statSync(file).mtimeMs);
   }
 
   if (comboCache?.sourceRoot === index.sourceRoot && comboCache.fingerprint === fingerprint) {
@@ -64,7 +60,7 @@ export const sharedStyleDedupRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a className combination used by two or more components to become a named custom utility.",
+      description: "Require a className combination used by two or more components to become a named *-skin utility.",
     },
   },
   create(context) {
@@ -93,7 +89,7 @@ export const sharedStyleDedupRule: Rule.RuleModule = {
             loc: { line: 1, column: 0 },
             message:
               `Class combination "${combo}" is used by ${String(users.size)} components and should change ` +
-              "together; create a named custom Tailwind utility for it. " +
+              "together; create a named *-skin Tailwind utility for it. " +
               "See docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
           });
         }

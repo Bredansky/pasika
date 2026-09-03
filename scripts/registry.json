@@ -866,9 +866,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A repeated combination containing at least two of the canvas, ink, and edge roles plus any related styles MUST become a `*-surface` custom Tailwind utility that owns the combination.",
-      "hash": "bb92b0cdfe",
-      "ref": "pasika/surface-utility"
+      "text": "A custom utility that owns a combination of two or more styles MUST use the `*-skin` suffix.",
+      "hash": "95cbb9f38f",
+      "ref": "pasika/skin-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A repeated combination containing at least two semantic canvas, ink, or edge utilities plus any related styles MUST become a `*-skin` custom Tailwind utility that owns the combination.",
+      "hash": "8ba3c23e82",
+      "ref": "pasika/skin-utility"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
