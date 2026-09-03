@@ -6,8 +6,8 @@
  * script in package.json. Its typecheck, and — once the repository tracks
  * eslint-suppressions.json or declares vitest + @vitest/coverage-v8 — its
  * suppression-file ratchet and coverage-gated test suite, run through named
- * package.json scripts (typecheck, lint:prune, test:unit:coverage) that the
- * hook calls by name. What each named script does internally is the
+ * package.json scripts (typecheck, lint:prune, test:unit:coverage:changed)
+ * that the hook calls by name. What each named script does internally is the
  * repository's choice; this rule only checks that the name exists in both
  * places.
  *
@@ -82,7 +82,7 @@ export const huskyHookRule: JSONRuleDefinition = {
           devDependencies?.value.type === "Object" ? devDependencies.value.members.map(memberName) : [],
         );
         if (devDependencyNames.has("vitest") && devDependencyNames.has("@vitest/coverage-v8")) {
-          requireNamedScript("test:unit:coverage");
+          requireNamedScript("test:unit:coverage:changed");
         }
 
         // prepare must run husky

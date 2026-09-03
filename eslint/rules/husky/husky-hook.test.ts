@@ -36,7 +36,7 @@ function buildFixture(preCommit: string, suppressions?: string): string {
   return path.join(root, "package.json");
 }
 
-// Has lint-staged, typecheck, and libyear — everything but lint:prune and test:unit:coverage.
+// Has lint-staged, typecheck, and libyear — everything but lint:prune and test:unit:coverage:changed.
 const BASE_HOOK = `npx lint-staged
 npm run typecheck
 npx libyear --limit-major-individual=1
@@ -45,7 +45,7 @@ npx libyear --limit-major-individual=1
 const FULL_HOOK = `npx lint-staged
 npm run typecheck
 npm run lint:prune
-npm run test:unit:coverage
+npm run test:unit:coverage:changed
 npx libyear --limit-major-individual=1
 `;
 // Missing every named script, including typecheck.
@@ -58,7 +58,7 @@ const COMPLETE_SCRIPTS = {
   prepare: "husky",
   typecheck: "tsc --noEmit",
   "lint:prune": "eslint . --prune-suppressions",
-  "test:unit:coverage": "vitest run --coverage",
+  "test:unit:coverage:changed": "vitest run --coverage",
 };
 const BASE_SCRIPTS = { prepare: "husky", typecheck: "tsc --noEmit" };
 
@@ -123,8 +123,8 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
   });
 });
 
-void describe("A repository that declares vitest and @vitest/coverage-v8 in devDependencies MUST declare a test:unit:coverage script in package.json and run it (npm run test:unit:coverage) in .husky/pre-commit.", () => {
-  // vitest not declared, so test:unit:coverage is not required
+void describe("A repository that declares vitest and @vitest/coverage-v8 in devDependencies MUST declare a test:unit:coverage:changed script in package.json and run it (npm run test:unit:coverage:changed) in .husky/pre-commit.", () => {
+  // vitest not declared, so test:unit:coverage:changed is not required
   const noVitest = buildFixture(BASE_HOOK);
   process.chdir(path.dirname(noVitest));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
@@ -155,8 +155,8 @@ void describe("A repository that declares vitest and @vitest/coverage-v8 in devD
         code: JSON.stringify({ scripts: BASE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
         filename: withoutCoverage,
         errors: [
-          { message: 'package.json must declare a "test:unit:coverage" script.' },
-          { message: ".husky/pre-commit must run npm run test:unit:coverage." },
+          { message: 'package.json must declare a "test:unit:coverage:changed" script.' },
+          { message: ".husky/pre-commit must run npm run test:unit:coverage:changed." },
         ],
       },
     ],

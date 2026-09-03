@@ -914,8 +914,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository that declares `vitest` and `@vitest/coverage-v8` in devDependencies MUST declare a `test:unit:coverage` script in package.json and run it (`npm run test:unit:coverage`) in `.husky/pre-commit`.",
-      "hash": "50ed9c5404",
+      "text": "A repository that declares `vitest` and `@vitest/coverage-v8` in devDependencies MUST declare a `test:unit:coverage:changed` script in package.json and run it (`npm run test:unit:coverage:changed`) in `.husky/pre-commit`.",
+      "hash": "e6370a24eb",
       "ref": "pasika/husky-hook"
     },
     {
