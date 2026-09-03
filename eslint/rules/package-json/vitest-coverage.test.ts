@@ -255,7 +255,7 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to true in i
   });
 });
 
-void describe("A repository MUST declare a test:unit:coverage:staged script in package.json that runs vitest related with coverage, configure lint-staged to run it (npm run test:unit:coverage:staged --) for staged JavaScript or TypeScript files, and set coverage.changed to true with a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, so new or modified files are gated individually while the whole-repository aggregate stays a CI-only concern.", () => {
+void describe("A repository MUST declare a test:unit:coverage:staged script in package.json that runs vitest related with coverage, configure lint-staged to run it (npm run test:unit:coverage:staged --) for staged JavaScript or TypeScript files, and set coverage.changed to true with a coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, so new or modified files are gated individually.", () => {
   process.chdir(ratcheted);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],

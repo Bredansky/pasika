@@ -8,7 +8,7 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
 - A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.
-- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and set `coverage.changed` to `true` with a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so new or modified files are gated individually while the whole-repository aggregate stays a CI-only concern.
+- A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage, configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, and set `coverage.changed` to `true` with a `coverage.thresholds.perFile` of at least `80` for lines, functions, branches, and statements, so new or modified files are gated individually.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
 
