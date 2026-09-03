@@ -890,9 +890,57 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged`, `npm run typecheck`, and `npx libyear --limit-major-individual=1`, with a `prepare` script that runs `husky`.",
-      "hash": "a5873fcf4d",
+      "text": "A repository MUST declare a `prepare` script in package.json that runs `husky`.",
+      "hash": "f568f4d0ce",
       "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `lint-staged`.",
+      "hash": "335f60b596",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST configure `.husky/pre-commit` to run `npx libyear --limit-major-individual=1`.",
+      "hash": "3774662a70",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.",
+      "hash": "05884fed81",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.",
+      "hash": "7a7b7a670a",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `lint` script in package.json that runs ESLint across the repository.",
+      "hash": "212c221034",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `format` script in package.json that runs `prettier --check` across the repository.",
+      "hash": "e41c0cd9ea",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript or TypeScript files.",
+      "hash": "dcb479260a",
+      "ref": "pasika/lint-setup"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
+      "text": "A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged files ESLint does not already format.",
+      "hash": "4ac89f02f0",
+      "ref": "pasika/lint-setup"
     },
     {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
@@ -902,9 +950,51 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
-      "text": "A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, and `zirka` as a devDependency in package.json.",
-      "hash": "8de02b309b",
+      "text": "A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` as a devDependency in package.json.",
+      "hash": "0d22796317",
       "ref": "pasika/nextjs-stack"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare `vitest` and `@vitest/coverage-v8` in devDependencies.",
+      "hash": "00d33dbfa3",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit` script in package.json that runs Vitest without coverage.",
+      "hash": "8c214978eb",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.",
+      "hash": "ee75102da7",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.",
+      "hash": "72a89731a4",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST measure coverage of its source files, not its test files.",
+      "hash": "ccad929cd6",
+      "note": "whether coverage.include targets source files rather than test files is a config-review judgment"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.",
+      "hash": "9d5f3d6450",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit:coverage:staged` script in package.json that runs `vitest related` with coverage and passes `--coverage.changed`, `--coverage.thresholds.perFile` at `80` or above for lines, functions, branches, and statements, and `--coverage.thresholds.autoUpdate=false` as flags, and configure `lint-staged` to run it (`npm run test:unit:coverage:staged --`) for staged JavaScript or TypeScript files, so new or modified files are gated individually without corrupting the ratcheted aggregate.",
+      "hash": "fbdce5ebf7",
+      "ref": "pasika/vitest-coverage"
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",

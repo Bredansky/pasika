@@ -1,7 +1,7 @@
 /**
  * Shared RuleTester wiring for the husky/git-hook rule tests.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import jsonPlugin from "@eslint/json";
 import { CwdAwareRuleTester } from "../../rule-tester";
 import { huskyRules } from "../../index";

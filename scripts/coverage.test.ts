@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import { classifyRequirement } from "./utils/classify";
 import { readRegistry, writeRegistry } from "./utils/registry";
 import { parseDocs } from "./utils/parse-docs";
@@ -46,11 +46,11 @@ const classify = (input: Parameters<typeof classifyRequirement>[0]["input"]): Re
   classifyRequirement({ docsRoot, registry: emptyRegistry, input });
 
 void describe("classifyRequirement", () => {
-  void it("rejects a hash that no requirement in the documentation has", () => {
+  it("rejects a hash that no requirement in the documentation has", () => {
     assert.throws(() => classify({ hash: "deadbeef00", note: "why" }), /has hash "deadbeef00"/);
   });
 
-  void it("requires a note only for a judgment requirement, and never stores one on a rule", () => {
+  it("requires a note only for a judgment requirement, and never stores one on a rule", () => {
     // A rule-governed entry needs no note.
     const ruled = classify({ hash: mustRequirement.hash, ref: "pasika/filename-case" });
     assert.equal(ruled.requirement.ref, "pasika/filename-case");
@@ -59,14 +59,14 @@ void describe("classifyRequirement", () => {
     assert.throws(() => classify({ hash: mustRequirement.hash, note: "  " }), /judgment/);
   });
 
-  void it("rejects a ref that is not a rule", () => {
+  it("rejects a ref that is not a rule", () => {
     assert.throws(
       () => classify({ hash: mustRequirement.hash, ref: "pasika/not-a-rule", note: "why" }),
       /is not a rule/,
     );
   });
 
-  void it("accepts a ref naming the rule that governs the requirement", () => {
+  it("accepts a ref naming the rule that governs the requirement", () => {
     const { requirement } = classify({
       hash: mustRequirement.hash,
       ref: "pasika/filename-case",
@@ -77,7 +77,7 @@ void describe("classifyRequirement", () => {
     assert.equal("kind" in requirement, false, "kind is gone from the registry entry");
   });
 
-  void it("accepts an entry without a ref, applied by judgment", () => {
+  it("accepts an entry without a ref, applied by judgment", () => {
     const { requirement } = classify({
       hash: mayRequirement.hash,
       note: "a reviewer decides whether the sibling is worth re-exporting",
@@ -86,7 +86,7 @@ void describe("classifyRequirement", () => {
     assert.equal(requirement.note, "a reviewer decides whether the sibling is worth re-exporting");
   });
 
-  void it("records the requirement as the documentation currently words it", () => {
+  it("records the requirement as the documentation currently words it", () => {
     const { registry, requirement } = classify({
       hash: mustRequirement.hash,
       ref: "pasika/filename-case",
@@ -98,7 +98,7 @@ void describe("classifyRequirement", () => {
     assert.equal(registry.requirements.length, 1);
   });
 
-  void it("replaces rather than duplicates when the same requirement is classified again", () => {
+  it("replaces rather than duplicates when the same requirement is classified again", () => {
     const first = classify({ hash: mustRequirement.hash, note: "applied by judgment" });
     const second = classifyRequirement({
       docsRoot,
@@ -109,7 +109,7 @@ void describe("classifyRequirement", () => {
     assert.equal(second.requirement.ref, "pasika/filename-case");
   });
 
-  void it("accepts several rule refs for one requirement", () => {
+  it("accepts several rule refs for one requirement", () => {
     const { requirement } = classify({
       hash: mustRequirement.hash,
       ref: "pasika/overview, pasika/no-template-prompt",
@@ -125,7 +125,7 @@ function toEntry(parsed: { doc: string; raw: string; hash: string }): Requiremen
 }
 
 void describe("writeRegistry", () => {
-  void it("writes entries in document order, then line order within each doc", () => {
+  it("writes entries in document order, then line order within each doc", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-write-"));
     mkdirSync(path.join(root, "rules"), { recursive: true });
     // Two docs whose path order and requirement order both matter.
@@ -153,7 +153,7 @@ void describe("writeRegistry", () => {
     );
   });
 
-  void it("places an entry whose hash the docs no longer contain after the parsed ones", () => {
+  it("places an entry whose hash the docs no longer contain after the parsed ones", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-write-"));
     writeFileSync(path.join(root, "only-rule.md"), "# Only Rule\n\n- The one requirement MUST hold.\n");
 

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { after } from "node:test";
+import { afterAll } from "vitest";
 import { describe, ruleTester } from "../rule-tester";
 import { zirkaBaselineRule } from "./zirka-baseline";
 
@@ -24,7 +24,7 @@ function makeProject(files: Record<string, string>): Project {
 
 void describe("A repository MUST take its lint, format, and TypeScript configuration from zirka and its rules from pasika rather than restating them locally.", () => {
   const projectDirs: string[] = [];
-  after(() => {
+  afterAll(() => {
     for (const dir of projectDirs) fs.rmSync(dir, { recursive: true, force: true });
   });
 

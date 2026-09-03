@@ -1,7 +1,7 @@
 /**
  * Shared RuleTester wiring for the vulyk rules.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import jsonPlugin from "@eslint/json";
 import { CwdAwareRuleTester } from "../../rule-tester";
 import { vulykRules } from "./index";

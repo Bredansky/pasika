@@ -5,7 +5,7 @@
  * case pins, which is how `pasika coverage` verifies that a requirement recorded
  * as lint-enforced has a test behind it.
  */
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import css from "@eslint/css";
 import { CwdAwareRuleTester } from "../../rule-tester";
 import { tailwindRules } from "../../index";

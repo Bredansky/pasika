@@ -27,7 +27,7 @@ const manifestBlock: Linter.Config = {
 const { eslintConfig } = styleguide({
   node: RuleSeverity.Error,
   typescript: RuleSeverity.Error,
-  ignores: ["dist/**", "node_modules/**"],
+  ignores: ["dist/**", "node_modules/**", "coverage/**"],
   additionalConfigs: [documentationBlock, manifestBlock],
 });
 
