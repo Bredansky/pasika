@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/skin-utility
  *
- * A repeated combination containing at least two semantic canvas, ink, or edge
- * utilities plus any related styles MUST become a *-skin custom utility.
+ * A combination of two or more styles that multiple consumers use together and
+ * should change together MUST become a <role>-skin custom utility.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -11,19 +11,12 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { atrulesNamed, preludeIdentifiers } from "./helpers";
 
-const SEMANTIC_ROLES = ["canvas", "ink", "edge"];
-
-/** The distinct semantic color utilities represented by an applied class list. */
-function semanticUtilities(classes: string[]): Set<string> {
-  return new Set(classes.filter((name) => SEMANTIC_ROLES.some((role) => name.includes(role))));
-}
-
 export const skinUtilityRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require repeated combinations of semantic color utilities to become a *-skin utility.",
+      description: "Require reusable style combinations to become *-skin utilities.",
     },
   },
   create(context) {
@@ -42,7 +35,7 @@ export const skinUtilityRule: CSSRuleDefinition = {
         const combinations = new Map<string, number>();
         for (const apply of atrulesNamed(node, "apply")) {
           const classes = preludeIdentifiers(apply);
-          if (semanticUtilities(classes).size < 2) continue;
+          if (new Set(classes).size < 2) continue;
           const key = [...classes].sort().join(" ");
           combinations.set(key, (combinations.get(key) ?? 0) + 1);
         }
