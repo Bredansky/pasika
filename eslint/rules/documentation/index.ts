@@ -24,6 +24,7 @@ import { guideLinkAnchorsRule } from "./guide-link-anchors";
 import { noNestedHowToRule } from "./no-nested-how-to";
 import { glossaryTermLinkingRule } from "./glossary-term-linking";
 import { guideMentionsDocumentsRule } from "./guide-mentions-documents";
+import { guideSectionShapeRule } from "./guide-section-shape";
 
 export const documentationRules = {
   "doc-kind-suffix": docKindSuffixRule,
@@ -49,6 +50,7 @@ export const documentationRules = {
   "no-nested-how-to": noNestedHowToRule,
   "glossary-term-linking": glossaryTermLinkingRule,
   "guide-mentions-documents": guideMentionsDocumentsRule,
+  "guide-section-shape": guideSectionShapeRule,
 };
 
 export type DocumentationRuleName = keyof typeof documentationRules;

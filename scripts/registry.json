@@ -8,6 +8,12 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "Every Guide section MUST use a level-two `How To` heading and contain a numbered list of steps.",
+      "hash": "f8dbbe845c",
+      "ref": "pasika/guide-section-shape"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide MAY link Rules, References, Policy documents, and other Guides.",
       "hash": "254850923a",
       "ref": "pasika/no-cross-document-link"

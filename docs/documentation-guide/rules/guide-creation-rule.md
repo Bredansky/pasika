@@ -3,6 +3,7 @@
 Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
 
 - Each How To step MUST use one sentence.
+- Every Guide section MUST use a level-two `How To` heading and contain a numbered list of steps.
 - A Guide MAY link Rules, References, Policy documents, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
@@ -40,6 +41,28 @@ feature-workflow-guide/
 ```
 
 Why: support files stay colocated with the entry point while being grouped by document kind.
+
+## Incorrect — Unstructured Guide Section
+
+```markdown
+## Theme Tokens
+
+- Pick a token.
+- Apply the token.
+```
+
+Why: the section heading does not describe a How To workflow, and bullets do not communicate an ordered procedure.
+
+## Correct — How To Section With Numbered Steps
+
+```markdown
+## How To Apply Theme Tokens
+
+1. Pick the semantic token for the intended role.
+2. Apply its Tailwind utility to the component.
+```
+
+Why: the How To heading names the workflow and the numbered list makes its sequence explicit.
 
 ## Incorrect — Step Links to Multiple Documents
 
