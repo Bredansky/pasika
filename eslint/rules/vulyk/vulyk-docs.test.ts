@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { after } from "node:test";
+import { afterAll } from "vitest";
 import { describe, vulykRuleTester } from "./rule-tester";
 import { vulykDocsRule } from "./vulyk-docs";
 
@@ -67,7 +67,7 @@ function makeProject(files: Record<string, string>): Project {
 }
 
 const projectDirs: string[] = [];
-after(() => {
+afterAll(() => {
   for (const dir of projectDirs) fs.rmSync(dir, { recursive: true, force: true });
 });
 

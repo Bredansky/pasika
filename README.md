@@ -231,7 +231,7 @@ Many of the TS/TSX rules call the TypeScript compiler API directly at lint time,
 ```bash
 npm run lint
 npm run typecheck
-npm run test
+npm run test:unit
 npm run coverage
 npm run build
 npm run dogfood -- ../some/repo   # requires a build; see Dogfooding above

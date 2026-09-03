@@ -6,7 +6,7 @@
  * as lint-enforced has a test behind it.
  */
 import path from "node:path";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 import { Linter, RuleTester } from "eslint";
 import tsParser from "@typescript-eslint/parser";
 

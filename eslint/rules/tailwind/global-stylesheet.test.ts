@@ -1,4 +1,4 @@
-import { describe } from "node:test";
+import { describe } from "vitest";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { tailwindRuleTester } from "./rule-tester";
 

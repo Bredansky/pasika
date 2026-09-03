@@ -28,12 +28,17 @@
     "lint:staged": "eslint --fix",
     "prepack": "npm run build",
     "prepare": "husky",
-    "test": "node --import tsx --test 'eslint/**/*.test.ts' 'scripts/**/*.test.ts' 'utils/**/*.test.ts'",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage:staged": "vitest related --run --coverage --coverage.changed --coverage.thresholds.perFile --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80 --coverage.thresholds.autoUpdate=false",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "npm run format:staged --",
-    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npm run lint:staged --"
+    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": [
+      "npm run lint:staged --",
+      "npm run test:unit:coverage:staged --"
+    ]
   },
   "dependencies": {
     "@typescript-eslint/parser": "8.68.0",
@@ -48,6 +53,7 @@
     "@types/estree": "1.0.9",
     "@types/mdast": "4.0.4",
     "@types/node": "26.4.0",
+    "@vitest/coverage-v8": "5.0.0",
     "eslint": "10.9.1",
     "husky": "9.1.7",
     "lint-staged": "17.4.1",
@@ -55,6 +61,7 @@
     "tsup": "8.5.1",
     "tsx": "4.23.12",
     "typescript": "6.0.3",
+    "vitest": "5.0.0",
     "zirka": "0.0.48",
     "zod": "4.4.3"
   },

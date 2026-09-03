@@ -12,27 +12,22 @@ const documentationBlock: Linter.Config = {
   rules: Object.fromEntries(Object.keys(documentationRules).map((name) => [`pasika/${name}`, "error"])),
 };
 
-// pasika predates the Vitest Coverage Rule and runs its own suite on node's
-// built-in test runner instead of Vitest, so it does not self-apply that one
-// requirement — every other framework-agnostic package.json rule still applies.
-const { "vitest-coverage": _vitestCoverageRule, ...selfPackageJsonRules } = repoPackageJsonRules;
-
 const manifestBlock: Linter.Config = {
   files: ["package.json"],
   plugins: {
     json: { languages: { json: jsonPlugin.languages.json } },
-    pasika: { rules: { ...selfPackageJsonRules, ...huskyRules } },
+    pasika: { rules: { ...repoPackageJsonRules, ...huskyRules } },
   },
   language: "json/json",
   rules: Object.fromEntries(
-    [...Object.keys(selfPackageJsonRules), ...Object.keys(huskyRules)].map((name) => [`pasika/${name}`, "error"]),
+    [...Object.keys(repoPackageJsonRules), ...Object.keys(huskyRules)].map((name) => [`pasika/${name}`, "error"]),
   ),
 };
 
 const { eslintConfig } = styleguide({
   node: RuleSeverity.Error,
   typescript: RuleSeverity.Error,
-  ignores: ["dist/**", "node_modules/**"],
+  ignores: ["dist/**", "node_modules/**", "coverage/**"],
   additionalConfigs: [documentationBlock, manifestBlock],
 });
 
