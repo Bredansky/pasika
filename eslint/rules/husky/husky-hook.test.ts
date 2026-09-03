@@ -4,16 +4,6 @@ import path from "node:path";
 import { describe, huskyRuleTester } from "./rule-tester";
 import { huskyHookRule } from "./husky-hook";
 
-void describe("A repository MUST configure .husky/pre-commit to run lint-staged and npx libyear --limit-major-individual=1.", () => {
-  huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [
-      // cwd is the repo, whose .husky/pre-commit runs lint-staged, typecheck, and libyear
-      { code: '{"scripts":{"prepare":"husky","typecheck":"tsc --noEmit"}}', filename: "/repo/package.json" },
-    ],
-    invalid: [],
-  });
-});
-
 void describe("A repository MUST declare a prepare script in package.json that runs husky.", () => {
   huskyRuleTester.run("husky-hook", huskyHookRule, {
     valid: [{ code: '{"scripts":{"prepare":"husky","typecheck":"tsc --noEmit"}}', filename: "/repo/package.json" }],
@@ -58,6 +48,52 @@ const COMPLETE_SCRIPTS = {
   "lint:prune": "eslint . --prune-suppressions",
 };
 const BASE_SCRIPTS = { prepare: "husky", typecheck: "tsc --noEmit" };
+
+void describe("A repository MUST configure .husky/pre-commit to run lint-staged.", () => {
+  const withLintStaged = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(withLintStaged));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: withLintStaged }],
+    invalid: [],
+  });
+
+  // lint-staged is absent from the hook entirely
+  const withoutLintStaged = buildFixture(`npm run typecheck\nnpx libyear --limit-major-individual=1\n`);
+  process.chdir(path.dirname(withoutLintStaged));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: withoutLintStaged,
+        errors: [{ message: ".husky/pre-commit must run lint-staged." }],
+      },
+    ],
+  });
+});
+
+void describe("A repository MUST configure .husky/pre-commit to run npx libyear --limit-major-individual=1.", () => {
+  const withLibyear = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(withLibyear));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: withLibyear }],
+    invalid: [],
+  });
+
+  // libyear is absent from the hook entirely
+  const withoutLibyear = buildFixture(`npx lint-staged\nnpm run typecheck\n`);
+  process.chdir(path.dirname(withoutLibyear));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: withoutLibyear,
+        errors: [{ message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." }],
+      },
+    ],
+  });
+});
 
 void describe("A repository MUST declare a typecheck script in package.json and run it (npm run typecheck) in .husky/pre-commit.", () => {
   const withTypecheck = buildFixture(BASE_HOOK);
