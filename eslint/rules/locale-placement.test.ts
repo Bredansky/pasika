@@ -37,29 +37,25 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe(
-  "Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.",
-  () => {
-    ruleTester.run("locale-placement", localePlacementRule, {
-      valid: [
-        // The rule reports on the locales index; a consumer file is untouched.
-        {
-          code: read("features/stream/stream-player.tsx"),
-          filename: file("features/stream/stream-player.tsx"),
-        },
-      ],
-      invalid: [
-        {
-          code: read("locales/index.ts"),
-          filename: file("locales/index.ts"),
-          errors: [
-            {
-              message:
-              `Locale "stream" is read by src/features/other/feed.tsx, src/features/stream/stream-player.tsx and must live at the top level of locales. ${DOC}`,
-            },
-          ],
-        },
-      ],
-    });
-  },
-);
+void describe("Locales read by files in more than one feature folder or by src/shared/, src/compositions/, src/app/, or root support folders MUST live at the top level of locales.", () => {
+  ruleTester.run("locale-placement", localePlacementRule, {
+    valid: [
+      // The rule reports on the locales index; a consumer file is untouched.
+      {
+        code: read("features/stream/stream-player.tsx"),
+        filename: file("features/stream/stream-player.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("locales/index.ts"),
+        filename: file("locales/index.ts"),
+        errors: [
+          {
+            message: `Locale "stream" is read by src/features/other/feed.tsx, src/features/stream/stream-player.tsx and must live at the top level of locales. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});

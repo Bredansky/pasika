@@ -32,28 +32,24 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe(
-  "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
-  () => {
-    ruleTester.run("value-extraction", valueExtractionRule, {
-      valid: [
-        {
-          code: read("app/dashboard/page.tsx"),
-          filename: file("app/dashboard/page.tsx"),
-        },
-      ],
-      invalid: [
-        {
-          code: read("app/pricing/limits.ts"),
-          filename: file("app/pricing/limits.ts"),
-          errors: [
-            {
-            message:
-              `This file in src/app/ is imported by src/shared/feature-gate.ts outside src/app/. Extract the value to a shared or feature folder so it can be imported independently. ${DOC}`,
-            },
-          ],
-        },
-      ],
-    });
-  },
-);
+void describe("A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.", () => {
+  ruleTester.run("value-extraction", valueExtractionRule, {
+    valid: [
+      {
+        code: read("app/dashboard/page.tsx"),
+        filename: file("app/dashboard/page.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("app/pricing/limits.ts"),
+        filename: file("app/pricing/limits.ts"),
+        errors: [
+          {
+            message: `This file in src/app/ is imported by src/shared/feature-gate.ts outside src/app/. Extract the value to a shared or feature folder so it can be imported independently. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});

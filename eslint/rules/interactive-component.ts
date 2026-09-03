@@ -47,7 +47,17 @@ const NEXT_ROUTING_FILES = new Set([
 ]);
 
 /** Attributes that make an HTML element actually interactive (handler or link target). */
-const INTERACTIVE_ATTRIBUTES = new Set(["onClick", "onChange", "onSubmit", "href", "onKeyDown", "onKeyUp", "onFocus", "onBlur", "htmlFor"]);
+const INTERACTIVE_ATTRIBUTES = new Set([
+  "onClick",
+  "onChange",
+  "onSubmit",
+  "href",
+  "onKeyDown",
+  "onKeyUp",
+  "onFocus",
+  "onBlur",
+  "htmlFor",
+]);
 
 function tagName(node: MaybeJsxElement): string | undefined {
   const name = node.openingElement?.name;
@@ -175,7 +185,9 @@ function isDecorative(node: JsxElementChild): boolean {
 
 /** Elements whose presence marks a wrapper as carrying real content. */
 function isContentElement(name: string): boolean {
-  return /^(?:h[1-6]|p|li|dt|dd|blockquote|pre|code|figcaption|caption|th|td|form|fieldset|select|textarea)$/.test(name);
+  return /^(?:h[1-6]|p|li|dt|dd|blockquote|pre|code|figcaption|caption|th|td|form|fieldset|select|textarea)$/.test(
+    name,
+  );
 }
 
 // The AST here is parsed by @typescript-eslint/parser, whose ESTree types do
@@ -196,7 +208,9 @@ function isSoleContentOfWrapper(node: JsxElementNode): boolean {
     const expressionContent = children.some((child) => {
       if (child.type !== "JSXExpressionContainer") return false;
       const expression = child.expression;
-      return typeof expression === "object" && expression !== null && "type" in expression && expression.type !== "Literal";
+      return (
+        typeof expression === "object" && expression !== null && "type" in expression && expression.type !== "Literal"
+      );
     });
     if (meaningful.length <= 1 && !textContent && !expressionContent) {
       return true;

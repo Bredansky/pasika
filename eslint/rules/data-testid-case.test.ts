@@ -75,7 +75,8 @@ void describe("A smart component whose rendered branches all resolve to the same
         filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
         errors: [
           {
-            message: 'Smart component "VideoHeroPlayer" with one outer DOM element must set data-testid="VideoHeroPlayer".',
+            message:
+              'Smart component "VideoHeroPlayer" with one outer DOM element must set data-testid="VideoHeroPlayer".',
           },
         ],
       },

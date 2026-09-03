@@ -68,7 +68,9 @@ function describeSegments(count: number): string {
  * cross-layer import without this needing to know what a layer is.
  */
 function prefersRelative(sourceRoot: string, filename: string, resolvedPath: string): boolean {
-  return segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(sourceRoot, resolvedPath));
+  return (
+    segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(sourceRoot, resolvedPath))
+  );
 }
 
 export const importBoundariesRule: Rule.RuleModule = {

@@ -23,7 +23,7 @@ const FIXTURE: Record<string, string> = {
     'import { paymentSchema } from "@/config/payments";\nexport function PaymentForm() { return <div />; }\n',
 
   // An extracted type already in the module's types/ folder.
-  "config/theme/types/index.ts": "export type ThemeName = \"light\" | \"dark\";\n",
+  "config/theme/types/index.ts": 'export type ThemeName = "light" | "dark";\n',
   "config/theme/index.ts":
     'import type { ThemeName } from "./types";\nexport const themeConfig: { theme: ThemeName } = { theme: "light" };\n',
 };
@@ -41,39 +41,34 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/configuration-rule.md";
 
-void describe(
-  "A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.",
-  () => {
-    ruleTester.run("config-extraction", configExtractionRule, {
-      valid: [
-        // A type already in the module's types/ folder is the extraction destination.
-        {
-          code: read("config/theme/types/index.ts"),
-          filename: file("config/theme/types/index.ts"),
-        },
-      ],
-      invalid: [
-        {
-          code: read("config/home-feed/index.ts"),
-          filename: file("config/home-feed/index.ts"),
-          errors: [
-            {
-              message:
-              `type "HomeFeedConfig" is used only to implement this configuration module; extract it to the module's types/ folder even with one consumer. ${DOC}`,
-            },
-          ],
-        },
-        {
-          code: read("config/payments/index.ts"),
-          filename: file("config/payments/index.ts"),
-          errors: [
-            {
-              message:
-              `schema "paymentSchema" in a configuration module is imported by src/shared/payment-form.tsx outside src/config/. Move it to the matching root support folder. ${DOC}`,
-            },
-          ],
-        },
-      ],
-    });
-  },
-);
+void describe("A type, schema, or utility used only to implement one configuration module MUST be extracted even with one consumer.", () => {
+  ruleTester.run("config-extraction", configExtractionRule, {
+    valid: [
+      // A type already in the module's types/ folder is the extraction destination.
+      {
+        code: read("config/theme/types/index.ts"),
+        filename: file("config/theme/types/index.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("config/home-feed/index.ts"),
+        filename: file("config/home-feed/index.ts"),
+        errors: [
+          {
+            message: `type "HomeFeedConfig" is used only to implement this configuration module; extract it to the module's types/ folder even with one consumer. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: read("config/payments/index.ts"),
+        filename: file("config/payments/index.ts"),
+        errors: [
+          {
+            message: `schema "paymentSchema" in a configuration module is imported by src/shared/payment-form.tsx outside src/config/. Move it to the matching root support folder. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});

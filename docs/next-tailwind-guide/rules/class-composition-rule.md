@@ -32,7 +32,7 @@ Why: every class source is explicit, and a consumer can add outer layout such as
 ## Incorrect — Long Static Class Literal
 
 ```tsx
-<article className="rounded-lg border border-border bg-card px-6 py-4 shadow-sm transition-shadow hover:shadow-md" />
+<article className="border-border bg-card rounded-lg border px-6 py-4 shadow-sm transition-shadow hover:shadow-md" />
 ```
 
 Why: one static literal contains more than five class names, so its styling concerns are difficult to scan.
@@ -42,7 +42,7 @@ Why: one static literal contains more than five class names, so its styling conc
 ```tsx
 <article
   className={cn(
-    "rounded-lg border border-border",
+    "border-border rounded-lg border",
     "bg-card shadow-sm",
     "px-6 py-4",
     "transition-shadow hover:shadow-md",

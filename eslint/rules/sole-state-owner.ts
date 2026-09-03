@@ -58,7 +58,11 @@ function isHookUsage(node: ts.Node, hook: Hook): "value" | "updater" | undefined
   // declaration `const [isHelpOpen] = …` nor a property-access base.
   if (ts.isIdentifier(node) && node.text === hook.value) {
     const parent = node.parent;
-    if (ts.isBindingElement(parent) || ts.isPropertyAccessExpression(parent) || ts.isShorthandPropertyAssignment(parent)) {
+    if (
+      ts.isBindingElement(parent) ||
+      ts.isPropertyAccessExpression(parent) ||
+      ts.isShorthandPropertyAssignment(parent)
+    ) {
       return undefined;
     }
     // `isHelpOpen` on the left of `isHelpOpen && …` is a read.
@@ -72,10 +76,12 @@ function isHookUsage(node: ts.Node, hook: Hook): "value" | "updater" | undefined
  * root JSX node's kind. Returns an empty array when the return is not a
  * simple <tag>...children...</tag>.
  */
-function topLevelJsxChildren(initial: ts.Expression | undefined): {
-  root: ts.Node;
-  children: ts.JsxChild[];
-} | undefined {
+function topLevelJsxChildren(initial: ts.Expression | undefined):
+  | {
+      root: ts.Node;
+      children: ts.JsxChild[];
+    }
+  | undefined {
   if (!initial) return undefined;
   // Unwrap `return (...)` parentheses around the JSX.
   let expression = initial;
@@ -120,8 +126,7 @@ export const soleStateOwnerRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description:
-        "Require extracting a JSX part that is the sole owner of a useState hook as a named component.",
+      description: "Require extracting a JSX part that is the sole owner of a useState hook as a named component.",
     },
   },
   create(context) {
@@ -162,10 +167,7 @@ export const soleStateOwnerRule: Rule.RuleModule = {
  * confined to JSX and do not span discontiguous children. `totalTopLevel` is
  * the number of top-level JSX children.
  */
-function analyzeSoleOwner(
-  declaration: ts.Node,
-  hook: Hook,
-): { run: number; totalTopLevel: number } | undefined {
+function analyzeSoleOwner(declaration: ts.Node, hook: Hook): { run: number; totalTopLevel: number } | undefined {
   const body = ts.isFunctionDeclaration(declaration) ? declaration.body : undefined;
   if (!body || !ts.isBlock(body)) return undefined;
 

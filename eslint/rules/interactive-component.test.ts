@@ -39,6 +39,29 @@ void describe("An interactive HTML element MUST be extracted to a component with
         code: `export function ContactMethodCard({ href, name }: { href?: string; name: string }) {\n  const content = <div><h2>{name}</h2><p>Description</p></div>;\n  return href ? <a href={href} target="_blank" rel="noopener noreferrer">{content}</a> : <div>{content}</div>;\n}`,
         filename: srcFile("features/contact/contact-method-card.tsx"),
       },
+      {
+        // An interactive element nested inside another interactive control is
+        // already bounded by its parent.
+        code: 'export function Menu() { return <button onClick={open}><a href="/settings">Settings</a></button>; }',
+        filename: srcFile("features/navigation/menu.tsx"),
+      },
+      {
+        // An interactive element owned by a component child is already
+        // extracted behind that component boundary.
+        code: "export function Menu() { return <MenuSurface><button onClick={open}>Open</button></MenuSurface>; }",
+        filename: srcFile("features/navigation/menu.tsx"),
+      },
+      {
+        // Arrow components can return an interactive root directly.
+        code: "export const MenuButton = ({ onClick }) => <button onClick={onClick}>Open</button>;",
+        filename: srcFile("features/navigation/menu-button.tsx"),
+      },
+      {
+        // Member-expression elements have no intrinsic tag name and are not
+        // classified as raw interactive HTML.
+        code: "export function Menu() { return <UI.Button onClick={open}>Open</UI.Button>; }",
+        filename: srcFile("features/navigation/menu.tsx"),
+      },
     ],
     invalid: [
       {
@@ -54,14 +77,14 @@ void describe("An interactive HTML element MUST be extracted to a component with
       {
         // An interactive element mixed with static content in a non-framework
         // file is still a violation.
-        code: "export function ContactCard() { return <section><h2>Contact</h2><a href=\"/about\">About</a></section>; }",
+        code: 'export function ContactCard() { return <section><h2>Contact</h2><a href="/about">About</a></section>; }',
         filename: srcFile("features/contact/contact-card.tsx"),
         errors: 1,
       },
       {
         // A wrapper carrying real text content alongside the interactive
         // element is still a violation.
-        code: "export function ErrorFallback() { return <div><h2>Error</h2><p>Message</p><button type=\"button\" onClick={reset}>Retry</button></div>; }",
+        code: 'export function ErrorFallback() { return <div><h2>Error</h2><p>Message</p><button type="button" onClick={reset}>Retry</button></div>; }',
         filename: srcFile("shared/error-fallback.tsx"),
         errors: 1,
       },

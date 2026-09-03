@@ -12,15 +12,14 @@ import { hookExtractionRule } from "./hook-extraction";
 const FIXTURE: Record<string, string> = {
   // A hook still in its declaring component file, used by two consumers.
   "features/billing/invoice.tsx":
-    'export function useInvoiceSort(invoices: string[]) { return invoices; }\nexport function Invoice() { return <div />; }\n',
+    "export function useInvoiceSort(invoices: string[]) { return invoices; }\nexport function Invoice() { return <div />; }\n",
   "features/billing/invoice-summary.tsx":
     'import { useInvoiceSort } from "./invoice";\nexport function InvoiceSummary() { return <div />; }\n',
   "features/billing/payment-history.tsx":
     'import { useInvoiceSort } from "./invoice";\nexport function PaymentHistory() { return <div />; }\n',
 
   // A hook already extracted to its own hooks/ file, used by two consumers.
-  "features/stream/hooks/use-stream-status.ts":
-    "export function useStreamStatus() { return true; }\n",
+  "features/stream/hooks/use-stream-status.ts": "export function useStreamStatus() { return true; }\n",
   "features/stream/stream-player.tsx":
     'import { useStreamStatus } from "./hooks/use-stream-status";\nexport function StreamPlayer() { return <div />; }\n',
   "features/stream/stream-card.tsx":
@@ -28,7 +27,7 @@ const FIXTURE: Record<string, string> = {
 
   // A hook with a single consumer may stay inline.
   "features/stream/stream-chat.tsx":
-    'export function useChatScroll() { return true; }\nexport function StreamChat() { return <div />; }\n',
+    "export function useChatScroll() { return true; }\nexport function StreamChat() { return <div />; }\n",
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-hook-extraction-")));

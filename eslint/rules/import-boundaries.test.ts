@@ -190,3 +190,35 @@ void describe("A configuration module MUST import only from root support folders
     ],
   });
 });
+
+void describe("Import boundaries MUST apply to every static and dynamic module-loading syntax.", () => {
+  ruleTester.run("import-boundaries", importBoundariesRule, {
+    valid: [
+      {
+        code: 'export * from "./invoice-row";',
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+      {
+        code: 'export { InvoiceRow } from "./invoice-row";',
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+      {
+        code: "export { InvoiceRow };",
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+      {
+        code: 'async function load() { return import("./invoice-row"); }',
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+      {
+        code: 'const row = require("./invoice-row");',
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+      {
+        code: "load(moduleName);",
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
+    ],
+    invalid: [],
+  });
+});

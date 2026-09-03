@@ -26,6 +26,21 @@ void describe("A block of elements MUST be extracted as a named component when t
         `,
         filename: componentFile,
       },
+      {
+        // Fragment roots are checked, including JSX reached through logical
+        // and conditional expression containers.
+        code: `
+          export function View() {
+            return (
+              <>
+                {ready && <section><h2>Ready</h2><p>Now</p></section>}
+                {ready ? <aside><h2>Next</h2><p>Later</p></aside> : <span />}
+              </>
+            );
+          }
+        `,
+        filename: componentFile,
+      },
       // Two blocks with different arrangements: heading layout differs.
       {
         code: `
@@ -90,6 +105,21 @@ void describe("A block of elements MUST be extracted as a named component when t
       },
     ],
     invalid: [
+      {
+        // Repeated fragments exercise conditional and logical JSX traversal.
+        code: `
+          export function View() {
+            return (
+              <main>
+                <>{ready && <section><h2>Ready</h2><p>Now</p></section>}</>
+                <>{active && <section><h2>Active</h2><p>Today</p></section>}</>
+              </main>
+            );
+          }
+        `,
+        filename: componentFile,
+        errors: 1,
+      },
       // The doc's example: identical section/heading/list arrangement, different data.
       {
         code: `

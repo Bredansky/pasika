@@ -54,8 +54,7 @@ void describe("A component MUST NOT be nested only because it has support files.
         filename: file("features/blog/BlogPage/BlogPage.tsx"),
         errors: [
           {
-            message:
-              `This component is nested in src/features/blog/BlogPage/ but its folder has no exclusive child components — only support files. Flatten it back into src/features/blog/. ${DOC}`,
+            message: `This component is nested in src/features/blog/BlogPage/ but its folder has no exclusive child components — only support files. Flatten it back into src/features/blog/. ${DOC}`,
           },
         ],
       },

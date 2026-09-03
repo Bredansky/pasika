@@ -10,6 +10,9 @@ void describe("A dependency or devDependency in package.json MUST pin an exact v
       { code: JSON.stringify({ peerDependencies: { typescript: ">=5.0.0" } }) },
       { code: JSON.stringify({ dependencies: { a: "1.2.3", b: "2.0.0" } }, null, 2) },
       { code: JSON.stringify({ name: "app" }) },
+      { code: JSON.stringify([]) },
+      { code: JSON.stringify({ dependencies: [] }) },
+      { code: JSON.stringify({ dependencies: { generated: 42 } }) },
     ],
     invalid: [
       {
@@ -18,7 +21,9 @@ void describe("A dependency or devDependency in package.json MUST pin an exact v
       },
       {
         code: JSON.stringify({ devDependencies: { typescript: "~5.9.2" } }),
-        errors: [{ message: 'typescript must pin an exact version (e.g. "1.2.3"), not a range or cap such as "~5.9.2".' }],
+        errors: [
+          { message: 'typescript must pin an exact version (e.g. "1.2.3"), not a range or cap such as "~5.9.2".' },
+        ],
       },
       {
         code: JSON.stringify({ dependencies: { zod: ">=4.0.0 <5" } }),

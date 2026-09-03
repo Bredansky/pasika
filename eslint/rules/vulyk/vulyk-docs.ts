@@ -48,7 +48,8 @@ export const vulykDocsRule: JSONRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require vulyk.config.ts to track the framework's required docs from pasika and the generated AGENTS.md.",
+      description:
+        "Require vulyk.config.ts to track the framework's required docs from pasika and the generated AGENTS.md.",
     },
   },
   create(context) {

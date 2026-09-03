@@ -29,8 +29,7 @@ export const cssEntryPointRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description:
-        "Require one global entry point; project CSS only in a stylesheet it imports directly.",
+      description: "Require one global entry point; project CSS only in a stylesheet it imports directly.",
     },
   },
   create(context) {

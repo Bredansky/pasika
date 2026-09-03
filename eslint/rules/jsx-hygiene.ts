@@ -105,9 +105,7 @@ export const jsxHygieneRule: Rule.RuleModule = {
       if (!violation) return;
       context.report({
         node,
-        message:
-          `Extract ${violation} from JSX before return. ` +
-          "See docs/next-codebase-guide/rules/jsx-hygiene-rule.md",
+        message: `Extract ${violation} from JSX before return. See docs/next-codebase-guide/rules/jsx-hygiene-rule.md`,
       });
     }
 

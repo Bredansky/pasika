@@ -29,10 +29,7 @@ function createKebabComponentFolder(): string {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-"));
   const milestoneDir = path.join(root, "blog", "milestone");
   mkdirSync(milestoneDir, { recursive: true });
-  writeFileSync(
-    path.join(milestoneDir, "milestone.tsx"),
-    "export function Milestone() { return <section />; }\n",
-  );
+  writeFileSync(path.join(milestoneDir, "milestone.tsx"), "export function Milestone() { return <section />; }\n");
   return milestoneDir;
 }
 

@@ -11,7 +11,7 @@ import { enforceCnMergeRule } from "./enforce-cn-merge";
  */
 const FIXTURE: Record<string, string> = {
   // A project component: its consumers must pass only outer-layout classes.
-  "shared/card.tsx": 'export function Card() { return <div />; }\n',
+  "shared/card.tsx": "export function Card() { return <div />; }\n",
   // A consumer that imports both a package icon and the project component.
   "features/player/player.tsx":
     'import { Play } from "lucide-react";\nimport { Card } from "../../shared/card";\n' +

@@ -71,7 +71,12 @@ function delegatesToSchema(node: unknown): boolean {
         // A named object is only a schema if it is not a known non-schema
         // object (JSON.parse, Date.parse, ...); any other callee (a call, a
         // member chain) is a delegation to whatever returns it.
-        !(isRecord(object) && object.type === "Identifier" && typeof object.name === "string" && NON_SCHEMA_OBJECTS.has(object.name))
+        !(
+          isRecord(object) &&
+          object.type === "Identifier" &&
+          typeof object.name === "string" &&
+          NON_SCHEMA_OBJECTS.has(object.name)
+        )
       ) {
         return true;
       }

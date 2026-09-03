@@ -209,9 +209,7 @@ const tailwindStructureRules: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: Object.fromEntries(
-    tailwindRuleIds.filter((id) => id !== "pasika/css-entry-point").map((id) => [id, "error"]),
-  ),
+  rules: Object.fromEntries(tailwindRuleIds.filter((id) => id !== "pasika/css-entry-point").map((id) => [id, "error"])),
 };
 
 /**
@@ -294,11 +292,7 @@ const documentationConfig: Linter.Config = {
  * source block: source linting is the Next.js app's job.
  * Use this for a plain TypeScript repository that does not adopt the framework.
  */
-export const pasikaApp: Linter.Config[] = [
-  pasikaAppPackageJsonConfig,
-  zirkaConfig,
-  documentationConfig,
-];
+export const pasikaApp: Linter.Config[] = [pasikaAppPackageJsonConfig, zirkaConfig, documentationConfig];
 
 /**
  * Wrap the `pasikaNextjsApp` preset so the TypeScript alignment diagnostic runs the

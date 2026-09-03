@@ -200,10 +200,7 @@ void describe("A utility class a component statically references MUST be a custo
       {
         code: '<div className="leading-normal rounded-sm" />',
         filename: srcFile("shared/card.tsx"),
-        errors: [
-          { message: message("leading-normal") },
-          { message: message("rounded-sm") },
-        ],
+        errors: [{ message: message("leading-normal") }, { message: message("rounded-sm") }],
       },
       // The non-static ease values (in/out/in-out) are theme-derived and die under the
       // reset; only the static ease-linear/ease-initial survive. ease-custom lives because

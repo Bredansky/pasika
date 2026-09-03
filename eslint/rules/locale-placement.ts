@@ -90,7 +90,11 @@ export const localePlacementRule: Rule.RuleModule = {
     // on that file, because the fix is in the definition.
     const localesFile = [...index.modules.keys()].find((candidate) => {
       const candidateSegments = segmentsOf(candidate, sourceRoot);
-      return candidateSegments.length === 2 && candidateSegments[0] === "locales" && candidateSegments[1]?.startsWith("index.");
+      return (
+        candidateSegments.length === 2 &&
+        candidateSegments[0] === "locales" &&
+        candidateSegments[1]?.startsWith("index.")
+      );
     });
     if (!localesFile || file !== localesFile) return {};
 

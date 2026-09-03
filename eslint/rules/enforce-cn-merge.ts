@@ -66,8 +66,7 @@ export const enforceCnMergeRule = {
         const element = node.parent.parent;
         const componentName = element.openingElement?.name;
         const isComponentProp = isComponentName(componentName);
-        const isPackageComponent =
-          componentName?.type === "JSXIdentifier" && packageComponents.has(componentName.name);
+        const isPackageComponent = componentName?.type === "JSXIdentifier" && packageComponents.has(componentName.name);
         if (isComponentProp && attributeName !== "className" && attributeName.endsWith("ClassName")) {
           context.report({
             node,

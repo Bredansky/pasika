@@ -58,8 +58,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         filename: srcFile("features/billing/invoice.tsx"),
         errors: [
           {
-            message:
-              'Extract pure function "clamp" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+            message: 'Extract pure function "clamp" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },

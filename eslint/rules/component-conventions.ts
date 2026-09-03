@@ -166,7 +166,11 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
   // result, and the element must carry the data-testid.
   const rendered = returns.filter((statement) => statement.expression?.kind !== ts.SyntaxKind.NullKeyword);
   const roots = rendered
-    .map((statement) => (statement.expression && ts.isExpression(statement.expression) ? rootFromExpression(statement.expression) : undefined))
+    .map((statement) =>
+      statement.expression && ts.isExpression(statement.expression)
+        ? rootFromExpression(statement.expression)
+        : undefined,
+    )
     .filter((root): root is SimpleRoot => root !== undefined);
   // Every rendered result must resolve to the same outer tag: a component that
   // branches (if/else or ternary) into different DOM trees still has one outer

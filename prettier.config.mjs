@@ -1,7 +1,7 @@
 import { styleguide } from "zirka";
 
 const { prettierConfig } = styleguide({
-  prettier: true,
+  prettier: { tailwind: true },
 });
 
 export default prettierConfig;

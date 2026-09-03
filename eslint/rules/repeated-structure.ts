@@ -92,7 +92,11 @@ function signature(node: JsxNode): string {
         .filter((attribute) => attribute.type === "JSXAttribute")
         .map((attribute) => {
           const name = attribute.name?.name ?? "";
-          if (name === "className" && attribute.value?.type === "Literal" && typeof attribute.value.value === "string") {
+          if (
+            name === "className" &&
+            attribute.value?.type === "Literal" &&
+            typeof attribute.value.value === "string"
+          ) {
             return `class="${attribute.value.value.split(/\s+/).filter(Boolean).sort().join(" ")}"`;
           }
           return name;

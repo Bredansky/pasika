@@ -26,7 +26,7 @@ write("features/billing/utils/invoice-row.tsx", "export function InvoiceRow() { 
 // types).
 write(
   "features/billing/schemas/invoice-schema.ts",
-  "import { z } from \"zod\";\nexport const invoiceSchema = z.object({});\nexport type Invoice = z.infer<typeof invoiceSchema>;\n",
+  'import { z } from "zod";\nexport const invoiceSchema = z.object({});\nexport type Invoice = z.infer<typeof invoiceSchema>;\n',
 );
 write(
   "features/billing/utils/format-invoice.ts",
@@ -34,13 +34,13 @@ write(
 );
 write(
   "features/billing/constants/status-colors.ts",
-  "export const statusColors = { paid: \"#000\", open: \"#fff\" };\nexport type StatusColor = keyof typeof statusColors;\n",
+  'export const statusColors = { paid: "#000", open: "#fff" };\nexport type StatusColor = keyof typeof statusColors;\n',
 );
 write("features/billing/types/invoice.ts", "export interface InvoiceRow { id: string; }\n");
 // A schema-plus-type file parked in utils/ must still be sent to schemas/.
 write(
   "features/billing/utils/misplaced-schema.ts",
-  "import { z } from \"zod\";\nexport const paymentSchema = z.object({});\nexport type Payment = z.infer<typeof paymentSchema>;\n",
+  'import { z } from "zod";\nexport const paymentSchema = z.object({});\nexport type Payment = z.infer<typeof paymentSchema>;\n',
 );
 // A proper nested component folder: same-named component + index that re-exports it.
 write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');

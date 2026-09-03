@@ -44,34 +44,30 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/folder-nesting-rule.md";
 
-void describe(
-  "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
-  () => {
-    ruleTester.run("stay-flat", stayFlatRule, {
-      valid: [
-        // Support files are not components, so the component stays flat.
-        {
-          code: read("features/stream/stream-player.tsx"),
-          filename: file("features/stream/stream-player.tsx"),
-        },
-        // A sibling used by another component is not an exclusive child.
-        {
-          code: read("features/payments/payment-summary.tsx"),
-          filename: file("features/payments/payment-summary.tsx"),
-        },
-      ],
-      invalid: [
-        {
-          code: read("features/blog/BlogPage.tsx"),
-          filename: file("features/blog/BlogPage.tsx"),
-          errors: [
-            {
-            message:
-              `This component has exclusive child component(s) BlogHeader; nest it in a folder named after it inside src/features/blog/. ${DOC}`,
-            },
-          ],
-        },
-      ],
-    });
-  },
-);
+void describe("A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.", () => {
+  ruleTester.run("stay-flat", stayFlatRule, {
+    valid: [
+      // Support files are not components, so the component stays flat.
+      {
+        code: read("features/stream/stream-player.tsx"),
+        filename: file("features/stream/stream-player.tsx"),
+      },
+      // A sibling used by another component is not an exclusive child.
+      {
+        code: read("features/payments/payment-summary.tsx"),
+        filename: file("features/payments/payment-summary.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("features/blog/BlogPage.tsx"),
+        filename: file("features/blog/BlogPage.tsx"),
+        errors: [
+          {
+            message: `This component has exclusive child component(s) BlogHeader; nest it in a folder named after it inside src/features/blog/. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});
