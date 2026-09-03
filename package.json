@@ -23,15 +23,17 @@
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
     "format": "prettier --check . --ignore-unknown",
+    "format:staged": "prettier --write --ignore-unknown",
     "lint": "eslint .",
+    "lint:staged": "eslint --fix",
     "prepack": "npm run build",
     "prepare": "husky",
     "test": "node --import tsx --test 'eslint/**/*.test.ts' 'scripts/**/*.test.ts' 'utils/**/*.test.ts'",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
-    "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "prettier --write --ignore-unknown",
-    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npx eslint --fix"
+    "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "npm run format:staged --",
+    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": "npm run lint:staged --"
   },
   "dependencies": {
     "@typescript-eslint/parser": "8.68.0",

@@ -932,14 +932,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
-      "text": "A repository MUST configure `lint-staged` in package.json to run ESLint directly for staged JavaScript or TypeScript files.",
-      "hash": "4187126c9c",
+      "text": "A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript or TypeScript files.",
+      "hash": "dcb479260a",
       "ref": "pasika/lint-setup"
     },
     {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
-      "text": "A repository MUST configure `lint-staged` in package.json to run prettier for staged files ESLint does not already format.",
-      "hash": "f46159b96c",
+      "text": "A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged files ESLint does not already format.",
+      "hash": "4ac89f02f0",
       "ref": "pasika/lint-setup"
     },
     {

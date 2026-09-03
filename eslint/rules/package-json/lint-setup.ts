@@ -3,11 +3,14 @@
  *
  * A repository MUST declare a lint script that runs ESLint across the
  * repository, and a format script that runs prettier --check across the
- * repository. It MUST configure lint-staged to run ESLint directly for
- * staged JavaScript or TypeScript files, and prettier for staged files —
- * ESLint already enforces prettier's formatting on JS/TS files it lints
- * (via the prettier plugin zirka bundles), so prettier only needs a direct
- * lint-staged entry for the files ESLint does not touch.
+ * repository. It MUST also declare lint:staged and format:staged scripts
+ * that run ESLint and prettier with no repository-wide argument, and
+ * configure lint-staged to run them (npm run lint:staged --, npm run
+ * format:staged --) for staged files — lint:staged for JavaScript or
+ * TypeScript, format:staged for the files ESLint does not already format
+ * (via the prettier plugin zirka bundles). The *:staged scripts must carry
+ * no repository-wide argument of their own, or the file paths lint-staged
+ * appends land after it and every commit re-checks the whole repository.
  *
  * @see docs/pasika-adoption-guide/rules/lint-setup-rule.md
  */
@@ -43,12 +46,17 @@ function runsPrettier(command: string): boolean {
   return PRETTIER_PATTERN.test(command);
 }
 
+function runsNamedScript(command: string, name: string): boolean {
+  return command.includes(`npm run ${name}`);
+}
+
 export const lintSetupRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require full-repository lint/format checks and direct staged-file ESLint and prettier checks.",
+      description:
+        "Require full-repository lint/format scripts and argument-free staged-file scripts that lint-staged runs by name.",
     },
   },
   create(context) {
@@ -58,11 +66,12 @@ export const lintSetupRule: JSONRuleDefinition = {
         if (root.type !== "Object") return;
 
         const scripts = root.members.find((member) => memberName(member) === "scripts");
-        const lint =
-          scripts?.value.type === "Object"
-            ? scripts.value.members.find((member) => memberName(member) === "lint")
-            : undefined;
-        const lintCommand = lint?.value.type === "String" ? lint.value.value : undefined;
+        const scriptMembers = scripts?.value.type === "Object" ? scripts.value.members : [];
+        const findScript = (name: string): MemberNode | undefined =>
+          scriptMembers.find((member) => memberName(member) === name);
+
+        const lint = findScript("lint");
+        const lintCommand = memberValue(lint);
         if (
           lintCommand === undefined ||
           !runsEslintDirectly(lintCommand) ||
@@ -75,10 +84,7 @@ export const lintSetupRule: JSONRuleDefinition = {
           });
         }
 
-        const format =
-          scripts?.value.type === "Object"
-            ? scripts.value.members.find((member) => memberName(member) === "format")
-            : undefined;
+        const format = findScript("format");
         const formatCommand = memberValue(format);
         if (
           formatCommand === undefined ||
@@ -92,30 +98,61 @@ export const lintSetupRule: JSONRuleDefinition = {
           });
         }
 
-        const lintStaged = root.members.find((member) => memberName(member) === "lint-staged");
-        const hasStagedEslint =
-          lintStaged?.value.type === "Object" &&
-          lintStaged.value.members.some(
-            (member) =>
-              SOURCE_GLOB_PATTERN.test(memberName(member)) &&
-              stringValues(member.value).some((command) => runsEslintDirectly(command)),
-          );
-        if (!hasStagedEslint) {
+        const lintStaged = findScript("lint:staged");
+        const lintStagedCommand = memberValue(lintStaged);
+        if (
+          lintStagedCommand === undefined ||
+          !runsEslintDirectly(lintStagedCommand) ||
+          REPOSITORY_ARGUMENT_PATTERN.test(lintStagedCommand)
+        ) {
           context.report({
             node: lintStaged ?? node,
-            message: "package.json lint-staged must run ESLint directly for staged JavaScript or TypeScript files.",
+            message:
+              'package.json must declare a "lint:staged" script that runs ESLint with no repository-wide argument (e.g. "eslint --fix").',
           });
         }
 
-        const hasStagedPrettier =
-          lintStaged?.value.type === "Object" &&
-          lintStaged.value.members.some((member) =>
-            stringValues(member.value).some((command) => runsPrettier(command)),
-          );
-        if (!hasStagedPrettier) {
+        const formatStaged = findScript("format:staged");
+        const formatStagedCommand = memberValue(formatStaged);
+        if (
+          formatStagedCommand === undefined ||
+          !runsPrettier(formatStagedCommand) ||
+          REPOSITORY_ARGUMENT_PATTERN.test(formatStagedCommand)
+        ) {
           context.report({
-            node: lintStaged ?? node,
-            message: "package.json lint-staged must run prettier for staged files ESLint does not already format.",
+            node: formatStaged ?? node,
+            message:
+              'package.json must declare a "format:staged" script that runs prettier with no repository-wide argument (e.g. "prettier --write").',
+          });
+        }
+
+        const lintStagedConfig = root.members.find((member) => memberName(member) === "lint-staged");
+        const runsStagedScript = (name: string): boolean =>
+          lintStagedConfig?.value.type === "Object" &&
+          lintStagedConfig.value.members.some((member) =>
+            stringValues(member.value).some((command) => runsNamedScript(command, name)),
+          );
+
+        const hasStagedLintEntry =
+          lintStagedConfig?.value.type === "Object" &&
+          lintStagedConfig.value.members.some(
+            (member) =>
+              SOURCE_GLOB_PATTERN.test(memberName(member)) &&
+              stringValues(member.value).some((command) => runsNamedScript(command, "lint:staged")),
+          );
+        if (!hasStagedLintEntry) {
+          context.report({
+            node: lintStagedConfig ?? node,
+            message:
+              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript or TypeScript files.',
+          });
+        }
+
+        if (!runsStagedScript("format:staged")) {
+          context.report({
+            node: lintStagedConfig ?? node,
+            message:
+              'package.json lint-staged must run "npm run format:staged --" for staged files ESLint does not already format.',
           });
         }
       },
