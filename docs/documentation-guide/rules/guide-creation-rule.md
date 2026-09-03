@@ -60,12 +60,13 @@ Why: the heading does not describe a How To workflow, the section has no overvie
 ```markdown
 ## How To Apply Theme Tokens
 
-Choose a semantic token before styling the component.
+This workflow keeps component styling aligned with the theme and runs when adding or changing its visual role.
 
-1. Apply the token's Tailwind utility to the component.
+1. Pick the semantic token for the intended role.
+2. Apply its Tailwind utility to the component.
 ```
 
-Why: the section consists of its overview followed by one numbered list.
+Why: the overview explains the workflow's purpose and timing, and the numbered list contains its ordered steps.
 
 ## Incorrect — Step Links to Multiple Documents
 
