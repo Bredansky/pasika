@@ -74,14 +74,14 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Rule file that a Guide owns MUST live in a `rules/` subfolder inside the Guide's folder.",
-      "hash": "73d2f1cc23",
+      "text": "A Rule file MUST live in a `rules/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.",
+      "hash": "423f57351f",
       "ref": "pasika/support-document-placement"
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Reference file that a Guide owns MUST live in a `references/` subfolder inside the Guide's folder.",
-      "hash": "4efb50f75f",
+      "text": "A Reference file MUST live in a `references/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.",
+      "hash": "2e43670ef6",
       "ref": "pasika/support-document-placement"
     },
     {

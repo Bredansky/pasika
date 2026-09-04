@@ -14,8 +14,8 @@ Guides without a consistent creation process invent their own structure. This ru
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
 - A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
-- A Rule file that a Guide owns MUST live in a `rules/` subfolder inside the Guide's folder.
-- A Reference file that a Guide owns MUST live in a `references/` subfolder inside the Guide's folder.
+- A Rule file MUST live in a `rules/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
+- A Reference file MUST live in a `references/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
 - A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.
 - A Guide entry point MUST reference each Rule it owns from within a How To step, MUST mention every Reference it owns, and MUST NOT link a document that does not exist.
 - A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.
