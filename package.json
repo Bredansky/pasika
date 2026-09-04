@@ -30,14 +30,14 @@
     "prepare": "husky",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage",
-    "test:unit:coverage:staged": "vitest related --run --coverage --coverage.changed --coverage.thresholds.perFile --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80 --coverage.thresholds.autoUpdate=false",
+    "test:unit:staged": "vitest related --run",
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "npm run format:staged --",
     "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": [
       "npm run lint:staged --",
-      "npm run test:unit:coverage:staged --"
+      "npm run test:unit:staged --"
     ]
   },
   "dependencies": {

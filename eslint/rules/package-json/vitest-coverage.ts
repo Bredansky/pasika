@@ -5,15 +5,12 @@
  * expose normal and coverage-gated unit-test scripts, and set a coverage
  * threshold above zero for lines, functions, branches, and statements with
  * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
- * later regression back down still pass. A test:unit:coverage:staged script
- * running `vitest related` must be wired into lint-staged for staged
- * JavaScript or TypeScript files, and pass --coverage.changed and an 80%
- * --coverage.thresholds.perFile floor as CLI flags rather than vitest config,
- * with --coverage.thresholds.autoUpdate=false alongside them — putting
- * changed/perFile in the config would apply them to the aggregate script too,
- * making it a no-op in CI (nothing is ever "changed" on a clean checkout), and
- * without the autoUpdate override the staged run would ratchet the aggregate
- * threshold using only the staged files' partial coverage.
+ * later regression back down still pass. A test:unit:staged script running
+ * `vitest related` without coverage must be wired into lint-staged for staged
+ * JavaScript or TypeScript files. Coverage remains the responsibility of the
+ * aggregate test:unit:coverage script: Vitest's changed plus per-file mode
+ * measures whole changed files, so a class-name-only edit otherwise requires
+ * behavioral coverage for every presentational component it touches.
  *
  * @see docs/pasika-adoption-guide/rules/vitest-coverage-rule.md
  */
@@ -53,22 +50,13 @@ const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
 const RELATED_PATTERN = /\brelated\b/;
 const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
-const CHANGED_FLAG_PATTERN = /--coverage\.changed\b/;
-const PER_FILE_FLAG_PATTERN = /--coverage\.thresholds\.perFile\b/;
-const AUTO_UPDATE_DISABLED_FLAG_PATTERN = /--coverage\.thresholds\.autoUpdate=false\b/;
-
-/** Whether a CLI command sets a given coverage metric's threshold flag to 80% or above. */
-function hasEightyOrAboveFlag(command: string, metric: string): boolean {
-  return new RegExp(`--coverage\\.thresholds\\.${metric}=(?:8\\d|9\\d|100)\\b`).test(command);
-}
-
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require Vitest unit-test scripts, the V8 provider, a rising coverage threshold, and an 80% floor on staged files via lint-staged.",
+        "Require Vitest unit-test scripts, the V8 provider, a rising aggregate coverage threshold, and related tests via lint-staged.",
     },
   },
   create(context) {
@@ -137,51 +125,33 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           });
         }
 
-        const changedCoverage = scriptMembers.find((member) => memberName(member) === "test:unit:coverage:staged");
-        const changedCoverageCommand = memberValue(changedCoverage);
+        const stagedTests = scriptMembers.find((member) => memberName(member) === "test:unit:staged");
+        const stagedTestsCommand = memberValue(stagedTests);
         if (
-          changedCoverageCommand === undefined ||
-          !/\bvitest\b/.test(changedCoverageCommand) ||
-          !RELATED_PATTERN.test(changedCoverageCommand) ||
-          !COVERAGE_FLAG_PATTERN.test(changedCoverageCommand)
+          stagedTestsCommand === undefined ||
+          !/\bvitest\b/.test(stagedTestsCommand) ||
+          !RELATED_PATTERN.test(stagedTestsCommand) ||
+          COVERAGE_FLAG_PATTERN.test(stagedTestsCommand)
         ) {
           context.report({
-            node: changedCoverage ?? node,
-            message:
-              'package.json must declare a "test:unit:coverage:staged" script that runs vitest related with coverage.',
+            node: stagedTests ?? node,
+            message: 'package.json must declare a "test:unit:staged" script that runs vitest related without coverage.',
           });
         }
 
         const lintStaged = root.members.find((member) => memberName(member) === "lint-staged");
-        const hasStagedChangedCoverage =
+        const hasStagedTests =
           lintStaged?.value.type === "Object" &&
           lintStaged.value.members.some(
             (member) =>
               SOURCE_GLOB_PATTERN.test(memberName(member)) &&
-              stringValues(member.value).some((command) => command.includes("npm run test:unit:coverage:staged")),
+              stringValues(member.value).some((command) => command.includes("npm run test:unit:staged")),
           );
-        if (!hasStagedChangedCoverage) {
+        if (!hasStagedTests) {
           context.report({
             node: lintStaged ?? node,
             message:
-              'package.json lint-staged must run "npm run test:unit:coverage:staged" for staged JavaScript or TypeScript files.',
-          });
-        }
-
-        const changedCoverageCommandText = changedCoverageCommand ?? "";
-        const hasEightyFloor = THRESHOLD_METRICS.every((metric) =>
-          hasEightyOrAboveFlag(changedCoverageCommandText, metric),
-        );
-        if (
-          !CHANGED_FLAG_PATTERN.test(changedCoverageCommandText) ||
-          !PER_FILE_FLAG_PATTERN.test(changedCoverageCommandText) ||
-          !hasEightyFloor ||
-          !AUTO_UPDATE_DISABLED_FLAG_PATTERN.test(changedCoverageCommandText)
-        ) {
-          context.report({
-            node: changedCoverage ?? node,
-            message:
-              'package.json "test:unit:coverage:staged" script must pass --coverage.changed, a --coverage.thresholds.perFile of at least 80 for lines, functions, branches, and statements, and --coverage.thresholds.autoUpdate=false.',
+              'package.json lint-staged must run "npm run test:unit:staged" for staged JavaScript or TypeScript files.',
           });
         }
       },
