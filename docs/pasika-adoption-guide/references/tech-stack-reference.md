@@ -40,28 +40,30 @@ Toolchain packages declared in `devDependencies` — the baseline both `pasikaAp
 
 Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package.json. "Applies to" marks scripts every repository must declare versus ones required only once a repository tracks `eslint-suppressions.json`.
 
-| Script                      | Applies to                                       | Runs                                                                            |
-| --------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `prepare`                   | Every repository                                 | `husky`, installing the git hooks                                               |
-| `lint`                      | Every repository                                 | ESLint across the whole repository                                              |
-| `lint:staged`               | Every repository                                 | ESLint with no repository-wide argument, run by `lint-staged` on staged files   |
-| `format`                    | Every repository                                 | `prettier --check` across the whole repository                                  |
-| `format:staged`             | Every repository                                 | Prettier with no repository-wide argument, run by `lint-staged` on staged files |
-| `typecheck`                 | Every repository                                 | The TypeScript compiler with no emit                                            |
-| `lint:prune`                | Repositories tracking `eslint-suppressions.json` | `eslint --prune-suppressions`, keeping the suppression file canonical           |
-| `test:unit`                 | Every repository                                 | Vitest without coverage                                                         |
-| `test:unit:coverage`        | Every repository                                 | Vitest with coverage, gated by the ratcheted whole-repository threshold         |
-| `test:unit:coverage:staged` | Every repository                                 | `vitest related` with coverage, run by `lint-staged` on staged files            |
+| Script               | Applies to                                       | Runs                                                                            |
+| -------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `prepare`            | Every repository                                 | `husky`, installing the git hooks                                               |
+| `lint`               | Every repository                                 | ESLint across the whole repository                                              |
+| `lint:staged`        | Every repository                                 | ESLint with no repository-wide argument, run by `lint-staged` on staged files   |
+| `format`             | Every repository                                 | `prettier --check` across the whole repository                                  |
+| `format:staged`      | Every repository                                 | Prettier with no repository-wide argument, run by `lint-staged` on staged files |
+| `typecheck`          | Every repository                                 | The TypeScript compiler with no emit                                            |
+| `lint:prune`         | Repositories tracking `eslint-suppressions.json` | `eslint --prune-suppressions`, keeping the suppression file canonical           |
+| `test:unit`          | Every repository                                 | Vitest without coverage                                                         |
+| `test:unit:coverage` | Every repository                                 | Vitest with coverage, gated by the ratcheted whole-repository threshold         |
+| `test:unit:staged`   | Every repository                                 | `vitest related` without coverage, run by `lint-staged` on staged files         |
 
 ## Husky Configuration
 
-`.husky/pre-commit` must run `lint-staged` and `npx libyear --limit-major-individual=1` directly, and `typecheck` plus (once `eslint-suppressions.json` exists) `lint:prune` through their named scripts — see the Husky Hook Rule for why direct calls are reserved for the two checks whose invocation never changes.
+`.husky/pre-commit` must run the local checks and capture Vitest's threshold ratchet in the commit.
 
 ```sh
 # .husky/pre-commit
 npx lint-staged
 npm run typecheck
 npm run lint:prune
+npm run test:unit:coverage
+git add vitest.config.ts
 npx libyear --limit-major-individual=1
 ```
 
@@ -69,16 +71,16 @@ npx libyear --limit-major-individual=1
 
 Every named `*:staged` script is wired into `lint-staged` against the glob it applies to, never through the repository-wide script of the same check (see the Lint Setup Rule for why that distinction matters). A JavaScript or TypeScript file matches two of these at once, so its entry chains both commands.
 
-| Glob                                                  | Runs                                   | Required by          |
-| ----------------------------------------------------- | -------------------------------------- | -------------------- |
-| `*.{js,jsx,ts,tsx}`                                   | `npm run lint:staged --`               | Lint Setup Rule      |
-| `*.{js,jsx,ts,tsx}`                                   | `npm run test:unit:coverage:staged --` | Vitest Coverage Rule |
-| Files ESLint does not format (e.g. `*.{css,md,json}`) | `npm run format:staged --`             | Lint Setup Rule      |
+| Glob                                                  | Runs                          | Required by          |
+| ----------------------------------------------------- | ----------------------------- | -------------------- |
+| `*.{js,jsx,ts,tsx}`                                   | `npm run lint:staged --`      | Lint Setup Rule      |
+| `*.{js,jsx,ts,tsx}`                                   | `npm run test:unit:staged --` | Vitest Coverage Rule |
+| Files ESLint does not format (e.g. `*.{css,md,json}`) | `npm run format:staged --`    | Lint Setup Rule      |
 
 ```json
 {
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:coverage:staged --"],
+    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
     "*.{css,md,json}": "npm run format:staged --"
   }
 }
@@ -93,6 +95,7 @@ No pasika rule checks a CI workflow file today — everything above is verified 
 - run: npm run format
 - run: npm run typecheck
 - run: npm run test:unit:coverage
+- run: git diff --exit-code -- vitest.config.ts
 - run: npx libyear --limit-major-individual=1
 - run: npm run build
 ```

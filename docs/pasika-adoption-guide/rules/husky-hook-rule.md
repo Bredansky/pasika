@@ -1,11 +1,12 @@
 # Husky Hook Rule
 
-Checks that land before a commit only protect the repository if the hook runs them. This rule requires the hook to run lint-staged and the libyear drift check directly, and to run the typecheck, suppression-file ratchet, and coverage-gated test suite through named package.json scripts.
+Checks that land before a commit only protect the repository if the hook runs them. This rule also keeps Vitest's automatically raised coverage thresholds in the commit that earned them.
 
 - A repository MUST declare a `prepare` script in package.json that runs `husky`.
 - A repository MUST configure `.husky/pre-commit` to run `lint-staged`.
 - A repository MUST configure `.husky/pre-commit` to run `npx libyear --limit-major-individual=1`.
 - A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.
+- A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.
 
 ## Incorrect — Hook Calls Tools Directly Instead of Named Scripts
@@ -13,7 +14,8 @@ Checks that land before a commit only protect the repository if the hook runs th
 ```json
 {
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:unit:coverage": "vitest run --coverage"
   }
 }
 ```
@@ -23,10 +25,11 @@ Checks that land before a commit only protect the repository if the hook runs th
 npx lint-staged
 tsc --noEmit
 eslint . --prune-suppressions
+vitest run --coverage
 npx libyear --limit-major-individual=1
 ```
 
-Why: `typecheck` and `lint:prune` are absent from package.json, so nothing names what each check does, and the hook calling tools directly can't be changed (a flag, a config path) without editing `.husky/pre-commit` itself.
+Why: the checks bypass their stable package-script names, and coverage can rewrite `vitest.config.ts` without adding the raised thresholds to the local commit.
 
 ## Correct — Hook Runs Named package.json Scripts
 
@@ -35,7 +38,8 @@ Why: `typecheck` and `lint:prune` are absent from package.json, so nothing names
   "scripts": {
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
-    "lint:prune": "eslint . --prune-suppressions"
+    "lint:prune": "eslint . --prune-suppressions",
+    "test:unit:coverage": "vitest run --coverage"
   }
 }
 ```
@@ -45,7 +49,9 @@ Why: `typecheck` and `lint:prune` are absent from package.json, so nothing names
 npx lint-staged
 npm run typecheck
 npm run lint:prune
+npm run test:unit:coverage
+git add vitest.config.ts
 npx libyear --limit-major-individual=1
 ```
 
-Why: each check's implementation lives behind one name, so a repository can change how `lint:prune` keeps `eslint-suppressions.json` canonical without touching the hook. `lint:prune` is required once `eslint-suppressions.json` exists, so the same three-line hook stays correct before a repository has adopted it.
+Why: each check's implementation lives behind one name, while the hook owns the Git-specific step that adds a threshold raised by Vitest to the commit.

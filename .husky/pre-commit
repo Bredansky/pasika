@@ -1,1 +1,6 @@
-npx lint-staged && npm run typecheck && npm run coverage && npx libyear --limit-major-individual=1 --no-pre-releases
+npx lint-staged
+npm run typecheck
+npm run coverage
+npm run test:unit:coverage
+git add vitest.config.ts
+npx libyear --limit-major-individual=1 --no-pre-releases

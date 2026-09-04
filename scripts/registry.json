@@ -932,6 +932,12 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.",
+      "hash": "1b0ac9feb5",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
       "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.",
       "hash": "7a7b7a670a",
       "ref": "pasika/husky-hook"

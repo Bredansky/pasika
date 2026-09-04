@@ -3,9 +3,10 @@
  *
  * A repository MUST configure .husky/pre-commit to run lint-staged and
  * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
- * script in package.json. Its typecheck, and — once the repository tracks
- * eslint-suppressions.json — its suppression-file ratchet, run through named
- * package.json scripts (typecheck, lint:prune) that the hook calls by name.
+ * script in package.json. Its typecheck, coverage suite, and — once the
+ * repository tracks eslint-suppressions.json — its suppression-file ratchet,
+ * run through named package.json scripts that the hook calls by name. After
+ * coverage, the hook stages an auto-updated Vitest config.
  * What each named script does internally is the repository's choice; this
  * rule only checks that the name exists in both places.
  *
@@ -17,6 +18,15 @@ import path from "node:path";
 import type { JSONRuleDefinition } from "@eslint/json";
 import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
 
+const VITEST_CONFIG_NAMES = [
+  "vitest.config.ts",
+  "vitest.config.mts",
+  "vitest.config.cts",
+  "vitest.config.js",
+  "vitest.config.mjs",
+  "vitest.config.cjs",
+];
+
 function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
 }
@@ -27,7 +37,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged and the libyear drift check directly, and the typecheck and suppression-file ratchet through named package.json scripts.",
+        "Require a pre-commit hook that runs lint-staged, typecheck, coverage with local threshold staging, suppression pruning when applicable, and the libyear drift check.",
     },
   },
   create(context) {
@@ -64,6 +74,20 @@ export const huskyHookRule: JSONRuleDefinition = {
           context.report({ node, message: ".husky/pre-commit must run lint-staged." });
         }
         requireNamedScript("typecheck");
+        requireNamedScript("test:unit:coverage");
+
+        const vitestConfigName = VITEST_CONFIG_NAMES.find((name) => existsSync(path.join(context.cwd, name)));
+        if (vitestConfigName !== undefined) {
+          const coverageIndex = content.indexOf("npm run test:unit:coverage");
+          const localAddIndex = content.indexOf(`git add ${vitestConfigName}`);
+
+          if (localAddIndex <= coverageIndex) {
+            context.report({
+              node,
+              message: `.husky/pre-commit must stage an auto-updated ${vitestConfigName} after coverage.`,
+            });
+          }
+        }
         if (!content.includes("libyear --limit-major-individual=1")) {
           context.report({ node, message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." });
         }
