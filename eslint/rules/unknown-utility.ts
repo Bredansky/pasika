@@ -19,7 +19,7 @@
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
@@ -261,6 +261,8 @@ const OFFSET_TOKEN_RE = /^offset-(?:\d+\.?\d*|\.\d+)(?:%|px|rem|em)?$/;
 
 interface Inventory {
   utilities: Set<string>;
+  /** Prefixes of functional custom utilities such as `fade-in-*`. */
+  wildcardUtilities: Set<string>;
   /** The first segment of every custom @utility, e.g. `primary` for `primary-surface`. */
   utilityPrefixes: Set<string>;
   themeTokens: Map<string, Set<string>>;
@@ -290,6 +292,61 @@ function stylesheetFiles(dir: string): string[] {
     if (stats.isDirectory()) return stylesheetFiles(entryPath);
     return path.extname(entry) === ".css" ? [entryPath] : [];
   });
+}
+
+/** The package name at the start of a bare CSS import specifier. */
+function packageNameOf(specifier: string): string | undefined {
+  if (specifier.startsWith(".") || specifier.startsWith("/")) return undefined;
+  const segments = specifier.split("/");
+  return specifier.startsWith("@") ? segments.slice(0, 2).join("/") : segments[0];
+}
+
+/** Resolve the root stylesheet exported by a CSS package imported from a project stylesheet. */
+function resolvePackageStylesheet(fromFile: string, specifier: string): string | undefined {
+  const packageName = packageNameOf(specifier);
+  if (!packageName || packageName === "tailwindcss") return undefined;
+
+  let directory = path.dirname(fromFile);
+  while (directory !== path.dirname(directory)) {
+    const packageRoot = path.join(directory, "node_modules", packageName);
+    const manifestPath = path.join(packageRoot, "package.json");
+    if (existsSync(manifestPath)) {
+      try {
+        const manifest = readFileSync(manifestPath, "utf8");
+        const stylesheet = /"style"\s*:\s*"(?<file>[^"]+\.css)"/.exec(manifest)?.groups?.file;
+        const main = /"main"\s*:\s*"(?<file>[^"]+\.css)"/.exec(manifest)?.groups?.file;
+        const target = stylesheet ?? main;
+        if (!target) return undefined;
+        const resolved = path.resolve(packageRoot, target);
+        return existsSync(resolved) ? resolved : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    directory = path.dirname(directory);
+  }
+  return undefined;
+}
+
+/** Project stylesheets plus root CSS files exported by the packages they import. */
+function inventoryStylesheetFiles(projectFiles: string[]): string[] {
+  const files = new Set(projectFiles);
+  for (const file of projectFiles) {
+    let css: string;
+    try {
+      css = readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    for (const match of css.matchAll(/@import\s+(?:url\(\s*)?["'](?<specifier>[^"']+)["']/gi)) {
+      const specifier = match.groups?.specifier;
+      if (!specifier) continue;
+      const imported = resolvePackageStylesheet(file, specifier);
+      if (imported) files.add(imported);
+    }
+  }
+  return [...files];
 }
 
 /** The raw contents of every `@theme` / `@theme inline` block, brace-matched. */
@@ -347,6 +404,7 @@ function classSelectors(css: string): string[] {
 /** Builds the repository's custom-utility and theme-token inventory from its stylesheets. */
 function readInventory(files: string[]): Inventory {
   const utilities = new Set<string>();
+  const wildcardUtilities = new Set<string>();
   const utilityPrefixes = new Set<string>();
   const themeTokensByNamespace = new Map<string, Set<string>>();
   const plainClasses = new Set<string>();
@@ -358,9 +416,10 @@ function readInventory(files: string[]): Inventory {
     } catch {
       continue;
     }
-    for (const name of css.matchAll(/@utility\s+(?<utilityName>[a-zA-Z0-9_-]+)/g)) {
+    for (const name of css.matchAll(/@utility\s+(?<utilityName>[a-zA-Z0-9_*-]+)/g)) {
       const utilityName = name.groups?.utilityName;
       if (!utilityName) continue;
+      if (utilityName.endsWith("-*")) wildcardUtilities.add(utilityName.slice(0, -1));
       utilities.add(utilityName);
       const dash = utilityName.indexOf("-");
       if (dash > 0) utilityPrefixes.add(utilityName.slice(0, dash));
@@ -381,7 +440,14 @@ function readInventory(files: string[]): Inventory {
       }
     }
   }
-  return { utilities, utilityPrefixes, themeTokens: themeTokensByNamespace, defaultsReset, plainClasses };
+  return {
+    utilities,
+    wildcardUtilities,
+    utilityPrefixes,
+    themeTokens: themeTokensByNamespace,
+    defaultsReset,
+    plainClasses,
+  };
 }
 
 function isColorToken(token: string, inventory: Inventory): boolean {
@@ -415,6 +481,7 @@ function isKnown(className: string, inventory: Inventory): boolean {
   const token = compound ? utility.slice(compound.length + 1) : utility.slice(dash + 1);
   if (!token) return true;
   if (inventory.utilities.has(utility)) return true;
+  if ([...inventory.wildcardUtilities].some((wildcardPrefix) => utility.startsWith(wildcardPrefix))) return true;
   const namespaces = PREFIX_NAMESPACES[prefix];
   if (!namespaces) {
     // A static value built in to Tailwind (aspect-auto, aspect-square) is
@@ -475,7 +542,7 @@ export const unknownUtilityRule: Rule.RuleModule = {
     let inventory: Inventory;
     try {
       if (!statSync(sourceRoot).isDirectory()) return {};
-      inventory = readInventory(stylesheetFiles(sourceRoot));
+      inventory = readInventory(inventoryStylesheetFiles(stylesheetFiles(sourceRoot)));
     } catch {
       // No src/ tree: the rule is inert, like the other cross-file rules.
       return {};

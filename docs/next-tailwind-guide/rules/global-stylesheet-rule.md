@@ -3,7 +3,7 @@
 Use the global stylesheet to define Tailwind, the shared theme, and base styles. This rule keeps all of the project's global CSS in one entry point and ordered predictably.
 
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
-- The global stylesheet entry point MUST be imported by exactly one module (the root layout), every other stylesheet MUST be reachable from it via `@import`, and one holding project CSS MUST be imported by the entry point directly.
+- The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
@@ -74,11 +74,8 @@ Why: `theme.css` is a direct import of the entry point, so the project CSS it de
   --base-ink: #111827;
 }
 
-@theme {
-  --*: initial;
-}
-
 @theme inline {
+  --*: initial;
   --spacing: var(--spacing);
 }
 

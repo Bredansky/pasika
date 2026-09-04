@@ -16,6 +16,14 @@ void describe("A CSS variable intended only for a background MUST be named --<ro
       {
         code: `:root {\n  --border-radius: 0.5rem;\n  --ring-offset-width: 2px;\n}`,
       },
+      // Cross-property divider colors and typography metrics do not imply one color property.
+      {
+        code: `:root {\n  --divider: #d1d5db;\n  --sidebar-divider: #d1d5db;\n  --small-text-size: 0.875rem;\n  --small-text-leading: 1.25rem;\n}`,
+      },
+      // Tailwind theme namespaces describe generated utility APIs, not semantic color intent.
+      {
+        code: `@theme inline {\n  --color-divider: var(--divider);\n  --text-sm: var(--small-text-size);\n  --text-sm--line-height: var(--small-text-leading);\n  --font-weight-medium: var(--medium-font-weight);\n}`,
+      },
     ],
     invalid: [
       // Background variable not ending in -canvas

@@ -12,6 +12,10 @@ void describe("The global stylesheet MUST reset Tailwind's default theme with --
       {
         code: `@theme {\n  --*: initial;\n  --color-brand: #2563eb;\n}`,
       },
+      // Reset alongside inline theme aliases in one block
+      {
+        code: `@theme inline {\n  --*: initial;\n  --color-brand: var(--brand);\n}`,
+      },
       // Reset before the Tailwind v4 --animate-* pattern: nested @keyframes
       // inside the same @theme block (the tolerant parser wraps the block in a
       // Rule, so the reset must be found below the direct children)

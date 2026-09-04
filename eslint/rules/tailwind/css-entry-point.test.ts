@@ -19,7 +19,7 @@ const srcPath = (root: string, relativePath: string): string => path.join(root, 
 
 const ENTRY = `@import "tailwindcss";\n`;
 
-void describe("The global stylesheet entry point MUST be imported by exactly one module (the root layout), every other stylesheet MUST be reachable from it via @import, and one holding project CSS MUST be imported by the entry point directly.", () => {
+void describe("The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via @import, and any other stylesheet holding project CSS MUST be imported by the entry point directly.", () => {
   // One entry, imported once by the root layout, with a stylesheet it imports.
   const valid = buildFixture({
     "globals.css": `${ENTRY}@import "./theme.css";\n`,

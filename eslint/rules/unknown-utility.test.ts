@@ -11,7 +11,16 @@ import { unknownUtilityRule } from "./unknown-utility";
  * stylesheet resets Tailwind's default theme with `--*: initial`, so the
  * default tokens are dead and only the project's own theme counts.
  */
-const GLOBALS = `@theme {
+const GLOBALS = `@import "tailwindcss";
+@import "./local.css";
+@import "fixture-animations";
+@import "fixture-main";
+@import "@fixture/scoped";
+@import "fixture-no-style";
+@import "fixture-missing-style";
+@import "missing-package";
+
+@theme {
   --*: initial;
   --color-primary-canvas: #d87943;
   --color-primary-ink: #ffffff;
@@ -45,6 +54,33 @@ for (const [relativePath, contents] of Object.entries(FIXTURE)) {
   mkdirSync(path.dirname(filePath), { recursive: true });
   writeFileSync(filePath, contents);
 }
+function writePackage(name: string, manifest: object, stylesheet?: { name: string; contents: string }): void {
+  const packageRoot = path.join(root, "node_modules", name);
+  mkdirSync(packageRoot, { recursive: true });
+  writeFileSync(path.join(packageRoot, "package.json"), JSON.stringify({ name, ...manifest }));
+  if (stylesheet) writeFileSync(path.join(packageRoot, stylesheet.name), stylesheet.contents);
+}
+
+writePackage(
+  "fixture-animations",
+  { exports: { ".": { style: "./animations.css" } } },
+  {
+    name: "animations.css",
+    contents: `@theme inline {\n  --animate-in: enter 150ms ease;\n  --animate-out: exit 150ms ease;\n}\n@utility fade-in-* { opacity: 0; }\n@utility zoom-in-* { scale: 0; }\n`,
+  },
+);
+writePackage(
+  "fixture-main",
+  { main: "./main.css" },
+  { name: "main.css", contents: `@theme inline {\n  --animate-main: main 150ms ease;\n}\n` },
+);
+writePackage(
+  "@fixture/scoped",
+  { exports: { ".": { style: "./scoped.css" } } },
+  { name: "scoped.css", contents: `@theme inline {\n  --animate-scoped: scoped 150ms ease;\n}\n` },
+);
+writePackage("fixture-no-style", { main: "./index.js" });
+writePackage("fixture-missing-style", { exports: { ".": { style: "./missing.css" } } });
 process.chdir(root);
 
 const message = (className: string): string =>
@@ -72,6 +108,11 @@ void describe("A utility class a component statically references MUST be a custo
       {
         code: '<div className="text-sm animate-float ease-custom aspect-video" />',
         filename: srcFile("shared/card.tsx"),
+      },
+      // Theme-generated utilities exported by an imported CSS package.
+      {
+        code: '<div className="animate-in animate-out animate-main animate-scoped fade-in-0 zoom-in-95" />',
+        filename: srcFile("shared/dialog.tsx"),
       },
       // aspect-auto and aspect-square are static Tailwind built-ins that survive the reset.
       {
