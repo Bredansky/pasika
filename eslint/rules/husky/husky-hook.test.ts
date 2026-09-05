@@ -45,6 +45,7 @@ npx libyear --limit-major-individual=1
 const FULL_HOOK = `npx lint-staged
 npm run typecheck
 npm run lint:prune
+git add eslint-suppressions.json
 ${COVERAGE_RATCHET}
 npx libyear --limit-major-individual=1
 `;
@@ -187,7 +188,7 @@ void describe("A repository MUST declare a typecheck script in package.json and 
   });
 });
 
-void describe("A repository that tracks eslint-suppressions.json MUST declare a lint:prune script in package.json and run it (npm run lint:prune) in .husky/pre-commit.", () => {
+void describe("A repository that tracks eslint-suppressions.json MUST declare a lint:prune script in package.json, run it (npm run lint:prune) in .husky/pre-commit, and then stage the suppression file.", () => {
   // no eslint-suppressions.json, so lint:prune is not required
   const noSuppressions = buildFixture(BASE_HOOK);
   process.chdir(path.dirname(noSuppressions));
@@ -216,7 +217,24 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
         errors: [
           { message: 'package.json must declare a "lint:prune" script.' },
           { message: ".husky/pre-commit must run npm run lint:prune." },
+          { message: ".husky/pre-commit must stage eslint-suppressions.json after pruning suppressions." },
         ],
+      },
+    ],
+  });
+
+  const withoutSuppressionRatchet = buildFixture(
+    `npx lint-staged\nnpm run typecheck\nnpm run lint:prune\n${COVERAGE_RATCHET}\nnpx libyear --limit-major-individual=1\n`,
+    "{}",
+  );
+  process.chdir(path.dirname(withoutSuppressionRatchet));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: COMPLETE_SCRIPTS }),
+        filename: withoutSuppressionRatchet,
+        errors: [{ message: ".husky/pre-commit must stage eslint-suppressions.json after pruning suppressions." }],
       },
     ],
   });

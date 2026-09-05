@@ -938,8 +938,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json and run it (`npm run lint:prune`) in `.husky/pre-commit`.",
-      "hash": "7a7b7a670a",
+      "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.",
+      "hash": "ee5eb3acbd",
       "ref": "pasika/husky-hook"
     },
     {

@@ -56,13 +56,14 @@ Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package
 
 ## Husky Configuration
 
-`.husky/pre-commit` must run the local checks and capture Vitest's threshold ratchet in the commit.
+`.husky/pre-commit` must run the local checks and capture suppression and coverage ratchets in the commit.
 
 ```sh
 # .husky/pre-commit
 npx lint-staged
 npm run typecheck
 npm run lint:prune
+git add eslint-suppressions.json
 npm run test:unit:coverage
 git add vitest.config.ts
 npx libyear --limit-major-individual=1
@@ -93,6 +94,8 @@ No pasika rule checks a CI workflow file today — everything above is verified 
 
 ```yaml
 - run: npm run lint
+- run: npm run lint:prune
+- run: git diff --exit-code -- eslint-suppressions.json
 - run: npm run format
 - run: npm run typecheck
 - run: npm run test:unit:coverage

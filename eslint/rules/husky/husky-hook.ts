@@ -5,8 +5,8 @@
  * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
  * script in package.json. Its typecheck, coverage suite, and — once the
  * repository tracks eslint-suppressions.json — its suppression-file ratchet,
- * run through named package.json scripts that the hook calls by name. After
- * coverage, the hook stages an auto-updated Vitest config.
+ * run through named package.json scripts that the hook calls by name. The hook
+ * stages files changed by either ratchet after the command that updates them.
  * What each named script does internally is the repository's choice; this
  * rule only checks that the name exists in both places.
  *
@@ -37,7 +37,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged, typecheck, coverage with local threshold staging, suppression pruning when applicable, and the libyear drift check.",
+        "Require a pre-commit hook that runs lint-staged, typecheck, coverage and suppression pruning with local staging, and the libyear drift check.",
     },
   },
   create(context) {
@@ -96,6 +96,16 @@ export const huskyHookRule: JSONRuleDefinition = {
         const suppressionsPath = path.join(context.cwd, "eslint-suppressions.json");
         if (existsSync(suppressionsPath)) {
           requireNamedScript("lint:prune");
+
+          const pruneIndex = content.indexOf("npm run lint:prune");
+          const localAddIndex = content.indexOf("git add eslint-suppressions.json");
+
+          if (localAddIndex <= pruneIndex) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must stage eslint-suppressions.json after pruning suppressions.",
+            });
+          }
         }
 
         // prepare must run husky
