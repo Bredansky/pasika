@@ -91,8 +91,7 @@ void describe("A repository adopting the framework MUST track the framework's `d
         code: "{}",
         errors: [
           {
-            message:
-              "No vulyk.config.ts found. Run npx vulyk@latest init to create one that tracks the framework's docs.",
+            message: "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's docs.",
           },
         ],
       },
@@ -181,7 +180,7 @@ void describe("A repository adopting the framework MUST have the `AGENTS.md` age
         errors: [
           {
             message:
-              "No AGENTS.md found. Run npx vulyk@latest agents to generate the agent file that routes to the tracked docs.",
+              "No AGENTS.md found. Run npx vulyk agents to generate the agent file that routes to the tracked docs.",
           },
         ],
       },

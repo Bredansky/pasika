@@ -1022,6 +1022,12 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
+      "text": "A repository adopting the framework MUST list `vulyk` in `devDependencies` rather than `dependencies` so `vulyk.config.ts` is typechecked and the repository resolves a pinned CLI.",
+      "hash": "5bfbf02d0e",
+      "ref": "pasika/vulyk-dependency"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
       "hash": "e60dfe3e9a",
       "ref": "pasika/vulyk-docs"
@@ -1100,20 +1106,20 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "`vulyk` MUST run as an ephemeral command such as `npx vulyk@latest`.",
-      "hash": "1cba3c61e8",
-      "ref": "pasika/no-vulyk-dependency"
+      "text": "`vulyk` MUST be listed in `devDependencies` rather than `dependencies` so `vulyk.config.ts` is typechecked and the repository resolves a pinned CLI.",
+      "hash": "5a2e2e0867",
+      "ref": "pasika/vulyk-dependency"
     },
     {
       "doc": "repository-policy.md",
-      "text": "`vulyk` MUST NOT be added to `package.json` in order to run its CLI.",
-      "hash": "411577f10c",
-      "ref": "pasika/no-vulyk-dependency"
+      "text": "A `vulyk` command MUST use the repository's installed CLI, such as `npx vulyk`, rather than request another version.",
+      "hash": "937c042b20",
+      "note": "whether a manually invoked vulyk command requests another version is not observable from repository state"
     },
     {
       "doc": "repository-policy.md",
-      "text": "A user MAY discover available commands with `npx vulyk@latest --help` and command-specific usage with `npx vulyk@latest <command> --help`.",
-      "hash": "974bc3e794",
+      "text": "A user MAY discover available commands with `npx vulyk --help` and command-specific usage with `npx vulyk <command> --help`.",
+      "hash": "049498a285",
       "note": "grants permission, so there is nothing to check"
     },
     {

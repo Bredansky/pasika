@@ -7,7 +7,8 @@
  * the framework's required docs from pasika — the documentation, adoption, and
  * repository-policy docs in any adopting repository, plus the code-organization
  * and styling docs in a Next.js app — and the `AGENTS.md` agent file vulyk
- * generates for them.
+ * generates for them. The adjacent vulyk-dependency rule keeps the typed config
+ * and CLI on the repository's pinned Vulyk version.
  *
  * @see docs/pasika-adoption-guide/rules/vulyk-docs-rule.md
  */
@@ -64,8 +65,7 @@ export const vulykDocsRule: JSONRuleDefinition = {
         if (!existsSync(configPath)) {
           context.report({
             node,
-            message:
-              "No vulyk.config.ts found. Run npx vulyk@latest init to create one that tracks the framework's docs.",
+            message: "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's docs.",
           });
           return;
         }
@@ -96,7 +96,7 @@ export const vulykDocsRule: JSONRuleDefinition = {
           context.report({
             node,
             message:
-              "No AGENTS.md found. Run npx vulyk@latest agents to generate the agent file that routes to the tracked docs.",
+              "No AGENTS.md found. Run npx vulyk agents to generate the agent file that routes to the tracked docs.",
           });
         }
       },
