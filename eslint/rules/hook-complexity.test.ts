@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { hookComplexityRule } from "./hook-complexity";
 
-void describe("A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.", () => {
+void describe("A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
       // Simple hook in a component file (one category, scores 0 — should stay)

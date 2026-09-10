@@ -512,8 +512,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.",
-      "hash": "ab55136a27",
+      "text": "A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.",
+      "hash": "aa6d353adf",
       "ref": "pasika/hook-complexity"
     },
     {

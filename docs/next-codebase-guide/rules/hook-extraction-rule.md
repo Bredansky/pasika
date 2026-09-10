@@ -3,7 +3,7 @@
 Keeping every hook inline makes components bloated, while extracting every hook adds indirection without benefit. This rule defines concrete reuse and imperative-complexity triggers for extraction.
 
 - A custom hook MUST be extracted to its own file when two or more consumers use it.
-- A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.
+- A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.
 - An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.
 - When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
 - A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.
