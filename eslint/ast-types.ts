@@ -124,4 +124,16 @@ export type TsTypeNode = Omit<Rule.Node, "type"> & {
   members?: TsTypeElementNode[];
   types?: TsTypeNode[];
   literal?: { type?: string; value?: unknown };
+  typeName?: { type?: string; name?: string };
+};
+
+/**
+ * TSAsExpression — `expr as T`, from the typescript-eslint parser.
+ *
+ * Kept as a plain `Rule.Node` intersection so it can be passed to
+ * `context.report`, which requires an ESTree node.
+ */
+export type TsAsExpressionNode = Rule.Node & {
+  expression?: ESTree.Expression;
+  typeAnnotation?: TsTypeNode;
 };
