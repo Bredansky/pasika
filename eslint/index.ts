@@ -27,6 +27,7 @@ import { applicationStructureRule } from "./rules/application-structure";
 import { namedExportsRule } from "./rules/named-exports";
 import { dataTestIdCaseRule } from "./rules/data-testid-case";
 import { supportFolderShapeRule } from "./rules/support-folder-shape";
+import { constantCasingRule } from "./rules/constant-casing";
 import { importThroughIndexRule } from "./rules/import-through-index";
 import { utilFileNameRule } from "./rules/util-file-name";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
@@ -80,6 +81,7 @@ const pasikaNextjsAppRules = {
   "enforce-barrel-exports": enforceBarrelExportsRule,
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,
+  "constant-casing": constantCasingRule,
   "type-extraction": typeExtractionRule,
   "zod-schema-validation": zodSchemaValidationRule,
   "source-under-src": sourceUnderSrcRule,
