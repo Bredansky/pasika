@@ -149,7 +149,7 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
 }
 ```
 
-Why: `useRef` and `useEffect` together score 1, one short of the threshold, since neither call performs a second kind of imperative work.
+Why: `useRef` and `useEffect` are two distinct hooks, worth one point no matter how many are called, and neither call performs any of the four kinds of side-effecting work that would add a second point.
 
 ## Correct — Two Distinct Hooks Inline
 
@@ -166,4 +166,4 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: scoring 1, the hook stays inline until a third distinct category or a second consumer gives it a mechanical extraction trigger.
+Why: scoring 1, the hook stays inline until a side-effect category — a subscription, external I/O, DOM manipulation, or resource lifecycle — or a second consumer gives it a mechanical extraction trigger.

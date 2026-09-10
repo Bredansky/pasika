@@ -6,14 +6,14 @@
  * - A custom hook with one consumer whose extraction score is below two MUST
  *   stay inline in its consumer file.
  *
- * An imperative category is either a distinct built-in hook called by name,
- * or one of four kinds of imperative work a hook body's other calls can
- * perform: subscriptions, external I/O and persistence, DOM manipulation, or
- * resource lifecycle. A single category is just a hook doing its job, not a
- * signal — common pairs like useState + useEffect are ordinary, not evidence
- * of a hook doing too much — so the first category found is free and every
- * one after it adds one to the score: two categories score 1, three score 2
- * and cross the threshold.
+ * Five imperative categories, each worth at most one point regardless of how
+ * many times it occurs: calling two or more distinct built-in hooks, and each
+ * of four kinds of imperative work a hook body's other calls can perform —
+ * subscriptions, external I/O and persistence, DOM manipulation, or resource
+ * lifecycle. Common pairs like useState + useEffect are ordinary hook usage,
+ * not evidence of a hook doing too much, so hook diversity alone can score at
+ * most 1 — reaching the threshold of 2 always requires at least one real
+ * side-effect category too.
  *
  * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
  */
@@ -43,20 +43,14 @@ const REACT_HOOKS = new Set([
   "useInsertionEffect",
 ]);
 
-// The four kinds of imperative work a hook body's non-hook calls can perform,
-// alongside calling a built-in hook by name. Each is a distinct category the
-// same way each built-in hook name is.
+// The four kinds of imperative work a hook body's non-hook calls can perform.
+// Each is its own category, worth one point no matter how many times it occurs.
 const SUBSCRIPTION_METHODS = new Set(["on", "off", "addEventListener", "removeEventListener"]);
 const STORAGE_OBJECTS = new Set(["localStorage", "sessionStorage", "indexedDB"]);
 const DOM_METHODS = new Set(["focus", "blur", "scrollIntoView", "click"]);
 const DOM_PROPERTIES = new Set(["classList"]);
 const DOM_CONSTRUCTORS = new Set(["MutationObserver", "ResizeObserver", "IntersectionObserver"]);
 const LIFECYCLE_METHODS = new Set(["load", "destroy", "dispose", "close", "cleanup", "unmount"]);
-
-const SUBSCRIPTIONS = "Subscriptions";
-const EXTERNAL_IO = "External I/O and persistence";
-const DOM_MANIPULATION = "DOM manipulation";
-const RESOURCE_LIFECYCLE = "Resource lifecycle";
 
 function isHookName(name: string): boolean {
   return /^use[A-Z]/.test(name);
@@ -74,44 +68,52 @@ function calledOnObjectName(node: ts.CallExpression): string | undefined {
   return ts.isIdentifier(object) ? object.text : undefined;
 }
 
+/** Whether one node is a call to a built-in hook, and if so, which one. */
+function calledHookName(node: ts.Node): string | undefined {
+  return ts.isCallExpression(node) && ts.isIdentifier(node.expression) && REACT_HOOKS.has(node.expression.text)
+    ? node.expression.text
+    : undefined;
+}
+
 /**
- * Classifies one node as an imperative category, if it is one: a call to a
- * built-in hook by name, or one of the four kinds of imperative work —
- * subscriptions, external I/O and persistence, DOM manipulation, or resource
- * lifecycle — a hook body's other calls can perform.
+ * Whether one node performs one of the four kinds of imperative work a hook
+ * body's non-hook calls can do: subscriptions, external I/O and persistence,
+ * DOM manipulation, or resource lifecycle.
  */
-function categoryOf(node: ts.Node): string | undefined {
-  if (ts.isAwaitExpression(node)) return EXTERNAL_IO;
+function sideEffectCategoryOf(
+  node: ts.Node,
+): "subscription" | "externalIO" | "domManipulation" | "lifecycle" | undefined {
+  if (ts.isAwaitExpression(node)) return "externalIO";
 
   if (ts.isNewExpression(node) && ts.isIdentifier(node.expression) && DOM_CONSTRUCTORS.has(node.expression.text)) {
-    return DOM_MANIPULATION;
+    return "domManipulation";
   }
 
   if (ts.isPropertyAccessExpression(node) && DOM_PROPERTIES.has(node.name.text)) {
-    return DOM_MANIPULATION;
+    return "domManipulation";
   }
 
   if (ts.isCallExpression(node)) {
-    if (ts.isIdentifier(node.expression) && REACT_HOOKS.has(node.expression.text)) return node.expression.text;
-    if (ts.isIdentifier(node.expression) && node.expression.text === "fetch") return EXTERNAL_IO;
+    if (ts.isIdentifier(node.expression) && node.expression.text === "fetch") return "externalIO";
 
     const method = calledMethodName(node);
-    if (method && SUBSCRIPTION_METHODS.has(method)) return SUBSCRIPTIONS;
-    if (method && LIFECYCLE_METHODS.has(method)) return RESOURCE_LIFECYCLE;
-    if (method && DOM_METHODS.has(method)) return DOM_MANIPULATION;
+    if (method && SUBSCRIPTION_METHODS.has(method)) return "subscription";
+    if (method && LIFECYCLE_METHODS.has(method)) return "lifecycle";
+    if (method && DOM_METHODS.has(method)) return "domManipulation";
 
     const object = calledOnObjectName(node);
-    if (object && STORAGE_OBJECTS.has(object)) return EXTERNAL_IO;
+    if (object && STORAGE_OBJECTS.has(object)) return "externalIO";
   }
 
   return undefined;
 }
 
 /**
- * Scores a hook body for extraction: the distinct imperative categories found
- * anywhere inside it, minus one — the first one found is free, since a
- * single call is just that call doing its job, not a complexity signal.
- * Every distinct category after it adds one to the score. Re-parses just the
+ * Scores a hook body for extraction: one point for calling two or more
+ * distinct built-in hooks, plus one point for each of the four kinds of
+ * imperative work found anywhere in the body — subscriptions, external I/O
+ * and persistence, DOM manipulation, resource lifecycle — capped at one
+ * point per kind no matter how many times it occurs. Re-parses just the
  * body's source slice with the TypeScript compiler so the walk stays fully
  * typed instead of unrolling ESTree unions by hand.
  */
@@ -125,14 +127,22 @@ function computeExtractionScore(body: ESTree.BlockStatement, sourceText: string)
     true,
     ts.ScriptKind.TS,
   );
-  const categories = new Set<string>();
+
+  const hookNames = new Set<string>();
+  const sideEffectCategories = new Set<string>();
   const visit = (node: ts.Node): void => {
-    const category = categoryOf(node);
-    if (category) categories.add(category);
+    const hookName = calledHookName(node);
+    if (hookName) hookNames.add(hookName);
+
+    const sideEffect = sideEffectCategoryOf(node);
+    if (sideEffect) sideEffectCategories.add(sideEffect);
+
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return Math.max(0, categories.size - 1);
+
+  const hookDiversityPoint = hookNames.size >= 2 ? 1 : 0;
+  return hookDiversityPoint + sideEffectCategories.size;
 }
 
 export const hookComplexityRule: Rule.RuleModule = {
