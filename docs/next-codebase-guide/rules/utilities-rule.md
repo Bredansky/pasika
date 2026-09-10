@@ -9,7 +9,7 @@ Pure functions should not be hidden in component files. This rule extracts them 
 - A utility file that exports one function MUST have a name in that function's kebab-case form.
 - Utilities that are used together MAY be grouped in one file.
 - A utility used only to implement one configuration module MUST live in that module's `utils/` folder.
-- A pure function with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/utils/`. If no existing feature applies, it MUST introduce a new feature folder.
+- A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/utils/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Pure Function Left Beside Its Consumer
 
@@ -117,3 +117,25 @@ import { absolutizeMediaUrls } from "@/features/editor/utils/absolutize-media-ur
 ```
 
 Why: with no consumer outside `src/app/`, the function belongs in the feature it represents, the same way a component with no outside consumer does.
+
+## Incorrect — Route-Only Utility in `src/shared/`
+
+```ts
+// src/shared/utils/absolutize-media-urls.ts
+export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
+  // ...
+}
+```
+
+Why: `src/shared/` holds components with consumers in two or more features; this rule never names it as a destination, and the function still has no consumer outside `src/app/` to justify moving it there instead of into a feature.
+
+## Correct — Route-Only Utility Moved from `src/shared/` into a Feature
+
+```ts
+// src/features/editor/utils/absolutize-media-urls.ts
+export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
+  // ...
+}
+```
+
+Why: the same zero-consumer function belongs in the feature it represents, whether it was found in root `src/utils/` or in `src/shared/`.

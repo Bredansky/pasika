@@ -2,12 +2,19 @@
  * ESLint rule: pasika/root-support-placement
  *
  * A pure function, type, schema, or constant with no consumer outside
- * src/app/ or a configuration module MUST live in the feature it represents,
- * not the matching root support folder. This mirrors component-placement's
- * zero-consumer fallback: root src/utils/, src/types/, src/schemas/, and
- * src/constants/ are earned by actual cross-feature reuse, and an app/-only
- * or config-only consumer never counts toward that CCF, the same way it never
- * counts toward a component's.
+ * src/app/ or a configuration module MUST live under src/features/<name>/, not
+ * the matching root support folder or anywhere else. This mirrors
+ * component-placement's zero-consumer fallback exactly, including the
+ * mechanical part: that fallback does not just recommend a feature folder,
+ * it checks the component already sits in one (`segments[0] !== "features"`).
+ * Root src/utils/, src/types/, src/schemas/, and src/constants/ are earned by
+ * actual cross-feature reuse, and an app/-only or config-only consumer never
+ * counts toward that CCF, the same way it never counts toward a component's —
+ * so a zero-consumer export sitting anywhere other than src/features/<name>/ is
+ * exactly as wrong as one left in root. src/shared/ never validly absorbs it
+ * either: neither the Utilities Rule, the Types and Schemas Rule, nor the
+ * Constants Rule ever names src/shared/ as a destination, unlike the
+ * Component Placement Rule's explicit use of it for cross-feature reuse.
  *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
@@ -18,36 +25,36 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type { ExportKind } from "../project/parse-module";
 import { getProjectIndex, symbolKey } from "../project/index";
-import { isConfigModule, isUnderApp, segmentsOf } from "../project/ccf";
+import { folderSegmentsOf, isConfigModule, isUnderApp, segmentsOf } from "../project/ccf";
 import { sourceRootOf } from "./project-root";
 
-type RootFolder = "utils" | "types" | "schemas" | "constants";
+type SupportFolder = "utils" | "types" | "schemas" | "constants";
 
-function isRootFolder(value: string | undefined): value is RootFolder {
+function isSupportFolder(value: string | undefined): value is SupportFolder {
   return value === "utils" || value === "types" || value === "schemas" || value === "constants";
 }
 
 const TYPES_AND_SCHEMAS_DOC = "docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 
-// The one kind of export each root support folder is expected to hold, the
-// label for that kind, and the doc that states the requirement for it. Keyed
-// by folder, not by export kind, so every lookup below is total over the
-// already-narrowed RootFolder type — no fallback branch is ever needed.
-const KIND_FOR_ROOT_FOLDER: Record<RootFolder, ExportKind> = {
+// The one kind of export each support folder is expected to hold, the label
+// for that kind, and the doc that states the requirement for it. Keyed by
+// folder, not by export kind, so every lookup below is total over the
+// already-narrowed SupportFolder type — no fallback branch is ever needed.
+const KIND_FOR_SUPPORT_FOLDER: Record<SupportFolder, ExportKind> = {
   utils: "function",
   types: "type",
   schemas: "schema",
   constants: "constant",
 };
 
-const LABEL_FOR_ROOT_FOLDER: Record<RootFolder, string> = {
+const LABEL_FOR_SUPPORT_FOLDER: Record<SupportFolder, string> = {
   utils: "Function",
   types: "Type",
   schemas: "Schema",
   constants: "Constant",
 };
 
-const DOC_FOR_ROOT_FOLDER: Record<RootFolder, string> = {
+const DOC_FOR_SUPPORT_FOLDER: Record<SupportFolder, string> = {
   utils: "docs/next-codebase-guide/rules/utilities-rule.md",
   types: TYPES_AND_SCHEMAS_DOC,
   schemas: TYPES_AND_SCHEMAS_DOC,
@@ -60,19 +67,28 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a root support-folder export to have a consumer outside src/app/ and configuration modules.",
+        "Require a zero-consumer support-folder export to live under a feature folder, not root or elsewhere.",
     },
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
     const segments = segmentsOf(file, sourceRoot);
-    // Only a root support folder is in scope — a feature's own support folder
-    // already lives inside the feature it serves.
-    const rootFolder = segments[0];
-    if (!isRootFolder(rootFolder)) return {};
-    const expectedKind = KIND_FOR_ROOT_FOLDER[rootFolder];
-    const doc = DOC_FOR_ROOT_FOLDER[rootFolder];
+    const folderSegments = folderSegmentsOf(file, sourceRoot);
+
+    // Only a file whose immediate folder is a support folder is in scope —
+    // this rule places support files, not arbitrary ones.
+    const supportFolder = folderSegments[folderSegments.length - 1];
+    if (!isSupportFolder(supportFolder)) return {};
+
+    const expectedKind = KIND_FOR_SUPPORT_FOLDER[supportFolder];
+    const doc = DOC_FOR_SUPPORT_FOLDER[supportFolder];
+    const label = LABEL_FOR_SUPPORT_FOLDER[supportFolder];
+
+    const isRoot = segments[0] === supportFolder;
+    const isUnderFeature = segments[0] === "features";
+    // Already exactly where a zero-consumer export belongs — nothing to check.
+    if (isUnderFeature) return {};
 
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
@@ -94,13 +110,13 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
       });
       if (real.length > 0) continue;
 
-      const label = LABEL_FOR_ROOT_FOLDER[rootFolder];
+      const where = isRoot ? `root src/${supportFolder}/` : `src/${folderSegments.join("/")}/`;
       findings.push({
         line: exp.line,
         message:
           `${label} "${exp.name}" has no consumer outside src/app/ or a configuration module, so it has not ` +
-          `earned root src/${rootFolder}/; move it into the feature it represents. If no existing feature ` +
-          `applies, introduce a new feature folder. See ${doc}`,
+          `earned ${where}; move it into the feature it represents (src/features/*/${supportFolder}/). If no ` +
+          `existing feature applies, introduce a new feature folder. See ${doc}`,
       });
     }
 

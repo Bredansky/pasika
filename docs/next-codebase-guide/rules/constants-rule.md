@@ -10,7 +10,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.
 - A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
 - A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`.
-- A constant with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/constants/`. If no existing feature applies, it MUST introduce a new feature folder.
+- A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/constants/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
@@ -159,3 +159,21 @@ import { maxRenderJobs } from "@/features/editor/constants/max-render-jobs";
 ```
 
 Why: with no consumer outside `src/app/`, the constant belongs in the feature it represents, the same way a component with no outside consumer does.
+
+## Incorrect — Route-Only Constant in `src/shared/`
+
+```ts
+// src/shared/constants/max-render-jobs.ts
+export const maxRenderJobs = 10;
+```
+
+Why: `src/shared/` holds components with consumers in two or more features; this rule never names it as a destination, and the constant still has no consumer outside `src/app/` to justify moving it there instead of into a feature.
+
+## Correct — Route-Only Constant Moved from `src/shared/` into a Feature
+
+```ts
+// src/features/editor/constants/max-render-jobs.ts
+export const maxRenderJobs = 10;
+```
+
+Why: the same zero-consumer constant belongs in the feature it represents, whether it was found in root `src/constants/` or in `src/shared/`.

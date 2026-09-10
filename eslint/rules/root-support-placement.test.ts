@@ -46,6 +46,24 @@ const FIXTURE: Record<string, string> = {
 
   // An unused root utils/ export is not this rule's problem.
   "utils/unused-helper.ts": "export function unusedHelper() { return 1; }\n",
+
+  // A zero-consumer function already correctly placed under a feature.
+  "features/editor/utils/absolutize-clip-urls.ts":
+    "export function absolutizeClipUrls(order: unknown) { return order; }\n",
+  "app/api/render-clip/route.ts":
+    'import { absolutizeClipUrls } from "@/features/editor/utils/absolutize-clip-urls";\nexport async function POST() { return absolutizeClipUrls({}); }\n',
+
+  // A zero-consumer function, type, and constant wrongly placed in shared/,
+  // which this rule never treats as a valid destination.
+  "shared/utils/format-currency.ts": "export function formatCurrency(n: number) { return String(n); }\n",
+  "app/api/format/route.ts":
+    'import { formatCurrency } from "@/shared/utils/format-currency";\nexport async function GET() { return formatCurrency(1); }\n',
+  "shared/schemas/upload-response-schema.ts": "export const uploadResponseSchema = { url: undefined };\n",
+  "app/api/upload/route.ts":
+    'import { uploadResponseSchema } from "@/shared/schemas/upload-response-schema";\nexport async function POST() { return uploadResponseSchema; }\n',
+  "shared/constants/max-upload-size.ts": "export const maxUploadSize = 10;\n",
+  "app/api/max-upload/route.ts":
+    'import { maxUploadSize } from "@/shared/constants/max-upload-size";\nexport async function GET() { return maxUploadSize; }\n',
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-root-support-placement-")));
@@ -63,7 +81,7 @@ const UTILITIES_DOC = "See docs/next-codebase-guide/rules/utilities-rule.md";
 const TYPES_AND_SCHEMAS_DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 const CONSTANTS_DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/utils/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/utils/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/utils/.
@@ -76,10 +94,15 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
         code: read("utils/unused-helper.ts"),
         filename: file("utils/unused-helper.ts"),
       },
-      // A file outside the root support folders is out of scope.
+      // A file outside the support folders is out of scope.
       {
         code: read("features/billing/invoice.tsx"),
         filename: file("features/billing/invoice.tsx"),
+      },
+      // Zero-consumer function already under a feature's own utils/.
+      {
+        code: read("features/editor/utils/absolutize-clip-urls.ts"),
+        filename: file("features/editor/utils/absolutize-clip-urls.ts"),
       },
     ],
     invalid: [
@@ -90,8 +113,21 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
           {
             message:
               `Function "absolutizeMediaUrls" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned root src/utils/; move it into the feature it represents. If no existing feature " +
-              `applies, introduce a new feature folder. ${UTILITIES_DOC}`,
+              "has not earned root src/utils/; move it into the feature it represents (src/features/*/utils/). " +
+              `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
+          },
+        ],
+      },
+      // src/shared/ is not a valid destination either.
+      {
+        code: read("shared/utils/format-currency.ts"),
+        filename: file("shared/utils/format-currency.ts"),
+        errors: [
+          {
+            message:
+              `Function "formatCurrency" has no consumer outside src/app/ or a configuration module, so it ` +
+              "has not earned src/shared/utils/; move it into the feature it represents (src/features/*/utils/). " +
+              `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
           },
         ],
       },
@@ -99,7 +135,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
   });
 });
 
-void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/types/` or `src/schemas/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/types/`, `src/schemas/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/types/.
@@ -116,8 +152,8 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
           {
             message:
               `Type "RenderOrder" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned root src/types/; move it into the feature it represents. If no existing feature " +
-              `applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
+              "has not earned root src/types/; move it into the feature it represents (src/features/*/types/). " +
+              `If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
       },
@@ -128,8 +164,21 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
           {
             message:
               `Schema "githubErrorResponseSchema" has no consumer outside src/app/ or a configuration module, ` +
-              "so it has not earned root src/schemas/; move it into the feature it represents. If no existing " +
-              `feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
+              "so it has not earned root src/schemas/; move it into the feature it represents " +
+              `(src/features/*/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
+          },
+        ],
+      },
+      // src/shared/ is not a valid destination either.
+      {
+        code: read("shared/schemas/upload-response-schema.ts"),
+        filename: file("shared/schemas/upload-response-schema.ts"),
+        errors: [
+          {
+            message:
+              `Schema "uploadResponseSchema" has no consumer outside src/app/ or a configuration module, so it ` +
+              "has not earned src/shared/schemas/; move it into the feature it represents " +
+              `(src/features/*/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
       },
@@ -137,7 +186,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
   });
 });
 
-void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/constants/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/constants/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [],
     invalid: [
@@ -148,8 +197,21 @@ void describe("A constant with no consumer outside `src/app/` or a configuration
           {
             message:
               `Constant "maxRenderJobs" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned root src/constants/; move it into the feature it represents. If no existing " +
-              `feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
+              "has not earned root src/constants/; move it into the feature it represents " +
+              `(src/features/*/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
+          },
+        ],
+      },
+      // src/shared/ is not a valid destination either.
+      {
+        code: read("shared/constants/max-upload-size.ts"),
+        filename: file("shared/constants/max-upload-size.ts"),
+        errors: [
+          {
+            message:
+              `Constant "maxUploadSize" has no consumer outside src/app/ or a configuration module, so it ` +
+              "has not earned src/shared/constants/; move it into the feature it represents " +
+              `(src/features/*/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
           },
         ],
       },
