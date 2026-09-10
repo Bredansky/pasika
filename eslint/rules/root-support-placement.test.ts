@@ -81,7 +81,7 @@ const UTILITIES_DOC = "See docs/next-codebase-guide/rules/utilities-rule.md";
 const TYPES_AND_SCHEMAS_DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 const CONSTANTS_DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/utils/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/utils/.
@@ -135,7 +135,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
   });
 });
 
-void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/types/`, `src/schemas/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/types/.
@@ -186,7 +186,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
   });
 });
 
-void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/constants/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [],
     invalid: [

@@ -9,7 +9,7 @@ Pure functions should not be hidden in component files. This rule extracts them 
 - A utility file that exports one function MUST have a name in that function's kebab-case form.
 - Utilities that are used together MAY be grouped in one file.
 - A utility used only to implement one configuration module MUST live in that module's `utils/` folder.
-- A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`, not `src/utils/`, `src/shared/`, or anywhere else. If no existing feature applies, it MUST introduce a new feature folder.
+- A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Pure Function Left Beside Its Consumer
 
