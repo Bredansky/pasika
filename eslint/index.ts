@@ -27,6 +27,7 @@ import { applicationStructureRule } from "./rules/application-structure";
 import { namedExportsRule } from "./rules/named-exports";
 import { dataTestIdCaseRule } from "./rules/data-testid-case";
 import { supportFolderShapeRule } from "./rules/support-folder-shape";
+import { constantCasingRule } from "./rules/constant-casing";
 import { importThroughIndexRule } from "./rules/import-through-index";
 import { utilFileNameRule } from "./rules/util-file-name";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
@@ -52,6 +53,8 @@ import { localeKeyShapeRule } from "./rules/locale-key-shape";
 import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { repeatedStructureRule } from "./rules/repeated-structure";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
+import { schemaCasingRule } from "./rules/schema-casing";
+import { componentCasingRule } from "./rules/component-casing";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { zirkaBaselineRule } from "./rules/zirka-baseline";
 import { documentationRules } from "./rules/documentation/index";
@@ -80,12 +83,15 @@ const pasikaNextjsAppRules = {
   "enforce-barrel-exports": enforceBarrelExportsRule,
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,
+  "constant-casing": constantCasingRule,
   "type-extraction": typeExtractionRule,
   "zod-schema-validation": zodSchemaValidationRule,
+  "schema-casing": schemaCasingRule,
   "source-under-src": sourceUnderSrcRule,
   "zirka-baseline": zirkaBaselineRule,
   // Next.js/React application rules.
   "component-placement": componentPlacementRule,
+  "component-casing": componentCasingRule,
   "application-structure": applicationStructureRule,
   "data-testid-case": dataTestIdCaseRule,
   "jsx-hygiene": jsxHygieneRule,

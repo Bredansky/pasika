@@ -8,6 +8,41 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in files that `index.ts` named-re-exports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
 - A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.
+- A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
+
+## Incorrect — Screaming-Case Constant for an Ordinary Value
+
+```ts
+// src/constants/index.ts
+export const MAX_FILE_SIZE = 20 * 1024 * 1024;
+```
+
+Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name, so it must be `camelCase`.
+
+## Correct — camelCase Constant
+
+```ts
+// src/constants/index.ts
+export const maxFileSize = 20 * 1024 * 1024;
+```
+
+## Incorrect — Renaming a Framework-Required Export
+
+```ts
+// src/app/api/posts/route.ts
+export const httpGet = async () => new Response();
+```
+
+Why: Next.js requires the exact name `GET` for this export to be recognized as a route handler.
+
+## Correct — Framework-Required Name Kept As Is
+
+```ts
+// src/app/api/posts/route.ts
+export const GET = async () => new Response();
+```
+
+Why: `GET` is the name Next.js requires for a route handler; every other constant still uses `camelCase`.
 
 ## Incorrect — Constant Imported Without `constants/index.ts`
 

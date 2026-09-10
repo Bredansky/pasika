@@ -2,6 +2,7 @@
 
 Without a file-name convention, a component's smart vs dumb ownership is invisible to reviewers from the tree alone. Without a `data-testid` matching the file's casing, tests hardcode DOM identities that break on rename or restructure.
 
+- A component's name MUST be `PascalCase`.
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
 - A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.
@@ -142,3 +143,27 @@ export function SocialStatsPanel(): React.JSX.Element {
 ```
 
 Why: the wrapper gives tests one stable outer element to anchor `data-testid="SocialStatsPanel"` to, no matter which branch renders.
+
+## Incorrect — Component Named in camelCase
+
+```tsx
+// src/features/social/platform-card.tsx
+
+export function platformCard({ data }: { data: PlatformStat }): React.JSX.Element {
+  return <article>{data.platform}</article>;
+}
+```
+
+Why: React only resolves a capitalized JSX tag as a custom component, so `<platformCard />` would render a native `platformCard` element instead.
+
+## Correct — Component Named in PascalCase
+
+```tsx
+// src/features/social/PlatformCard.tsx
+
+export function PlatformCard({ data }: { data: PlatformStat }): React.JSX.Element {
+  return <article>{data.platform}</article>;
+}
+```
+
+Why: `PlatformCard` is PascalCase, so `<PlatformCard />` resolves as the component.

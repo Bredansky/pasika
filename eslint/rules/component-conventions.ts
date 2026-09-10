@@ -111,6 +111,45 @@ export function parseComponentInfo(
   return components;
 }
 
+export interface JsxReturningDeclaration {
+  name: string;
+  line: number;
+  column: number;
+}
+
+/**
+ * Find every top-level function or const whose body returns JSX, regardless of
+ * casing. Unlike {@link parseComponentInfo}, this does not require the name to
+ * already be PascalCase, so a casing rule can flag the ones that are not.
+ */
+export function findJsxReturningDeclarations(text: string, filename: string): JsxReturningDeclaration[] {
+  const sourceFile = ts.createSourceFile(path.resolve(filename), text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const results: JsxReturningDeclaration[] = [];
+
+  const record = (identifier: ts.Identifier, body: ts.Node): void => {
+    if (isHookCallName(identifier.text) || !containsJsx(body)) return;
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(identifier.getStart(sourceFile));
+    results.push({ name: identifier.text, line: line + 1, column: character });
+  };
+
+  for (const statement of sourceFile.statements) {
+    if (ts.isFunctionDeclaration(statement) && statement.name) {
+      record(statement.name, statement);
+      continue;
+    }
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name)) continue;
+        const initializer = declaration.initializer;
+        if (!initializer || (!ts.isArrowFunction(initializer) && !ts.isFunctionExpression(initializer))) continue;
+        record(declaration.name, initializer);
+      }
+    }
+  }
+
+  return results;
+}
+
 export interface SimpleRoot {
   tagName: string;
   attributes: ts.JsxAttributeLike[];
