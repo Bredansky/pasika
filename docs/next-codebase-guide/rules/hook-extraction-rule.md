@@ -13,6 +13,8 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 ```tsx
 // src/features/player/player.tsx
 export function Player({ src }: PlayerProps): React.JSX.Element {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
@@ -25,17 +27,19 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
     };
   }, [src]);
 
-  return <PlayerView />;
+  return <PlayerView ref={playerRef} />;
 }
 ```
 
-Why: one coherent player-setup behavior combines subscriptions with resource lifecycle, so leaving it inline crosses the two-category threshold.
+Why: the hook calls two different built-in React hooks — `useEffect` and `useRef` — crossing the two-category threshold. What runs inside `useEffect` doesn't change the count; only the two distinct hook APIs called do.
 
 ## Correct — Complex Single-Use Hook Extracted
 
 ```ts
 // src/features/player/hooks/use-player-setup.ts
-export function usePlayerSetup(src: string): void {
+export function usePlayerSetup(src: string): RefObject<HTMLVideoElement | null> {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
@@ -47,6 +51,8 @@ export function usePlayerSetup(src: string): void {
       player.destroy();
     };
   }, [src]);
+
+  return playerRef;
 }
 ```
 
@@ -55,12 +61,12 @@ export function usePlayerSetup(src: string): void {
 import { usePlayerSetup } from "./hooks/use-player-setup";
 
 export function Player({ src }: PlayerProps): React.JSX.Element {
-  usePlayerSetup(src);
-  return <PlayerView />;
+  const playerRef = usePlayerSetup(src);
+  return <PlayerView ref={playerRef} />;
 }
 ```
 
-Why: the named hook owns the subscription and resource lifecycle for one coherent behavior, keeping the component focused on rendering.
+Why: the named hook still calls both `useEffect` and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the category count, only where it's counted.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -116,7 +122,7 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook has one consumer and no imperative category, so its separate file adds indirection before an extraction trigger exists.
+Why: the hook has one consumer and calls only one built-in hook (`useMemo`), one imperative category short of the two-category threshold, so its separate file adds indirection before an extraction trigger exists.
 
 ## Correct — Simple Single-Use Hook Inline
 
