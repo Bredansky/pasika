@@ -149,7 +149,7 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
 }
 ```
 
-Why: `useRef` and `useEffect` are two distinct hooks, worth one point no matter how many are called, and neither call performs any of the four kinds of side-effecting work that would add a second point.
+Why: `useRef` and `useEffect` are two distinct hooks, worth one point no matter how many are called, and neither call subscribes, does external I/O, manipulates the DOM, or manages a resource's lifecycle — any of which would add a second point.
 
 ## Correct — Two Distinct Hooks Inline
 
