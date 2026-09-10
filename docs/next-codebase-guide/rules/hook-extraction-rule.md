@@ -60,7 +60,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: the extracted hook still combines the same two kinds of work, keeping the component focused on rendering; extraction changes where the score is counted, not the score itself.
+Why: the extracted hook still combines the same two kinds of work, keeping the component focused on rendering.
 
 ## Incorrect — Reused Hook Kept Inline
 
