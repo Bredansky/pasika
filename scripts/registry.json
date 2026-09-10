@@ -512,8 +512,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.",
-      "hash": "b057015bf3",
+      "text": "A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.",
+      "hash": "ab55136a27",
       "ref": "pasika/hook-complexity"
     },
     {
@@ -530,8 +530,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.",
-      "hash": "fb12bb6002",
+      "text": "A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.",
+      "hash": "5752841901",
       "ref": "pasika/hook-complexity"
     },
     {

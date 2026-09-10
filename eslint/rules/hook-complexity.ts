@@ -1,16 +1,17 @@
 /**
  * ESLint rule: pasika/hook-complexity
  *
- * - A custom hook with exactly one consumer MUST be extracted when it contains
- *   two or more imperative categories.
- * - A custom hook with one consumer that contains fewer than two imperative
- *   categories MUST stay inline in its consumer file.
+ * - A custom hook with exactly one consumer MUST be extracted when its
+ *   extraction score reaches two.
+ * - A custom hook with one consumer whose extraction score is below two MUST
+ *   stay inline in its consumer file.
  *
  * A single built-in hook is just a hook doing its job, not a signal. A second
  * distinct one is a real but partial signal — common pairs like useState +
  * useEffect are ordinary, not evidence of a hook doing too much — so the
- * first distinct hook found is free and every one after it counts: two
- * distinct hooks score 1, three score 2 and cross the threshold.
+ * first distinct hook (imperative category) found is free and every one
+ * after it adds one to the score: two distinct hooks score 1, three score 2
+ * and cross the threshold.
  *
  * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
  */
@@ -45,14 +46,14 @@ function isHookName(name: string): boolean {
 }
 
 /**
- * Counts the distinct React hook categories called anywhere inside a hook
- * body, minus one: the first distinct built-in hook found is free, since one
- * hook call is just that hook doing its job, not a complexity signal. Every
- * distinct hook after it counts. Re-parses just the body's source slice with
- * the TypeScript compiler so the walk stays fully typed instead of unrolling
- * ESTree unions by hand.
+ * Scores a hook body for extraction: the distinct built-in hooks (imperative
+ * categories) called anywhere inside it, minus one — the first distinct hook
+ * found is free, since one hook call is just that hook doing its job, not a
+ * complexity signal. Every distinct hook after it adds one to the score.
+ * Re-parses just the body's source slice with the TypeScript compiler so the
+ * walk stays fully typed instead of unrolling ESTree unions by hand.
  */
-function countImperativeCategories(body: ESTree.BlockStatement, sourceText: string): number {
+function computeExtractionScore(body: ESTree.BlockStatement, sourceText: string): number {
   const start = body.range?.[0] ?? 0;
   const end = body.range?.[1] ?? sourceText.length;
   const sourceFile = ts.createSourceFile(
@@ -100,22 +101,22 @@ export const hookComplexityRule: Rule.RuleModule = {
       if (!name || !isHookName(name)) return;
       if (!body) return;
 
-      const imperativeCount = countImperativeCategories(body, sourceText);
+      const score = computeExtractionScore(body, sourceText);
       const parentFolder = segments.length >= 2 ? segments[segments.length - 2] : undefined;
       const inSupportFolder = parentFolder === "hooks";
 
-      if (imperativeCount >= 2 && !inSupportFolder) {
+      if (score >= 2 && !inSupportFolder) {
         context.report({
           node,
           message:
-            `Hook "${name}" has ${String(imperativeCount)} imperative categories and must be extracted to a hooks/ folder. ` +
+            `Hook "${name}" has an extraction score of ${String(score)} and must be extracted to a hooks/ folder. ` +
             "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
         });
-      } else if (imperativeCount < 2 && inSupportFolder) {
+      } else if (score < 2 && inSupportFolder) {
         context.report({
           node,
           message:
-            `Hook "${name}" has fewer than two imperative categories and must stay inline in its consumer file. ` +
+            `Hook "${name}" has an extraction score below two and must stay inline in its consumer file. ` +
             "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
         });
       }

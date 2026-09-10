@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { hookComplexityRule } from "./hook-complexity";
 
-void describe("A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.", () => {
+void describe("A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
       // Simple hook in a component file (fewer than 2 imperative categories — should stay)
@@ -38,7 +38,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "usePlayerSetup" has 2 imperative categories and must be extracted to a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "usePlayerSetup" has an extraction score of 2 and must be extracted to a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -49,7 +49,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "useSort" has fewer than two imperative categories and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "useSort" has an extraction score below two and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -60,7 +60,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "usePlayerVolume" has fewer than two imperative categories and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "usePlayerVolume" has an extraction score below two and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -68,7 +68,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
   });
 });
 
-void describe("A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.", () => {
+void describe("A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
       // Simple hook not in hooks/ — fine (not extracted yet)

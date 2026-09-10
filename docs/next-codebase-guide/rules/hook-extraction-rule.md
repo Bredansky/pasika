@@ -3,10 +3,10 @@
 Keeping every hook inline makes components bloated, while extracting every hook adds indirection without benefit. This rule defines concrete reuse and imperative-complexity triggers for extraction.
 
 - A custom hook MUST be extracted to its own file when two or more consumers use it.
-- A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.
+- A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two and it can be described as one coherent behavior.
 - An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.
 - When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
-- A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.
+- A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
@@ -70,7 +70,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: the named hook still calls `useState`, `useEffect`, and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the category count, only where it's counted.
+Why: the named hook still calls `useState`, `useEffect`, and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the extraction score, only where it's counted.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -159,7 +159,7 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
 }
 ```
 
-Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the two-category threshold. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much.
+Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much.
 
 ## Correct — Two Distinct Hooks Inline
 
