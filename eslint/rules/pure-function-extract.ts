@@ -3,6 +3,15 @@
  *
  * A pure function MUST be extracted to utils/, even when it has one consumer.
  *
+ * A route.ts module handler's own internal caller counts as that "one
+ * consumer": Next.js route handlers are a dead end for the project-wide import
+ * graph the other placement rules read, so a pure helper declared beside a
+ * handler never gets a second, cross-file consumer to trigger extraction any
+ * other way. This rule therefore checks route.ts module-scope declarations
+ * whether or not they are exported, while every other file keeps requiring
+ * export first, since an unexported helper elsewhere is invisible outside its
+ * file and extracting it would add indirection no consumer needs yet.
+ *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  */
 
@@ -11,6 +20,26 @@ import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import type { FunctionDeclarationNode } from "../ast-types";
 import { sourceRootOf } from "./project-root";
+
+// Next.js requires these exact names exported from route.ts; none of them may
+// move to utils/ without breaking the route.
+const ROUTE_HANDLER_EXPORT_NAMES = new Set([
+  "GET",
+  "POST",
+  "PUT",
+  "PATCH",
+  "DELETE",
+  "HEAD",
+  "OPTIONS",
+  "dynamic",
+  "dynamicParams",
+  "revalidate",
+  "fetchCache",
+  "runtime",
+  "preferredRegion",
+  "maxDuration",
+  "generateStaticParams",
+]);
 
 function isComponentLikeName(name: string): boolean {
   return /^[A-Z]/.test(name);
@@ -41,7 +70,8 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = context.filename;
-    if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx")) return {};
+    const isRouteFile = path.basename(filename) === "route.ts";
+    if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx") && !isRouteFile) return {};
 
     const sourceRoot = sourceRootOf(context);
     const relative = path.relative(sourceRoot, filename);
@@ -51,7 +81,9 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
 
     // Already in utils/ or a support folder — fine
     if (segments[0] === "utils") return {};
-    if (segments[0] === "app") return {};
+    // Every app/ file is exempt except route.ts, whose module-scope
+    // declarations are otherwise invisible to the rest of the rule set.
+    if (segments[0] === "app" && !isRouteFile) return {};
     const supportFolders = new Set(["hooks", "types", "schemas", "constants", "utils"]);
     if (segments.length >= 2 && supportFolders.has(segments[segments.length - 1] ?? "")) return {};
 
@@ -65,9 +97,13 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     return {
       FunctionDeclaration(node: FunctionDeclarationNode) {
         const exported = node.parent?.type === "ExportNamedDeclaration";
-        if (!exported) return;
+        const moduleLevel = exported || node.parent?.type === "Program";
+        if (!moduleLevel) return;
+        if (!isRouteFile && !exported) return;
+
         const name = node.id?.name;
         if (!name) return;
+        if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
         if (!node.body || hasHookUsage(node.body)) return;
         report(node, name);
@@ -78,8 +114,13 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         const name = node.id.name;
         if (!name) return;
 
-        const exported = node.parent.parent?.type === "ExportNamedDeclaration";
-        if (!exported) return;
+        const container = node.parent.parent;
+        const exported = container?.type === "ExportNamedDeclaration";
+        const moduleLevel = exported || container?.type === "Program";
+        if (!moduleLevel) return;
+        if (!isRouteFile && !exported) return;
+
+        if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
 
         const init = node.init;
