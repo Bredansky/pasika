@@ -601,6 +601,12 @@
       "ref": "pasika/repeated-structure"
     },
     {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its imperative weight reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.",
+      "hash": "b69bf99466",
+      "ref": "pasika/route-handler-complexity"
+    },
+    {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "A component's name MUST be `PascalCase`.",
       "hash": "6bd701a96e",
