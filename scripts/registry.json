@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant's name MUST be `camelCase`, unless its value is a direct `process.env` read (with or without a fallback), in which case it MAY use `SCREAMING_SNAKE_CASE` instead, or a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`). A constant computed or derived from one or more environment variables — a fallback chain, a parsed number, a template string — is not a direct read and MUST still be `camelCase`.",
-      "hash": "93ee8869b3",
+      "text": "A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).",
+      "hash": "21bf51f0a3",
       "ref": "pasika/constant-casing"
     },
     {

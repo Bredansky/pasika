@@ -11,20 +11,13 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A constant's name MUST be `camelCase`, unless its value is a direct `process.env` read (with or without a fallback), in which case it MAY use `SCREAMING_SNAKE_CASE` instead, or a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`). A constant computed or derived from one or more environment variables — a fallback chain, a parsed number, a template string — is not a direct read and MUST still be `camelCase`.", () => {
+void describe("A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).", () => {
   ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
       // camelCase constant.
       { code: "export const maxFileSize = 20 * 1024 * 1024;", filename: file("constants/index.ts") },
-      // Direct process.env read, no fallback.
-      { code: "const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;", filename: file("app/api/post/route.ts") },
-      // Direct process.env read with a `??` fallback.
-      { code: 'const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? "";', filename: file("app/api/post/route.ts") },
-      // Direct process.env read with a ternary fallback.
-      {
-        code: 'const NODE_ENV = process.env.NODE_ENV ? process.env.NODE_ENV : "development";',
-        filename: file("config/mode/index.ts"),
-      },
+      // camelCase constant reading a process.env variable.
+      { code: 'const webhookSecret = process.env.WEBHOOK_SECRET ?? "";', filename: file("app/api/post/route.ts") },
       // PascalCase (types/enums) is a different rule's concern; this rule only matches SCREAMING_SNAKE_CASE.
       { code: "export const HomeFeedConfig = 1;", filename: file("constants/index.ts") },
       // A non-module-level (block-scoped) constant is out of this rule's scope.
@@ -39,7 +32,17 @@ void describe("A constant's name MUST be `camelCase`, unless its value is a dire
         filename: file("constants/index.ts"),
         errors: [
           {
-            message: `MAX_FILE_SIZE must be camelCase; only a direct process.env read may use SCREAMING_SNAKE_CASE. ${DOC}`,
+            message: `MAX_FILE_SIZE must be camelCase, unless a framework requires this exact name. ${DOC}`,
+          },
+        ],
+      },
+      {
+        // Screaming-case env-derived constants are no longer exempt; only framework-required names are.
+        code: 'const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET ?? "";',
+        filename: file("app/api/post/route.ts"),
+        errors: [
+          {
+            message: `WEBHOOK_SECRET must be camelCase, unless a framework requires this exact name. ${DOC}`,
           },
         ],
       },
@@ -49,17 +52,7 @@ void describe("A constant's name MUST be `camelCase`, unless its value is a dire
         filename: file("app/api/post/route.ts"),
         errors: [
           {
-            message: `HANDLER must be camelCase; only a direct process.env read may use SCREAMING_SNAKE_CASE. ${DOC}`,
-          },
-        ],
-      },
-      {
-        // A fallback chain derived from process.env, but not a direct read, must still be camelCase.
-        code: 'const envValue = process.env.APP_URL;\nexport const APP_URL = envValue ?? "http://localhost:3000";',
-        filename: file("config/app-url/index.ts"),
-        errors: [
-          {
-            message: `APP_URL must be camelCase; only a direct process.env read may use SCREAMING_SNAKE_CASE. ${DOC}`,
+            message: `HANDLER must be camelCase, unless a framework requires this exact name. ${DOC}`,
           },
         ],
       },
