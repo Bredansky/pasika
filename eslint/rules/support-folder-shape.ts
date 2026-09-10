@@ -36,26 +36,55 @@ export const supportFolderShapeRule: Rule.RuleModule = {
       Program(node) {
         const source = context.sourceCode.text;
         const hasDirectExport = /export\s+(?:const|let|var|function|class|type|interface|enum)\b/.test(source);
-        if (hasDirectExport) return;
 
-        const exportedFiles = new Set<string>();
-        const exportPattern = /export\s+(?:\{[^}]*\}|\*[^;]*)\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
-        for (const match of source.matchAll(exportPattern)) {
+        const namedExports = new Set<string>();
+        const namedExportPattern = /export\s+\{[^}]*\}\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
+        for (const match of source.matchAll(namedExportPattern)) {
           const specifier = match.groups?.specifier;
-          if (specifier) exportedFiles.add(path.basename(specifier));
+          if (specifier) namedExports.add(path.basename(specifier));
         }
 
-        const missing = siblingModules.filter((entry) => {
+        const wildcardExports = new Set<string>();
+        const wildcardExportPattern = /export\s+\*\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
+        for (const match of source.matchAll(wildcardExportPattern)) {
+          const specifier = match.groups?.specifier;
+          if (specifier) wildcardExports.add(path.basename(specifier));
+        }
+
+        // A file with direct exports and no re-export attempt at all chose the
+        // "define directly" strategy; unreferenced siblings are its business.
+        // But once it attempts to re-export siblings (named or wildcard), that
+        // attempt must be complete and must use the named form.
+        const hasAnyReExportAttempt = namedExports.size > 0 || wildcardExports.size > 0;
+        if (hasDirectExport && !hasAnyReExportAttempt) return;
+
+        const missing: string[] = [];
+        const wildcardOffenders: string[] = [];
+        for (const entry of siblingModules) {
           const stem = entry.replace(/\.(?:[cm]?tsx?|jsx?)$/, "");
-          return !exportedFiles.has(stem);
-        });
-        if (missing.length === 0) return;
+          if (namedExports.has(stem)) continue;
+          if (wildcardExports.has(stem)) {
+            wildcardOffenders.push(entry);
+            continue;
+          }
+          missing.push(entry);
+        }
+        if (missing.length === 0 && wildcardOffenders.length === 0) return;
+
+        const guide = `docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`;
+        const messages: string[] = [];
+        if (missing.length > 0) {
+          messages.push(`must named-re-export every support file: ${missing.join(", ")}`);
+        }
+        if (wildcardOffenders.length > 0) {
+          messages.push(
+            `must use a named re-export (export { ... } from ...), not export *, for: ${wildcardOffenders.join(", ")}`,
+          );
+        }
 
         context.report({
           node,
-          message:
-            `${folder}/index.ts must named-re-export every support file: ${missing.join(", ")}. ` +
-            `See docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`,
+          message: `${folder}/index.ts ${messages.join("; ")}. See ${guide}`,
         });
       },
     };

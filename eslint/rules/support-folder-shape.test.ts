@@ -16,13 +16,30 @@ function fixture(folder: string, index: string, sibling: string): string {
 void describe("A constants/ folder MUST either define its constants directly in index.ts or group related constants in files that index.ts named-re-exports.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const reExported = fixture("constants", 'export { value } from "./retry";\n', "retry.ts");
+  const mixedAndNamed = fixture(
+    "constants",
+    'export const value = 1;\nexport { retryDelayMs } from "./retry";\n',
+    "retry.ts",
+  );
   const invalid = fixture("constants", "\n", "retry.ts");
+  const mixedAndWildcard = fixture("constants", 'export const value = 1;\nexport * from "./retry";\n', "retry.ts");
   ruleTester.run("support-folder-shape", supportFolderShapeRule, {
     valid: [
       { code: "export const value = 1;", filename: valid },
       { code: 'export { value } from "./retry";', filename: reExported },
+      {
+        code: 'export const value = 1;\nexport { retryDelayMs } from "./retry";',
+        filename: mixedAndNamed,
+      },
     ],
-    invalid: [{ code: "", filename: invalid, errors: 1 }],
+    invalid: [
+      { code: "", filename: invalid, errors: 1 },
+      {
+        code: 'export const value = 1;\nexport * from "./retry";',
+        filename: mixedAndWildcard,
+        errors: 1,
+      },
+    ],
   });
 });
 
