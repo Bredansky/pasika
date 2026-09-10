@@ -13,12 +13,14 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 ```tsx
 // src/features/player/player.tsx
 export function Player({ src }: PlayerProps): React.JSX.Element {
+  const [isReady, setIsReady] = useState(false);
   const playerRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
     player.load(src);
+    setIsReady(true);
 
     return () => {
       player.off("play", handlePlay);
@@ -27,23 +29,25 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
     };
   }, [src]);
 
-  return <PlayerView ref={playerRef} />;
+  return isReady ? <PlayerView ref={playerRef} /> : null;
 }
 ```
 
-Why: the hook calls two different built-in React hooks — `useEffect` and `useRef` — crossing the two-category threshold. What runs inside `useEffect` doesn't change the count; only the two distinct hook APIs called do.
+Why: the hook calls three different built-in React hooks — `useState`, `useEffect`, and `useRef`. The first counts for free; each one after it counts, so this scores 2 and crosses the threshold. What runs inside `useEffect` doesn't change the count; only the distinct hook APIs called do.
 
 ## Correct — Complex Single-Use Hook Extracted
 
 ```ts
 // src/features/player/hooks/use-player-setup.ts
-export function usePlayerSetup(src: string): RefObject<HTMLVideoElement | null> {
+export function usePlayerSetup(src: string): { isReady: boolean; playerRef: RefObject<HTMLVideoElement | null> } {
+  const [isReady, setIsReady] = useState(false);
   const playerRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
     player.load(src);
+    setIsReady(true);
 
     return () => {
       player.off("play", handlePlay);
@@ -52,7 +56,7 @@ export function usePlayerSetup(src: string): RefObject<HTMLVideoElement | null> 
     };
   }, [src]);
 
-  return playerRef;
+  return { isReady, playerRef };
 }
 ```
 
@@ -61,12 +65,12 @@ export function usePlayerSetup(src: string): RefObject<HTMLVideoElement | null> 
 import { usePlayerSetup } from "./hooks/use-player-setup";
 
 export function Player({ src }: PlayerProps): React.JSX.Element {
-  const playerRef = usePlayerSetup(src);
-  return <PlayerView ref={playerRef} />;
+  const { isReady, playerRef } = usePlayerSetup(src);
+  return isReady ? <PlayerView ref={playerRef} /> : null;
 }
 ```
 
-Why: the named hook still calls both `useEffect` and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the category count, only where it's counted.
+Why: the named hook still calls `useState`, `useEffect`, and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the category count, only where it's counted.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -122,7 +126,7 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook has one consumer and calls only one built-in hook (`useMemo`), one imperative category short of the two-category threshold, so its separate file adds indirection before an extraction trigger exists.
+Why: the hook has one consumer and calls only one built-in hook (`useMemo`), which counts for free and scores zero, so its separate file adds indirection before an extraction trigger exists.
 
 ## Correct — Simple Single-Use Hook Inline
 
@@ -139,3 +143,37 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 ```
 
 Why: the hook stays beside its sole consumer until reuse or imperative complexity provides a mechanical extraction trigger.
+
+## Incorrect — Two Distinct Hooks Extracted Before They're Enough
+
+```ts
+// src/features/player/hooks/use-player-volume.ts
+export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null> {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    player.load(src);
+  }, [src]);
+
+  return playerRef;
+}
+```
+
+Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the two-category threshold. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much.
+
+## Correct — Two Distinct Hooks Inline
+
+```tsx
+// src/features/player/player.tsx
+export function Player({ src }: PlayerProps): React.JSX.Element {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    player.load(src);
+  }, [src]);
+
+  return <PlayerView ref={playerRef} />;
+}
+```
+
+Why: scoring 1, the hook stays inline until a third distinct built-in hook — or a second consumer — gives it a mechanical extraction trigger.

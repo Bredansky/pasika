@@ -6,6 +6,12 @@
  * - A custom hook with one consumer that contains fewer than two imperative
  *   categories MUST stay inline in its consumer file.
  *
+ * A single built-in hook is just a hook doing its job, not a signal. A second
+ * distinct one is a real but partial signal — common pairs like useState +
+ * useEffect are ordinary, not evidence of a hook doing too much — so the
+ * first distinct hook found is free and every one after it counts: two
+ * distinct hooks score 1, three score 2 and cross the threshold.
+ *
  * @see docs/next-codebase-guide/rules/hook-extraction-rule.md
  */
 
@@ -39,9 +45,12 @@ function isHookName(name: string): boolean {
 }
 
 /**
- * Counts the distinct React hook categories called anywhere inside a hook body.
- * Re-parses just the body's source slice with the TypeScript compiler so the
- * walk stays fully typed instead of unrolling ESTree unions by hand.
+ * Counts the distinct React hook categories called anywhere inside a hook
+ * body, minus one: the first distinct built-in hook found is free, since one
+ * hook call is just that hook doing its job, not a complexity signal. Every
+ * distinct hook after it counts. Re-parses just the body's source slice with
+ * the TypeScript compiler so the walk stays fully typed instead of unrolling
+ * ESTree unions by hand.
  */
 function countImperativeCategories(body: ESTree.BlockStatement, sourceText: string): number {
   const start = body.range?.[0] ?? 0;
@@ -61,7 +70,7 @@ function countImperativeCategories(body: ESTree.BlockStatement, sourceText: stri
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return categories.size;
+  return Math.max(0, categories.size - 1);
 }
 
 export const hookComplexityRule: Rule.RuleModule = {
