@@ -117,25 +117,3 @@ import { absolutizeMediaUrls } from "@/features/editor/utils/absolutize-media-ur
 ```
 
 Why: with no consumer outside `src/app/`, the function belongs in the feature it represents, the same way a component with no outside consumer does.
-
-## Incorrect — Route-Only Utility in `src/shared/`
-
-```ts
-// src/shared/utils/absolutize-media-urls.ts
-export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
-  // ...
-}
-```
-
-Why: `src/shared/` holds components with consumers in two or more features; this rule never names it as a destination, and the function still has no consumer outside `src/app/` to justify moving it there instead of into a feature.
-
-## Correct — Route-Only Utility Moved from `src/shared/` into a Feature
-
-```ts
-// src/features/editor/utils/absolutize-media-urls.ts
-export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
-  // ...
-}
-```
-
-Why: the same zero-consumer function belongs in the feature it represents, whether it was found in root `src/utils/` or in `src/shared/`.

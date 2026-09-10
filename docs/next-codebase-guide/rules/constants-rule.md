@@ -159,21 +159,3 @@ import { maxRenderJobs } from "@/features/editor/constants/max-render-jobs";
 ```
 
 Why: with no consumer outside `src/app/`, the constant belongs in the feature it represents, the same way a component with no outside consumer does.
-
-## Incorrect — Route-Only Constant in `src/shared/`
-
-```ts
-// src/shared/constants/max-render-jobs.ts
-export const maxRenderJobs = 10;
-```
-
-Why: `src/shared/` holds components with consumers in two or more features; this rule never names it as a destination, and the constant still has no consumer outside `src/app/` to justify moving it there instead of into a feature.
-
-## Correct — Route-Only Constant Moved from `src/shared/` into a Feature
-
-```ts
-// src/features/editor/constants/max-render-jobs.ts
-export const maxRenderJobs = 10;
-```
-
-Why: the same zero-consumer constant belongs in the feature it represents, whether it was found in root `src/constants/` or in `src/shared/`.

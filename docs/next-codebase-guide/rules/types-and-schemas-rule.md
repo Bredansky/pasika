@@ -201,29 +201,3 @@ import { githubErrorResponseSchema } from "@/features/editor/schemas/github-erro
 ```
 
 Why: with no consumer outside `src/app/`, the schema belongs in the feature it represents, the same way a component with no outside consumer does.
-
-## Incorrect — Route-Only Schema in `src/shared/`
-
-```ts
-// src/shared/schemas/github-error-response-schema.ts
-import { z } from "zod";
-
-export const githubErrorResponseSchema = z.object({
-  message: z.string().optional(),
-});
-```
-
-Why: `src/shared/` holds components with consumers in two or more features; this rule never names it as a destination, and the schema still has no consumer outside `src/app/` to justify moving it there instead of into a feature.
-
-## Correct — Route-Only Schema Moved from `src/shared/` into a Feature
-
-```ts
-// src/features/editor/schemas/github-error-response-schema.ts
-import { z } from "zod";
-
-export const githubErrorResponseSchema = z.object({
-  message: z.string().optional(),
-});
-```
-
-Why: the same zero-consumer schema belongs in the feature it represents, whether it was found in root `src/schemas/` or in `src/shared/`.
