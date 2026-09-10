@@ -10,7 +10,8 @@ export const supportFolderShapeRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require support-folder exports to be defined in index.ts or named-re-exported by it.",
+      description:
+        "Require a support folder to either define its exports directly in index.ts or re-export every sibling from it, never both.",
     },
   },
   create(context) {
@@ -37,54 +38,38 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         const source = context.sourceCode.text;
         const hasDirectExport = /export\s+(?:const|let|var|function|class|type|interface|enum)\b/.test(source);
 
-        const namedExports = new Set<string>();
-        const namedExportPattern = /export\s+\{[^}]*\}\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
-        for (const match of source.matchAll(namedExportPattern)) {
+        const exportedFiles = new Set<string>();
+        const exportPattern = /export\s+(?:\{[^}]*\}|\*[^;]*)\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
+        for (const match of source.matchAll(exportPattern)) {
           const specifier = match.groups?.specifier;
-          if (specifier) namedExports.add(path.basename(specifier));
+          if (specifier) exportedFiles.add(path.basename(specifier));
         }
-
-        const wildcardExports = new Set<string>();
-        const wildcardExportPattern = /export\s+\*\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
-        for (const match of source.matchAll(wildcardExportPattern)) {
-          const specifier = match.groups?.specifier;
-          if (specifier) wildcardExports.add(path.basename(specifier));
-        }
-
-        // A file with direct exports and no re-export attempt at all chose the
-        // "define directly" strategy; unreferenced siblings are its business.
-        // But once it attempts to re-export siblings (named or wildcard), that
-        // attempt must be complete and must use the named form.
-        const hasAnyReExportAttempt = namedExports.size > 0 || wildcardExports.size > 0;
-        if (hasDirectExport && !hasAnyReExportAttempt) return;
-
-        const missing: string[] = [];
-        const wildcardOffenders: string[] = [];
-        for (const entry of siblingModules) {
-          const stem = entry.replace(/\.(?:[cm]?tsx?|jsx?)$/, "");
-          if (namedExports.has(stem)) continue;
-          if (wildcardExports.has(stem)) {
-            wildcardOffenders.push(entry);
-            continue;
-          }
-          missing.push(entry);
-        }
-        if (missing.length === 0 && wildcardOffenders.length === 0) return;
+        const hasAnyReExport = exportedFiles.size > 0;
 
         const guide = `docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`;
-        const messages: string[] = [];
-        if (missing.length > 0) {
-          messages.push(`must named-re-export every support file: ${missing.join(", ")}`);
+
+        // Pick one strategy for the whole folder: define directly, or group
+        // into re-exported sibling files. Mixing both in the same index.ts is
+        // the violation -- export * is just as valid a re-export as a named
+        // one, so it's not distinguished here.
+        if (hasDirectExport && hasAnyReExport) {
+          context.report({
+            node,
+            message: `${folder}/index.ts mixes direct exports with re-exported support files; pick one strategy for the whole folder. See ${guide}`,
+          });
+          return;
         }
-        if (wildcardOffenders.length > 0) {
-          messages.push(
-            `must use a named re-export (export { ... } from ...), not export *, for: ${wildcardOffenders.join(", ")}`,
-          );
-        }
+        if (hasDirectExport) return;
+
+        const missing = siblingModules.filter((entry) => {
+          const stem = entry.replace(/\.(?:[cm]?tsx?|jsx?)$/, "");
+          return !exportedFiles.has(stem);
+        });
+        if (missing.length === 0) return;
 
         context.report({
           node,
-          message: `${folder}/index.ts ${messages.join("; ")}. See ${guide}`,
+          message: `${folder}/index.ts must re-export every support file: ${missing.join(", ")}. See ${guide}`,
         });
       },
     };
