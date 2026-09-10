@@ -29,6 +29,24 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         code: "function helper() { return 42; }",
         filename: srcFile("features/dashboard/dashboard.tsx"),
       },
+      // route.ts may export exactly the names Next.js requires
+      {
+        code: 'export async function GET() { return new Response("ok"); }',
+        filename: srcFile("app/api/health/route.ts"),
+      },
+      {
+        code: 'export const dynamic = "force-dynamic";',
+        filename: srcFile("app/api/health/route.ts"),
+      },
+      {
+        code: "export function generateStaticParams() { return []; }",
+        filename: srcFile("app/posts/[slug]/route.ts"),
+      },
+      // A pure helper nested inside a route.ts handler is not module-scope
+      {
+        code: "export async function GET() { function helper() { return 42; } return new Response(String(helper())); }",
+        filename: srcFile("app/api/health/route.ts"),
+      },
       // Functions using hooks are fine (they have side effects)
       {
         code: "export function useCount() { const [n, setN] = useState(0); return n; }",
@@ -81,6 +99,29 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
           {
             message:
               'Extract pure function "formatDate" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Unexported module-scope helper in route.ts — its handler is a dead end
+      // for the import graph, so no other file will ever demand extraction.
+      {
+        code: 'function absolutizeUrl(url) { return new URL(url, "https://example.com").toString(); }\nexport async function GET() { return new Response(absolutizeUrl("/x")); }',
+        filename: srcFile("app/api/health/route.ts"),
+        errors: [
+          {
+            message:
+              'Extract pure function "absolutizeUrl" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Module-scope arrow helper in route.ts, exported under a non-route name
+      {
+        code: 'export const formatJobId = (id) => "job-" + id;\nexport async function GET() { return new Response(formatJobId("1")); }',
+        filename: srcFile("app/api/health/route.ts"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatJobId" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
