@@ -13,14 +13,10 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 ```tsx
 // src/features/player/player.tsx
 export function Player({ src }: PlayerProps): React.JSX.Element {
-  const [isReady, setIsReady] = useState(false);
-  const playerRef = useRef<HTMLVideoElement>(null);
-
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
     player.load(src);
-    setIsReady(true);
 
     return () => {
       player.off("play", handlePlay);
@@ -29,25 +25,21 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
     };
   }, [src]);
 
-  return isReady ? <PlayerView ref={playerRef} /> : null;
+  return <PlayerView />;
 }
 ```
 
-Why: the hook calls three different built-in React hooks — `useState`, `useEffect`, and `useRef`. The first counts for free; each one after it counts, so this scores 2 and crosses the threshold. What runs inside `useEffect` doesn't change the count; only the distinct hook APIs called do.
+Why: the hook calls `useEffect`, subscribes to player events (`player.on`/`player.off`), and manages the player's resource lifecycle (`player.load`/`player.destroy`) — three distinct imperative categories. The first counts for free; each one after it counts, so this scores 2 and crosses the threshold.
 
 ## Correct — Complex Single-Use Hook Extracted
 
 ```ts
 // src/features/player/hooks/use-player-setup.ts
-export function usePlayerSetup(src: string): { isReady: boolean; playerRef: RefObject<HTMLVideoElement | null> } {
-  const [isReady, setIsReady] = useState(false);
-  const playerRef = useRef<HTMLVideoElement>(null);
-
+export function usePlayerSetup(src: string): void {
   useEffect(() => {
     player.on("play", handlePlay);
     player.on("pause", handlePause);
     player.load(src);
-    setIsReady(true);
 
     return () => {
       player.off("play", handlePlay);
@@ -55,8 +47,6 @@ export function usePlayerSetup(src: string): { isReady: boolean; playerRef: RefO
       player.destroy();
     };
   }, [src]);
-
-  return { isReady, playerRef };
 }
 ```
 
@@ -65,12 +55,12 @@ export function usePlayerSetup(src: string): { isReady: boolean; playerRef: RefO
 import { usePlayerSetup } from "./hooks/use-player-setup";
 
 export function Player({ src }: PlayerProps): React.JSX.Element {
-  const { isReady, playerRef } = usePlayerSetup(src);
-  return isReady ? <PlayerView ref={playerRef} /> : null;
+  usePlayerSetup(src);
+  return <PlayerView />;
 }
 ```
 
-Why: the named hook still calls `useState`, `useEffect`, and `useRef` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the extraction score, only where it's counted.
+Why: the named hook still combines subscriptions and resource lifecycle around `useEffect` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the extraction score, only where it's counted.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -152,14 +142,14 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
   const playerRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    player.load(src);
+    console.log("volume src changed", src);
   }, [src]);
 
   return playerRef;
 }
 ```
 
-Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much.
+Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much, and neither call performs any of the four kinds of imperative work that would add a third category.
 
 ## Correct — Two Distinct Hooks Inline
 
@@ -169,11 +159,11 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
   const playerRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    player.load(src);
+    console.log("volume src changed", src);
   }, [src]);
 
   return <PlayerView ref={playerRef} />;
 }
 ```
 
-Why: scoring 1, the hook stays inline until a third distinct built-in hook — or a second consumer — gives it a mechanical extraction trigger.
+Why: scoring 1, the hook stays inline until a third distinct category — another built-in hook, a subscription, external I/O, DOM manipulation, resource lifecycle, or a second consumer — gives it a mechanical extraction trigger.
