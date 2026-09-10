@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.7.7",
+  "version": "0.8.0",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
