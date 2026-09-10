@@ -46,8 +46,31 @@ void describe("A constants/ folder MUST either define its constants directly in 
 void describe("A types/ or schemas/ folder MUST either define its exports directly in index.ts or group related types and schemas in files that index.ts named-re-exports.", () => {
   const valid = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
   const invalid = fixture("schemas", "\n", "invoice-schema.ts");
+  const mixedAndNamed = fixture(
+    "types",
+    'export type Value = number;\nexport { Invoice } from "./invoice";\n',
+    "invoice.ts",
+  );
+  const mixedAndWildcard = fixture(
+    "schemas",
+    'export const value = 1;\nexport * from "./invoice-schema";\n',
+    "invoice-schema.ts",
+  );
   ruleTester.run("support-folder-shape", supportFolderShapeRule, {
-    valid: [{ code: 'export { Invoice } from "./invoice";', filename: valid }],
-    invalid: [{ code: "", filename: invalid, errors: 1 }],
+    valid: [
+      { code: 'export { Invoice } from "./invoice";', filename: valid },
+      {
+        code: 'export type Value = number;\nexport { Invoice } from "./invoice";',
+        filename: mixedAndNamed,
+      },
+    ],
+    invalid: [
+      { code: "", filename: invalid, errors: 1 },
+      {
+        code: 'export const value = 1;\nexport * from "./invoice-schema";',
+        filename: mixedAndWildcard,
+        errors: 1,
+      },
+    ],
   });
 });
