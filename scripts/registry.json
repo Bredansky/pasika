@@ -427,6 +427,12 @@
       "ref": "pasika/prefer-enum"
     },
     {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A constant with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/constants/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "9fd6f53ce9",
+      "ref": "pasika/root-support-placement"
+    },
+    {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
@@ -703,6 +709,12 @@
       "ref": "pasika/schema-casing"
     },
     {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A type or schema with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/types/` or `src/schemas/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "db6dd5646f",
+      "ref": "pasika/root-support-placement"
+    },
+    {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
       "text": "A pure function MUST be extracted to `utils/`, even when it has one consumer.",
       "hash": "d49b4ce49a",
@@ -743,6 +755,12 @@
       "text": "A utility used only to implement one configuration module MUST live in that module's `utils/` folder.",
       "hash": "c9d890d2d7",
       "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "A pure function with no consumer outside `src/app/` or a configuration module MUST live in the feature it represents, not `src/utils/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "bbb478e470",
+      "ref": "pasika/root-support-placement"
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",

@@ -39,6 +39,7 @@ import { cvaAppearancePropsRule } from "./rules/cva-appearance-props";
 import { cvaBooleanVariantsRule } from "./rules/cva-boolean-variants";
 import { crossFeatureImportRule } from "./rules/cross-feature-import";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
+import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { hookComplexityRule } from "./rules/hook-complexity";
 import { localeDottedPathRule } from "./rules/locale-dotted-path";
 import { localesLocationRule } from "./rules/locales-location";
@@ -109,6 +110,7 @@ const pasikaNextjsAppRules = {
   "cva-boolean-variants": cvaBooleanVariantsRule,
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,
+  "root-support-placement": rootSupportPlacementRule,
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,
