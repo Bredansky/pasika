@@ -16,7 +16,7 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
     valid: [
       // Already an enum.
       {
-        code: 'enum LanguageLabel { Ukrainian = "UA", Russian = "RU", English = "EN" }',
+        code: 'enum LanguageLabel { Ukrainian = "UA", Polish = "PL", English = "EN" }',
         filename: file("constants/index.ts"),
       },
       // `as const` on an array is a different, structurally valid pattern (e.g. feeding z.enum), not an enum candidate.
@@ -46,7 +46,7 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
     ],
     invalid: [
       {
-        code: 'const languageLabels = { ua: "UA", ru: "RU", en: "EN" } as const;',
+        code: 'const languageLabels = { ua: "UA", pl: "PL", en: "EN" } as const;',
         filename: file("constants/index.ts"),
         errors: [
           {

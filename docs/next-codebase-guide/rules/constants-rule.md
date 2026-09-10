@@ -31,7 +31,7 @@ export const maxFileSize = 20 * 1024 * 1024;
 
 ```ts
 // src/constants/index.ts
-const languageLabels = { ua: "UA", ru: "RU", en: "EN" } as const;
+const languageLabels = { ua: "UA", pl: "PL", en: "EN" } as const;
 ```
 
 Why: `languageLabels` maps fixed keys to literal string values, which is exactly what an `enum` expresses; an `as const` object hides that intent behind a generic literal type.
@@ -42,7 +42,7 @@ Why: `languageLabels` maps fixed keys to literal string values, which is exactly
 // src/constants/index.ts
 enum LanguageLabel {
   Ukrainian = "UA",
-  Russian = "RU",
+  Polish = "PL",
   English = "EN",
 }
 ```
