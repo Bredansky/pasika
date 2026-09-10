@@ -2,11 +2,11 @@
  * ESLint rule: pasika/route-handler-complexity
  *
  * An HTTP method handler exported from route.ts MUST be extracted to a named
- * function outside src/app/ once its imperative weight reaches two: each
+ * function outside src/app/ once its extraction score reaches two: each
  * awaited call other than one reading the incoming request adds one, and a
  * loop that contains such a call adds one more. A bare try/catch around a
- * single delegated call does not add weight on its own — that is already the
- * thin shape this rule wants, not a reason to extract further.
+ * single delegated call does not add to the score on its own — that is
+ * already the thin shape this rule wants, not a reason to extract further.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -59,7 +59,7 @@ function isLoop(node: ts.Node): boolean {
 }
 
 /**
- * Scores a handler body's imperative weight: one point for each awaited call
+ * Scores a handler body for extraction: one point for each awaited call
  * other than one reading the incoming request (e.g. `request.json()`), plus
  * one more if a loop contains at least one such call — a loop that fans an
  * external call out over a collection is doing more work than the one call
@@ -67,7 +67,7 @@ function isLoop(node: ts.Node): boolean {
  * compiler so the walk stays fully typed, the same technique hook-complexity
  * uses for hook bodies.
  */
-function scoreImperativeWeight(body: ESTree.BlockStatement, params: ESTree.Pattern[], sourceText: string): number {
+function computeExtractionScore(body: ESTree.BlockStatement, params: ESTree.Pattern[], sourceText: string): number {
   const requestParamNames = new Set(
     params.filter((param): param is ESTree.Identifier => param.type === "Identifier").map((param) => param.name),
   );
@@ -121,18 +121,18 @@ export const routeHandlerComplexityRule: Rule.RuleModule = {
 
     const sourceText = context.sourceCode.text;
 
-    function report(node: Rule.Node, name: string, weight: number): void {
+    function report(node: Rule.Node, name: string, score: number): void {
       context.report({
         node,
         message:
-          `Handler "${name}" has an imperative weight of ${String(weight)} and must be extracted to a named ` +
+          `Handler "${name}" has an extraction score of ${String(score)} and must be extracted to a named ` +
           "function outside src/app/. See docs/next-codebase-guide/rules/route-handler-rule.md",
       });
     }
 
     function checkHandler(node: Rule.Node, name: string, body: ESTree.BlockStatement, params: ESTree.Pattern[]): void {
-      const weight = scoreImperativeWeight(body, params, sourceText);
-      if (weight >= 2) report(node, name, weight);
+      const score = computeExtractionScore(body, params, sourceText);
+      if (score >= 2) report(node, name, score);
     }
 
     return {

@@ -33,3 +33,12 @@ These terms name the component classifications and the extraction triggers this 
 | External I/O and persistence | Network requests, asynchronous reads or writes, and browser storage.                                                                                                                                     |
 | DOM manipulation             | Imperative DOM APIs such as `focus()`, `classList`, observers, or imperative rendering.                                                                                                                  |
 | Resource lifecycle           | Setup and teardown APIs such as `load()`, `destroy()`, or `dispose()`.                                                                                                                                   |
+
+## Route Handler Terms
+
+These terms name the parts of a `route.ts` handler's body the Route Handler Rule scores to decide whether it must be extracted.
+
+| Term             | Definition                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| External call    | An awaited call in a route handler's body other than one reading the incoming request, e.g. `request.json()` or `req.headers.get()`. |
+| Extraction score | One point for each external call in a route handler's body, plus one more if a loop contains at least one external call.             |

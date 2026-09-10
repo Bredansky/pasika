@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { routeHandlerComplexityRule } from "./route-handler-complexity";
 
-void describe("An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its imperative weight reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.", () => {
+void describe("An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its extraction score reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.", () => {
   ruleTester.run("route-handler-complexity", routeHandlerComplexityRule, {
     valid: [
       // One external call, no loop: weight of one may stay inline.
@@ -13,7 +13,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST be extracted
         }`,
         filename: srcFile("app/api/post-status/route.ts"),
       },
-      // Reading the request body is route glue, not imperative weight.
+      // Reading the request body is route glue, not part of the extraction score.
       {
         code: `export async function POST(request) {
           const body = await request.json();
@@ -82,7 +82,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST be extracted
         errors: [
           {
             message:
-              'Handler "POST" has an imperative weight of 3 and must be extracted to a named function outside ' +
+              'Handler "POST" has an extraction score of 3 and must be extracted to a named function outside ' +
               "src/app/. See docs/next-codebase-guide/rules/route-handler-rule.md",
           },
         ],
@@ -103,7 +103,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST be extracted
         errors: [
           {
             message:
-              'Handler "POST" has an imperative weight of 2 and must be extracted to a named function outside ' +
+              'Handler "POST" has an extraction score of 2 and must be extracted to a named function outside ' +
               "src/app/. See docs/next-codebase-guide/rules/route-handler-rule.md",
           },
         ],

@@ -2,9 +2,9 @@
 
 A route handler that keeps parsing, orchestration, external calls, and error handling inline grows without bound, because nothing about `route.ts` gives it a reason to stop. This rule gives route handlers the same extraction trigger the Hook Extraction Rule gives hooks.
 
-- An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its imperative weight reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.
+- An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its extraction score reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.
 
-## Incorrect — Imperative Weight of Two Left Inline
+## Incorrect — Extraction Score of Two Left Inline
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 ```
 
-Why: the handler's own body has an imperative weight of zero once the single lookup moves out — extracting it added indirection before a threshold required it.
+Why: the handler's own body has an extraction score of zero once the single lookup moves out — extracting it added indirection before a threshold required it.
 
 ## Correct — Single Delegated Call Inline, Even Wrapped in `try`/`catch`
 
@@ -94,4 +94,4 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 ```
 
-Why: one awaited call has an imperative weight of one, so it stays inline — a `try`/`catch` that only maps that one call's failure to a response is the shape this rule wants, not a second point of weight.
+Why: one awaited call has an extraction score of one, so it stays inline — a `try`/`catch` that only maps that one call's failure to a response is the shape this rule wants, not a second point on the score.
