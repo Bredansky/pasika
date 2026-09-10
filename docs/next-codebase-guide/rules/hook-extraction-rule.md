@@ -29,7 +29,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: the hook calls `useEffect`, subscribes to player events (`player.on`/`player.off`), and manages the player's resource lifecycle (`player.load`/`player.destroy`) — three distinct imperative categories. The first counts for free; each one after it counts, so this scores 2 and crosses the threshold.
+Why: the hook combines two distinct kinds of work beyond `useEffect` — subscribing to player events and managing resource lifecycle — reaching an extraction score of 2.
 
 ## Correct — Complex Single-Use Hook Extracted
 
@@ -60,7 +60,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: the named hook still combines subscriptions and resource lifecycle around `useEffect` for one coherent behavior, keeping the component focused on rendering; extracting it doesn't change the extraction score, only where it's counted.
+Why: the extracted hook still combines the same two kinds of work, keeping the component focused on rendering; extraction changes where the score is counted, not the score itself.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -116,7 +116,7 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook has one consumer and calls only one built-in hook (`useMemo`), which counts for free and scores zero, so its separate file adds indirection before an extraction trigger exists.
+Why: the hook has one consumer and calls only `useMemo`, scoring zero, so its separate file adds indirection before an extraction trigger exists.
 
 ## Correct — Simple Single-Use Hook Inline
 
@@ -149,7 +149,7 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
 }
 ```
 
-Why: `useRef` and `useEffect` are two distinct built-in hooks, and one of them always counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much, and neither call performs any of the four kinds of imperative work that would add a third category.
+Why: `useRef` and `useEffect` together score 1, one short of the threshold, since neither call performs a second kind of imperative work.
 
 ## Correct — Two Distinct Hooks Inline
 
@@ -166,4 +166,4 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: scoring 1, the hook stays inline until a third distinct category — another built-in hook, a subscription, external I/O, DOM manipulation, resource lifecycle, or a second consumer — gives it a mechanical extraction trigger.
+Why: scoring 1, the hook stays inline until a third distinct category or a second consumer gives it a mechanical extraction trigger.
