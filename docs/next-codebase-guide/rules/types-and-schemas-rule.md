@@ -11,6 +11,7 @@ Types and schemas are easy to bury in component files or scatter across the proj
 - Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.
 - A type or schema used only to implement one configuration module MUST live in that module's `types/` or `schemas/` folder.
 - A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.
+- A schema's name MUST be `camelCase`.
 
 ## Incorrect — Feature and Composition Type Kept in a Feature
 
@@ -137,3 +138,29 @@ import { invoiceSchema } from "../schemas";
 ```
 
 Why: the component and hook can use the billing feature's schemas index independently.
+
+## Incorrect — Schema Named in PascalCase
+
+```ts
+// src/schemas/index.ts
+import { z } from "zod";
+
+export const InvoiceSchema = z.object({
+  amount: z.number().positive(),
+});
+```
+
+Why: `InvoiceSchema` is PascalCase, which this rule reserves for types.
+
+## Correct — Schema Named in camelCase
+
+```ts
+// src/schemas/index.ts
+import { z } from "zod";
+
+export const invoiceSchema = z.object({
+  amount: z.number().positive(),
+});
+```
+
+Why: `invoiceSchema` is `camelCase`, matching the naming convention for constants.

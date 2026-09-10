@@ -590,6 +590,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
+      "text": "A component's name MUST be `PascalCase`.",
+      "hash": "6bd701a96e",
+      "ref": "pasika/component-casing"
+    },
+    {
+      "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "A smart component file name MUST be `PascalCase.tsx`.",
       "hash": "1ece393f32",
       "ref": "pasika/filename-case"
@@ -683,6 +689,12 @@
       "text": "A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
       "hash": "091724ed27",
       "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A schema's name MUST be `camelCase`.",
+      "hash": "4f45050d5a",
+      "ref": "pasika/schema-casing"
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
