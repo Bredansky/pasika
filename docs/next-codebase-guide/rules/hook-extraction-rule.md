@@ -149,7 +149,7 @@ export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null>
 }
 ```
 
-Why: `useRef` and `useEffect` are two distinct built-in hooks, but the first counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much, and neither call performs any of the four kinds of imperative work that would add a third category.
+Why: `useRef` and `useEffect` are two distinct built-in hooks, and one of them always counts for free, so this scores 1 — one short of the extraction-score threshold of two. Common pairs like this are ordinary hook usage, not evidence of a hook doing too much, and neither call performs any of the four kinds of imperative work that would add a third category.
 
 ## Correct — Two Distinct Hooks Inline
 
