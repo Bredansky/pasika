@@ -2,7 +2,7 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { routeHandlerShapeRule } from "./route-handler-shape";
 
 const MUST_BE_WRAPPED = (name: string): string =>
-  `Handler "${name}" must be wrapped in withErrors or withResponse. See docs/next-codebase-guide/rules/route-handler-rule.md`;
+  `Handler "${name}" must be wrapped in withResponse. See docs/next-codebase-guide/rules/route-handler-rule.md`;
 const NO_TRY = (name: string): string =>
   `Handler "${name}" contains a try statement of its own; withResponse already builds and validates the response. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
@@ -16,7 +16,7 @@ const NO_RESPONSE = (name: string): string =>
   `Handler "${name}" contains a NextResponse.json call of its own; withResponse already builds and validates the response. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
-void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withErrors` or `withResponse`.", () => {
+void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
       // The canonical pipeline: withResponse wrapping withUserId wrapping the handler.
@@ -30,14 +30,6 @@ void describe("An HTTP method handler exported from `route.ts` MUST be wrapped i
           }),
         );`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // A legacy handler that still builds its own NextResponse, wrapped only in withErrors.
-      {
-        code: `export const GET = withErrors(withUserAccount(async (account): Promise<NextResponse> => {
-          const storedCredentials = await listCredentials(account.id);
-          return NextResponse.json(storedCredentials);
-        }));`,
-        filename: srcFile("app/api/credentials/route.ts"),
       },
       // A re-exported handler reference isn't a recognizable function, so
       // there is nothing to check.
@@ -78,12 +70,21 @@ void describe("An HTTP method handler exported from `route.ts` MUST be wrapped i
         filename: srcFile("app/api/health/route.ts"),
         errors: [{ message: MUST_BE_WRAPPED("GET") }],
       },
-      // Wrapped by a call, but not withErrors or withResponse.
+      // Wrapped by a call, but not withResponse.
       {
         code: `export const GET = withUserId(async (userId, request: NextRequest) => {
           return NextResponse.json({ status: "ok" });
         });`,
         filename: srcFile("app/api/health/route.ts"),
+        errors: [{ message: MUST_BE_WRAPPED("GET") }],
+      },
+      // withErrors alone no longer satisfies the boundary requirement.
+      {
+        code: `export const GET = withErrors(withUserAccount(async (account): Promise<NextResponse> => {
+          const storedCredentials = await listCredentials(account.id);
+          return NextResponse.json(storedCredentials);
+        }));`,
+        filename: srcFile("app/api/credentials/route.ts"),
         errors: [{ message: MUST_BE_WRAPPED("GET") }],
       },
     ],
@@ -116,17 +117,6 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain a `try` stat
           return { message: "OK.", data: ids };
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // A legacy handler under withErrors only may keep its own try/catch.
-      {
-        code: `export const GET = withErrors(withUserAccount(async (account): Promise<NextResponse> => {
-          try {
-            return NextResponse.json({ ok: true });
-          } catch {
-            return NextResponse.json({ error: "failed" }, { status: 500 });
-          }
-        }));`,
-        filename: srcFile("app/api/credentials/route.ts"),
       },
     ],
     invalid: [

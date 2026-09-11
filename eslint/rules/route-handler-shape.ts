@@ -2,13 +2,12 @@
  * ESLint rule: pasika/route-handler-shape
  *
  * An HTTP method handler exported from route.ts MUST be wrapped in
- * withErrors or withResponse — the one boundary that catches an HttpError
- * thrown by requireUserId/requireUserAccount or any delegated call. A
- * handler wrapped in withResponse additionally MUST NOT contain a try
- * statement, a loop, an if statement, or a NextResponse.json call of its
- * own: withResponse already builds and validates the response from the
- * handler's returned {message, data}, so a handler under it has nothing
- * left to branch, loop, catch, or respond on directly.
+ * withResponse — the one boundary that catches an HttpError thrown by
+ * requireUserId/requireUserAccount or any delegated call, and that builds
+ * and validates the response from the handler's returned {message, data}.
+ * A handler under it MUST NOT contain a try statement, a loop, an if
+ * statement, or a NextResponse.json call of its own: it has nothing left
+ * to branch, loop, catch, or respond on directly.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -20,7 +19,7 @@ import ts from "typescript";
 import type { FunctionDeclarationNode } from "../ast-types";
 
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
-const BOUNDARY_NAMES = new Set(["withErrors", "withResponse"]);
+const REQUIRED_BOUNDARY = "withResponse";
 
 type FunctionLike = ESTree.ArrowFunctionExpression | ESTree.FunctionExpression;
 
@@ -115,7 +114,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a route.ts handler to be wrapped in withErrors or withResponse, and a withResponse handler to have no try, loop, if, or NextResponse.json call of its own.",
+        "Require a route.ts handler to be wrapped in withResponse, with no try, loop, if, or NextResponse.json call of its own.",
     },
   },
   create(context) {
@@ -127,7 +126,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
       context.report({
         node,
         message:
-          `Handler "${name}" must be wrapped in withErrors or withResponse. ` +
+          `Handler "${name}" must be wrapped in withResponse. ` +
           "See docs/next-codebase-guide/rules/route-handler-rule.md",
       });
     }
@@ -140,12 +139,10 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
       const boundary =
         init.type === "CallExpression" && init.callee.type === "Identifier" ? init.callee.name : undefined;
 
-      if (!boundary || !BOUNDARY_NAMES.has(boundary)) {
+      if (boundary !== REQUIRED_BOUNDARY) {
         reportUnwrapped(node, name);
         return;
       }
-
-      if (boundary !== "withResponse") return;
 
       const handler = findHandler(init);
       if (!handler?.body) return;

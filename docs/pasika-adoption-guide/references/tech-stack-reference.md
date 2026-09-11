@@ -32,7 +32,7 @@ export function cn(...inputs: ClassValue[]): string {
 
 ## Route Error Handling Helpers
 
-`HttpError`, `withErrors`, and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withErrors` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`) and maps it to a `{ error, status }` response, for a handler that still builds its own success response; `withResponse` additionally validates the handler's returned data against a schema and builds the `{ data, message }` envelope itself, so the handler never calls `NextResponse.json` at all.
+`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` envelope itself, so the handler never calls `NextResponse.json` at all.
 
 ```ts
 // src/utils/http-error.ts
@@ -43,24 +43,6 @@ export class HttpError extends Error {
   ) {
     super(message);
   }
-}
-```
-
-```ts
-// src/utils/with-errors.ts
-export function withErrors<Args extends unknown[], TResponse extends NextResponse>(
-  handler: (...args: Args) => Promise<TResponse>,
-): (...args: Args) => Promise<TResponse | NextResponse<{ error: string }>> {
-  return async (...args) => {
-    try {
-      return await handler(...args);
-    } catch (error) {
-      if (error instanceof HttpError) {
-        return NextResponse.json({ error: error.message }, { status: error.status });
-      }
-      throw error;
-    }
-  };
 }
 ```
 

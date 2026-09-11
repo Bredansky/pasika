@@ -608,8 +608,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST be wrapped in `withErrors` or `withResponse`.",
-      "hash": "596de5fa95",
+      "text": "An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.",
+      "hash": "7b8d27c0d8",
       "ref": "pasika/route-handler-shape"
     },
     {

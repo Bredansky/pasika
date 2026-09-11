@@ -2,7 +2,7 @@
 
 A route handler that catches its own failures, branches on them, or builds its own response grows without bound, and a thrown `HttpError` that never reaches a boundary reaches no response at all.
 
-- An HTTP method handler exported from `route.ts` MUST be wrapped in `withErrors` or `withResponse`.
+- An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
@@ -168,4 +168,4 @@ function readGithubDispatchConfig(): GithubDispatchConfig {
 }
 ```
 
-Why: a thrown `HttpError` propagates through every awaited call above it until it reaches `withErrors` or `withResponse`, the same way any other exception does.
+Why: a thrown `HttpError` propagates through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
