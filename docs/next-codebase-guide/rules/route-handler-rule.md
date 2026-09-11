@@ -1,97 +1,125 @@
 # Route Handler Rule
 
-A route handler that keeps parsing, orchestration, external calls, and error handling inline grows without bound, because nothing about `route.ts` gives it a reason to stop. This rule gives route handlers the same extraction trigger the Hook Extraction Rule gives hooks.
+A route handler that keeps its own branching, looping, or failure handling grows without bound, and an untyped return leaves its response contract implicit.
 
-- An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its extraction score reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.
+- An HTTP method handler exported from `route.ts` MUST NOT contain a `try` statement in its body.
+- An HTTP method handler exported from `route.ts` MUST NOT contain a loop in its body.
+- An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.
+- An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 
-## Incorrect — Extraction Score of Two Left Inline
+## Incorrect — Handler Catches Its Own Failures
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  try {
+    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+    const { jobIds } = await dispatchInstagramRenderWorkflow(userId, orders);
+    return NextResponse.json({ success: true, message: "dispatched", status: "dispatched", jobIds });
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
+  }
+});
+```
+
+Why: the handler catches whatever either call throws, so a new failure mode added to either one silently falls into the same generic catch instead of the handler ever noticing.
+
+## Correct — Delegated Modules Report Their Own Failures
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
+  const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
+  return resultToResponse(result, ({ jobIds }) => ({
+    status: 200,
+    body: { success: true, message: "dispatched", status: "dispatched", jobIds },
+  }));
+});
+```
+
+Why: `parseRenderPayload`, `createPublicationsForOrders`, and `dispatchRenderJobs` each report their own outcome as a value, so the handler chains them without a catch of its own.
+
+## Incorrect — Handler Loops Over Its Own Orders
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export async function POST(request: NextRequest): Promise<NextResponse<{ jobIds: string[] }>> {
   const body = await request.json();
   const jobIds: string[] = [];
 
   for (const order of body.orders) {
-    const publicationId = await createLegacyPublication(order.userId);
-    jobIds.push(publicationId);
+    jobIds.push(await createLegacyPublication(order));
   }
-
-  await zodFetch({ url: githubApiUrl, init: { method: "POST" }, responseSchema: z.undefined() });
 
   return NextResponse.json({ jobIds });
 }
 ```
 
-Why: the external dispatch call adds one, and the loop around `createLegacyPublication` adds one more for fanning that call out over every order, reaching the two-point threshold.
+Why: the handler fans the publication call out over every order itself, instead of a delegated module owning that loop.
 
-## Correct — Complex Handler Extracted
-
-```ts
-// src/utils/instagram.ts
-export async function dispatchInstagramRenderWorkflow(orders: RenderOrder[]): Promise<{ jobIds: string[] }> {
-  const jobIds: string[] = [];
-
-  for (const order of orders) {
-    const publicationId = await createLegacyPublication(order.userId);
-    jobIds.push(publicationId);
-  }
-
-  await zodFetch({ url: githubApiUrl, init: { method: "POST" }, responseSchema: z.undefined() });
-
-  return { jobIds };
-}
-```
+## Correct — A Delegated Module Owns The Loop
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-import { dispatchInstagramRenderWorkflow } from "@/utils/instagram";
-
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse<{ jobIds: string[] }>> {
   const body = await request.json();
-  const { jobIds } = await dispatchInstagramRenderWorkflow(body.orders);
+  const { jobIds } = await createPublicationsForOrders(body.orders);
   return NextResponse.json({ jobIds });
 }
 ```
 
-Why: the named function owns the publication loop and the external dispatch for one coherent workflow, keeping the route handler focused on parsing the request and shaping the response.
+Why: `createPublicationsForOrders` owns the loop over orders, so the handler's body has no loop of its own.
 
-## Incorrect — Single Delegated Call Needlessly Extracted
-
-```ts
-// src/utils/get-post-status.ts
-export async function getPostStatus(id: string): Promise<{ status: string }> {
-  const publication = await getPublicationById(id);
-  return { status: publication.status };
-}
-```
+## Incorrect — Handler Branches On A Missing Parameter
 
 ```ts
 // src/app/api/post-status/route.ts
-import { getPostStatus } from "@/utils/get-post-status";
+export async function GET(request: NextRequest): Promise<NextResponse<{ status: string } | { error: string }>> {
+  const id = request.nextUrl.searchParams.get("id");
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const id = request.nextUrl.searchParams.get("id") ?? "";
-  return NextResponse.json(await getPostStatus(id));
-}
-```
-
-Why: the handler's own body has an extraction score of zero once the single lookup moves out — extracting it added indirection before a threshold required it.
-
-## Correct — Single Delegated Call Inline, Even Wrapped in `try`/`catch`
-
-```ts
-// src/app/api/post-status/route.ts
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  const id = request.nextUrl.searchParams.get("id") ?? "";
-
-  try {
-    const publication = await getPublicationById(id);
-    return NextResponse.json({ status: publication.status });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
+
+  const publication = await getPublicationById(id);
+  return NextResponse.json({ status: publication.status });
 }
 ```
 
-Why: one awaited call has an extraction score of one, so it stays inline — a `try`/`catch` that only maps that one call's failure to a response is the shape this rule wants, not a second point on the score.
+Why: the handler branches on the request itself, instead of a delegated module reporting a missing id as a failed outcome.
+
+## Correct — A Delegated Module Reports The Missing Parameter
+
+```ts
+// src/app/api/post-status/route.ts
+export async function GET(request: NextRequest): Promise<NextResponse<{ status: string } | { error: string }>> {
+  const result = await getPublicationStatus(request.nextUrl.searchParams.get("id"));
+  return resultToResponse(result, (publication) => ({ status: 200, body: { status: publication.status } }));
+}
+```
+
+Why: `getPublicationStatus` reports a missing id as a failed outcome, so the handler has no branch of its own.
+
+## Incorrect — Return Type Omitted
+
+```ts
+// src/app/api/health/route.ts
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ status: "ok" });
+}
+```
+
+Why: nothing states the handler's response contract, so a later change can alter the response shape without anything noticing.
+
+## Correct — Return Typed As `Promise<NextResponse<X>>`
+
+```ts
+// src/app/api/health/route.ts
+export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
+  return NextResponse.json({ status: "ok" });
+}
+```
+
+Why: the return type commits the handler to a concrete response shape.

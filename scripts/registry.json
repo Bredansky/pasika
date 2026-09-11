@@ -602,9 +602,27 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST be extracted to a named function outside `src/app/` once its extraction score reaches two, where each awaited call other than one reading the incoming request adds one, and a loop that contains such a call adds one more.",
-      "hash": "dad259cd70",
-      "ref": "pasika/route-handler-complexity"
+      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `try` statement in its body.",
+      "hash": "1956d5cf5f",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a loop in its body.",
+      "hash": "5aeab47f8d",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.",
+      "hash": "8ecffddc46",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.",
+      "hash": "db1c78247f",
+      "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
