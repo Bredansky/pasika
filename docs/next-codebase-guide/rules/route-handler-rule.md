@@ -37,7 +37,7 @@ export const POST = withResponse(
 );
 ```
 
-Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `withUserId`'s own `requireUserId` — and maps it to a response; the handler itself never needs a `catch` of its own.
+Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `withUserId`'s own `requireUserId` — and maps it to a response; the handler itself never needs a `catch` of its own. Its body is nothing but a sequence of `await`ed calls to imported functions, each one's result threaded into the next, ending in the `{ message, data }` that `withResponse` turns into a response.
 
 ## Incorrect — Handler Catches An API Call's Failure Inline
 
