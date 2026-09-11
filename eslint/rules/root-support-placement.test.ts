@@ -81,7 +81,7 @@ const UTILITIES_DOC = "See docs/next-codebase-guide/rules/utilities-rule.md";
 const TYPES_AND_SCHEMAS_DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 const CONSTANTS_DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/utils/.
@@ -113,7 +113,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
           {
             message:
               `Function "absolutizeMediaUrls" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned root src/utils/; move it into the feature it represents (src/features/*/utils/). " +
+              "has not earned root src/utils/; move it into the feature it represents (src/features/<feature>/utils/). " +
               `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
           },
         ],
@@ -126,7 +126,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
           {
             message:
               `Function "formatCurrency" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned src/shared/utils/; move it into the feature it represents (src/features/*/utils/). " +
+              "has not earned src/shared/utils/; move it into the feature it represents (src/features/<feature>/utils/). " +
               `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
           },
         ],
@@ -135,7 +135,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
   });
 });
 
-void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/types/.
@@ -152,7 +152,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
           {
             message:
               `Type "RenderOrder" has no consumer outside src/app/ or a configuration module, so it ` +
-              "has not earned root src/types/; move it into the feature it represents (src/features/*/types/). " +
+              "has not earned root src/types/; move it into the feature it represents (src/features/<feature>/types/). " +
               `If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
@@ -165,7 +165,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
             message:
               `Schema "githubErrorResponseSchema" has no consumer outside src/app/ or a configuration module, ` +
               "so it has not earned root src/schemas/; move it into the feature it represents " +
-              `(src/features/*/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
+              `(src/features/<feature>/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
       },
@@ -178,7 +178,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
             message:
               `Schema "uploadResponseSchema" has no consumer outside src/app/ or a configuration module, so it ` +
               "has not earned src/shared/schemas/; move it into the feature it represents " +
-              `(src/features/*/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
+              `(src/features/<feature>/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
       },
@@ -186,7 +186,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
   });
 });
 
-void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [],
     invalid: [
@@ -198,7 +198,7 @@ void describe("A constant with no consumer outside `src/app/` or a configuration
             message:
               `Constant "maxRenderJobs" has no consumer outside src/app/ or a configuration module, so it ` +
               "has not earned root src/constants/; move it into the feature it represents " +
-              `(src/features/*/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
+              `(src/features/<feature>/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
           },
         ],
       },
@@ -211,7 +211,7 @@ void describe("A constant with no consumer outside `src/app/` or a configuration
             message:
               `Constant "maxUploadSize" has no consumer outside src/app/ or a configuration module, so it ` +
               "has not earned src/shared/constants/; move it into the feature it represents " +
-              `(src/features/*/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
+              `(src/features/<feature>/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
           },
         ],
       },

@@ -115,7 +115,7 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
         line: exp.line,
         message:
           `${label} "${exp.name}" has no consumer outside src/app/ or a configuration module, so it has not ` +
-          `earned ${where}; move it into the feature it represents (src/features/*/${supportFolder}/). If no ` +
+          `earned ${where}; move it into the feature it represents (src/features/<feature>/${supportFolder}/). If no ` +
           `existing feature applies, introduce a new feature folder. See ${doc}`,
       });
     }
