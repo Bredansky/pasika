@@ -11,7 +11,7 @@ const ANDTHEN_MUST_TYPE_RESULT =
 const RESPOND_MUST_TYPE_RESULT =
   "respond must type its result parameter as Result. See docs/next-codebase-guide/rules/route-handler-rule.md";
 
-void describe("The project's `ok`, `err`, `andThen`, and `respond` helpers MUST type their `Result` values as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.", () => {
+void describe("The project's `ok`, `err`, `andThen`, and `respond` helpers MUST declare `Result` in their own type signatures, so every delegated call in a route handler's pipeline is guaranteed to return one.", () => {
   ruleTester.run("result-pipeline-types", resultPipelineTypesRule, {
     valid: [
       {

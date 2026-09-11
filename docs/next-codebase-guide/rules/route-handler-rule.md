@@ -10,7 +10,7 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 - A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.
-- The project's `ok`, `err`, `andThen`, and `respond` helpers MUST type their `Result` values as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.
+- The project's `ok`, `err`, `andThen`, and `respond` helpers MUST declare `Result` in their own type signatures, so every delegated call in a route handler's pipeline is guaranteed to return one.
 - A function a route handler delegates to MUST declare its return type as `Result`.
 
 ## Incorrect — Handler Catches Its Own Failures
