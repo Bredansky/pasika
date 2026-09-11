@@ -6,6 +6,8 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST NOT contain a loop in its body.
 - An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.
 - An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.
+- An HTTP method handler exported from `route.ts` MUST thread every delegated call after its first through `andThen`.
+- An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 
 ## Incorrect — Handler Catches Its Own Failures
@@ -41,6 +43,32 @@ export const POST = withUserId(async (userId, request: NextRequest): Promise<Nex
 ```
 
 Why: `parseRenderPayload`, `createPublicationsForOrders`, and `dispatchRenderJobs` each report their own outcome as a value, so the handler chains them without a catch of its own.
+
+## Incorrect — Two Delegated Calls Awaited Directly
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const { jobIds } = await createPublicationsForOrders(userId, orders);
+  return respond(ok(jobIds), (value) => ({ message: "Dispatched.", data: value }));
+});
+```
+
+Why: `createPublicationsForOrders` runs unconditionally even when `parseRenderPayload` failed, since nothing threads its outcome into the next call.
+
+## Correct — The Second Call Threaded Through `andThen`
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
+  return respond(published, ({ jobIds }) => ({ message: "Dispatched.", data: jobIds }));
+});
+```
+
+Why: `andThen` only calls `createPublicationsForOrders` once `parseRenderPayload`'s outcome is `ok`, so a parse failure short-circuits before reaching the second call.
 
 ## Incorrect — Handler Loops Over Its Own Orders
 

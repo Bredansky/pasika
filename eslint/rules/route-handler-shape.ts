@@ -2,11 +2,13 @@
  * ESLint rule: pasika/route-handler-shape
  *
  * An HTTP method handler exported from route.ts MUST NOT contain a try
- * statement, a loop, or an if statement in its body, and MUST declare its
- * return type as Promise<NextResponse<X>> with a concrete X. Branching,
- * looping, and failure handling belong to a delegated module that reports
- * its outcome as a value instead of the handler catching, looping, or
- * branching on it directly.
+ * statement, a loop, or an if statement in its body, MUST declare its return
+ * type as Promise<NextResponse<X>> with a concrete X, MUST thread every
+ * delegated call after its first through andThen, and MUST resolve its final
+ * Result by calling respond. Branching, looping, and failure handling belong
+ * to a delegated module that reports its outcome as a value instead of the
+ * handler catching, looping, or branching on it directly, and the pipeline
+ * those values move through is andThen and respond, not ad hoc composition.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -19,8 +21,8 @@ import type { FunctionDeclarationNode } from "../ast-types";
 
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
-/** FunctionDeclaration as seen by a rule visitor, with its return type annotation. */
-type RouteFunctionDeclarationNode = FunctionDeclarationNode & ReturnTypeAnnotated;
+/** FunctionDeclaration as seen by a rule visitor, with its return type annotation and parameters. */
+type RouteFunctionDeclarationNode = FunctionDeclarationNode & ReturnTypeAnnotated & { params?: ESTree.Pattern[] };
 
 type FunctionLike = (ESTree.ArrowFunctionExpression | ESTree.FunctionExpression) & ReturnTypeAnnotated;
 
@@ -101,18 +103,37 @@ function isNextResponseJsonCall(node: ts.Node): boolean {
   );
 }
 
+/** Whether a call's callee is the bare identifier `name` (e.g. `andThen(...)`, `respond(...)`). */
+function isCallTo(node: ts.Node, name: string): node is ts.CallExpression {
+  return ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === name;
+}
+
+/** Whether a call reads the incoming request, e.g. `request.json()` or `req.headers.get()`. */
+function isRequestRead(call: ts.CallExpression, requestParamNames: Set<string>): boolean {
+  if (!ts.isPropertyAccessExpression(call.expression)) return false;
+  let receiver: ts.Expression = call.expression.expression;
+  while (ts.isPropertyAccessExpression(receiver)) receiver = receiver.expression;
+  return ts.isIdentifier(receiver) && requestParamNames.has(receiver.text);
+}
+
 type ControlFlowKind = "try" | "loop" | "if" | "response";
 
+interface HandlerAnalysis {
+  kinds: Set<ControlFlowKind>;
+  /** Awaited calls other than a request read or `andThen(...)` — only the first may stay bare. */
+  bareDelegatedAwaits: number;
+  callsRespond: boolean;
+}
+
 /**
- * Finds every control-flow kind present directly in a handler body, re-parsed
- * with the TypeScript compiler the same way hook-complexity walks a hook
- * body. Does not descend into a nested function's own body — a statement
- * inside a callback passed to another call (e.g. `.map()`) is that
- * callback's control flow, not the handler's. Runs on both a block body and a
- * concise arrow expression body, since a bare `NextResponse.json(...)` call
- * can appear directly as one.
+ * Analyzes a handler body in one pass, re-parsed with the TypeScript
+ * compiler the same way hook-complexity walks a hook body. Does not descend
+ * into a nested function's own body — a statement or call inside a callback
+ * passed to another call (e.g. `.map()`) belongs to that callback, not the
+ * handler. Runs on both a block body and a concise arrow expression body,
+ * since a bare `NextResponse.json(...)` call can appear directly as one.
  */
-function findControlFlowKinds(body: ESTree.Node, sourceText: string): Set<ControlFlowKind> {
+function analyzeHandlerBody(body: ESTree.Node, sourceText: string, requestParamNames: Set<string>): HandlerAnalysis {
   const start = body.range?.[0] ?? 0;
   const end = body.range?.[1] ?? sourceText.length;
   const sourceFile = ts.createSourceFile(
@@ -124,16 +145,28 @@ function findControlFlowKinds(body: ESTree.Node, sourceText: string): Set<Contro
   );
 
   const kinds = new Set<ControlFlowKind>();
+  let bareDelegatedAwaits = 0;
+  let callsRespond = false;
+
   const visit = (node: ts.Node): void => {
     if (ts.isTryStatement(node)) kinds.add("try");
     if (isLoop(node)) kinds.add("loop");
     if (ts.isIfStatement(node)) kinds.add("if");
     if (isNextResponseJsonCall(node)) kinds.add("response");
+    if (isCallTo(node, "respond")) callsRespond = true;
+    if (
+      ts.isAwaitExpression(node) &&
+      ts.isCallExpression(node.expression) &&
+      !isCallTo(node.expression, "andThen") &&
+      !isRequestRead(node.expression, requestParamNames)
+    ) {
+      bareDelegatedAwaits += 1;
+    }
     if (isFunctionBoundary(node)) return;
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return kinds;
+  return { kinds, bareDelegatedAwaits, callsRespond };
 }
 
 const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
@@ -149,7 +182,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a route.ts handler to have no try, loop, or if of its own, and to declare its return type as Promise<NextResponse<X>>.",
+        "Require a route.ts handler to have no try, loop, or if of its own, thread delegated calls through andThen, resolve through respond, and declare its return type as Promise<NextResponse<X>>.",
     },
   },
   create(context) {
@@ -157,15 +190,47 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
 
     const sourceText = context.sourceCode.text;
 
-    function checkHandler(node: Rule.Node, name: string, handler: FunctionLike | RouteFunctionDeclarationNode): void {
+    function checkHandler(
+      node: Rule.Node,
+      name: string,
+      handler: FunctionLike | RouteFunctionDeclarationNode,
+      params: ESTree.Pattern[],
+    ): void {
       if (!handler.body) return;
-      const kinds = findControlFlowKinds(handler.body, sourceText);
+
+      const requestParamNames = new Set(
+        params.filter((param): param is ESTree.Identifier => param.type === "Identifier").map((param) => param.name),
+      );
+      const { kinds, bareDelegatedAwaits, callsRespond } = analyzeHandlerBody(
+        handler.body,
+        sourceText,
+        requestParamNames,
+      );
+
       for (const kind of kinds) {
         context.report({
           node,
           message:
             `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; delegate to a module that ` +
             "reports its outcome as a value instead. See docs/next-codebase-guide/rules/route-handler-rule.md",
+        });
+      }
+
+      if (bareDelegatedAwaits > 1) {
+        context.report({
+          node,
+          message:
+            `Handler "${name}" awaits more than one delegated call directly; thread each one after the first ` +
+            "through andThen. See docs/next-codebase-guide/rules/route-handler-rule.md",
+        });
+      }
+
+      if (!callsRespond) {
+        context.report({
+          node,
+          message:
+            `Handler "${name}" must resolve its response by calling respond. ` +
+            "See docs/next-codebase-guide/rules/route-handler-rule.md",
         });
       }
 
@@ -184,7 +249,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
         const exported = node.parent?.type === "ExportNamedDeclaration";
         const name = node.id?.name;
         if (!exported || !name || !HTTP_METHODS.has(name) || !node.body) return;
-        checkHandler(node, name, node);
+        checkHandler(node, name, node, node.params ?? []);
       },
 
       VariableDeclarator(node) {
@@ -194,7 +259,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
         if (!exported || !HTTP_METHODS.has(name) || !node.init) return;
 
         const handler = findHandler(node.init);
-        if (handler) checkHandler(node, name, handler);
+        if (handler) checkHandler(node, name, handler, handler.params);
       },
     };
   },

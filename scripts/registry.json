@@ -602,33 +602,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `ok` helper MUST return `{ ok: true, value }`.",
-      "hash": "d84f0e9871",
-      "ref": "pasika/result-pipeline-helper"
-    },
-    {
-      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `err` helper MUST return `{ ok: false, error }`.",
-      "hash": "f301d5d056",
-      "ref": "pasika/result-pipeline-helper"
-    },
-    {
-      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `andThen` helper MUST run its next step only once the previous outcome's `ok` is true.",
-      "hash": "0fab037a04",
-      "ref": "pasika/result-pipeline-helper"
-    },
-    {
-      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `HttpError` class MUST carry a `status`.",
-      "hash": "383a034060",
-      "ref": "pasika/result-pipeline-helper"
-    },
-    {
-      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `respond` helper MUST branch on `ok` and resolve through `NextResponse.json`.",
-      "hash": "2661a700d7",
-      "ref": "pasika/result-pipeline-helper"
+      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
+      "hash": "af38b1fccd",
+      "ref": "pasika/result-pipeline-usage"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
@@ -652,6 +628,18 @@
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.",
       "hash": "b1c8446436",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST thread every delegated call after its first through `andThen`.",
+      "hash": "4e7746fe5c",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.",
+      "hash": "acf6d5a600",
       "ref": "pasika/route-handler-shape"
     },
     {
