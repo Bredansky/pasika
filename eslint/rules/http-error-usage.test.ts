@@ -1,12 +1,12 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
-import { resultPipelineUsageRule } from "./result-pipeline-usage";
+import { httpErrorUsageRule } from "./http-error-usage";
 
 const MUST_USE_ERR =
   "A constructed HttpError must be reported through err, not thrown. " +
-  "See docs/next-codebase-guide/rules/result-pipeline-rule.md";
+  "See docs/next-codebase-guide/rules/httperror-usage-rule.md";
 
 void describe("A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.", () => {
-  ruleTester.run("result-pipeline-usage", resultPipelineUsageRule, {
+  ruleTester.run("http-error-usage", httpErrorUsageRule, {
     valid: [
       {
         code: `function checkConfigured(pat) {

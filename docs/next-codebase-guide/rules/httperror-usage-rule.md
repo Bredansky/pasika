@@ -1,4 +1,4 @@
-# Result Pipeline Rule
+# HttpError Usage Rule
 
 Throwing an `HttpError` instead of returning it defeats the Result pipeline: the function's own return type promises a `Result` a caller can check `ok` on, and a throw bypasses that promise entirely.
 

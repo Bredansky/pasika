@@ -535,6 +535,12 @@
       "ref": "pasika/hook-complexity"
     },
     {
+      "doc": "next-codebase-guide/rules/httperror-usage-rule.md",
+      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
+      "hash": "af38b1fccd",
+      "ref": "pasika/http-error-usage"
+    },
+    {
       "doc": "next-codebase-guide/rules/interactive-component-rule.md",
       "text": "An [interactive HTML element](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.",
       "hash": "56a186c55b",
@@ -599,12 +605,6 @@
       "text": "A block of elements MUST be extracted as a named component when two or more places use the same arrangement of elements for the same purpose. Different data or labels do not prevent extraction.",
       "hash": "3c1b9c7807",
       "ref": "pasika/repeated-structure"
-    },
-    {
-      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
-      "hash": "af38b1fccd",
-      "ref": "pasika/result-pipeline-usage"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
