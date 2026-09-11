@@ -1,13 +1,13 @@
 # Route Handler Rule
 
-A route handler that catches its own failures, branches on them, or builds its own response grows without bound, and a thrown `HttpError` that never reaches a boundary reaches no response at all.
+An `HttpError` that never reaches `withResponse` — because nothing wraps the handler, or because a function handed it back as a value instead of throwing it — produces no response at all. A handler that catches its own failures, branches on them, loops over them, or hides them in a same-file helper grows without bound instead of staying a thin wire between delegated calls.
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
+- A function that constructs an `HttpError` MUST throw it, not return it.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
+- A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
-- A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
-- A function that constructs an `HttpError` MUST throw it, not return it.
 
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
@@ -38,6 +38,36 @@ export const POST = withResponse(
 ```
 
 Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `withUserId`'s own `requireUserId` — and maps it to a response; the handler itself never needs a `catch` of its own. Its body is nothing but a sequence of `await`ed calls to imported functions, each one's result threaded into the next, ending in the `{ message, data }` that `withResponse` turns into a response.
+
+## Incorrect — Delegated Function Returns HttpError Instead Of Throwing
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+function readGithubDispatchConfig(): GithubDispatchConfig {
+  const pat = process.env.GITHUB_PAT;
+  if (!pat) {
+    return new HttpError("Server not configured for GitHub Actions dispatch.", 500);
+  }
+  return { pat };
+}
+```
+
+Why: nothing catches a returned value — a caller composing `await readGithubDispatchConfig()` in sequence never sees this failure, and it reaches no boundary at all, the same as if the handler itself were never wrapped in `withResponse`.
+
+## Correct — Delegated Function Throws HttpError
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+function readGithubDispatchConfig(): GithubDispatchConfig {
+  const pat = process.env.GITHUB_PAT;
+  if (!pat) {
+    throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
+  }
+  return { pat };
+}
+```
+
+Why: a thrown `HttpError` propagates through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
 
 ## Incorrect — Handler Catches An API Call's Failure Inline
 
@@ -185,33 +215,3 @@ export const GET = withResponse(
 ```
 
 Why: `getPublicationStatus` throws an `HttpError` for a missing id, so the handler has no branch of its own.
-
-## Incorrect — Delegated Function Returns HttpError Instead Of Throwing
-
-```ts
-// src/utils/dispatch-github-workflow.ts
-function readGithubDispatchConfig(): GithubDispatchConfig {
-  const pat = process.env.GITHUB_PAT;
-  if (!pat) {
-    return new HttpError("Server not configured for GitHub Actions dispatch.", 500);
-  }
-  return { pat };
-}
-```
-
-Why: nothing catches a returned value — a caller composing `await readGithubDispatchConfig()` in sequence never sees this failure, and it reaches no boundary at all.
-
-## Correct — Delegated Function Throws HttpError
-
-```ts
-// src/utils/dispatch-github-workflow.ts
-function readGithubDispatchConfig(): GithubDispatchConfig {
-  const pat = process.env.GITHUB_PAT;
-  if (!pat) {
-    throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
-  }
-  return { pat };
-}
-```
-
-Why: a thrown `HttpError` propagates through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
