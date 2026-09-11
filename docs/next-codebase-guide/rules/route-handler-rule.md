@@ -10,6 +10,7 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 - A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.
+- The project's `andThen` and `respond` helpers MUST type their `Result` parameters as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.
 
 ## Incorrect — Handler Catches Its Own Failures
 
@@ -216,3 +217,28 @@ function checkConfigured(pat: string | undefined): Result<string, HttpError> {
 ```
 
 Why: `err` wraps the `HttpError` in the same `Result` shape every other step returns, so a caller's `.ok` check catches it like any other failure.
+
+## Incorrect — `andThen` Does Not Type Its Next Parameter's Return
+
+```ts
+// src/utils/result.ts
+export async function andThen<T, U, E>(result: Result<T, E>, next: (value: T) => Promise<U>): Promise<Result<U, E>> {
+  return result.ok ? next(result.value) : result;
+}
+```
+
+Why: nothing about `next`'s declared type says it returns a `Result`, so a delegated call that throws instead of returning one still type-checks here.
+
+## Correct — `andThen` Types Its Next Parameter's Return As `Result`
+
+```ts
+// src/utils/result.ts
+export async function andThen<T, U, E>(
+  result: Result<T, E>,
+  next: (value: T) => Promise<Result<U, E>>,
+): Promise<Result<U, E>> {
+  return result.ok ? next(result.value) : result;
+}
+```
+
+Why: `next` is typed to return a `Result`, so a delegated call that throws instead of returning one fails to type-check.
