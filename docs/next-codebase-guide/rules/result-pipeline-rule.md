@@ -5,7 +5,7 @@ A route handler that has no `try`, loop, or `if` of its own only works if the mo
 - The project's `ok` helper MUST return `{ ok: true, value }`.
 - The project's `err` helper MUST return `{ ok: false, error }`.
 - The project's `andThen` helper MUST run its next step only once the previous outcome's `ok` is true.
-- The project's `HttpError` class MUST extend `Error` and carry a `status`.
+- The project's `HttpError` class MUST carry a `status`.
 - The project's `respond` helper MUST branch on `ok` and resolve through `NextResponse.json`.
 
 ## Incorrect — `ok`/`err` Without An `ok` Flag
@@ -95,12 +95,12 @@ Why: `status` travels with the error, so a module that throws it has already dec
 
 ```ts
 // src/utils/respond.ts
-export function respond<T, TBody>(
+export function respond<T, TData>(
   result: Result<T, HttpError>,
-  onSuccess: (value: T) => { body: TBody; status: number },
-): NextResponse<TBody | { error: string }> {
-  const { body, status } = onSuccess(result.value);
-  return NextResponse.json(body, { status });
+  onSuccess: (value: T) => { message: string; data: TData },
+): NextResponse<{ data: TData | null; status: number; message: string }> {
+  const { message, data } = onSuccess(result.value);
+  return NextResponse.json({ data, status: 200, message });
 }
 ```
 
@@ -110,17 +110,18 @@ Why: `onSuccess` runs on every result, including a failed one whose `value` does
 
 ```ts
 // src/utils/respond.ts
-export function respond<T, TBody>(
+export function respond<T, TData>(
   result: Result<T, HttpError>,
-  onSuccess: (value: T) => { body: TBody; status: number },
-): NextResponse<TBody | { error: string }> {
+  onSuccess: (value: T) => { message: string; data: TData },
+): NextResponse<{ data: TData | null; status: number; message: string }> {
   if (!result.ok) {
-    return NextResponse.json({ error: result.error.message }, { status: result.error.status });
+    const { status, message } = result.error;
+    return NextResponse.json({ data: null, status, message }, { status });
   }
 
-  const { body, status } = onSuccess(result.value);
-  return NextResponse.json(body, { status });
+  const { message, data } = onSuccess(result.value);
+  return NextResponse.json({ data, status: 200, message });
 }
 ```
 
-Why: a failed result returns its own error response, and only a successful one reaches `onSuccess`.
+Why: a failed result returns its own error response with `data: null`, and only a successful one reaches `onSuccess`.

@@ -34,8 +34,8 @@ export const POST = withUserId(async (userId, request: NextRequest): Promise<Nex
   const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
   const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
   return respond(result, ({ jobIds }) => ({
-    status: 200,
-    body: { success: true, message: "dispatched", status: "dispatched", jobIds },
+    message: "GitHub Action workflow dispatched successfully.",
+    data: jobIds,
   }));
 });
 ```
@@ -64,10 +64,12 @@ Why: the handler fans the publication call out over every order itself, instead 
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export async function POST(request: NextRequest): Promise<NextResponse<{ jobIds: string[] }>> {
+export async function POST(
+  request: NextRequest,
+): Promise<NextResponse<{ data: string[] | null; status: number; message: string }>> {
   const body = await request.json();
   const result = await createPublicationsForOrders(body.orders);
-  return respond(result, ({ jobIds }) => ({ status: 200, body: { jobIds } }));
+  return respond(result, ({ jobIds }) => ({ message: "Publications created.", data: jobIds }));
 }
 ```
 
@@ -95,9 +97,11 @@ Why: the handler branches on the request itself, instead of a delegated module r
 
 ```ts
 // src/app/api/post-status/route.ts
-export async function GET(request: NextRequest): Promise<NextResponse<{ status: string } | { error: string }>> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<{ data: string | null; status: number; message: string }>> {
   const result = await getPublicationStatus(request.nextUrl.searchParams.get("id"));
-  return respond(result, (publication) => ({ status: 200, body: { status: publication.status } }));
+  return respond(result, (publication) => ({ message: "Found.", data: publication.status }));
 }
 ```
 
@@ -122,9 +126,11 @@ Why: the handler builds its own success and failure responses from `result`, dup
 
 ```ts
 // src/app/api/health/route.ts
-export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<{ data: string | null; status: number; message: string }>> {
   const result = await getStatus();
-  return respond(result, (status) => ({ status: 200, body: { status } }));
+  return respond(result, (status) => ({ message: "OK.", data: status }));
 }
 ```
 
@@ -145,8 +151,10 @@ Why: nothing states the handler's response contract, so a later change can alter
 
 ```ts
 // src/app/api/health/route.ts
-export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
-  return respond(ok({ status: "ok" }), (status) => ({ status: 200, body: status }));
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<{ data: string | null; status: number; message: string }>> {
+  return respond(ok("ok"), (status) => ({ message: "OK.", data: status }));
 }
 ```
 

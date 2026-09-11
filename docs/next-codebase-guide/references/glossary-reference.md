@@ -34,3 +34,70 @@ These terms name the component classifications and the extraction triggers this 
 | DOM manipulation             | Imperative DOM APIs such as `focus()`, `blur()`, `scrollIntoView()`, `click()`, `classList`, or constructing a `MutationObserver`, `ResizeObserver`, or `IntersectionObserver`.                                                                       |
 | Resource lifecycle           | Setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, `close()`, `cleanup()`, or `unmount()`.                                                                                                                                           |
 | Extraction score             | A count a rule computes from its own signals to decide whether code needs to be extracted; reaching two triggers extraction.                                                                                                                          |
+
+## Result Pipeline Helpers
+
+`ok`, `err`, `andThen`, `HttpError`, and `respond` are the helpers the Route Handler and Result Pipeline Rules are written against. `ok`/`err` wrap a step's outcome as a `{ ok, value }`/`{ ok, error }` value, `andThen` chains a next step only once the previous one's `ok` is true, `HttpError` carries the status a failure should become, and `respond` turns the pipeline's final Result into a `NextResponse` — the one place a route's `{ data, status, message }` envelope gets built.
+
+```ts
+// src/types/result.ts
+export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
+```
+
+```ts
+// src/utils/result.ts
+export function ok<T>(value: T): Result<T, never> {
+  return { ok: true, value };
+}
+
+export function err<E>(error: E): Result<never, E> {
+  return { ok: false, error };
+}
+
+export async function andThen<T, U, E>(
+  result: Result<T, E>,
+  next: (value: T) => Promise<Result<U, E>>,
+): Promise<Result<U, E>> {
+  return result.ok ? next(result.value) : result;
+}
+```
+
+```ts
+// src/utils/http-error.ts
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+  }
+}
+```
+
+```ts
+// src/utils/respond.ts
+export function respond<T, TData>(
+  result: Result<T, HttpError>,
+  onSuccess: (value: T) => { message: string; data: TData; status?: number },
+): NextResponse<{ data: TData | null; status: number; message: string }> {
+  if (!result.ok) {
+    const { status, message } = result.error;
+    return NextResponse.json({ data: null, status, message }, { status });
+  }
+
+  const { message, data, status = 200 } = onSuccess(result.value);
+  return NextResponse.json({ data, status, message }, { status });
+}
+```
+
+A route handler chains them without a `try`, loop, or `if` of its own:
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
+  const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
+  return respond(result, ({ jobIds }) => ({ message: "Dispatched.", data: jobIds }));
+});
+```

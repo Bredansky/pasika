@@ -620,8 +620,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
-      "text": "The project's `HttpError` class MUST extend `Error` and carry a `status`.",
-      "hash": "0b31e27e52",
+      "text": "The project's `HttpError` class MUST carry a `status`.",
+      "hash": "383a034060",
       "ref": "pasika/result-pipeline-helper"
     },
     {

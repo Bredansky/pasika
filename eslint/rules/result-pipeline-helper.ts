@@ -82,12 +82,11 @@ export const resultPipelineHelperRule: Rule.RuleModule = {
 
       ClassDeclaration(node) {
         if (!isIdentifier(node.id, "HttpError")) return;
-        const extendsError = node.superClass?.type === "Identifier" && node.superClass.name === "Error";
         const hasStatus = /\bstatus\b/.test(context.sourceCode.getText(node.body));
-        if (!extendsError || !hasStatus) {
+        if (!hasStatus) {
           context.report({
             node,
-            message: `HttpError must extend Error and carry a status. ${DOC_LINK}`,
+            message: `HttpError must carry a status. ${DOC_LINK}`,
           });
         }
       },

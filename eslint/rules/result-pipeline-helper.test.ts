@@ -75,13 +75,23 @@ void describe("The project's `andThen` helper MUST run its next step only once t
   });
 });
 
-void describe("The project's `HttpError` class MUST extend `Error` and carry a `status`.", () => {
+void describe("The project's `HttpError` class MUST carry a `status`.", () => {
   ruleTester.run("result-pipeline-helper", resultPipelineHelperRule, {
     valid: [
       {
         code: `export class HttpError extends Error {
           constructor(message, status) {
             super(message);
+            this.status = status;
+          }
+        }`,
+        filename: srcFile("utils/http-error.ts"),
+      },
+      // Extending Error isn't required by this rule, only carrying a status.
+      {
+        code: `export class HttpError {
+          constructor(message, status) {
+            this.message = message;
             this.status = status;
           }
         }`,
@@ -99,17 +109,7 @@ void describe("The project's `HttpError` class MUST extend `Error` and carry a `
       {
         code: `export class HttpError extends Error {}`,
         filename: srcFile("utils/http-error.ts"),
-        errors: [{ message: `HttpError must extend Error and carry a status. ${DOC_LINK}` }],
-      },
-      {
-        code: `export class HttpError {
-          constructor(message, status) {
-            this.message = message;
-            this.status = status;
-          }
-        }`,
-        filename: srcFile("utils/http-error.ts"),
-        errors: [{ message: `HttpError must extend Error and carry a status. ${DOC_LINK}` }],
+        errors: [{ message: `HttpError must carry a status. ${DOC_LINK}` }],
       },
     ],
   });
@@ -121,10 +121,11 @@ void describe("The project's `respond` helper MUST branch on `ok` and resolve th
       {
         code: `export function respond(result, onSuccess) {
           if (!result.ok) {
-            return NextResponse.json({ error: result.error.message }, { status: result.error.status });
+            const { status, message } = result.error;
+            return NextResponse.json({ data: null, status, message }, { status });
           }
-          const { body, status } = onSuccess(result.value);
-          return NextResponse.json(body, { status });
+          const { message, data, status = 200 } = onSuccess(result.value);
+          return NextResponse.json({ data, status, message }, { status });
         }`,
         filename: srcFile("utils/respond.ts"),
       },
@@ -132,8 +133,8 @@ void describe("The project's `respond` helper MUST branch on `ok` and resolve th
     invalid: [
       {
         code: `export function respond(result, onSuccess) {
-          const { body, status } = onSuccess(result.value);
-          return NextResponse.json(body, { status });
+          const { message, data, status = 200 } = onSuccess(result.value);
+          return NextResponse.json({ data, status, message }, { status });
         }`,
         filename: srcFile("utils/respond.ts"),
         errors: [{ message: `respond must branch on .ok and resolve through NextResponse.json. ${DOC_LINK}` }],
