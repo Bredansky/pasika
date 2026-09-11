@@ -632,14 +632,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A handler wrapped in `withResponse` MUST NOT contain a `NextResponse.json` call in its body.",
-      "hash": "073a02d6e0",
-      "ref": "pasika/route-handler-shape"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A constructed `HttpError` MUST be thrown, not returned.",
-      "hash": "95bf8045e2",
+      "text": "A delegated function that constructs an `HttpError` MUST throw it, not return it.",
+      "hash": "6d364b49e9",
       "ref": "pasika/http-error-usage"
     },
     {

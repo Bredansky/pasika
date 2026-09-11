@@ -6,25 +6,20 @@ A route handler that catches its own failures, branches on them, or builds its o
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
-- A handler wrapped in `withResponse` MUST NOT contain a `NextResponse.json` call in its body.
-- A constructed `HttpError` MUST be thrown, not returned.
+- A delegated function that constructs an `HttpError` MUST throw it, not return it.
 
-## Incorrect — Handler Catches Its Own Failures
+## Incorrect — Handler Not Wrapped In `withResponse`
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
 export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
-  try {
-    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
-    const { jobIds } = await dispatchInstagramRenderWorkflow(userId, orders);
-    return NextResponse.json({ data: jobIds, message: "Dispatched." });
-  } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
-  }
+  const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const { jobIds } = await dispatchInstagramRenderWorkflow(userId, orders);
+  return NextResponse.json({ data: jobIds, message: "Dispatched." });
 });
 ```
 
-Why: `requireUserId` (inside `withUserId`) throws an `HttpError` on a missing session, and nothing here catches it — it reaches no response at all. The handler's own `catch` only covers what runs inside its `try`.
+Why: `requireUserId` (inside `withUserId`) throws an `HttpError` on a missing session, and nothing here catches it — it reaches no response at all.
 
 ## Correct — The Handler Wrapped In `withResponse`
 
@@ -42,6 +37,42 @@ export const POST = withResponse(
 ```
 
 Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `withUserId`'s own `requireUserId` — and maps it to a response; the handler itself never needs a `catch` of its own.
+
+## Incorrect — Handler Catches An API Call's Failure Inline
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withResponse(
+  schema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+    try {
+      await dispatchGithubWorkflowRequest(orders);
+    } catch (error) {
+      throw new HttpError("Failed to dispatch GitHub Action workflow.", 500);
+    }
+    return { message: "Dispatched.", data: orders.map((order) => order.jobId) };
+  }),
+);
+```
+
+Why: the handler converts a caught failure into an `HttpError` itself, instead of a delegated function doing that conversion and simply throwing.
+
+## Correct — A Delegated Function Converts The Failure
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withResponse(
+  schema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+    const { jobIds } = await dispatchRenderJobs(userId, orders); // throws HttpError on failure
+    return { message: "Dispatched.", data: jobIds };
+  }),
+);
+```
+
+Why: `dispatchRenderJobs` is the one that catches the underlying failure and throws `HttpError`, so the handler's body has no `try` of its own.
 
 ## Incorrect — Handler Loops Over Its Own Orders
 
@@ -116,31 +147,7 @@ export const GET = withResponse(
 
 Why: `getPublicationStatus` throws an `HttpError` for a missing id, so the handler has no branch of its own.
 
-## Incorrect — Handler Constructs Its Own Response
-
-```ts
-// src/app/api/health/route.ts
-export const GET = withResponse(statusDataSchema, async (): Promise<NextResponse<{ status: string }>> => {
-  const status = await getStatus();
-  return NextResponse.json({ status });
-});
-```
-
-Why: the handler builds and returns its own `NextResponse`, duplicating what `withResponse` already does — and bypassing the schema validation `withResponse` runs against its returned value.
-
-## Correct — Handler Resolves Through `withResponse`
-
-```ts
-// src/app/api/health/route.ts
-export const GET = withResponse(statusDataSchema, async () => {
-  const status = await getStatus();
-  return { message: "OK.", data: status };
-});
-```
-
-Why: `withResponse` is the one place that turns the handler's returned `{ message, data }` into a validated `NextResponse`, so the handler never constructs or types one itself.
-
-## Incorrect — HttpError Returned Instead Of Thrown
+## Incorrect — Delegated Function Returns HttpError Instead Of Throwing
 
 ```ts
 // src/utils/dispatch-github-workflow.ts
@@ -155,7 +162,7 @@ function readGithubDispatchConfig(): GithubDispatchConfig {
 
 Why: nothing catches a returned value — a caller composing `await readGithubDispatchConfig()` in sequence never sees this failure, and it reaches no boundary at all.
 
-## Correct — HttpError Thrown
+## Correct — Delegated Function Throws HttpError
 
 ```ts
 // src/utils/dispatch-github-workflow.ts

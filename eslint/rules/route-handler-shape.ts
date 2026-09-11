@@ -5,9 +5,9 @@
  * withResponse — the one boundary that catches an HttpError thrown by
  * requireUserId/requireUserAccount or any delegated call, and that builds
  * and validates the response from the handler's returned {message, data}.
- * A handler under it MUST NOT contain a try statement, a loop, an if
- * statement, or a NextResponse.json call of its own: it has nothing left
- * to branch, loop, catch, or respond on directly.
+ * A handler under it MUST NOT contain a try statement, a loop, or an if
+ * statement of its own: that failure handling, looping, and branching
+ * belongs in a delegated function it calls.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -54,28 +54,13 @@ function isFunctionBoundary(node: ts.Node): boolean {
   return ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isFunctionDeclaration(node);
 }
 
-/** Whether a node is a `NextResponse.json(...)` call. */
-function isNextResponseJsonCall(node: ts.Node): boolean {
-  if (!ts.isCallExpression(node)) return false;
-  const callee = node.expression;
-  return (
-    ts.isPropertyAccessExpression(callee) &&
-    ts.isIdentifier(callee.expression) &&
-    callee.expression.text === "NextResponse" &&
-    ts.isIdentifier(callee.name) &&
-    callee.name.text === "json"
-  );
-}
-
-type ControlFlowKind = "try" | "loop" | "if" | "response";
+type ControlFlowKind = "try" | "loop" | "if";
 
 /**
  * Analyzes a handler body in one pass, re-parsed with the TypeScript
  * compiler. Does not descend into a nested function's own body — a statement
  * inside a callback passed to another call (e.g. `.map()`) belongs to that
- * callback, not the handler. Runs on both a block body and a concise arrow
- * expression body, since a bare `NextResponse.json(...)` call can appear
- * directly as one.
+ * callback, not the handler.
  */
 function analyzeHandlerBody(body: ESTree.Node, sourceText: string): Set<ControlFlowKind> {
   const start = body.range?.[0] ?? 0;
@@ -93,7 +78,6 @@ function analyzeHandlerBody(body: ESTree.Node, sourceText: string): Set<ControlF
     if (ts.isTryStatement(node)) kinds.add("try");
     if (isLoop(node)) kinds.add("loop");
     if (ts.isIfStatement(node)) kinds.add("if");
-    if (isNextResponseJsonCall(node)) kinds.add("response");
     if (isFunctionBoundary(node)) return;
     ts.forEachChild(node, visit);
   };
@@ -105,7 +89,6 @@ const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
   try: "a try statement",
   loop: "a loop",
   if: "an if statement",
-  response: "a NextResponse.json call",
 };
 
 export const routeHandlerShapeRule: Rule.RuleModule = {
@@ -113,8 +96,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description:
-        "Require a route.ts handler to be wrapped in withResponse, with no try, loop, if, or NextResponse.json call of its own.",
+      description: "Require a route.ts handler to be wrapped in withResponse, with no try, loop, or if of its own.",
     },
   },
   create(context) {
@@ -152,8 +134,8 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
         context.report({
           node,
           message:
-            `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; withResponse already builds ` +
-            "and validates the response. See docs/next-codebase-guide/rules/route-handler-rule.md",
+            `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; delegate that to a function ` +
+            "it calls. See docs/next-codebase-guide/rules/route-handler-rule.md",
         });
       }
     }

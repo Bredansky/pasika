@@ -4,16 +4,13 @@ import { routeHandlerShapeRule } from "./route-handler-shape";
 const MUST_BE_WRAPPED = (name: string): string =>
   `Handler "${name}" must be wrapped in withResponse. See docs/next-codebase-guide/rules/route-handler-rule.md`;
 const NO_TRY = (name: string): string =>
-  `Handler "${name}" contains a try statement of its own; withResponse already builds and validates the response. ` +
+  `Handler "${name}" contains a try statement of its own; delegate that to a function it calls. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 const NO_LOOP = (name: string): string =>
-  `Handler "${name}" contains a loop of its own; withResponse already builds and validates the response. ` +
+  `Handler "${name}" contains a loop of its own; delegate that to a function it calls. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 const NO_IF = (name: string): string =>
-  `Handler "${name}" contains an if statement of its own; withResponse already builds and validates the response. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NO_RESPONSE = (name: string): string =>
-  `Handler "${name}" contains a NextResponse.json call of its own; withResponse already builds and validates the response. ` +
+  `Handler "${name}" contains an if statement of its own; delegate that to a function it calls. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
 void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.", () => {
@@ -213,38 +210,6 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain an `if` stat
         }));`,
         filename: srcFile("app/api/post-status/route.ts"),
         errors: [{ message: NO_IF("GET") }],
-      },
-    ],
-  });
-});
-
-void describe("A handler wrapped in `withResponse` MUST NOT contain a `NextResponse.json` call in its body.", () => {
-  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
-    valid: [
-      {
-        code: `export const GET = withResponse(schema, async () => {
-          const status = await getStatus();
-          return { message: "OK.", data: status };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
-      },
-      // A NextResponse.json call in a callback passed to another call is
-      // that callback's own call, not the handler's.
-      {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const body = await request.json();
-          const ids = body.orders.map((order) => order.id ?? NextResponse.json({ error: "no id" }));
-          return { message: "OK.", data: ids };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-    ],
-    invalid: [
-      // A concise arrow body that constructs its response directly.
-      {
-        code: `export const GET = withResponse(schema, async () => NextResponse.json({ ok: true }));`,
-        filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: NO_RESPONSE("GET") }],
       },
     ],
   });
