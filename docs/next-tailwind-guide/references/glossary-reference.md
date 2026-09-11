@@ -22,17 +22,7 @@ These terms name the styling roles, helpers, and states the styling workflow ref
 
 ## Class Merging Helper
 
-`cn` is the helper every rule in this guide is written against. It combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property.
-
-```ts
-// src/utils/cn.ts
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
-}
-```
+`cn` is the helper every rule in this guide is written against; its canonical implementation lives in the Tech Stack Reference's Hand-Authored Helpers section. It combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property.
 
 Conditional classes and a consumer's `className` both pass through it, and the last conflicting utility is the one that applies:
 

@@ -1,6 +1,6 @@
 # Tech Stack Reference
 
-Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for. Each table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all.
+Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the hand-authored helpers a repository writes itself to the exact shape the framework's rules assume. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all.
 
 ## Dependencies
 
@@ -15,6 +15,91 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 | `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants             |
 | `clsx`                     | Conditional class-name building block of `cn`                              |
 | `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                      |
+
+## Hand-Authored Helpers
+
+Code a repository writes itself, unlike the packages above which it only installs. The framework's rules are written against each helper's exact shape, so the canonical implementation lives here once instead of being restated per rule.
+
+### `cn` — Class Merging
+
+Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this shape.
+
+```ts
+// src/utils/cn.ts
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}
+```
+
+### Result Pipeline Helpers
+
+`ok`, `err`, `andThen`, `HttpError`, and `respond` are the helpers the Route Handler and Result Pipeline Rules are written against. `ok`/`err` wrap a step's outcome as a `{ ok, value }`/`{ ok, error }` value, `andThen` chains a next step only once the previous one's `ok` is true, `HttpError` carries the status a failure should become, and `respond` turns the pipeline's final Result into a `NextResponse` — the one place a route's `{ data, status, message }` envelope gets built, with `status` always the HTTP status code.
+
+```ts
+// src/types/result.ts
+export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
+```
+
+```ts
+// src/utils/result.ts
+export function ok<T>(value: T): Result<T, never> {
+  return { ok: true, value };
+}
+
+export function err<E>(error: E): Result<never, E> {
+  return { ok: false, error };
+}
+
+export async function andThen<T, U, E>(
+  result: Result<T, E>,
+  next: (value: T) => Promise<Result<U, E>>,
+): Promise<Result<U, E>> {
+  return result.ok ? next(result.value) : result;
+}
+```
+
+```ts
+// src/utils/http-error.ts
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+  }
+}
+```
+
+```ts
+// src/utils/respond.ts
+export function respond<T, TData>(
+  result: Result<T, HttpError>,
+  onSuccess: (value: T) => { message: string; data: TData; status?: number },
+): NextResponse<{ data: TData | null; status: number; message: string }> {
+  if (!result.ok) {
+    const { status, message } = result.error;
+    return NextResponse.json({ data: null, status, message }, { status });
+  }
+
+  const { message, data, status = 200 } = onSuccess(result.value);
+  return NextResponse.json({ data, status, message }, { status });
+}
+```
+
+A route handler chains them without a `try`, loop, or `if` of its own:
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
+  const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
+  return respond(result, ({ jobIds }) => ({ message: "Dispatched.", data: jobIds }));
+});
+```
 
 ## DevDependencies
 
