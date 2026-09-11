@@ -88,16 +88,31 @@ function isFunctionBoundary(node: ts.Node): boolean {
   return ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isFunctionDeclaration(node);
 }
 
-type ControlFlowKind = "try" | "loop" | "if";
+/** Whether a node is a `NextResponse.json(...)` call. */
+function isNextResponseJsonCall(node: ts.Node): boolean {
+  if (!ts.isCallExpression(node)) return false;
+  const callee = node.expression;
+  return (
+    ts.isPropertyAccessExpression(callee) &&
+    ts.isIdentifier(callee.expression) &&
+    callee.expression.text === "NextResponse" &&
+    ts.isIdentifier(callee.name) &&
+    callee.name.text === "json"
+  );
+}
+
+type ControlFlowKind = "try" | "loop" | "if" | "response";
 
 /**
  * Finds every control-flow kind present directly in a handler body, re-parsed
  * with the TypeScript compiler the same way hook-complexity walks a hook
  * body. Does not descend into a nested function's own body — a statement
  * inside a callback passed to another call (e.g. `.map()`) is that
- * callback's control flow, not the handler's.
+ * callback's control flow, not the handler's. Runs on both a block body and a
+ * concise arrow expression body, since a bare `NextResponse.json(...)` call
+ * can appear directly as one.
  */
-function findControlFlowKinds(body: ESTree.BlockStatement, sourceText: string): Set<ControlFlowKind> {
+function findControlFlowKinds(body: ESTree.Node, sourceText: string): Set<ControlFlowKind> {
   const start = body.range?.[0] ?? 0;
   const end = body.range?.[1] ?? sourceText.length;
   const sourceFile = ts.createSourceFile(
@@ -113,6 +128,7 @@ function findControlFlowKinds(body: ESTree.BlockStatement, sourceText: string): 
     if (ts.isTryStatement(node)) kinds.add("try");
     if (isLoop(node)) kinds.add("loop");
     if (ts.isIfStatement(node)) kinds.add("if");
+    if (isNextResponseJsonCall(node)) kinds.add("response");
     if (isFunctionBoundary(node)) return;
     ts.forEachChild(node, visit);
   };
@@ -124,6 +140,7 @@ const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
   try: "a try statement",
   loop: "a loop",
   if: "an if statement",
+  response: "a NextResponse.json call",
 };
 
 export const routeHandlerShapeRule: Rule.RuleModule = {
@@ -141,16 +158,15 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     const sourceText = context.sourceCode.text;
 
     function checkHandler(node: Rule.Node, name: string, handler: FunctionLike | RouteFunctionDeclarationNode): void {
-      if (handler.body?.type === "BlockStatement") {
-        const kinds = findControlFlowKinds(handler.body, sourceText);
-        for (const kind of kinds) {
-          context.report({
-            node,
-            message:
-              `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; delegate to a module that ` +
-              "reports its outcome as a value instead. See docs/next-codebase-guide/rules/route-handler-rule.md",
-          });
-        }
+      if (!handler.body) return;
+      const kinds = findControlFlowKinds(handler.body, sourceText);
+      for (const kind of kinds) {
+        context.report({
+          node,
+          message:
+            `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; delegate to a module that ` +
+            "reports its outcome as a value instead. See docs/next-codebase-guide/rules/route-handler-rule.md",
+        });
       }
 
       if (!hasTypedResponseReturn(handler)) {

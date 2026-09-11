@@ -5,6 +5,7 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST NOT contain a `try` statement in its body.
 - An HTTP method handler exported from `route.ts` MUST NOT contain a loop in its body.
 - An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.
+- An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 
 ## Incorrect — Handler Catches Its Own Failures
@@ -32,7 +33,7 @@ export const POST = withUserId(async (userId, request: NextRequest): Promise<Nex
   const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
   const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
   const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
-  return resultToResponse(result, ({ jobIds }) => ({
+  return respond(result, ({ jobIds }) => ({
     status: 200,
     body: { success: true, message: "dispatched", status: "dispatched", jobIds },
   }));
@@ -65,8 +66,8 @@ Why: the handler fans the publication call out over every order itself, instead 
 // src/app/api/render-instagram-content/route.ts
 export async function POST(request: NextRequest): Promise<NextResponse<{ jobIds: string[] }>> {
   const body = await request.json();
-  const { jobIds } = await createPublicationsForOrders(body.orders);
-  return NextResponse.json({ jobIds });
+  const result = await createPublicationsForOrders(body.orders);
+  return respond(result, ({ jobIds }) => ({ status: 200, body: { jobIds } }));
 }
 ```
 
@@ -96,11 +97,38 @@ Why: the handler branches on the request itself, instead of a delegated module r
 // src/app/api/post-status/route.ts
 export async function GET(request: NextRequest): Promise<NextResponse<{ status: string } | { error: string }>> {
   const result = await getPublicationStatus(request.nextUrl.searchParams.get("id"));
-  return resultToResponse(result, (publication) => ({ status: 200, body: { status: publication.status } }));
+  return respond(result, (publication) => ({ status: 200, body: { status: publication.status } }));
 }
 ```
 
 Why: `getPublicationStatus` reports a missing id as a failed outcome, so the handler has no branch of its own.
+
+## Incorrect — Handler Constructs Its Own Response
+
+```ts
+// src/app/api/health/route.ts
+export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
+  const result = await getStatus();
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error.message }, { status: result.error.status });
+  }
+  return NextResponse.json({ status: result.value });
+}
+```
+
+Why: the handler builds its own success and failure responses from `result`, duplicating what `respond` already does for every route.
+
+## Correct — Handler Resolves Through `respond`
+
+```ts
+// src/app/api/health/route.ts
+export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
+  const result = await getStatus();
+  return respond(result, (status) => ({ status: 200, body: { status } }));
+}
+```
+
+Why: `respond` is the one place that turns `result` into a `NextResponse`, so the handler never constructs one itself.
 
 ## Incorrect — Return Type Omitted
 
@@ -118,7 +146,7 @@ Why: nothing states the handler's response contract, so a later change can alter
 ```ts
 // src/app/api/health/route.ts
 export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
-  return NextResponse.json({ status: "ok" });
+  return respond(ok({ status: "ok" }), (status) => ({ status: 200, body: status }));
 }
 ```
 

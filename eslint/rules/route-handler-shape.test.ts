@@ -10,6 +10,9 @@ const NO_LOOP =
 const NO_IF =
   'Handler "GET" contains an if statement of its own; delegate to a module that reports its outcome as a value ' +
   "instead. See docs/next-codebase-guide/rules/route-handler-rule.md";
+const NO_RESPONSE = (name: string): string =>
+  `Handler "${name}" contains a NextResponse.json call of its own; delegate to a module that reports its outcome ` +
+  "as a value instead. See docs/next-codebase-guide/rules/route-handler-rule.md";
 const TYPED_RETURN = (name: string): string =>
   `Handler "${name}" must declare its return type as Promise<NextResponse<X>> with a concrete X. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
@@ -22,7 +25,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
         code: `export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
           const parsed = await parseRenderPayload(request, orderSchema);
           const result = await andThen(parsed, (orders) => dispatchRenderJobs(userId, orders));
-          return resultToResponse(result, ({ jobIds }) => ({ status: 200, body: { jobIds } }));
+          return respond(result, ({ jobIds }) => ({ status: 200, body: { jobIds } }));
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
       },
@@ -38,7 +41,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
               return "";
             }
           });
-          return NextResponse.json({ jobIds });
+          return respond(ok({ jobIds }), (value) => ({ status: 200, body: value }));
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
       },
@@ -83,7 +86,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
           }
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NO_TRY_CATCH }],
+        errors: [{ message: NO_TRY_CATCH }, { message: NO_RESPONSE("POST") }],
       },
     ],
   });
@@ -96,7 +99,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
       {
         code: `export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
           const result = await getPublicationStatus(request.nextUrl.searchParams.get("id"));
-          return resultToResponse(result, (publication) => ({ status: 200, body: { status: publication.status } }));
+          return respond(result, (publication) => ({ status: 200, body: { status: publication.status } }));
         }`,
         filename: srcFile("app/api/post-status/route.ts"),
       },
@@ -111,7 +114,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
             }
             return order.id;
           });
-          return NextResponse.json({ jobIds });
+          return respond(ok({ jobIds }), (value) => ({ status: 200, body: value }));
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
       },
@@ -128,9 +131,9 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
           return NextResponse.json({ jobIds });
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NO_LOOP }],
+        errors: [{ message: NO_LOOP }, { message: NO_RESPONSE("POST") }],
       },
-      // Same violation, plus a missing typed return: both are reported.
+      // Same violations, plus a missing typed return: all three are reported.
       {
         code: `export async function POST(request: NextRequest) {
           const body = await request.json();
@@ -141,7 +144,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
           return NextResponse.json({ jobIds });
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NO_LOOP }, { message: TYPED_RETURN("POST") }],
+        errors: [{ message: NO_LOOP }, { message: NO_RESPONSE("POST") }, { message: TYPED_RETURN("POST") }],
       },
     ],
   });
@@ -150,9 +153,10 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
 void describe("An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // A concise arrow body has no block to scan for control flow.
+      // A concise arrow body has no block to scan for control flow, and
+      // resolves through respond rather than NextResponse.json directly.
       {
-        code: `export const GET = async (): Promise<NextResponse<{ ok: true }>> => NextResponse.json({ ok: true });`,
+        code: `export const GET = async (): Promise<NextResponse<{ ok: true }>> => respond(ok({ ok: true }), (value) => ({ status: 200, body: value }));`,
         filename: srcFile("app/api/health/route.ts"),
       },
       // An if in a callback passed to another call is that callback's
@@ -164,7 +168,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
             if (!order.id) return "";
             return order.id;
           });
-          return NextResponse.json({ jobIds });
+          return respond(ok({ jobIds }), (value) => ({ status: 200, body: value }));
         }`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
       },
@@ -181,7 +185,48 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
           return NextResponse.json({ status: publication.status });
         });`,
         filename: srcFile("app/api/post-status/route.ts"),
-        errors: [{ message: NO_IF }],
+        errors: [{ message: NO_IF }, { message: NO_RESPONSE("GET") }],
+      },
+    ],
+  });
+});
+
+void describe("An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.", () => {
+  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
+    valid: [
+      // The handler resolves through respond instead of constructing a
+      // NextResponse itself.
+      {
+        code: `export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
+          const result = await getStatus();
+          return respond(result, (status) => ({ status: 200, body: { status } }));
+        }`,
+        filename: srcFile("app/api/health/route.ts"),
+      },
+      // A NextResponse.json call in a callback passed to another call is
+      // that callback's own call, not the handler's.
+      {
+        code: `export async function POST(request: NextRequest): Promise<NextResponse<{ jobIds: string[] }>> {
+          const body = await request.json();
+          const jobIds = body.orders.map((order) => order.id ?? NextResponse.json({ error: "no id" }));
+          return respond(ok({ jobIds }), (value) => ({ status: 200, body: value }));
+        }`,
+        filename: srcFile("app/api/render-instagram-content/route.ts"),
+      },
+      // A NextResponse.json call outside route.ts is not this rule's concern.
+      {
+        code: `export function fallbackResponse() {
+          return NextResponse.json({ error: "not found" }, { status: 404 });
+        }`,
+        filename: srcFile("utils/fallback-response.ts"),
+      },
+    ],
+    invalid: [
+      // A concise arrow body that constructs its response directly.
+      {
+        code: `export const GET = async (): Promise<NextResponse<{ ok: true }>> => NextResponse.json({ ok: true });`,
+        filename: srcFile("app/api/health/route.ts"),
+        errors: [{ message: NO_RESPONSE("GET") }],
       },
     ],
   });
@@ -190,10 +235,10 @@ void describe("An HTTP method handler exported from `route.ts` MUST NOT contain 
 void describe("An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // A typed return with a concrete response shape.
+      // A typed return with a concrete response shape, resolved through respond.
       {
         code: `export async function GET(request: NextRequest): Promise<NextResponse<{ status: string }>> {
-            return NextResponse.json({ status: "ok" });
+            return respond(ok({ status: "ok" }), (status) => ({ status: 200, body: status }));
           }`,
         filename: srcFile("app/api/health/route.ts"),
       },
@@ -212,7 +257,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST declare its 
             return NextResponse.json({ status: "ok" });
           }`,
         filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: TYPED_RETURN("GET") }],
+        errors: [{ message: NO_RESPONSE("GET") }, { message: TYPED_RETURN("GET") }],
       },
       // A bare `NextResponse` with no generic argument.
       {
@@ -220,7 +265,7 @@ void describe("An HTTP method handler exported from `route.ts` MUST declare its 
             return NextResponse.json({ status: "ok" });
           }`,
         filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: TYPED_RETURN("GET") }],
+        errors: [{ message: NO_RESPONSE("GET") }, { message: TYPED_RETURN("GET") }],
       },
     ],
   });

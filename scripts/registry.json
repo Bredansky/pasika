@@ -601,6 +601,36 @@
       "ref": "pasika/repeated-structure"
     },
     {
+      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
+      "text": "The project's `ok` helper MUST return `{ ok: true, value }`.",
+      "hash": "d84f0e9871",
+      "ref": "pasika/result-pipeline-helper"
+    },
+    {
+      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
+      "text": "The project's `err` helper MUST return `{ ok: false, error }`.",
+      "hash": "f301d5d056",
+      "ref": "pasika/result-pipeline-helper"
+    },
+    {
+      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
+      "text": "The project's `andThen` helper MUST run its next step only once the previous outcome's `ok` is true.",
+      "hash": "0fab037a04",
+      "ref": "pasika/result-pipeline-helper"
+    },
+    {
+      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
+      "text": "The project's `HttpError` class MUST extend `Error` and carry a `status`.",
+      "hash": "0b31e27e52",
+      "ref": "pasika/result-pipeline-helper"
+    },
+    {
+      "doc": "next-codebase-guide/rules/result-pipeline-rule.md",
+      "text": "The project's `respond` helper MUST branch on `ok` and resolve through `NextResponse.json`.",
+      "hash": "2661a700d7",
+      "ref": "pasika/result-pipeline-helper"
+    },
+    {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `try` statement in its body.",
       "hash": "1956d5cf5f",
@@ -616,6 +646,12 @@
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.",
       "hash": "8ecffddc46",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.",
+      "hash": "b1c8446436",
       "ref": "pasika/route-handler-shape"
     },
     {
