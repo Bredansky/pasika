@@ -656,8 +656,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "The project's `andThen` and `respond` helpers MUST type their `Result` parameters as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.",
-      "hash": "18df09b222",
+      "text": "The project's `ok`, `err`, `andThen`, and `respond` helpers MUST type their `Result` values as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.",
+      "hash": "9d743d1432",
       "ref": "pasika/result-pipeline-types"
     },
     {

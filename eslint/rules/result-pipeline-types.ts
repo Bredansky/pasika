@@ -1,12 +1,12 @@
 /**
  * ESLint rule: pasika/result-pipeline-types
  *
- * The project's andThen and respond helpers MUST type their Result-carrying
- * parameters and return values as Result. andThen's own runtime behavior and
- * respond's own runtime behavior can look correct while their declared types
- * are loose enough that nothing forces a route handler's delegated calls to
- * actually be Result-typed — the guarantee andThen and respond exist to
- * provide only holds if their signatures say so.
+ * The project's ok, err, andThen, and respond helpers MUST type their
+ * Result-carrying parameters and return values as Result. Each helper's own
+ * runtime behavior can look correct while its declared types are loose
+ * enough that nothing forces a route handler's delegated calls to actually
+ * be Result-typed — the guarantee these helpers exist to provide only holds
+ * if their signatures say so.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -22,18 +22,32 @@ interface TypeNode {
   returnType?: { typeAnnotation?: TypeNode } | null;
 }
 
-/** A parameter's `: T` annotation, from the typescript-eslint parser. */
-interface TypedParam {
+/** A parameter's or function's `: T` annotation, from the typescript-eslint parser. */
+interface Typed {
   typeAnnotation?: { typeAnnotation?: TypeNode } | null;
 }
 
-function hasTypeAnnotation(param: ESTree.Pattern): param is ESTree.Pattern & TypedParam {
-  return "typeAnnotation" in param;
+function isTyped(node: object): node is Typed {
+  return "typeAnnotation" in node;
 }
 
 function paramType(param: ESTree.Pattern | undefined): TypeNode | undefined {
-  if (!param || !hasTypeAnnotation(param)) return undefined;
+  if (!param || !isTyped(param)) return undefined;
   return param.typeAnnotation?.typeAnnotation;
+}
+
+/** A function's declared `: T` return type, from the typescript-eslint parser. */
+interface ReturnTyped {
+  returnType?: { typeAnnotation?: TypeNode } | null;
+}
+
+function hasReturnType(node: object): node is ReturnTyped {
+  return "returnType" in node;
+}
+
+function functionReturnType(fn: ESTree.Node): TypeNode | undefined {
+  if (!hasReturnType(fn)) return undefined;
+  return fn.returnType?.typeAnnotation;
 }
 
 /** Whether a type node mentions `Result`, unwrapping `Promise<...>` and function return types. */
@@ -49,9 +63,9 @@ function referencesResultType(node: TypeNode | undefined): boolean {
   return false;
 }
 
-function isFunctionLike(
-  node: ESTree.Node,
-): node is ESTree.ArrowFunctionExpression | ESTree.FunctionExpression | ESTree.FunctionDeclaration {
+type FunctionLike = ESTree.ArrowFunctionExpression | ESTree.FunctionExpression | ESTree.FunctionDeclaration;
+
+function isFunctionLike(node: ESTree.Node): node is FunctionLike {
   return (
     node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression" || node.type === "FunctionDeclaration"
   );
@@ -59,14 +73,8 @@ function isFunctionLike(
 
 const DOC_LINK = "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
-function checkHelper(
-  context: Rule.RuleContext,
-  node: Rule.Node,
-  params: ESTree.Pattern[],
-  checkParams: (params: ESTree.Pattern[]) => boolean,
-  message: string,
-): void {
-  if (!checkParams(params)) {
+function checkHelper(context: Rule.RuleContext, node: Rule.Node, isResultTyped: boolean, message: string): void {
+  if (!isResultTyped) {
     context.report({ node, message: `${message} ${DOC_LINK}` });
   }
 }
@@ -76,17 +84,22 @@ export const resultPipelineTypesRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require andThen and respond to type their Result-carrying parameters and return values as Result.",
+      description: "Require ok, err, andThen, and respond to type their Result-carrying values as Result.",
     },
   },
   create(context) {
-    function checkNamed(node: Rule.Node, name: string, params: ESTree.Pattern[]): void {
+    function checkNamed(node: Rule.Node, name: string, fn: FunctionLike): void {
+      if (name === "ok") {
+        checkHelper(context, node, referencesResultType(functionReturnType(fn)), "ok must type its return as Result.");
+      }
+      if (name === "err") {
+        checkHelper(context, node, referencesResultType(functionReturnType(fn)), "err must type its return as Result.");
+      }
       if (name === "andThen") {
         checkHelper(
           context,
           node,
-          params,
-          (p) => referencesResultType(paramType(p[0])) && referencesResultType(paramType(p[1])),
+          referencesResultType(paramType(fn.params[0])) && referencesResultType(paramType(fn.params[1])),
           "andThen must type its result parameter and its next parameter's return as Result.",
         );
       }
@@ -94,24 +107,25 @@ export const resultPipelineTypesRule: Rule.RuleModule = {
         checkHelper(
           context,
           node,
-          params,
-          (p) => referencesResultType(paramType(p[0])),
+          referencesResultType(paramType(fn.params[0])),
           "respond must type its result parameter as Result.",
         );
       }
     }
 
+    const trackedNames = new Set(["ok", "err", "andThen", "respond"]);
+
     return {
       FunctionDeclaration(node) {
         const name = node.id.name;
-        if (name === "andThen" || name === "respond") checkNamed(node, name, node.params);
+        if (trackedNames.has(name)) checkNamed(node, name, node);
       },
 
       VariableDeclarator(node) {
         if (node.id.type !== "Identifier") return;
         const name = node.id.name;
-        if (name !== "andThen" && name !== "respond") return;
-        if (node.init && isFunctionLike(node.init)) checkNamed(node, name, node.init.params);
+        if (!trackedNames.has(name)) return;
+        if (node.init && isFunctionLike(node.init)) checkNamed(node, name, node.init);
       },
     };
   },

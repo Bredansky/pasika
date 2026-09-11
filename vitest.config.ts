@@ -8,10 +8,10 @@ export default defineConfig({
       include: ["eslint/**/*.ts", "scripts/**/*.ts", "utils/**/*.ts"],
       exclude: ["**/*.test.ts"],
       thresholds: {
-        lines: 87.3,
+        lines: 87.35,
         functions: 90.34,
-        branches: 76.51,
-        statements: 82.19,
+        branches: 76.55,
+        statements: 82.22,
         autoUpdate: true,
       },
     },
