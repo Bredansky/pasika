@@ -175,6 +175,12 @@
       "ref": "pasika/reference-block-headings"
     },
     {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Reference MUST NOT use a heading deeper than level 2.",
+      "hash": "d8899e0d2a",
+      "ref": "pasika/reference-max-heading-depth"
+    },
+    {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "Rule file names MUST match the document title in kebab-case and use the `-rule` suffix (e.g., `foo-rule.md`).",
       "hash": "58b18e4f61",

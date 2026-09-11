@@ -1,10 +1,6 @@
 # Glossary Reference
 
-Use this reference to look up the styling terms this guide's rules use, and the class-merging helper they are written against.
-
-## Terms
-
-These terms name the styling roles, helpers, and states the styling workflow refers to.
+Use this reference to look up the styling terms this guide's rules use.
 
 | Term                     | Definition                                                                                                                                                                                                                                                                                                                                    |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -20,14 +16,3 @@ These terms name the styling roles, helpers, and states the styling workflow ref
 | State variant            | A Tailwind variant prefix that targets a state, such as `hover:`, `focus-visible:`, `disabled:`, or `aria-busy:`.                                                                                                                                                                                                                             |
 | `cn`                     | The helper every rule in this guide is written against; its canonical implementation lives in the Tech Stack Reference's Hand-Authored Helpers section. It combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. |
 | `cva`                    | Class Variance Authority, which defines a component's visual options and derives their TypeScript API through `VariantProps`.                                                                                                                                                                                                                 |
-
-## Class Merging Example
-
-A consumer's `className` passes through `cn` alongside conditional classes, and the last conflicting utility is the one that applies:
-
-```tsx
-// `p-6` wins over `p-4`, and the disabled treatment applies only when disabled
-<article className={cn("card-skin rounded-lg p-4", isDisabled && "opacity-50", className)} />;
-
-<Card className="p-6" />;
-```

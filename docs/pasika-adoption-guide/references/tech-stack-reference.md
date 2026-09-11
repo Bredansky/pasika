@@ -16,11 +16,7 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 | `clsx`                     | Conditional class-name building block of `cn`                              |
 | `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                      |
 
-## Hand-Authored Helpers
-
-Code a repository writes itself, unlike the packages above which it only installs. The framework's rules are written against each helper's exact shape, so the canonical implementation lives here once instead of being restated per rule.
-
-### `cn` — Class Merging
+## `cn` — Class Merging
 
 Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this shape.
 
@@ -34,7 +30,7 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-### Result Pipeline Helpers
+## Result Pipeline Helpers
 
 `ok`, `err`, `andThen`, `HttpError`, and `respond` are the helpers the Route Handler and Result Pipeline Rules are written against. `ok`/`err` wrap a step's outcome as a `{ ok, value }`/`{ ok, error }` value, `andThen` chains a next step only once the previous one's `ok` is true, `HttpError` carries the status a failure should become, and `respond` turns the pipeline's final Result into a `NextResponse` — the one place a route's `{ data, status, message }` envelope gets built, with `status` always the HTTP status code.
 
