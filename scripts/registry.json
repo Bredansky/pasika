@@ -661,6 +661,12 @@
       "ref": "pasika/result-pipeline-types"
     },
     {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A function a route handler delegates to MUST declare its return type as `Result`.",
+      "hash": "5afbbd87bd",
+      "ref": "pasika/route-handler-delegate-types"
+    },
+    {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
       "text": "A component's name MUST be `PascalCase`.",
       "hash": "6bd701a96e",

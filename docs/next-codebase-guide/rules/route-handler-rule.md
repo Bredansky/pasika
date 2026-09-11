@@ -11,6 +11,7 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
 - A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.
 - The project's `ok`, `err`, `andThen`, and `respond` helpers MUST type their `Result` values as `Result`, so every delegated call in a route handler's pipeline is guaranteed to return one.
+- A function a route handler delegates to MUST declare its return type as `Result`.
 
 ## Incorrect — Handler Catches Its Own Failures
 
@@ -242,3 +243,25 @@ export async function andThen<T, U, E>(
 ```
 
 Why: `next` is typed to return a `Result`, so a delegated call that throws instead of returning one fails to type-check.
+
+## Incorrect — Delegate Does Not Declare A `Result` Return
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+export async function dispatchGithubWorkflow(inputs: Record<string, string>): Promise<void> {
+  // ...
+}
+```
+
+Why: `andThen` and `respond` can only propagate the `Result` guarantee they were typed for — a delegate typed to return `Promise<void>` gives them nothing to propagate, so `andThen`'s own type check passes even though this delegate never reports a failure as a value.
+
+## Correct — Delegate Declares A `Result` Return
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+export async function dispatchGithubWorkflow(inputs: Record<string, string>): Promise<Result<void, HttpError>> {
+  // ...
+}
+```
+
+Why: the delegate's own return type is `Result`, so the guarantee `andThen` and `respond` propagate actually starts somewhere.
