@@ -42,8 +42,6 @@ import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { routeHandlerShapeRule } from "./rules/route-handler-shape";
 import { httpErrorUsageRule } from "./rules/http-error-usage";
-import { resultPipelineTypesRule } from "./rules/result-pipeline-types";
-import { routeHandlerDelegateTypesRule } from "./rules/route-handler-delegate-types";
 import { hookComplexityRule } from "./rules/hook-complexity";
 import { localeDottedPathRule } from "./rules/locale-dotted-path";
 import { localesLocationRule } from "./rules/locales-location";
@@ -117,8 +115,6 @@ const pasikaNextjsAppRules = {
   "root-support-placement": rootSupportPlacementRule,
   "route-handler-shape": routeHandlerShapeRule,
   "http-error-usage": httpErrorUsageRule,
-  "result-pipeline-types": resultPipelineTypesRule,
-  "route-handler-delegate-types": routeHandlerDelegateTypesRule,
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,

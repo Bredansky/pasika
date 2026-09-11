@@ -30,32 +30,9 @@ export function cn(...inputs: ClassValue[]): string {
 }
 ```
 
-## Result Pipeline Helpers
+## Route Error Handling Helpers
 
-`ok`, `err`, `andThen`, `HttpError`, and `respond` are the helpers the Route Handler and Result Pipeline Rules are written against. `ok`/`err` wrap a step's outcome as a `{ ok, value }`/`{ ok, error }` value, `andThen` chains a next step only once the previous one's `ok` is true, `HttpError` carries the status a failure should become, and `respond` turns the pipeline's final Result into a `NextResponse` — the one place a route's `{ data, status, message }` envelope gets built, with `status` always the HTTP status code.
-
-```ts
-// src/types/result.ts
-export type Result<T, E> = { ok: true; value: T } | { ok: false; error: E };
-```
-
-```ts
-// src/utils/result.ts
-export function ok<T>(value: T): Result<T, never> {
-  return { ok: true, value };
-}
-
-export function err<E>(error: E): Result<never, E> {
-  return { ok: false, error };
-}
-
-export async function andThen<T, U, E>(
-  result: Result<T, E>,
-  next: (value: T) => Promise<Result<U, E>>,
-): Promise<Result<U, E>> {
-  return result.ok ? next(result.value) : result;
-}
-```
+`HttpError`, `withErrors`, and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withErrors` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`) and maps it to a `{ error, status }` response, for a handler that still builds its own success response; `withResponse` additionally validates the handler's returned data against a schema and builds the `{ data, message }` envelope itself, so the handler never calls `NextResponse.json` at all.
 
 ```ts
 // src/utils/http-error.ts
@@ -70,31 +47,56 @@ export class HttpError extends Error {
 ```
 
 ```ts
-// src/utils/respond.ts
-export function respond<T, TData>(
-  result: Result<T, HttpError>,
-  onSuccess: (value: T) => { message: string; data: TData; status?: number },
-): NextResponse<{ data: TData | null; status: number; message: string }> {
-  if (!result.ok) {
-    const { status, message } = result.error;
-    return NextResponse.json({ data: null, status, message }, { status });
-  }
-
-  const { message, data, status = 200 } = onSuccess(result.value);
-  return NextResponse.json({ data, status, message }, { status });
+// src/utils/with-errors.ts
+export function withErrors<Args extends unknown[], TResponse extends NextResponse>(
+  handler: (...args: Args) => Promise<TResponse>,
+): (...args: Args) => Promise<TResponse | NextResponse<{ error: string }>> {
+  return async (...args) => {
+    try {
+      return await handler(...args);
+    } catch (error) {
+      if (error instanceof HttpError) {
+        return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+      throw error;
+    }
+  };
 }
 ```
 
-A route handler chains them without a `try`, loop, or `if` of its own:
+```ts
+// src/utils/with-response.ts
+export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
+  responseSchema: TSchema,
+  handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> }>,
+): (...args: Args) => Promise<NextResponse<{ data: z.output<TSchema> | null; message: string }>> {
+  return async (...args) => {
+    try {
+      const { message, data } = await handler(...args);
+      return NextResponse.json({ data: responseSchema.parse(data), message });
+    } catch (error) {
+      if (error instanceof HttpError) {
+        return NextResponse.json({ data: null, message: error.message }, { status: error.status });
+      }
+      throw error;
+    }
+  };
+}
+```
+
+A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withUserId(async (userId, request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
-  const parsed = await parseRenderPayload(request, instagramRenderOrderSchema);
-  const published = await andThen(parsed, (orders) => createPublicationsForOrders(userId, orders));
-  const result = await andThen(published, (orders) => dispatchRenderJobs(userId, orders));
-  return respond(result, ({ jobIds }) => ({ message: "Dispatched.", data: jobIds }));
-});
+export const POST = withResponse(
+  renderApiResponseDataSchema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+    const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
+    const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
+    return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  }),
+);
 ```
 
 ## DevDependencies

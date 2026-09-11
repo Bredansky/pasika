@@ -9,8 +9,6 @@ export interface ModuleExport {
   name: string;
   kind: ExportKind;
   line: number;
-  /** Whether the export's own declared return type references `Result`. */
-  returnsResult: boolean;
 }
 
 export interface ModuleImport {
@@ -58,21 +56,6 @@ function classifyFunction(name: string, isTsx: boolean, hasJsx: boolean): Export
   if (isHookName(name)) return "hook";
   if (isTsx && isPascalCase(name) && hasJsx) return "component";
   return "function";
-}
-
-/** Whether a type node mentions `Result`, unwrapping `Promise<Result<...>>` and similar wrappers. */
-function referencesResultType(node: ts.TypeNode | undefined): boolean {
-  if (!node || !ts.isTypeReferenceNode(node)) return false;
-  if (ts.isIdentifier(node.typeName) && node.typeName.text === "Result") return true;
-  return (node.typeArguments ?? []).some(referencesResultType);
-}
-
-/** The declared `: T` return type of a function declaration or function-like initializer. */
-function functionReturnTypeNode(node: ts.Node | undefined): ts.TypeNode | undefined {
-  if (node && (ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node))) {
-    return node.type;
-  }
-  return undefined;
 }
 
 function classifyValue(name: string, initializer: ts.Node | undefined, isTsx: boolean): ExportKind {
@@ -138,7 +121,6 @@ export function parseModule(file: string): ParsedModule {
             name: element.name.text,
             kind: "other",
             line: lineOf(sourceFile, element),
-            returnsResult: false,
           });
         }
       }
@@ -156,7 +138,6 @@ export function parseModule(file: string): ParsedModule {
         name,
         kind: classifyFunction(name, isTsx, returnsJsx(statement)),
         line: lineOf(sourceFile, statement),
-        returnsResult: referencesResultType(functionReturnTypeNode(statement)),
       });
       continue;
     }
@@ -168,7 +149,6 @@ export function parseModule(file: string): ParsedModule {
           name: declaration.name.text,
           kind: classifyValue(declaration.name.text, declaration.initializer, isTsx),
           line: lineOf(sourceFile, declaration),
-          returnsResult: referencesResultType(functionReturnTypeNode(declaration.initializer)),
         });
       }
       continue;
@@ -179,7 +159,6 @@ export function parseModule(file: string): ParsedModule {
         name: statement.name.text,
         kind: "type",
         line: lineOf(sourceFile, statement),
-        returnsResult: false,
       });
     }
   }

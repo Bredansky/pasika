@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in `src/config/<module>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
-      "hash": "57f90aa714",
+      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
+      "hash": "9f777fc902",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -434,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "d21c133849",
+      "text": "A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "e69b5bc373",
       "ref": "pasika/root-support-placement"
     },
     {
@@ -608,63 +608,39 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `try` statement in its body.",
-      "hash": "1956d5cf5f",
+      "text": "An HTTP method handler exported from `route.ts` MUST be wrapped in `withErrors` or `withResponse`.",
+      "hash": "596de5fa95",
       "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a loop in its body.",
-      "hash": "5aeab47f8d",
+      "text": "A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.",
+      "hash": "48c4c08cd1",
       "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain an `if` statement in its body.",
-      "hash": "8ecffddc46",
+      "text": "A handler wrapped in `withResponse` MUST NOT contain a loop in its body.",
+      "hash": "9e498a520e",
       "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST NOT contain a `NextResponse.json` call in its body.",
-      "hash": "b1c8446436",
+      "text": "A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.",
+      "hash": "0d8021c81a",
       "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST thread every delegated call after its first through `andThen`.",
-      "hash": "4e7746fe5c",
+      "text": "A handler wrapped in `withResponse` MUST NOT contain a `NextResponse.json` call in its body.",
+      "hash": "073a02d6e0",
       "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.",
-      "hash": "acf6d5a600",
-      "ref": "pasika/route-handler-shape"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.",
-      "hash": "db1c78247f",
-      "ref": "pasika/route-handler-shape"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
-      "hash": "af38b1fccd",
+      "text": "A constructed `HttpError` MUST be thrown, not returned.",
+      "hash": "95bf8045e2",
       "ref": "pasika/http-error-usage"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "The project's `ok`, `err`, `andThen`, and `respond` helpers MUST declare `Result` in their own type signatures, so every delegated call in a route handler's pipeline is guaranteed to return one.",
-      "hash": "23cbbb9131",
-      "ref": "pasika/result-pipeline-types"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A function a route handler delegates to MUST declare its return type as `Result`.",
-      "hash": "5afbbd87bd",
-      "ref": "pasika/route-handler-delegate-types"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
@@ -764,8 +740,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type MAY stay in `src/config/<module>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
-      "hash": "091724ed27",
+      "text": "A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
+      "hash": "1e2cc654cd",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -776,8 +752,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "515d2c8e9a",
+      "text": "A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "89bb8660e4",
       "ref": "pasika/root-support-placement"
     },
     {
@@ -824,8 +800,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/*/`. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "0cc97e7db1",
+      "text": "A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "eef46e605d",
       "ref": "pasika/root-support-placement"
     },
     {
