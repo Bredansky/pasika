@@ -535,12 +535,6 @@
       "ref": "pasika/hook-complexity"
     },
     {
-      "doc": "next-codebase-guide/rules/httperror-usage-rule.md",
-      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
-      "hash": "af38b1fccd",
-      "ref": "pasika/http-error-usage"
-    },
-    {
       "doc": "next-codebase-guide/rules/interactive-component-rule.md",
       "text": "An [interactive HTML element](https://html.spec.whatwg.org/multipage/dom.html#interactive-content) MUST be extracted to a component with a descriptive name.",
       "hash": "56a186c55b",
@@ -647,6 +641,12 @@
       "text": "An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.",
       "hash": "db1c78247f",
       "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.",
+      "hash": "af38b1fccd",
+      "ref": "pasika/http-error-usage"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",

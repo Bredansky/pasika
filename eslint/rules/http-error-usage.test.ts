@@ -3,7 +3,7 @@ import { httpErrorUsageRule } from "./http-error-usage";
 
 const MUST_USE_ERR =
   "A constructed HttpError must be reported through err, not thrown. " +
-  "See docs/next-codebase-guide/rules/httperror-usage-rule.md";
+  "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
 void describe("A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.", () => {
   ruleTester.run("http-error-usage", httpErrorUsageRule, {

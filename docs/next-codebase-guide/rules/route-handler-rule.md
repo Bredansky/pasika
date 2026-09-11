@@ -9,6 +9,7 @@ A route handler that keeps its own branching, looping, or failure handling grows
 - An HTTP method handler exported from `route.ts` MUST thread every delegated call after its first through `andThen`.
 - An HTTP method handler exported from `route.ts` MUST resolve its response by calling `respond`.
 - An HTTP method handler exported from `route.ts` MUST declare its return type as `Promise<NextResponse<X>>` with a concrete `X`.
+- A function that constructs an `HttpError` MUST report it through `err`, not `throw` it.
 
 ## Incorrect — Handler Catches Its Own Failures
 
@@ -187,3 +188,31 @@ export async function GET(
 ```
 
 Why: the return type commits the handler to a concrete response shape.
+
+## Incorrect — HttpError Thrown Directly
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+function checkConfigured(pat: string | undefined): string {
+  if (!pat) {
+    throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
+  }
+  return pat;
+}
+```
+
+Why: the function throws instead of returning a `Result`, so a caller that only checks `.ok` never sees this failure — it reaches the caller as an uncaught exception instead.
+
+## Correct — HttpError Reported Through `err`
+
+```ts
+// src/utils/dispatch-github-workflow.ts
+function checkConfigured(pat: string | undefined): Result<string, HttpError> {
+  if (!pat) {
+    return err(new HttpError("Server not configured for GitHub Actions dispatch.", 500));
+  }
+  return ok(pat);
+}
+```
+
+Why: `err` wraps the `HttpError` in the same `Result` shape every other step returns, so a caller's `.ok` check catches it like any other failure.

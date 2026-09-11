@@ -6,7 +6,7 @@
  * type promises a Result a caller can check .ok on, and a throw bypasses
  * that promise, reaching the caller as an uncaught exception instead.
  *
- * @see docs/next-codebase-guide/rules/httperror-usage-rule.md
+ * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
 
 import type { Rule } from "eslint";
@@ -32,7 +32,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
             node,
             message:
               "A constructed HttpError must be reported through err, not thrown. " +
-              "See docs/next-codebase-guide/rules/httperror-usage-rule.md",
+              "See docs/next-codebase-guide/rules/route-handler-rule.md",
           });
         }
       },
