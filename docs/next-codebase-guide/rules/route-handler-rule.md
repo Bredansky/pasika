@@ -6,7 +6,8 @@ A route handler that catches its own failures, branches on them, or builds its o
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
-- A delegated function that constructs an `HttpError` MUST throw it, not return it.
+- A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
+- A function that constructs an `HttpError` MUST throw it, not return it.
 
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
@@ -73,6 +74,44 @@ export const POST = withResponse(
 ```
 
 Why: `dispatchRenderJobs` is the one that catches the underlying failure and throws `HttpError`, so the handler's body has no `try` of its own.
+
+## Incorrect — Handler Calls A Function Declared In `route.ts`
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+async function dispatchWithRetry(orders) {
+  return await dispatchGithubWorkflowRequest(orders);
+}
+
+export const POST = withResponse(
+  schema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, orderSchema);
+    const result = await dispatchWithRetry(orders);
+    return { message: "Dispatched.", data: result };
+  }),
+);
+```
+
+Why: `dispatchWithRetry` is declared in `route.ts` itself, so the same logic this rule bans from the handler's own body — a `try`, a loop, an `if` — can reappear one function away, in the same file.
+
+## Correct — Handler Calls An Imported Function
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+import { dispatchRenderJobs } from "@/utils/instagram";
+
+export const POST = withResponse(
+  schema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, orderSchema);
+    const { jobIds } = await dispatchRenderJobs(userId, orders);
+    return { message: "Dispatched.", data: jobIds };
+  }),
+);
+```
+
+Why: `dispatchRenderJobs` is imported from `@/utils/instagram`, so `route.ts` contains nothing but the wiring between it and `withResponse`.
 
 ## Incorrect — Handler Loops Over Its Own Orders
 

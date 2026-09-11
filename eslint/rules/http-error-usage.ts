@@ -1,10 +1,10 @@
 /**
  * ESLint rule: pasika/http-error-usage
  *
- * A delegated function that constructs an HttpError MUST throw it, not
- * return it. Nothing catches an HttpError a function merely returns — a
- * caller composing awaited calls in sequence never sees it, and it reaches
- * no boundary at all instead of being mapped to a response.
+ * A function that constructs an HttpError MUST throw it, not return it.
+ * Nothing catches an HttpError a function merely returns — a caller
+ * composing awaited calls in sequence never sees it, and it reaches no
+ * boundary at all instead of being mapped to a response.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -21,7 +21,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a delegated function that constructs an HttpError to throw it, not return it.",
+      description: "Require a function that constructs an HttpError to throw it, not return it.",
     },
   },
   create(context) {
@@ -31,7 +31,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
           context.report({
             node,
             message:
-              "A delegated function that constructs an HttpError must throw it, not return it. " +
+              "A function that constructs an HttpError must throw it, not return it. " +
               "See docs/next-codebase-guide/rules/route-handler-rule.md",
           });
         }

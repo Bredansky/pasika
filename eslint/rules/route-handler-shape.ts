@@ -3,11 +3,13 @@
  *
  * An HTTP method handler exported from route.ts MUST be wrapped in
  * withResponse — the one boundary that catches an HttpError thrown by
- * requireUserId/requireUserAccount or any delegated call, and that builds
- * and validates the response from the handler's returned {message, data}.
- * A handler under it MUST NOT contain a try statement, a loop, or an if
- * statement of its own: that failure handling, looping, and branching
- * belongs in a delegated function it calls.
+ * requireUserId/requireUserAccount or any call the handler makes, and that
+ * builds and validates the response from the handler's returned
+ * {message, data}. A handler under it MUST NOT contain a try statement, a
+ * loop, or an if statement of its own, and every function it calls MUST be
+ * imported rather than declared in route.ts — otherwise the same logic this
+ * rule bans from the handler's own body can reappear one function away, in
+ * the same file.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -56,13 +58,21 @@ function isFunctionBoundary(node: ts.Node): boolean {
 
 type ControlFlowKind = "try" | "loop" | "if";
 
+interface HandlerAnalysis {
+  kinds: Set<ControlFlowKind>;
+  /** Names of functions called directly by name (not as a property access). */
+  calledNames: Set<string>;
+}
+
 /**
  * Analyzes a handler body in one pass, re-parsed with the TypeScript
  * compiler. Does not descend into a nested function's own body — a statement
  * inside a callback passed to another call (e.g. `.map()`) belongs to that
- * callback, not the handler.
+ * callback, not the handler. A call like `request.json()` has a property
+ * access as its callee, not a plain identifier, so it is never collected as
+ * a called name.
  */
-function analyzeHandlerBody(body: ESTree.Node, sourceText: string): Set<ControlFlowKind> {
+function analyzeHandlerBody(body: ESTree.Node, sourceText: string): HandlerAnalysis {
   const start = body.range?.[0] ?? 0;
   const end = body.range?.[1] ?? sourceText.length;
   const sourceFile = ts.createSourceFile(
@@ -74,15 +84,17 @@ function analyzeHandlerBody(body: ESTree.Node, sourceText: string): Set<ControlF
   );
 
   const kinds = new Set<ControlFlowKind>();
+  const calledNames = new Set<string>();
   const visit = (node: ts.Node): void => {
     if (ts.isTryStatement(node)) kinds.add("try");
     if (isLoop(node)) kinds.add("loop");
     if (ts.isIfStatement(node)) kinds.add("if");
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) calledNames.add(node.expression.text);
     if (isFunctionBoundary(node)) return;
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
-  return kinds;
+  return { kinds, calledNames };
 }
 
 const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
@@ -91,12 +103,38 @@ const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
   if: "an if statement",
 };
 
+function isFunctionLikeInit(node: ESTree.Expression | null | undefined): boolean {
+  return node?.type === "ArrowFunctionExpression" || node?.type === "FunctionExpression";
+}
+
+/** Names of functions declared at the top level of this file, whether exported or not. */
+function collectLocallyDeclaredNames(programBody: ESTree.Program["body"]): Set<string> {
+  const names = new Set<string>();
+  for (const statement of programBody) {
+    const declaration =
+      statement.type === "ExportNamedDeclaration" && statement.declaration ? statement.declaration : statement;
+
+    if (declaration.type === "FunctionDeclaration") {
+      names.add(declaration.id.name);
+    }
+    if (declaration.type === "VariableDeclaration") {
+      for (const declarator of declaration.declarations) {
+        if (declarator.id.type === "Identifier" && isFunctionLikeInit(declarator.init)) {
+          names.add(declarator.id.name);
+        }
+      }
+    }
+  }
+  return names;
+}
+
 export const routeHandlerShapeRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a route.ts handler to be wrapped in withResponse, with no try, loop, or if of its own.",
+      description:
+        "Require a route.ts handler to be wrapped in withResponse, with no try, loop, or if of its own, and every function it calls imported rather than declared in route.ts.",
     },
   },
   create(context) {
@@ -129,7 +167,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
       const handler = findHandler(init);
       if (!handler?.body) return;
 
-      const kinds = analyzeHandlerBody(handler.body, sourceText);
+      const { kinds, calledNames } = analyzeHandlerBody(handler.body, sourceText);
       for (const kind of kinds) {
         context.report({
           node,
@@ -137,6 +175,18 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
             `Handler "${name}" contains ${CONTROL_FLOW_MESSAGES[kind]} of its own; delegate that to a function ` +
             "it calls. See docs/next-codebase-guide/rules/route-handler-rule.md",
         });
+      }
+
+      const localNames = collectLocallyDeclaredNames(context.sourceCode.ast.body);
+      for (const calledName of calledNames) {
+        if (localNames.has(calledName)) {
+          context.report({
+            node,
+            message:
+              `Handler "${name}" calls "${calledName}", which is declared in route.ts instead of imported. ` +
+              "See docs/next-codebase-guide/rules/route-handler-rule.md",
+          });
+        }
       }
     }
 

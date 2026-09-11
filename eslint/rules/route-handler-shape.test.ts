@@ -12,6 +12,9 @@ const NO_LOOP = (name: string): string =>
 const NO_IF = (name: string): string =>
   `Handler "${name}" contains an if statement of its own; delegate that to a function it calls. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
+const NOT_IMPORTED = (name: string, calledName: string): string =>
+  `Handler "${name}" calls "${calledName}", which is declared in route.ts instead of imported. ` +
+  "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
 void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
@@ -210,6 +213,65 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain an `if` stat
         }));`,
         filename: srcFile("app/api/post-status/route.ts"),
         errors: [{ message: NO_IF("GET") }],
+      },
+    ],
+  });
+});
+
+void describe("A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.", () => {
+  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
+    valid: [
+      // dispatchRenderJobs is imported, not declared in this file.
+      {
+        code: `import { dispatchRenderJobs } from "@/utils/instagram";
+        export const POST = withResponse(schema, withUserId(async (userId, request: NextRequest) => {
+          const { jobIds } = await dispatchRenderJobs(userId, request);
+          return { message: "Dispatched.", data: jobIds };
+        }));`,
+        filename: srcFile("app/api/render-instagram-content/route.ts"),
+      },
+      // A locally declared function that the handler never calls is not this rule's concern.
+      {
+        code: `function unusedHelper() {
+          return null;
+        }
+        export const GET = withResponse(schema, async () => {
+          const status = await getStatus();
+          return { message: "OK.", data: status };
+        });`,
+        filename: srcFile("app/api/health/route.ts"),
+      },
+    ],
+    invalid: [
+      // A function declared in route.ts itself, called from the handler.
+      {
+        code: `async function dispatchWithRetry(orders) {
+          try {
+            return await dispatchGithubWorkflowRequest(orders);
+          } catch (error) {
+            throw new HttpError("Failed to dispatch.", 500);
+          }
+        }
+        export const POST = withResponse(schema, withUserId(async (userId, request: NextRequest) => {
+          const orders = await parseRenderPayload(request, orderSchema);
+          const result = await dispatchWithRetry(orders);
+          return { message: "Dispatched.", data: result };
+        }));`,
+        filename: srcFile("app/api/render-instagram-content/route.ts"),
+        errors: [{ message: NOT_IMPORTED("POST", "dispatchWithRetry") }],
+      },
+      // A const arrow function declared in route.ts itself, called from the handler.
+      {
+        code: `const dispatchWithRetry = async (orders) => {
+          return await dispatchGithubWorkflowRequest(orders);
+        };
+        export const POST = withResponse(schema, async (request: NextRequest) => {
+          const orders = await parseRenderPayload(request, orderSchema);
+          const result = await dispatchWithRetry(orders);
+          return { message: "Dispatched.", data: result };
+        });`,
+        filename: srcFile("app/api/render-instagram-content/route.ts"),
+        errors: [{ message: NOT_IMPORTED("POST", "dispatchWithRetry") }],
       },
     ],
   });

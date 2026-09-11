@@ -2,10 +2,10 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { httpErrorUsageRule } from "./http-error-usage";
 
 const MUST_THROW =
-  "A delegated function that constructs an HttpError must throw it, not return it. " +
+  "A function that constructs an HttpError must throw it, not return it. " +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
-void describe("A delegated function that constructs an `HttpError` MUST throw it, not return it.", () => {
+void describe("A function that constructs an `HttpError` MUST throw it, not return it.", () => {
   ruleTester.run("http-error-usage", httpErrorUsageRule, {
     valid: [
       {
