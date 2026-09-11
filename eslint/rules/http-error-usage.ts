@@ -1,10 +1,11 @@
 /**
  * ESLint rule: pasika/http-error-usage
  *
- * A function that constructs an HttpError MUST throw it, not return it.
- * Nothing catches an HttpError a function merely returns — a caller
- * composing awaited calls in sequence never sees it, and it reaches no
- * boundary at all instead of being mapped to a response.
+ * An HttpError constructed inside a withResponse pipeline MUST be thrown,
+ * not returned. Returning it inside an async function resolves that
+ * function's promise with the HttpError as an ordinary value instead of
+ * rejecting it — an awaited caller receives it as if it were legitimate
+ * data, not a failure.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -21,7 +22,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a function that constructs an HttpError to throw it, not return it.",
+      description: "Require an HttpError constructed inside a withResponse pipeline to be thrown, not returned.",
     },
   },
   create(context) {
@@ -31,7 +32,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
           context.report({
             node,
             message:
-              "A function that constructs an HttpError must throw it, not return it. " +
+              "An HttpError constructed inside a withResponse pipeline must be thrown, not returned. " +
               "See docs/next-codebase-guide/rules/route-handler-rule.md",
           });
         }

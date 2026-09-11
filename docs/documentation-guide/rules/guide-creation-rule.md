@@ -16,7 +16,7 @@ Guides without a consistent creation process invent their own structure. This ru
 - A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
 - A Rule file MUST live in a `rules/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
 - A Reference file MUST live in a `references/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
-- A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.
+- A How To section whose steps use terms that a glossary Reference defines MUST link that Reference from the section's first step.
 - A Guide entry point MUST reference each Rule it owns from within a How To step, MUST mention every Reference it owns, and MUST NOT link a document that does not exist.
 - A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.
 
@@ -142,7 +142,7 @@ Why: link points at a Guide file but does not anchor to a specific How To sectio
 
 Why: link anchors to the specific How To section, so the reader lands directly on the relevant workflow.
 
-## Incorrect — Guide Uses Defined Terms Without Linking the Glossary
+## Incorrect — Section Uses Defined Terms Without Linking the Glossary
 
 ```markdown
 ## How To Organize a Component

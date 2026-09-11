@@ -2,41 +2,44 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { httpErrorUsageRule } from "./http-error-usage";
 
 const MUST_THROW =
-  "A function that constructs an HttpError must throw it, not return it. " +
+  "An HttpError constructed inside a withResponse pipeline must be thrown, not returned. " +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
-void describe("A function that constructs an `HttpError` MUST throw it, not return it.", () => {
+void describe("An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.", () => {
   ruleTester.run("http-error-usage", httpErrorUsageRule, {
     valid: [
       {
-        code: `function readGithubDispatchConfig() {
-          if (!pat) {
-            throw new HttpError("Server not configured.", 500);
+        code: `async function requireUserId() {
+          const session = await getServerSession(authOptions);
+          if (!session?.user?.id) {
+            throw new HttpError("Unauthorized", 401);
           }
-          return pat;
+          return session.user.id;
         }`,
-        filename: srcFile("utils/dispatch-github-workflow.ts"),
+        filename: srcFile("utils/require-session.ts"),
       },
-      // Returning an unrelated value is not this rule's concern.
+      // Throwing an unrelated error is not this rule's concern.
       {
-        code: `function readGithubDispatchConfig() {
-          if (!pat) {
-            throw new Error("Server not configured.");
+        code: `async function requireUserId() {
+          const session = await getServerSession(authOptions);
+          if (!session?.user?.id) {
+            throw new Error("Unauthorized");
           }
-          return pat;
+          return session.user.id;
         }`,
-        filename: srcFile("utils/dispatch-github-workflow.ts"),
+        filename: srcFile("utils/require-session.ts"),
       },
     ],
     invalid: [
       {
-        code: `function readGithubDispatchConfig() {
-          if (!pat) {
-            return new HttpError("Server not configured.", 500);
+        code: `async function requireUserId() {
+          const session = await getServerSession(authOptions);
+          if (!session?.user?.id) {
+            return new HttpError("Unauthorized", 401);
           }
-          return pat;
+          return session.user.id;
         }`,
-        filename: srcFile("utils/dispatch-github-workflow.ts"),
+        filename: srcFile("utils/require-session.ts"),
         errors: [{ message: MUST_THROW }],
       },
     ],

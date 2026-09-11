@@ -3,11 +3,27 @@
 An `HttpError` that never reaches `withResponse` — because nothing wraps the handler, or because a function handed it back as a value instead of throwing it — produces no response at all. A handler that catches its own failures, branches on them, loops over them, or hides them in a same-file helper grows without bound instead of staying a thin wire between delegated calls.
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
-- A function that constructs an `HttpError` MUST throw it, not return it.
+- An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
+
+## The Error Type
+
+Every failure a route reports travels through the pipeline as an `HttpError`, the one type `withResponse` knows how to turn into a response. A call in the pipeline is usually `async`, so the same failure can arrive as a rejected promise — the handler's `await` rethrows it at the call site, and `withResponse`'s `catch` handles both forms the same way.
+
+```ts
+// src/utils/http-error.ts
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+  }
+}
+```
 
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
@@ -39,35 +55,35 @@ export const POST = withResponse(
 
 Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `withUserId`'s own `requireUserId` — and maps it to a response; the handler itself never needs a `catch` of its own. Its body is nothing but a sequence of `await`ed calls to imported functions, each one's result threaded into the next, ending in the `{ message, data }` that `withResponse` turns into a response.
 
-## Incorrect — Delegated Function Returns HttpError Instead Of Throwing
+## Incorrect — HttpError Returned From An `async` Function
 
 ```ts
-// src/utils/dispatch-github-workflow.ts
-function readGithubDispatchConfig(): GithubDispatchConfig {
-  const pat = process.env.GITHUB_PAT;
-  if (!pat) {
-    return new HttpError("Server not configured for GitHub Actions dispatch.", 500);
+// src/utils/require-session.ts
+export async function requireUserId() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return new HttpError("Unauthorized", 401);
   }
-  return { pat };
+  return session.user.id;
 }
 ```
 
-Why: nothing catches a returned value — a caller composing `await readGithubDispatchConfig()` in sequence never sees this failure, and it reaches no boundary at all, the same as if the handler itself were never wrapped in `withResponse`.
+Why: returning `new HttpError(...)` inside an `async` function resolves `requireUserId`'s promise with that `HttpError` as its value — `await requireUserId()` inside `withUserId` receives it as if it were an ordinary, successful `string`, not a rejection, and passes it on as the "user id" to whatever runs next.
 
-## Correct — Delegated Function Throws HttpError
+## Correct — HttpError Thrown From An `async` Function
 
 ```ts
-// src/utils/dispatch-github-workflow.ts
-function readGithubDispatchConfig(): GithubDispatchConfig {
-  const pat = process.env.GITHUB_PAT;
-  if (!pat) {
-    throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
+// src/utils/require-session.ts
+export async function requireUserId(): Promise<string> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    throw new HttpError("Unauthorized", 401);
   }
-  return { pat };
+  return session.user.id;
 }
 ```
 
-Why: a thrown `HttpError` propagates through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
+Why: throwing rejects `requireUserId`'s promise, so `await requireUserId()` propagates that rejection up through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
 
 ## Incorrect — Handler Catches An API Call's Failure Inline
 

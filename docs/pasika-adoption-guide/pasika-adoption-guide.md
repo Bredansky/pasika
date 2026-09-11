@@ -22,6 +22,7 @@ Run this once, when a repository starts using the framework. The Next.js steps â
 
 Run this whenever the framework publishes a release. It applies to both Next.js applications and plain TypeScript repositories.
 
-1. Bump the framework packages within one major version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting past the latest release.
-2. Run `npx vulyk sync` and then `npx vulyk agents` so every tracked doc, managed file, and agent file is updated from its pinned source.
-3. Run `npm run lint -- --fix --suppress-all` to list the violations the new and changed rules report, so the fixable ones are fixed and the rest are suppressed until the repository is ready for them.
+1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
+2. Bump the framework packages within one major version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting past the latest release.
+3. Run `npx vulyk sync` and then `npx vulyk agents` so every tracked doc, managed file, and agent file is updated from its pinned source.
+4. Run `npm run lint -- --fix --suppress-all` to list the violations the new and changed rules report, so the fixable ones are fixed and the rest are suppressed until the repository is ready for them.

@@ -34,3 +34,14 @@ These terms name the component classifications and the extraction triggers this 
 | DOM manipulation             | Imperative DOM APIs such as `focus()`, `blur()`, `scrollIntoView()`, `click()`, `classList`, or constructing a `MutationObserver`, `ResizeObserver`, or `IntersectionObserver`.                                                                       |
 | Resource lifecycle           | Setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, `close()`, `cleanup()`, or `unmount()`.                                                                                                                                           |
 | Extraction score             | A count a rule computes from its own signals to decide whether code needs to be extracted; reaching two triggers extraction.                                                                                                                          |
+
+## Route Terms
+
+These terms name the parts of a route's error handling and the way a failure becomes a response.
+
+| Term             | Definition                                                                                                                                                  |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                              |
+| `withResponse`   | The wrapper that awaits a route handler's `{ message, data }` result and turns either that result or a thrown `HttpError` into the app's response envelope. |
+| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with.                                                               |
+| Delegated module | A module outside `route.ts` — usually under `src/utils/` — that a handler's awaited calls reach and that raises an `HttpError` for its own failures.        |
