@@ -1,6 +1,6 @@
 # Route Handler Rule
 
-An `HttpError` that never reaches `withResponse` — because nothing wraps the handler, or because a function handed it back as a value instead of throwing it — produces no response at all. A handler that catches its own failures, branches on them, loops over them, or hides them in a same-file helper grows without bound instead of staying a thin wire between delegated calls.
+Route handlers grow into application logic, and a failure swallowed inside one is a response the client never gets. This rule keeps a handler to a `withResponse` wrapper and awaited, imported calls.
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.
