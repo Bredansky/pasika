@@ -75,10 +75,9 @@ Use this when adding or changing a Next.js route handler.
 1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-4. Give each delegated module its own function that throws a constructed `HttpError` for its own failures.
-5. Follow the [Route Handler Rule](rules/route-handler-rule.md) so the handler is wrapped in `withResponse` and each delegated module throws its constructed `HttpError` instead of returning it.
-6. For a module extracted in step 4, follow the [Utilities Rule](rules/utilities-rule.md) so it lands in a folder its real consumers justify, not `src/app/`.
-7. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the route module has predictable exports and import paths.
+4. Follow the [Route Handler Rule](rules/route-handler-rule.md) so the handler is wrapped in `withResponse` and each delegated module throws its constructed `HttpError` instead of returning it.
+5. For each delegated module, follow the [Utilities Rule](rules/utilities-rule.md) so it lands in a folder its real consumers justify, not `src/app/`.
+6. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the route module has predictable exports and import paths.
 
 ## How To Organize a Locale String
 
