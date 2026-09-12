@@ -81,56 +81,6 @@ export const POST = withResponse(
 );
 ```
 
-## `withResponse` Pipeline
-
-A request crosses every layer below on its way in, and a failure crosses each one back out until `withResponse` turns it into a response. The layers read outermost to innermost, and a failure starts either in the session helper or in a delegated call.
-
-| Layer                                              | Sits at                          | Adds                                                                             | On an `HttpError`                                                       |
-| -------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `withResponse(responseSchema, handler)`            | outermost, in `route.ts`         | Validation of the handler's returned `data` and the `{ data, message }` response | Answers with `{ data: null, message: error.message }` at `error.status` |
-| `withUserId(handler)` / `withUserAccount(handler)` | one layer in, in `route.ts`      | The session's `userId` or account row as the handler's first argument            | Lets it propagate                                                       |
-| the handler                                        | innermost, in `route.ts`         | One bare `await` per step, each result threaded into the next call               | Lets it propagate                                                       |
-| a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts` | The work itself, and the mapping of its own failures to this error type          | Throws it, with the status the failure deserves                         |
-
-The first failure point is the session helper `withUserId` awaits, and the last one is whatever the handler's delegated calls reach:
-
-```ts
-// require-session.ts
-export async function requireUserId(): Promise<string> {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    throw new HttpError("Unauthorized", 401);
-  }
-  return session.user.id;
-}
-```
-
-```ts
-// instagram.ts
-export async function dispatchRenderJobs(userId: string, orders: RenderOrderWithJobId[]) {
-  if (!webhookSecret) {
-    throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
-  }
-  // ...dispatch the workflow and return the job ids.
-}
-```
-
-```jsonc
-// HTTP 401 from POST /api/render-instagram-content
-{ "data": null, "message": "Unauthorized" }
-```
-
-The same throw without the wrapper leaves the pipeline at the route's edge, one layer short of anything that maps it:
-
-| Layer                                              | Sits at                                                       | Adds                                                                                                             | On an `HttpError`                                  |
-| -------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| no `withResponse`                                  | absent                                                        | Nothing: no response-schema validation, no `{ data, message }` response, and no mapping of a failure to a status | Never reaches a response                           |
-| `withUserId(handler)` / `withUserAccount(handler)` | outermost, in `route.ts`                                      | The session's `userId` or account row as the handler's first argument                                            | Lets it propagate                                  |
-| the handler                                        | innermost, in `route.ts`, and building its own `NextResponse` | The response itself, returned as a `NextResponse` instead of a `{ message, data }` value                         | Lets it propagate — it holds no `catch` of its own |
-| a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts`                              | The work itself, and the mapping of its own failures to this error type                                          | Throws it, with the status the failure deserves    |
-
-Nothing maps the error on the way out, so the status and message it carries never become the response, the client receives no response, and the framework captures the unhandled failure through its own error path — the outcome the Route Handler Rule is written against.
-
 ## DevDependencies
 
 Toolchain packages declared in `devDependencies` — the baseline both `pasikaApp` and `pasikaNextjsApp` build on. `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `vulyk`, `vitest`, and `@vitest/coverage-v8` apply to every repository; `tailwindcss`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` apply to a Next.js application only.
