@@ -32,7 +32,7 @@ export function cn(...inputs: ClassValue[]): string {
 
 ## Route Error Handling Helpers
 
-`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` envelope itself, so the handler never calls `NextResponse.json` at all.
+`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all.
 
 ```ts
 // http-error.ts
@@ -87,7 +87,7 @@ A request crosses every layer below on its way in, and a failure crosses each on
 
 | Layer                                              | Sits at                          | Adds                                                                             | On an `HttpError`                                                       |
 | -------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `withResponse(responseSchema, handler)`            | outermost, in `route.ts`         | Validation of the handler's returned `data` and the `{ data, message }` envelope | Answers with `{ data: null, message: error.message }` at `error.status` |
+| `withResponse(responseSchema, handler)`            | outermost, in `route.ts`         | Validation of the handler's returned `data` and the `{ data, message }` response | Answers with `{ data: null, message: error.message }` at `error.status` |
 | `withUserId(handler)` / `withUserAccount(handler)` | one layer in, in `route.ts`      | The session's `userId` or account row as the handler's first argument            | Lets it propagate                                                       |
 | the handler                                        | innermost, in `route.ts`         | One bare `await` per step, each result threaded into the next call               | Lets it propagate                                                       |
 | a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts` | The work itself, and the mapping of its own failures to this error type          | Throws it, with the status the failure deserves                         |
@@ -124,12 +124,12 @@ The same throw without the wrapper leaves the pipeline at the route's edge, one 
 
 | Layer                                              | Sits at                                                       | Adds                                                                                                             | On an `HttpError`                                  |
 | -------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| no `withResponse`                                  | absent                                                        | Nothing: no response-schema validation, no `{ data, message }` envelope, and no mapping of a failure to a status | Never reaches a response                           |
+| no `withResponse`                                  | absent                                                        | Nothing: no response-schema validation, no `{ data, message }` response, and no mapping of a failure to a status | Never reaches a response                           |
 | `withUserId(handler)` / `withUserAccount(handler)` | outermost, in `route.ts`                                      | The session's `userId` or account row as the handler's first argument                                            | Lets it propagate                                  |
 | the handler                                        | innermost, in `route.ts`, and building its own `NextResponse` | The response itself, returned as a `NextResponse` instead of a `{ message, data }` value                         | Lets it propagate — it holds no `catch` of its own |
 | a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts`                              | The work itself, and the mapping of its own failures to this error type                                          | Throws it, with the status the failure deserves    |
 
-Nothing maps the error on the way out, so the status and message it carries never become the response, the client receives no envelope, and the framework captures the unhandled failure through its own error path — the outcome the Route Handler Rule is written against.
+Nothing maps the error on the way out, so the status and message it carries never become the response, the client receives no response, and the framework captures the unhandled failure through its own error path — the outcome the Route Handler Rule is written against.
 
 ## DevDependencies
 

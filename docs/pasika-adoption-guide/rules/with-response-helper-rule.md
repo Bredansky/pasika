@@ -1,6 +1,6 @@
 # With Response Helper Rule
 
-A route that fails has to answer with a status and a message instead of an unhandled error. This rule requires the repository's `withResponse` helper to exist and to be the boundary that turns a handler's result, or a failure thrown under it, into the response envelope.
+A route that fails has to answer with a status and a message instead of an unhandled error. This rule requires the repository's `withResponse` helper to exist and to be the boundary that turns a handler's result, or a failure thrown under it, into a response.
 
 - A repository MUST define a `withResponse` helper.
 - The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }`, and rethrow anything else.
@@ -40,4 +40,4 @@ export function withResponse(responseSchema, handler) {
 }
 ```
 
-Why: the handler's data is validated against the response schema before it becomes a body, an `HttpError` becomes the `{ data: null, message }` envelope at the status it carries, and any other error stays an error.
+Why: the handler's data is validated against the response schema before it becomes a body, an `HttpError` becomes the `{ data: null, message }` response at the status it carries, and any other error stays an error.

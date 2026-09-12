@@ -112,13 +112,13 @@ void describe("The withResponse helper MUST await the handler, validate its retu
         errors: [{ message: message("must validate the handler's returned data through the response schema") }],
       },
       {
-        // Anything thrown, modeled or not, becomes the envelope.
+        // Anything thrown, modeled or not, becomes the response.
         filename: definition,
         code: declaration(bodyWith([["error instanceof HttpError", "error"]])),
         errors: [{ message: message("must check the caught error with instanceof HttpError") }],
       },
       {
-        // No data key, so the envelope is missing the shape the client reads.
+        // No data key, so the response is missing the shape the client reads.
         filename: definition,
         code: declaration(bodyWith([["{ data: null, message: error.message }", "{ message: error.message }"]])),
         errors: [{ message: message("must answer a thrown HttpError with { data: null, message }") }],
