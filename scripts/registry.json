@@ -974,8 +974,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "A repository MUST define its `cn` helper by merging `clsx` and `tailwind-merge`.",
-      "hash": "45006b36c2",
+      "text": "A repository MUST define a `cn` helper.",
+      "hash": "f7f9618f62",
+      "ref": "pasika/cn-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
+      "text": "The `cn` helper MUST return `twMerge(clsx(...))`.",
+      "hash": "7508bad78e",
       "ref": "pasika/cn-helper"
     },
     {
@@ -1127,6 +1133,18 @@
       "text": "A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.",
       "hash": "a8752f2d50",
       "ref": "pasika/vulyk-docs"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
+      "text": "A repository MUST define a `withResponse` helper.",
+      "hash": "6feaf681b3",
+      "ref": "pasika/with-response-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
+      "text": "The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }`, and rethrow anything else.",
+      "hash": "ba190abb26",
+      "ref": "pasika/with-response-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/zirka-baseline-rule.md",

@@ -42,6 +42,7 @@ import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { routeHandlerShapeRule } from "./rules/route-handler-shape";
 import { httpErrorUsageRule } from "./rules/http-error-usage";
+import { withResponseHelperRule } from "./rules/with-response-helper";
 import { hookComplexityRule } from "./rules/hook-complexity";
 import { localeDottedPathRule } from "./rules/locale-dotted-path";
 import { localesLocationRule } from "./rules/locales-location";
@@ -115,6 +116,7 @@ const pasikaNextjsAppRules = {
   "root-support-placement": rootSupportPlacementRule,
   "route-handler-shape": routeHandlerShapeRule,
   "http-error-usage": httpErrorUsageRule,
+  "with-response-helper": withResponseHelperRule,
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,
@@ -284,6 +286,19 @@ const zirkaConfig: Linter.Config = {
   rules: { "pasika/zirka-baseline": "error" },
 };
 
+/**
+ * Root helper block: the helpers a Next.js repository defines itself, checked
+ * once per repository. Both rules run on the eslint config file — the one
+ * module every repository has at its root — and then ask the project index
+ * whether the helper exists under `src/`; their shape halves run on the
+ * definitions themselves, wherever the placement rules put them.
+ */
+const nextjsHelperConfig: Linter.Config = {
+  files: ["eslint.config.{ts,mts,cts,js,mjs,cjs}"],
+  plugins: { pasika: pasikaPlugin },
+  rules: { "pasika/cn-helper": "error", "pasika/with-response-helper": "error" },
+};
+
 /** Markdown/docs block: the documentation-guide rules, on the gfm language. */
 const documentationConfig: Linter.Config = {
   files: ["docs/**/*.md"],
@@ -343,6 +358,7 @@ const pasikaNextjsAppWithDiagnostic = <T extends Linter.Config[]>(preset: T): T 
 export const pasikaNextjsApp: Linter.Config[] = pasikaNextjsAppWithDiagnostic([
   ...pasikaApp,
   pasikaNextjsAppPackageJsonConfig,
+  nextjsHelperConfig,
   pasikaNextjsAppConfig,
   tailwindStructureRules,
   tailwindImportGraph,

@@ -1,6 +1,6 @@
 # Tech Stack Reference
 
-Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the hand-authored helpers a repository writes itself to the exact shape the framework's rules assume. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all.
+Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the hand-authored helpers a repository writes itself to the exact shape the framework's rules assume. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all — and each hand-authored helper is shown by its file name and contents only, since the folder it sits in follows from its consumers.
 
 ## Dependencies
 
@@ -21,7 +21,7 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this shape.
 
 ```ts
-// src/utils/cn.ts
+// cn.ts
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -35,7 +35,7 @@ export function cn(...inputs: ClassValue[]): string {
 `HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` envelope itself, so the handler never calls `NextResponse.json` at all.
 
 ```ts
-// src/utils/http-error.ts
+// http-error.ts
 export class HttpError extends Error {
   constructor(
     message: string,
@@ -47,7 +47,7 @@ export class HttpError extends Error {
 ```
 
 ```ts
-// src/utils/with-response.ts
+// with-response.ts
 export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
   responseSchema: TSchema,
   handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> }>,
@@ -85,17 +85,17 @@ export const POST = withResponse(
 
 A request crosses every layer below on its way in, and a failure crosses each one back out until `withResponse` turns it into a response. The layers read outermost to innermost, and a failure starts either in the session helper or in a delegated call.
 
-| Layer                                              | Sits at                     | Adds                                                                             | On an `HttpError`                                                       |
-| -------------------------------------------------- | --------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `withResponse(responseSchema, handler)`            | outermost, in `route.ts`    | Validation of the handler's returned `data` and the `{ data, message }` envelope | Answers with `{ data: null, message: error.message }` at `error.status` |
-| `withUserId(handler)` / `withUserAccount(handler)` | one layer in, in `route.ts` | The session's `userId` or account row as the handler's first argument            | Lets it propagate                                                       |
-| the handler                                        | innermost, in `route.ts`    | One bare `await` per step, each result threaded into the next call               | Lets it propagate                                                       |
-| a delegated module such as `dispatchRenderJobs`    | imported from `src/utils/`  | The work itself, and the mapping of its own failures to this error type          | Throws it, with the status the failure deserves                         |
+| Layer                                              | Sits at                          | Adds                                                                             | On an `HttpError`                                                       |
+| -------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `withResponse(responseSchema, handler)`            | outermost, in `route.ts`         | Validation of the handler's returned `data` and the `{ data, message }` envelope | Answers with `{ data: null, message: error.message }` at `error.status` |
+| `withUserId(handler)` / `withUserAccount(handler)` | one layer in, in `route.ts`      | The session's `userId` or account row as the handler's first argument            | Lets it propagate                                                       |
+| the handler                                        | innermost, in `route.ts`         | One bare `await` per step, each result threaded into the next call               | Lets it propagate                                                       |
+| a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts` | The work itself, and the mapping of its own failures to this error type          | Throws it, with the status the failure deserves                         |
 
 The first failure point is the session helper `withUserId` awaits, and the last one is whatever the handler's delegated calls reach:
 
 ```ts
-// src/utils/require-session.ts
+// require-session.ts
 export async function requireUserId(): Promise<string> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -106,7 +106,7 @@ export async function requireUserId(): Promise<string> {
 ```
 
 ```ts
-// src/utils/instagram.ts
+// instagram.ts
 export async function dispatchRenderJobs(userId: string, orders: RenderOrderWithJobId[]) {
   if (!webhookSecret) {
     throw new HttpError("Server not configured for GitHub Actions dispatch.", 500);
@@ -127,7 +127,7 @@ The same throw without the wrapper leaves the pipeline at the route's edge, one 
 | no `withResponse`                                  | absent                                                        | Nothing: no response-schema validation, no `{ data, message }` envelope, and no mapping of a failure to a status | Never reaches a response                           |
 | `withUserId(handler)` / `withUserAccount(handler)` | outermost, in `route.ts`                                      | The session's `userId` or account row as the handler's first argument                                            | Lets it propagate                                  |
 | the handler                                        | innermost, in `route.ts`, and building its own `NextResponse` | The response itself, returned as a `NextResponse` instead of a `{ message, data }` value                         | Lets it propagate — it holds no `catch` of its own |
-| a delegated module such as `dispatchRenderJobs`    | imported from `src/utils/`                                    | The work itself, and the mapping of its own failures to this error type                                          | Throws it, with the status the failure deserves    |
+| a delegated module such as `dispatchRenderJobs`    | imported from outside `route.ts`                              | The work itself, and the mapping of its own failures to this error type                                          | Throws it, with the status the failure deserves    |
 
 Nothing maps the error on the way out, so the status and message it carries never become the response, the client receives no envelope, and the framework captures the unhandled failure through its own error path — the outcome the Route Handler Rule is written against.
 

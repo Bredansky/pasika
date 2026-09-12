@@ -39,9 +39,9 @@ These terms name the component classifications and the extraction triggers this 
 
 These terms name the parts of a route's error handling and the way a failure becomes a response.
 
-| Term             | Definition                                                                                                                                                  |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                              |
-| `withResponse`   | The wrapper that awaits a route handler's `{ message, data }` result and turns either that result or a thrown `HttpError` into the app's response envelope. |
-| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with.                                                               |
-| Delegated module | A module outside `route.ts` — usually under `src/utils/` — that a handler's awaited calls reach and that raises an `HttpError` for its own failures.        |
+| Term             | Definition                                                                                                                                                                                                                       |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                                                                                                   |
+| `withResponse`   | The wrapper that awaits a route handler's `{ message, data }` result and turns either that result or a thrown `HttpError` into the app's response envelope.                                                                      |
+| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with.                                                                                                                                    |
+| Delegated module | A module outside `route.ts` — usually under a feature's `utils/` folder, or root `src/utils/` once code outside the routes reuses it — that a handler's awaited calls reach and that raises an `HttpError` for its own failures. |
