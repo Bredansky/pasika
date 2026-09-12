@@ -9,24 +9,6 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
 
-## The Error Type
-
-Every failure a route reports travels through the pipeline as an `HttpError`, the one type `withResponse` knows how to turn into a response. A call in the pipeline is usually `async`, so the same failure can arrive as a rejected promise — the handler's `await` rethrows it at the call site, and `withResponse`'s `catch` handles both forms the same way.
-
-```ts
-// src/utils/http-error.ts
-export class HttpError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-  ) {
-    super(message);
-  }
-}
-```
-
-A module that needs a failure with its own name subclasses `HttpError` rather than `Error`, so the pipeline still carries an error the wrapper recognizes.
-
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
 ```ts

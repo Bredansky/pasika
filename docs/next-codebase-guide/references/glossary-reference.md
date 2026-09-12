@@ -43,5 +43,5 @@ These terms name the parts of a route's error handling and the way a failure bec
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                                 |
 | `withResponse`   | The wrapper that awaits a route handler's `{ message, data }` result and turns either that result or a thrown `HttpError` into a `{ data, message }` response. |
-| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with.                                                                  |
+| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with; a module that needs a failure with its own name subclasses it.   |
 | Delegated module | A module outside `route.ts` that a handler's awaited calls reach and that raises an `HttpError` for its own failures.                                          |
