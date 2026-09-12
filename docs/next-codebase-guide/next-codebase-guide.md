@@ -53,7 +53,7 @@ Use this when adding, extracting, or moving a pure function.
 
 Use this when adding or moving an application configuration module.
 
-1. Read the Structure Terms in the [Glossary Reference](references/glossary-reference.md#structure-terms) so you can tell a configuration module from a support folder before the steps below place either.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can tell a configuration module from a support folder before the steps below place either.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Configuration Rule](rules/configuration-rule.md) so the module and the files that only support it stay together in `src/config/`.

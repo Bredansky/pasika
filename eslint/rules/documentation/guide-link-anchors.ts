@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link, ListItem, Nodes, Root } from "mdast";
-import { getFilename, isDocLink, linkTarget } from "./helpers";
+import { getFilename, headingAnchor, isDocLink, linkTarget } from "./helpers";
 
 /** Visit every ordered-list item and run a check. */
 function visitSteps(node: Nodes, check: (item: ListItem) => void): void {
@@ -34,15 +34,6 @@ function collectLinks(node: Nodes, out: Link[]): void {
   if ("children" in node) {
     for (const child of node.children) collectLinks(child, out);
   }
-}
-
-/** The anchor a heading's text produces, the way a Markdown renderer slugs it. */
-function headingAnchor(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replaceAll(/[^\p{L}\p{N}\s-]/gu, "")
-    .replaceAll(/\s+/g, "-");
 }
 
 const anchorsByFile = new Map<string, Set<string>>();

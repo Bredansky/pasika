@@ -2,9 +2,9 @@
 
 Use this reference to look up the terms this guide's workflows and rules use. Terms are grouped by the decision they support.
 
-## Structure Terms
+## Shared Terms
 
-These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers.
+These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers, and every workflow below places items with them.
 
 | Term                        | Definition                                                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------- |

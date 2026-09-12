@@ -6,7 +6,7 @@ This guide covers how a repository adopts the framework, whether it is a Next.js
 
 Run this once, when a repository starts using the framework. The Next.js steps — declaring the framework stack, defining `cn`, and defining the route error helpers — apply to a Next.js application only; every other step applies to any repository.
 
-1. Read the Distribution Terms in the [Glossary Reference](references/glossary-reference.md#distribution-terms) so you can tell a tracked doc from a managed file before a workflow names either.
+1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a tracked doc from a managed file before a workflow names either.
 2. Read the [Tech Stack Reference](references/tech-stack-reference.md) so you know which packages the framework requires and what each one is responsible for.
 3. Declare the toolchain packages — `typescript`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, and `vulyk` — in `devDependencies`, each pinned to an exact version per the [Dependency Version Rule](rules/dependency-version-rule.md) so the manifest stays current without drifting.
 4. If the repository is a Next.js application, declare the framework stack in package.json per the [Next.js Stack Rule](rules/next-js-stack-rule.md) so the runtime packages land in `dependencies` and the toolchain packages in `devDependencies`.

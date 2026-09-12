@@ -1,20 +1,9 @@
 # Glossary Reference
 
-Use this reference to look up the terms this guide's workflows use for the framework's documentation distribution as it appears inside a consuming repository.
+Use this reference to look up the terms this guide's workflows use for the framework's documentation as it appears inside a consuming repository.
 
-## Distribution Terms
-
-These terms name the documents and files the framework puts into a consuming repository.
-
-| Term         | Definition                                                                                    |
-| ------------ | --------------------------------------------------------------------------------------------- |
-| Tracked doc  | A document a repository consumes from a pinned remote source rather than authoring itself.    |
-| Managed file | A file `vulyk` installed or generated, as defined in the `vulyk.config.ts` of the repository. |
-
-## Agent Terms
-
-These terms name the generated files that route an agent to that content.
-
-| Term       | Definition                                                                                              |
-| ---------- | ------------------------------------------------------------------------------------------------------- |
-| Agent file | A generated `AGENTS.md` or `CLAUDE.md` that routes an agent to the tracked docs applying to its folder. |
+| Term         | Definition                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| Tracked doc  | A document a repository consumes from a pinned remote source rather than authoring itself.              |
+| Managed file | A file `vulyk` installed or generated, as defined in the `vulyk.config.ts` of the repository.           |
+| Agent file   | A generated `AGENTS.md` or `CLAUDE.md` that routes an agent to the tracked docs applying to its folder. |

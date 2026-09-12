@@ -182,6 +182,12 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "Every lookup block of a glossary Reference MUST be anchored by the first step of a How To section.",
+      "hash": "8aa366f3b4",
+      "ref": "pasika/glossary-term-linking"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT use a heading deeper than level 2.",
       "hash": "d8899e0d2a",
       "ref": "pasika/reference-max-heading-depth"
