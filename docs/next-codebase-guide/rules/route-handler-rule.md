@@ -4,6 +4,7 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.
+- A delegated module MUST report a failure by throwing an `HttpError`, not another error type.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
@@ -24,6 +25,8 @@ export class HttpError extends Error {
   }
 }
 ```
+
+A module that needs a failure with its own name subclasses `HttpError` rather than `Error`, so the pipeline still carries an error the wrapper recognizes.
 
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
@@ -84,6 +87,46 @@ export async function requireUserId(): Promise<string> {
 ```
 
 Why: throwing rejects `requireUserId`'s promise, so `await requireUserId()` propagates that rejection up through every awaited call above it until it reaches `withResponse`, the same way any other exception does.
+
+## Incorrect — A Delegated Module Throws A Plain Error
+
+```ts
+// src/utils/instagram.ts
+export async function publishMediaContainer(
+  containerId: string,
+  credentials: Credentials,
+): Promise<InstagramPublishResponse> {
+  const res = await fetch(`${facebookGraphBase}/${credentials.accountId}/media_publish`, { method: "POST" });
+
+  if (!res.ok) {
+    throw new Error(`Failed to publish container: ${await res.text()}`);
+  }
+
+  return instagramPublishResponseSchema.parse(await res.json());
+}
+```
+
+Why: `/api/instagram-worker`'s handler awaits this call, so `withResponse` is the only thing that can turn the failure into a response — and it recognizes nothing but an `HttpError`. This one it rethrows, and the client gets a bare 500 with none of the `{ data, message }` shape the other failures arrive in.
+
+## Correct — A Delegated Module Throws An `HttpError`
+
+```ts
+// src/utils/instagram.ts
+export async function publishMediaContainer(
+  containerId: string,
+  credentials: Credentials,
+): Promise<InstagramPublishResponse> {
+  const res = await fetch(`${facebookGraphBase}/${credentials.accountId}/media_publish`, { method: "POST" });
+
+  if (!res.ok) {
+    throw new HttpError(`Failed to publish container: ${await res.text()}`, res.status);
+  }
+
+  return instagramPublishResponseSchema.parse(await res.json());
+}
+```
+
+Why: `withResponse` maps the thrown `HttpError` to `{ data: null, message }` at the status the upstream API reported, so the failure reaches the client as a response like any other.
 
 ## Incorrect — Handler Catches An API Call's Failure Inline
 
