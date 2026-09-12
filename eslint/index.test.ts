@@ -114,7 +114,7 @@ void describe("pasika presets", () => {
     const ruleRefs = (blocks: Linter.Config[]): Set<string> =>
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
     for (const preset of [pasikaApp, pasikaNextjsApp]) {
-      assert.ok(ruleRefs(preset).has("pasika/vulyk-docs"), "preset must enforce vulyk-docs");
+      assert.ok(ruleRefs(preset).has("pasika/tracked-docs"), "preset must enforce tracked-docs");
     }
   });
 });

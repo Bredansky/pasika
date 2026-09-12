@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isDocLink } from "./helpers";
 
 /** The document kind for a filename, when the no-link rule applies to it. */
 function linkedKind(filename: string): string | undefined {
@@ -28,7 +28,7 @@ export const noCrossDocumentLinkRule: MarkdownRuleDefinition = {
         const kind = linkedKind(filename);
         if (!kind) return;
 
-        if (node.url.endsWith(".md")) {
+        if (isDocLink(node.url)) {
           context.report({
             node,
             message: `${kind} links another document: ${node.url}`,

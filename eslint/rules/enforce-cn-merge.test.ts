@@ -134,7 +134,7 @@ void describe("A className passed to a component imported from a package (an ico
   });
 });
 
-void describe("A component MUST expose its supported appearance and size variants through typed props, not through a passed className or separate class-name props for internal elements.", () => {
+void describe("A component MUST expose the CVA variants it supports through typed props, not through a passed className or separate class-name props for internal elements.", () => {
   ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
     valid: [
       {

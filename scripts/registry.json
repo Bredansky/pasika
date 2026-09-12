@@ -20,8 +20,8 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A Guide MAY link Rules, References, Policy documents, and other Guides.",
-      "hash": "254850923a",
+      "text": "A Guide MAY link Rules, References, Policies, and other Guides.",
+      "hash": "1d07723fc4",
       "ref": "pasika/no-cross-document-link"
     },
     {
@@ -52,6 +52,12 @@
       "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A step that links another Guide MUST link directly to the relevant How To section.",
       "hash": "eade3a0166",
+      "ref": "pasika/guide-link-anchors"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A link into a Markdown document MUST point at a heading that document contains.",
+      "hash": "e15827395f",
       "ref": "pasika/guide-link-anchors"
     },
     {
@@ -116,26 +122,26 @@
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
-      "hash": "eff345fe21",
+      "text": "A Policy MUST state every requirement as a bullet that uses RFC 2119 vocabulary.",
+      "hash": "96f98d68c2",
       "ref": "pasika/requirement-present"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy document MUST group its bullets under a heading per subject.",
-      "hash": "fa77621dda",
+      "text": "A Policy MUST group its bullets under a heading per subject.",
+      "hash": "0aa0bf9243",
       "ref": "pasika/policy-subject-headings"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.",
-      "hash": "c1e046ec18",
+      "text": "A Policy MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.",
+      "hash": "9b0bb5b26a",
       "ref": "pasika/policy-no-examples"
     },
     {
       "doc": "documentation-guide/rules/policy-creation-rule.md",
-      "text": "A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.",
-      "hash": "483c98a275",
+      "text": "A Policy MUST NOT link to Rules, References, Guides, or other Policies.",
+      "hash": "9b311b5246",
       "ref": "pasika/no-cross-document-link"
     },
     {
@@ -146,8 +152,8 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.",
-      "hash": "50070e301c",
+      "text": "A Reference MUST NOT link to Rules, Guides, Policies, or other References.",
+      "hash": "dc20807b03",
       "ref": "pasika/no-cross-document-link"
     },
     {
@@ -416,8 +422,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.",
-      "hash": "9f777fc902",
+      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration module.",
+      "hash": "26510a9fee",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -740,8 +746,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the config module.",
-      "hash": "1e2cc654cd",
+      "text": "A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration module.",
+      "hash": "8ceaedda1b",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -806,8 +812,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
-      "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.",
-      "hash": "426116116d",
+      "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.",
+      "hash": "5a48f3915a",
       "ref": "pasika/no-arbitrary-tailwind"
     },
     {
@@ -830,8 +836,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
-      "text": "A component MUST expose its supported appearance and size variants through typed props, not through a passed `className` or separate class-name props for internal elements.",
-      "hash": "294fb0dbae",
+      "text": "A component MUST expose the CVA variants it supports through typed props, not through a passed `className` or separate class-name props for internal elements.",
+      "hash": "2d4e7b9995",
       "ref": "pasika/enforce-cn-merge"
     },
     {
@@ -866,8 +872,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
-      "text": "A component's variant prop types MUST be derived from its `cva` definition with `VariantProps` rather than manually duplicated unions.",
-      "hash": "c9d1cf136c",
+      "text": "A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.",
+      "hash": "8957d13a58",
       "ref": "pasika/enforce-cva-variant-props"
     },
     {
@@ -1118,21 +1124,21 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
-      "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.",
-      "hash": "e60dfe3e9a",
-      "ref": "pasika/vulyk-docs"
+      "text": "A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` tracked docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "b97b866014",
+      "ref": "pasika/tracked-docs"
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
-      "text": "A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` docs from `pasika` in `vulyk.config.ts`.",
-      "hash": "ba916214fa",
-      "ref": "pasika/vulyk-docs"
+      "text": "A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` tracked docs from `pasika` in `vulyk.config.ts`.",
+      "hash": "ddeae77fdf",
+      "ref": "pasika/tracked-docs"
     },
     {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.",
       "hash": "a8752f2d50",
-      "ref": "pasika/vulyk-docs"
+      "ref": "pasika/tracked-docs"
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
@@ -1202,8 +1208,8 @@
     },
     {
       "doc": "repository-policy.md",
-      "text": "Files installed or generated by `vulyk` MUST NOT be edited by hand.",
-      "hash": "d4c396e800",
+      "text": "A managed file MUST NOT be edited by hand.",
+      "hash": "2040a189f0",
       "note": "managed-file-edit check was dropped; vulyk mtime check is no longer enforced"
     },
     {

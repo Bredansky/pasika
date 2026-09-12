@@ -1,7 +1,7 @@
 import { describe, documentationRuleTester } from "./rule-tester";
 import { requirementPresentRule } from "./requirement-present";
 
-void describe("A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.", () => {
+void describe("A Policy MUST state every requirement as a bullet that uses RFC 2119 vocabulary.", () => {
   documentationRuleTester.run("requirement-present", requirementPresentRule, {
     valid: [{ filename: "foo-policy.md", code: "# Foo Policy\n\n- Values MUST be kebab-case." }],
     invalid: [

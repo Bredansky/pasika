@@ -1,13 +1,13 @@
 # Component Variant Rule
 
-A component's visual options can be spread across handwritten prop unions and conditional classes, leaving no single owner for the values it accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
+A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
 
 - A component that lets callers choose visual options MUST define them with `cva`.
-- A component's variant prop types MUST be derived from its `cva` definition with `VariantProps` rather than manually duplicated unions.
+- A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
 - A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.
 
-## Incorrect — Variant Union Duplicated by Hand
+## Incorrect — CVA Variant Union Duplicated by Hand
 
 ```tsx
 const buttonVariants = cva("inline-flex items-center", {

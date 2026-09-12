@@ -6,11 +6,11 @@ This guide explains how to assess and improve repository documentation without a
 
 Use this workflow before changing an existing document or approving a documentation change.
 
-1. Identify whether the document is a Guide, Rule, Policy document, or Reference with the [Documentation Types Reference](references/documentation-types-reference.md).
+1. Identify whether the document is a Guide, Rule, Policy, or Reference with the [Glossary Reference](references/glossary-reference.md).
 2. Read the matching template and its creation rule before judging the document's structure.
 3. Check that the overview states the document's scope and purpose in one or two short sentences, without instructions that belong in its body.
-4. Check that the document uses only the structure for its type: workflows for a Guide, requirements with paired examples for a Rule, requirements grouped by subject for a Policy document, or lookup content for a Reference.
-5. Check that each requirement is stated in exactly one Rule or Policy document, and that no Reference, example, or explanation contradicts or silently changes it.
+4. Check that the document uses only the structure for its kind: workflows for a Guide, requirements with paired examples for a Rule, requirements grouped by subject for a Policy, or lookup content for a Reference.
+5. Check that each requirement is stated in exactly one Rule or Policy, and that no Reference, example, or explanation contradicts or silently changes it.
 6. Check that no Reference states a constraint the reader has to satisfy and that no requirement bullet defines a term instead of demanding something.
 7. Check that the document is internally consistent: no bullet contradicts another bullet within the same document, and no example violates a prohibition stated in the same document.
 8. Check that each example demonstrates exactly the decision it claims to demonstrate, including its stated exceptions.
@@ -23,14 +23,15 @@ Use this workflow before changing an existing document or approving a documentat
 
 Use this workflow after identifying an issue during review.
 
-1. Fix the source document and its matching template or rule first when the finding affects more than one document.
-2. State each requirement once, in the appropriate Rule or Policy bullet, with RFC 2119 vocabulary that matches its strength.
-3. Move descriptive facts and term definitions to a Reference and workflow actions to a Guide instead of duplicating requirements across document types.
-4. Make related documents agree without duplicating their content whenever a short link or a local summary is sufficient.
-5. Replace vague or invented terminology with plain, established wording, defining a term only when readers need it to make a decision.
-6. Use the same term for the same concept everywhere, and change the term everywhere when its meaning changes.
-7. Prefer the smallest wording or structural change that makes the decision complete and unambiguous.
-8. Remove redundant bullets, duplicate examples, and exceptions that do not change the reader's decision.
-9. Prefer a small complete example over a broad hypothetical one.
-10. Update every affected Correct and Incorrect example so it remains valid under the revised guidance.
-11. Reassess the changed document and its related documents from the reader's perspective, including headings, links, terminology, and examples; stop when no step finds a new issue.
+1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a Guide from a Rule, a Policy, or a Reference before you change one.
+2. Fix the source document and its matching template or rule first when the finding affects more than one document.
+3. State each requirement once, in the appropriate Rule or Policy bullet, with RFC 2119 vocabulary that matches its strength.
+4. Move descriptive facts and term definitions to a Reference and workflow actions to a Guide instead of duplicating requirements across document kinds.
+5. Make related documents agree without duplicating their content whenever a short link or a local summary is sufficient.
+6. Replace vague or invented terminology with plain, established wording, defining a term only when readers need it to make a decision.
+7. Use the same term for the same concept everywhere, and change the term everywhere when its meaning changes.
+8. Prefer the smallest wording or structural change that makes the decision complete and unambiguous.
+9. Remove redundant bullets, duplicate examples, and exceptions that do not change the reader's decision.
+10. Prefer a small complete example over a broad hypothetical one.
+11. Update every affected Correct and Incorrect example so it remains valid under the revised guidance.
+12. Reassess the changed document and its related documents from the reader's perspective, including headings, links, terminology, and examples; stop when no step finds a new issue.

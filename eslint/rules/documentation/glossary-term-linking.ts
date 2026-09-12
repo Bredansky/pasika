@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading, Nodes, Root } from "mdast";
-import { getFilename, getTextContent } from "./helpers";
+import { getFilename, getTextContent, isDocLink } from "./helpers";
 import { findDocsRoot, getProjectDocs } from "./project-index";
 
 /** Whether a reference document is the guide's glossary, the only kind that defines terms. */
@@ -102,7 +102,7 @@ function collectSteps(node: Nodes, section: GuideSection): void {
 }
 
 function collectDocLinks(node: Nodes, out: string[]): void {
-  if (node.type === "link" && node.url.endsWith(".md")) out.push(node.url);
+  if (node.type === "link" && isDocLink(node.url)) out.push(node.url);
   if ("children" in node) {
     for (const child of node.children) collectDocLinks(child, out);
   }

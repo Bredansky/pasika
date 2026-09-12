@@ -5,7 +5,7 @@ const message = (className: string): string =>
   `Tailwind arbitrary-value class "${className}" is not allowed. Use a named token or custom utility. ` +
   "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md";
 
-void describe("Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.", () => {
+void describe("Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.", () => {
   ruleTester.run("no-arbitrary-tailwind", noArbitraryTailwindRule, {
     valid: [
       { code: '<button className="rounded-md">Save</button>', filename: srcFile("shared/save-button.tsx") },

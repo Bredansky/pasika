@@ -6,7 +6,7 @@ This guide covers how to organize code in the repository's `src/` tree — place
 
 Use this no matter whether you are adding a new component or extracting from existing code; the steps below apply in any case.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
+1. Read the Component Terms in the [Glossary Reference](references/glossary-reference.md#component-terms) so you classify each component by the definitions the steps below assume.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).
@@ -53,7 +53,7 @@ Use this when adding, extracting, or moving a pure function.
 
 Use this when adding or moving an application configuration module.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
+1. Read the Structure Terms in the [Glossary Reference](references/glossary-reference.md#structure-terms) so you can tell a configuration module from a support folder before the steps below place either.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Configuration Rule](rules/configuration-rule.md) so the module and the files that only support it stay together in `src/config/`.
@@ -72,7 +72,7 @@ Use this when extracting or moving a custom hook.
 
 Use this when adding or changing a Next.js route handler.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
+1. Read the Route Terms in the [Glossary Reference](references/glossary-reference.md#route-terms) so the wrapper, the error type, and the delegated module the steps below name are the ones the rule defines.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Route Handler Rule](rules/route-handler-rule.md) so the handler is wrapped in `withResponse` and each delegated module throws its constructed `HttpError` instead of returning it.

@@ -7,7 +7,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - Consumers MUST import an extracted constant through the `index.ts` in that constant's `constants/` folder.
 - A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in files that `index.ts` named-re-exports.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
-- A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the config module.
+- A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration module.
 - A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
 - A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`.
 - A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.

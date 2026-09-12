@@ -3,12 +3,12 @@
  * read the `vulyk.config.ts` and the generated agent files, so they need the
  * JSON language even though the concern is the vulyk workflow.
  */
+import { trackedDocsRule } from "./tracked-docs";
 import { vulykDependencyRule } from "./vulyk-dependency";
-import { vulykDocsRule } from "./vulyk-docs";
 
 export const vulykRules = {
   "vulyk-dependency": vulykDependencyRule,
-  "vulyk-docs": vulykDocsRule,
+  "tracked-docs": trackedDocsRule,
 };
 
 export type VulykRuleName = keyof typeof vulykRules;

@@ -1,8 +1,8 @@
-# Documentation Types Reference
+# Glossary Reference
 
 Use this reference to look up the four standard Markdown document kinds in this repository.
 
-| Kind      | Shape                                                                                                                                                                                                    | Template                                                                           |
+| Term      | Definition                                                                                                                                                                                               | Template                                                                           |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Guide     | A workflow-oriented document with one or more `## How To [...]` sections.                                                                                                                                | `../_templates/guide.md`                                                           |
 | Rule      | An opinionated project rule about one subject that states required, forbidden, recommended, or optional behavior and demonstrates it with Incorrect/Correct examples.                                    | `../_templates/rule.md`                                                            |

@@ -3,11 +3,11 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { ListItem, Nodes, Root } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isDocLink } from "./helpers";
 
 /** Count document links in a subtree. */
 function countDocLinks(node: Nodes): number {
-  if (node.type === "link" && node.url.endsWith(".md")) return 1;
+  if (node.type === "link" && isDocLink(node.url)) return 1;
   if ("children" in node) {
     return node.children.reduce((sum, child) => sum + countDocLinks(child), 0);
   }
