@@ -59,7 +59,7 @@ for (const [relativePath, content] of Object.entries(FIXTURE)) {
   writeFileSync(target, content);
 }
 
-void describe("A link into a Markdown document MUST point at a heading that document contains.", () => {
+void describe("A link that carries a `#` anchor MUST point at a heading the linked document contains.", () => {
   documentationRuleTester.run("guide-link-anchors", guideLinkAnchorsRule, {
     valid: [
       {

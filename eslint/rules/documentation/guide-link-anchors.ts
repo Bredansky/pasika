@@ -93,7 +93,7 @@ export const guideLinkAnchorsRule: MarkdownRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "A step that links another Guide must link directly to a How To section, and a link must point at a heading the linked document has.",
+        "A step that links another Guide must link directly to a How To section, and a link that carries an anchor must point at a heading the linked document has.",
       recommended: true,
     },
   },

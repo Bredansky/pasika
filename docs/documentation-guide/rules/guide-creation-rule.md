@@ -11,7 +11,7 @@ Guides without a consistent creation process invent their own structure. This ru
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
 - When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.
-- A link into a Markdown document MUST point at a heading that document contains.
+- A link that carries a `#` anchor MUST point at a heading the linked document contains.
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
 - A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.

@@ -56,8 +56,8 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
-      "text": "A link into a Markdown document MUST point at a heading that document contains.",
-      "hash": "e15827395f",
+      "text": "A link that carries a `#` anchor MUST point at a heading the linked document contains.",
+      "hash": "d5393dca54",
       "ref": "pasika/guide-link-anchors"
     },
     {
