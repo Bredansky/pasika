@@ -2,32 +2,39 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll } from "vitest";
-import { describe, ruleTester, srcFile } from "../rule-tester";
+import { describe, ruleTester } from "../rule-tester";
 import { httpErrorUsageRule } from "./http-error-usage";
 
 const DOC = "docs/next-codebase-guide/rules/route-handler-rule.md";
 
-const MUST_THROW = `An HttpError constructed inside a withResponse pipeline must be thrown, not returned. See ${DOC}`;
+const HANDS_ERROR_BACK = `A delegated module must throw the HttpError it reports a failure with, not return it. See ${DOC}`;
 
 const THROWS_OTHER = (name: string): string =>
-  `A delegated module must throw an HttpError for a failure it reports, not "${name}". See ${DOC}`;
+  `A delegated module must report a failure by throwing an HttpError, not "${name}". See ${DOC}`;
 
 /**
- * One pipeline: `route.ts` reaches `publisher`, `legacy-publisher`, and
- * `publishing-error`, and nothing reaches the hook or `orphan`. The rule reads
- * the tree from disk, so each fixture is a real project.
+ * One pipeline: `route.ts` reaches `publisher`, `legacy-publisher`,
+ * `publishing-error`, and `require-session`; nothing reaches the hook, `orphan`,
+ * or `orphan-session`. The rule reads the tree from disk, so each fixture is a
+ * real project.
  */
 const PIPELINE: Record<string, string> = {
   "app/api/publish/route.ts": [
     'import { publish } from "@/utils/publisher";',
     'import { publishLegacy } from "@/utils/legacy-publisher";',
     'import { publishAgain } from "@/utils/publishing-error";',
+    'import { requireUserId } from "@/utils/require-session";',
     "",
     "export const POST = withResponse(",
     "  publishSchema,",
     "  withUserId(async (userId: string) => ({",
     '    message: "Published.",',
-    "    data: [await publish(userId), await publishLegacy(userId), await publishAgain(userId)],",
+    "    data: [",
+    "      await requireUserId(userId),",
+    "      await publish(userId),",
+    "      await publishLegacy(userId),",
+    "      await publishAgain(userId),",
+    "    ],",
     "  })),",
     ");",
     "",
@@ -54,6 +61,18 @@ const PIPELINE: Record<string, string> = {
     '    throw new DraftLockedError("Draft is locked");',
     "  }",
     "  return id;",
+    "}",
+    "",
+  ].join("\n"),
+
+  "utils/require-session.ts": [
+    'import { HttpError } from "./http-error";',
+    "",
+    "export async function requireUserId(session: { userId?: string } | null): Promise<string> {",
+    "  if (!session?.userId) {",
+    '    throw new HttpError("Unauthorized", 401);',
+    "  }",
+    "  return session.userId;",
     "}",
     "",
   ].join("\n"),
@@ -86,11 +105,22 @@ const PIPELINE: Record<string, string> = {
     "",
   ].join("\n"),
 
-  // No route reaches either of these.
-  "features/editor/hooks/use-draft.ts":
-    'export function useDraft(id: string) {\n  if (!id) {\n    throw new Error("Draft missing");\n  }\n  return id;\n}\n',
+  // No route reaches any of these. The hook's body is an expression, so the
+  // arrow visitor has to decide about it before anything else.
+  "features/editor/hooks/use-draft.ts": "export const useDraft = (id: string) => id;\n",
   "utils/orphan.ts":
     'export function orphan(id: string) {\n  if (!id) {\n    throw new Error("Orphan");\n  }\n  return id;\n}\n',
+  "utils/orphan-session.ts": [
+    'import { HttpError } from "./http-error";',
+    "",
+    "export function orphanSession(id: string) {",
+    "  if (!id) {",
+    '    return new HttpError("Orphan", 400);',
+    "  }",
+    "  return id;",
+    "}",
+    "",
+  ].join("\n"),
 };
 
 const temps: string[] = [];
@@ -100,8 +130,15 @@ afterAll(() => {
 
 // realpath: on macOS the temp dir is a symlink, and the rule resolves its source
 // root from the working directory, so the two spellings have to agree.
+/** A tree with no `src/` at all: nothing to reach, so nothing is delegated. */
+function makeBareTree(): { file: string } {
+  const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-http-error-usage-bare-")));
+  temps.push(root);
+  process.chdir(root);
+  return { file: path.join(root, "module.ts") };
+}
+
 function makeTree(files: Record<string, string>): {
-  root: string;
   file: (relativePath: string) => string;
   read: (relativePath: string) => string;
 } {
@@ -112,44 +149,63 @@ function makeTree(files: Record<string, string>): {
     mkdirSync(path.dirname(filePath), { recursive: true });
     writeFileSync(filePath, contents);
   }
+  // The rule resolves its source root from the working directory, exactly as it
+  // does in a repository, so this tree becomes the project for the cases below.
+  process.chdir(root);
   return {
-    root,
     file: (relativePath) => path.join(root, "src", relativePath),
     read: (relativePath) => files[relativePath] ?? "",
   };
 }
 
-void describe("An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.", () => {
+void describe("A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.", () => {
+  const { file, read } = makeTree(PIPELINE);
+
   ruleTester.run("http-error-usage", httpErrorUsageRule, {
     valid: [
-      {
-        code: `async function requireUserId() {
-          const session = await getServerSession(authOptions);
-          if (!session?.user?.id) {
-            throw new HttpError("Unauthorized", 401);
-          }
-          return session.user.id;
-        }`,
-        filename: srcFile("utils/require-session.ts"),
-      },
+      // HttpError itself, plus a class extending it through the module that
+      // declares the parent.
+      { code: read("utils/publisher.ts"), filename: file("utils/publisher.ts") },
+      // The route, whose own failures are HttpErrors too.
+      { code: read("app/api/publish/route.ts"), filename: file("app/api/publish/route.ts") },
+      { code: read("utils/require-session.ts"), filename: file("utils/require-session.ts") },
       // A concise arrow body whose error is thrown rather than handed back.
       {
         code: `const requireUserId = async () => { throw new HttpError("Unauthorized", 401); };`,
-        filename: srcFile("utils/require-session.ts"),
+        filename: file("utils/require-session.ts"),
       },
-      // Throwing an unrelated error is not this rule's concern.
+      // A bare return hands nothing back at all.
       {
-        code: `async function requireUserId() {
-          const session = await getServerSession(authOptions);
-          if (!session?.user?.id) {
-            throw new Error("Unauthorized");
-          }
-          return session.user.id;
+        code: `export function publishLater(id: string) {
+          if (!id) return;
+          return id;
         }`,
-        filename: srcFile("utils/require-session.ts"),
+        filename: file("utils/require-session.ts"),
       },
+      // A wrapped call that hands back an ordinary value.
+      {
+        code: `export function publishLater(id: string) {
+          return Promise.resolve(id);
+        }`,
+        filename: file("utils/require-session.ts"),
+      },
+      // A namespaced constructor is not a class this rule can name, so it stays
+      // silent rather than guess.
+      {
+        code: `export function publishLater(id: string) {
+          return new errors.HttpError("Missing id", 400);
+        }`,
+        filename: file("utils/require-session.ts"),
+      },
+      // Outside the pipeline: a hook no handler calls.
+      { code: read("features/editor/hooks/use-draft.ts"), filename: file("features/editor/hooks/use-draft.ts") },
+      // Outside the pipeline: a module under utils/ that no route reaches, so
+      // neither half applies — nothing awaits the call this error escapes.
+      { code: read("utils/orphan.ts"), filename: file("utils/orphan.ts") },
+      { code: read("utils/orphan-session.ts"), filename: file("utils/orphan-session.ts") },
     ],
     invalid: [
+      // Handed back rather than thrown.
       {
         code: `async function requireUserId() {
           const session = await getServerSession(authOptions);
@@ -158,53 +214,47 @@ void describe("An `HttpError` constructed inside a `withResponse` pipeline MUST 
           }
           return session.user.id;
         }`,
-        filename: srcFile("utils/require-session.ts"),
-        errors: [{ message: MUST_THROW }],
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
       },
-      // A concise arrow body hands the error back with no return statement at all.
+      // The same mistake with no return statement at all.
       {
         code: `const requireUserId = async () => new HttpError("Unauthorized", 401);`,
-        filename: srcFile("utils/require-session.ts"),
-        errors: [{ message: MUST_THROW }],
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
       },
-      // The handed-back value sits behind a condition.
+      // Handed back behind a condition, or behind a fallback operator.
       {
         code: `async function requireUserId(id: string) {
           return id ? id : new HttpError("Missing id", 400);
         }`,
-        filename: srcFile("utils/require-session.ts"),
-        errors: [{ message: MUST_THROW }],
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
       },
-      // The error is wrapped in the promise the caller awaits.
+      {
+        code: `async function requireUserId(id: string) {
+          return (await findDraft(id)) || new HttpError("Missing id", 400);
+        }`,
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
+      },
+      // Handed back through an await, which resolves to the error itself.
+      {
+        code: `async function requireUserId() {
+          return await new HttpError("Unauthorized", 401);
+        }`,
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
+      },
+      // Handed back wrapped in the promise the caller awaits.
       {
         code: `async function requireUserId() {
           return Promise.resolve(new HttpError("Unauthorized", 401));
         }`,
-        filename: srcFile("utils/require-session.ts"),
-        errors: [{ message: MUST_THROW }],
+        filename: file("utils/require-session.ts"),
+        errors: [{ message: HANDS_ERROR_BACK }],
       },
-    ],
-  });
-});
-
-void describe("A delegated module MUST report a failure by throwing an `HttpError`, not another error type.", () => {
-  const { root, file, read } = makeTree(PIPELINE);
-  // The rule resolves its source root from the working directory, exactly as it
-  // does in a repository, so this tree becomes the project for these cases.
-  process.chdir(root);
-
-  ruleTester.run("http-error-usage", httpErrorUsageRule, {
-    valid: [
-      // HttpError itself, in a module the route reaches.
-      { code: read("utils/publisher.ts"), filename: file("utils/publisher.ts") },
-      // The route, whose own failures are HttpErrors too.
-      { code: read("app/api/publish/route.ts"), filename: file("app/api/publish/route.ts") },
-      // Outside the pipeline: a hook no handler calls.
-      { code: read("features/editor/hooks/use-draft.ts"), filename: file("features/editor/hooks/use-draft.ts") },
-      // Outside the pipeline: a module placed under utils/ that no route imports.
-      { code: read("utils/orphan.ts"), filename: file("utils/orphan.ts") },
-    ],
-    invalid: [
+      // Thrown, but not an HttpError.
       {
         code: read("utils/legacy-publisher.ts"),
         filename: file("utils/legacy-publisher.ts"),
@@ -216,5 +266,32 @@ void describe("A delegated module MUST report a failure by throwing an `HttpErro
         errors: [{ message: THROWS_OTHER("PublishingError") }],
       },
     ],
+  });
+
+  // A repository with no src/ has no route to reach anything, so the rule has no
+  // pipeline to judge and stays quiet either way.
+  const bare = makeBareTree();
+  ruleTester.run("http-error-usage", httpErrorUsageRule, {
+    valid: [
+      {
+        code: `export function publishLater(id: string) {
+          if (!id) {
+            throw new Error("Failed to publish");
+          }
+          return id;
+        }`,
+        filename: bare.file,
+      },
+      {
+        code: `export function publishLater(id: string) {
+          if (!id) {
+            return new HttpError("Missing id", 400);
+          }
+          return id;
+        }`,
+        filename: bare.file,
+      },
+    ],
+    invalid: [],
   });
 });

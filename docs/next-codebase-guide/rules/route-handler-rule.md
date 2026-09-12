@@ -3,8 +3,7 @@
 Route handlers grow into application logic, and a failure swallowed inside one is a response the client never gets. This rule keeps a handler to a `withResponse` wrapper and awaited, imported calls.
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
-- An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.
-- A delegated module MUST report a failure by throwing an `HttpError`, not another error type.
+- A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.

@@ -1,23 +1,24 @@
 /**
  * ESLint rule: pasika/http-error-usage
  *
- * Two halves of the same contract, the one `withResponse` is written against.
+ * A delegated module MUST report a failure by throwing an HttpError — never
+ * another error type, never a returned value. A module is delegated because the
+ * pipeline reaches it: the modules a `route.ts` reaches are read out of the
+ * project index, and everything no route reaches is out of scope.
  *
- * An HttpError constructed inside a withResponse pipeline MUST be thrown, not
- * returned. Returning it inside an async function resolves that function's
- * promise with the HttpError as an ordinary value instead of rejecting it — an
- * awaited caller receives it as if it were legitimate data, not a failure. The
- * check covers every position a value is handed back from: a `return` of one
- * outright, the same expression behind a conditional or `||`, and a concise
- * arrow body, which has no ReturnStatement at all.
- *
- * A delegated module MUST report a failure by throwing an HttpError, not
- * another error type. A module the pipeline reaches is one `withResponse` will
- * see fail, and it recognizes no error but an HttpError — anything else it
- * rethrows, and the client gets a bare 500 with none of the response shape the
- * rest of the pipeline promises. A class named here passes when it extends
+ * Never another error type: `withResponse` answers a thrown HttpError and
+ * rethrows anything else, so a plain Error from a module a handler's awaited
+ * calls reach leaves the client with a bare 500 and none of the response shape
+ * the rest of the pipeline promises. A class named here passes when it extends
  * HttpError, directly or through the modules that declare it, since a subclass
  * is still an HttpError to the wrapper's `instanceof` check.
+ *
+ * Never a returned value: returning an HttpError inside an async function
+ * resolves that function's promise with it as an ordinary value instead of
+ * rejecting it — an awaited caller receives it as if it were legitimate data,
+ * not a failure. The check covers every position a value is handed back from: a
+ * `return` of one outright, the same expression behind a conditional or `||`,
+ * and a concise arrow body, which has no ReturnStatement at all.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -36,10 +37,10 @@ const DOC = "docs/next-codebase-guide/rules/route-handler-rule.md";
 /** How far a class's `extends` chain is followed across files before giving up. */
 const HERITAGE_DEPTH = 5;
 
-const MUST_THROW = `An HttpError constructed inside a withResponse pipeline must be thrown, not returned. See ${DOC}`;
+const HANDS_ERROR_BACK = `A delegated module must throw the HttpError it reports a failure with, not return it. See ${DOC}`;
 
 const delegatedModuleMessage = (name: string): string =>
-  `A delegated module must throw an HttpError for a failure it reports, not "${name}". See ${DOC}`;
+  `A delegated module must report a failure by throwing an HttpError, not "${name}". See ${DOC}`;
 
 /**
  * The error class a handed-back expression constructs, if it constructs one.
@@ -49,8 +50,8 @@ const delegatedModuleMessage = (name: string): string =>
  * such as `Promise.resolve(...)` — and stops at a nested function, whose own
  * body belongs to whoever calls it.
  */
-function constructedErrorName(node: ESTree.Node | null | undefined): string | undefined {
-  if (!node) return undefined;
+function constructedErrorName(node: ESTree.Expression | ESTree.SpreadElement | undefined): string | undefined {
+  if (node === undefined) return undefined;
 
   if (node.type === "NewExpression") {
     return node.callee.type === "Identifier" ? node.callee.name : undefined;
@@ -157,23 +158,34 @@ export const httpErrorUsageRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require an HttpError constructed inside a withResponse pipeline to be thrown, not returned, and a delegated module to report its failures by throwing an HttpError.",
+        "Require a delegated module to report a failure by throwing an HttpError, never another error type and never a returned value.",
     },
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
 
+    // Resolved once per file: the answer is the same for every node in it, and
+    // the index scan behind it is shared across the whole lint run.
+    let delegated: boolean | undefined;
+    function inPipeline(): boolean {
+      delegated ??= pipelineFiles(sourceRoot)?.has(file) ?? false;
+      return delegated;
+    }
+
     return {
       ReturnStatement(node) {
+        if (node.argument === null) return;
+        if (!inPipeline()) return;
         if (constructedErrorName(node.argument) !== HTTP_ERROR) return;
-        context.report({ node, message: MUST_THROW });
+        context.report({ node, message: HANDS_ERROR_BACK });
       },
 
       ArrowFunctionExpression(node) {
         if (node.body.type === "BlockStatement") return;
+        if (!inPipeline()) return;
         if (constructedErrorName(node.body) !== HTTP_ERROR) return;
-        context.report({ node, message: MUST_THROW });
+        context.report({ node, message: HANDS_ERROR_BACK });
       },
 
       ThrowStatement(node) {
@@ -184,7 +196,7 @@ export const httpErrorUsageRule: Rule.RuleModule = {
         if (name === HTTP_ERROR) return;
 
         const index = getProjectIndex(sourceRoot);
-        if (!index || !pipelineFiles(sourceRoot)?.has(file)) return;
+        if (!index || !inPipeline()) return;
         if (isHttpErrorClass(file, name, sourceRoot, index)) return;
 
         context.report({ node, message: delegatedModuleMessage(name) });

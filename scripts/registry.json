@@ -620,14 +620,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "An `HttpError` constructed inside a `withResponse` pipeline MUST be thrown, not returned.",
-      "hash": "6624c241a1",
-      "ref": "pasika/http-error-usage"
-    },
-    {
-      "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A delegated module MUST report a failure by throwing an `HttpError`, not another error type.",
-      "hash": "af7e163d98",
+      "text": "A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.",
+      "hash": "60b88a9cea",
       "ref": "pasika/http-error-usage"
     },
     {
