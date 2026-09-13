@@ -6,7 +6,7 @@ This guide covers how to organize code in the repository's `src/` tree — place
 
 Use this no matter whether you are adding a new component or extracting from existing code; the steps below apply in any case.
 
-1. Read the Component Terms in the [Glossary Reference](references/glossary-reference.md#component-terms) so you classify each component by the definitions the steps below assume.
+1. Read the Component Terms in the [Glossary Reference](references/glossary-reference.md#component-terms) so you classify each component with the terms the steps below use.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).

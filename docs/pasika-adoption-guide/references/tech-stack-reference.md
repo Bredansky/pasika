@@ -81,7 +81,18 @@ export const POST = withResponse(
 );
 ```
 
-The example nests `withUserId` — an application's own wrapper, alongside any other it writes for a different caller, such as `withUserAccount` — inside `withResponse`. Such a wrapper is not part of this shape: it calls `requireUserId`, which throws an `HttpError` when there is no session, and passes the resolved `userId` to the handler as its first argument. Nested inside `withResponse`, that throw becomes the `401` response, which is why the handler's own body holds no session check and stays a bare sequence of `await`ed calls.
+The example nests `withUserId` inside `withResponse`. Such a wrapper is not part of this shape — an application writes it around its own caller lookup, and hands the result to the handler as its first argument:
+
+```ts
+// with-user-id.ts
+export function withUserId<Args extends unknown[], R>(
+  handler: (userId: string, ...args: Args) => Promise<R>,
+): (...args: Args) => Promise<R> {
+  return async (...args) => handler(await requireUserId(), ...args);
+}
+```
+
+That `requireUserId` throws an `HttpError` when there is no session, so nesting the wrapper inside `withResponse` is what turns a missing session into the `401` response, and what leaves the handler's own body without a session check — a bare sequence of `await`ed calls.
 
 ## DevDependencies
 
