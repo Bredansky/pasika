@@ -590,8 +590,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "A namespaced locale MUST be read through its full dotted path (`locales.stream.watchLiveStream`).",
-      "hash": "3c10684240",
+      "text": "A namespaced locale MUST be read through its full dotted path (`locales.<feature>.<key>`).",
+      "hash": "d23383d15a",
       "ref": "pasika/locale-dotted-path"
     },
     {

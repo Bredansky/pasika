@@ -2,14 +2,13 @@
  * ESLint rule: pasika/route-handler-shape
  *
  * An HTTP method handler exported from route.ts MUST be wrapped in
- * withResponse — the one boundary that catches an HttpError thrown by
- * requireUserId/requireUserAccount or any call the handler makes, and that
- * builds and validates the response from the handler's returned
- * {message, data}. A handler under it MUST NOT contain a try statement, a
- * loop, or an if statement of its own, and every function it calls MUST be
- * imported rather than declared in route.ts — otherwise the same logic this
- * rule bans from the handler's own body can reappear one function away, in
- * the same file.
+ * withResponse — the one boundary that catches an HttpError thrown by any
+ * awaited function the handler calls, and that builds and validates the
+ * response from the handler's returned {message, data}. A handler under it
+ * MUST NOT contain a try statement, a loop, or an if statement of its own,
+ * and every function it calls MUST be imported rather than declared in
+ * route.ts — otherwise the same logic this rule bans from the handler's own
+ * body can reappear one function away, in the same file.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */

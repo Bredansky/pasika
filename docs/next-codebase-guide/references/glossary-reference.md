@@ -4,7 +4,7 @@ Use this reference to look up the terms this guide's workflows and rules use. Te
 
 ## Shared Terms
 
-These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers, and every workflow below places items with them.
+These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers, and the placement decisions this guide's workflows make with them.
 
 | Term                        | Definition                                                                                                      |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------- |

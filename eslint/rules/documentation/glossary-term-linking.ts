@@ -16,15 +16,32 @@ function isGlossary(filePath: string): boolean {
   return path.basename(filePath).includes("glossary");
 }
 
+interface GlossaryTerm {
+  /** How the glossary's own cell spells the term, which is how a report names it. */
+  term: string;
+  /** Every spelling that counts as using the term, an abbreviation included. */
+  names: string[];
+}
+
+/**
+ * The names a term's cell accepts. A cell that spells a term with its
+ * abbreviation — `Closest common folder (CCF)` — counts under both, so a step
+ * that writes the abbreviation the glossary itself supplies uses the term too.
+ */
+function termNames(cell: string): string[] {
+  const abbreviation = /\((?<abbreviation>[^()]+)\)/.exec(cell)?.groups?.abbreviation?.trim();
+  return abbreviation ? [cell, abbreviation] : [cell];
+}
+
 /** The first cell of every table row that is not a header or separator. */
-function extractTableTerms(content: string): string[] {
-  const terms: string[] = [];
+function extractTableTerms(content: string): GlossaryTerm[] {
+  const terms: GlossaryTerm[] = [];
   const rowPattern = /^\|(?<cell>[^|]*)\|/gm;
 
   for (const match of content.matchAll(rowPattern)) {
     const cell = match.groups?.cell?.trim() ?? "";
     if (!cell || /^:?-+:?$/.test(cell) || cell.toLowerCase() === "term") continue;
-    terms.push(cell);
+    terms.push({ term: cell, names: termNames(cell) });
   }
 
   return terms;
@@ -36,19 +53,19 @@ function extractTableTerms(content: string): string[] {
  * under `## <Group> Terms` headings — contributes the term column of those
  * tables; one without tables falls back to its `## Term` headings.
  */
-function extractGlossaryTerms(filePath: string): string[] {
+function extractGlossaryTerms(filePath: string): GlossaryTerm[] {
   if (!isGlossary(filePath)) return [];
 
   const content = readFileSync(filePath, "utf8");
   const tableTerms = extractTableTerms(content);
   if (tableTerms.length > 0) return tableTerms;
 
-  const terms: string[] = [];
+  const terms: GlossaryTerm[] = [];
   const headingPattern = /^## (?<term>.+)$/gm;
 
   for (const match of content.matchAll(headingPattern)) {
     const term = match.groups?.term?.trim();
-    if (term) terms.push(term);
+    if (term) terms.push({ term, names: termNames(term) });
   }
 
   return terms;
@@ -174,7 +191,7 @@ export const glossaryTermLinkingRule: MarkdownRuleDefinition = {
 
         if (glossaryReferences.length === 0) return;
 
-        const glossaryTerms: string[] = [];
+        const glossaryTerms: GlossaryTerm[] = [];
         for (const ref of glossaryReferences) {
           glossaryTerms.push(...extractGlossaryTerms(ref.filePath));
         }
@@ -207,10 +224,14 @@ export const glossaryTermLinkingRule: MarkdownRuleDefinition = {
 
         for (const section of sections) {
           const normalizedStepTexts = section.stepTexts.map(normalize);
-          const usedTerms = glossaryTerms.filter((term) => {
-            const needle = normalize(term);
-            return normalizedStepTexts.some((text) => text.includes(needle));
-          });
+          const usedTerms = glossaryTerms
+            .filter((entry) =>
+              entry.names.some((name) => {
+                const needle = normalize(name);
+                return normalizedStepTexts.some((text) => text.includes(needle));
+              }),
+            )
+            .map((entry) => entry.term);
 
           if (usedTerms.length === 0) continue;
 

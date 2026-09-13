@@ -32,7 +32,7 @@ export function cn(...inputs: ClassValue[]): string {
 
 ## Route Error Handling Helpers
 
-`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all.
+`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function, validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all.
 
 ```ts
 // http-error.ts
@@ -80,6 +80,8 @@ export const POST = withResponse(
   }),
 );
 ```
+
+The example nests `withUserId` — an application's own wrapper, alongside any other it writes for a different caller, such as `withUserAccount` — inside `withResponse`. Such a wrapper is not part of this shape: it calls `requireUserId`, which throws an `HttpError` when there is no session, and passes the resolved `userId` to the handler as its first argument. Nested inside `withResponse`, that throw becomes the `401` response, which is why the handler's own body holds no session check and stays a bare sequence of `await`ed calls.
 
 ## DevDependencies
 

@@ -21,11 +21,12 @@ const GLOSSARY = [
   "",
   "Use this reference to look up the terms this guide's workflows use.",
   "",
-  "| Term           | Definition                                     |",
-  "| -------------- | ---------------------------------------------- |",
-  "| Pipeline       | The calls a handler and its wrapper run.       |",
-  "| `withResponse` | The wrapper a route handler is passed through. |",
-  "| HttpError      | The error type a failed call throws.           |",
+  "| Term                        | Definition                                       |",
+  "| --------------------------- | ------------------------------------------------ |",
+  "| Pipeline                    | The calls a handler and its wrapper run.         |",
+  "| `withResponse`              | The wrapper a route handler is passed through.   |",
+  "| HttpError                   | The error type a failed call throws.             |",
+  "| Closest common folder (CCF) | The folder every consumer of an item sits under. |",
 ].join("\n");
 
 /** A reference that is not a glossary, whose table must contribute no terms. */
@@ -129,6 +130,21 @@ void describe("A How To section whose steps use terms that a glossary Reference 
         ].join("\n"),
       },
       {
+        // A term's abbreviation, which the glossary's own cell supplies, counts
+        // as the term, so a step writing only `CCF` still needs the link.
+        filename: singleTableGuide,
+        code: [
+          "# Example Guide",
+          "",
+          "## How To Place A Utility",
+          "",
+          "Use this when a pure function needs a home.",
+          "",
+          "1. Read the [Glossary Reference](references/glossary-reference.md) so the folder is the one these terms name.",
+          "2. Place the function at the CCF of its consumers.",
+        ].join("\n"),
+      },
+      {
         // A term in an earlier section does not oblige a later, term-free one.
         filename: singleTableGuide,
         code: [
@@ -168,6 +184,27 @@ void describe("A How To section whose steps use terms that a glossary Reference 
           {
             message:
               'guide section "How To Wrap A Handler" uses glossary terms (`withResponse`) but its first step does not link the glossary reference',
+          },
+        ],
+      },
+      {
+        // The same abbreviation without the link is reported by the term's full
+        // spelling, so the report names the entry rather than what was written.
+        filename: singleTableGuide,
+        code: [
+          "# Example Guide",
+          "",
+          "## How To Place A Utility",
+          "",
+          "Use this when a pure function needs a home.",
+          "",
+          "1. Follow the [Utilities Rule](rules/utilities-rule.md) for the folder.",
+          "2. Place the function at the CCF of its consumers.",
+        ].join("\n"),
+        errors: [
+          {
+            message:
+              'guide section "How To Place A Utility" uses glossary terms (Closest common folder (CCF)) but its first step does not link the glossary reference',
           },
         ],
       },
