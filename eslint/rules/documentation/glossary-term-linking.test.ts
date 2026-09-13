@@ -332,7 +332,7 @@ void describe("Every lookup block of a glossary Reference MUST be anchored by th
           "1. Read the Alpha Terms in the [Glossary Reference](references/glossary-reference.md#alpha-terms) so the first thing has a name.",
           "2. Place the Alpha where its consumer sits.",
         ].join("\n"),
-        errors: [{ message: 'glossary block "Beta Terms" is anchored by no How To section\'s first step' }],
+        errors: [{ message: 'shared glossary block "Beta Terms" is not read by any How To section\'s first step' }],
       },
       {
         // Anchored, but from a later step of a bulleted list, so the list's
@@ -349,8 +349,8 @@ void describe("Every lookup block of a glossary Reference MUST be anchored by th
           "- Read the [Alpha Terms](references/glossary-reference.md#alpha-terms) so the first thing has a name.",
         ].join("\n"),
         errors: [
-          { message: 'glossary block "Alpha Terms" is anchored by no How To section\'s first step' },
-          { message: 'glossary block "Beta Terms" is anchored by no How To section\'s first step' },
+          { message: 'shared glossary block "Alpha Terms" is not read by any How To section\'s first step' },
+          { message: 'shared glossary block "Beta Terms" is not read by any How To section\'s first step' },
         ],
       },
       {
@@ -369,8 +369,8 @@ void describe("Every lookup block of a glossary Reference MUST be anchored by th
           "3. Place the Alpha where its consumer sits.",
         ].join("\n"),
         errors: [
-          { message: 'glossary block "Alpha Terms" is anchored by no How To section\'s first step' },
-          { message: 'glossary block "Beta Terms" is anchored by no How To section\'s first step' },
+          { message: 'shared glossary block "Alpha Terms" is not read by any How To section\'s first step' },
+          { message: 'shared glossary block "Beta Terms" is not read by any How To section\'s first step' },
         ],
       },
     ],

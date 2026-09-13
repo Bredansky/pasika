@@ -23,7 +23,7 @@ Use this workflow before changing an existing document or approving a documentat
 
 Use this workflow after identifying an issue during review.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a Guide from a Rule, a Policy, or a Reference before you change one.
+1. Read the [Glossary Reference](references/glossary-reference.md) so you can tell a Guide from a Rule, a Policy, or a Reference, and tell a shared glossary from a single lookup block, before you change one.
 2. Fix the source document and its matching template or rule first when the finding affects more than one document.
 3. State each requirement once, in the appropriate Rule or Policy bullet, with RFC 2119 vocabulary that matches its strength.
 4. Move descriptive facts and term definitions to a Reference and workflow actions to a Guide instead of duplicating requirements across document kinds.

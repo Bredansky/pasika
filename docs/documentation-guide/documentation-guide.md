@@ -6,7 +6,7 @@ This guide explains how to create Guides, Rules, Policies, and References in thi
 
 Run this whenever you add a new Guide, Rule, Policy, or Reference to the repository.
 
-1. Pick the document kind from the [Glossary Reference](references/glossary-reference.md) so you know the right template.
+1. Pick the document kind from the [Glossary Reference](references/glossary-reference.md) so you know the right template and what makes a Reference's lookup blocks a shared glossary.
 2. Follow the [Template Usage Rule](rules/template-usage-rule.md) so the document has no leftover bracketed prompts.
 3. For a Guide, follow the [Guide Creation Rule](rules/guide-creation-rule.md) so the Guide has the correct shape, naming, and folder layout.
 4. For a Rule, follow the [Rule Creation Rule](rules/rule-creation-rule.md) so the Rule has the correct shape, naming, and vocabulary.

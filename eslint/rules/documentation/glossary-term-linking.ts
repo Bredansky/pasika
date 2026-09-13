@@ -1,8 +1,8 @@
 /**
  * @fileoverview A How To section whose steps use terms that a glossary
  * Reference defines must link that Reference from the section's first step, and
- * every lookup block of that glossary must be anchored by one of them, so a
- * split belongs to a workflow rather than to an author's taxonomy.
+ * every block of a shared glossary must be read by one of them, so a split
+ * belongs to a workflow rather than to an author's taxonomy.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -149,7 +149,7 @@ export const glossaryTermLinkingRule: MarkdownRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "A How To section whose steps use glossary terms must link that Reference from the first step, and every block of that glossary must be anchored by one of them.",
+        "A How To section whose steps use glossary terms must link that Reference from the first step, and every block of a shared glossary must be read by one of them.",
       recommended: true,
     },
   },
@@ -199,7 +199,7 @@ export const glossaryTermLinkingRule: MarkdownRuleDefinition = {
             if (!anchored) {
               context.report({
                 node,
-                message: `glossary block "${heading}" is anchored by no How To section's first step`,
+                message: `shared glossary block "${heading}" is not read by any How To section's first step`,
               });
             }
           }
