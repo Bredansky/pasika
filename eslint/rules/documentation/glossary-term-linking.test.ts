@@ -203,7 +203,7 @@ void describe("A How To section whose steps use terms that a glossary Reference 
   });
 });
 
-void describe("Every lookup block of a glossary Reference MUST be anchored by the first step of a How To section.", () => {
+void describe("Every lookup block of a shared glossary MUST be read by the first step of a How To section.", () => {
   documentationRuleTester.run("glossary-term-linking", glossaryTermLinkingRule, {
     valid: [
       // Each block anchored by the section that reads it.

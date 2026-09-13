@@ -182,8 +182,8 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
-      "text": "Every lookup block of a glossary Reference MUST be anchored by the first step of a How To section.",
-      "hash": "8aa366f3b4",
+      "text": "Every lookup block of a shared glossary MUST be read by the first step of a How To section.",
+      "hash": "5c4ef62ddc",
       "ref": "pasika/glossary-term-linking"
     },
     {
