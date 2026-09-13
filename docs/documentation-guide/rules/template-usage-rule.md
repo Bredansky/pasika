@@ -29,7 +29,7 @@ Authoring without a template makes every doc invent its own title, orientation, 
 2. [Step 2]
 ```
 
-Why: committed doc still contains bracketed prompts, and the unused "Another Workflow" section was not deleted.
+Why: the committed document still contains bracketed prompts, and the unused "Another Workflow" section was not deleted.
 
 ## Correct — Template Prompts Replaced and Unused Sections Removed
 

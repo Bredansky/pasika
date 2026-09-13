@@ -9,6 +9,7 @@ Pure functions should not be hidden in component files. This rule extracts them 
 - A utility file that exports one function MUST have a name in that function's kebab-case form.
 - Utilities that are used together MAY be grouped in one file.
 - A utility used only to implement one configuration module MUST live in that module's `utils/` folder.
+- A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Pure Function Left Beside Its Consumer
 
@@ -84,3 +85,35 @@ import { formatRetryDelay } from "@/utils/format-retry-delay";
 ```
 
 Why: the utility's CCF is `src/`, so it lives in `src/utils/`.
+
+## Incorrect — Route-Only Utility in `src/utils/`
+
+```ts
+// src/utils/absolutize-media-urls.ts
+export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
+  // ...
+}
+```
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+import { absolutizeMediaUrls } from "@/utils/absolutize-media-urls";
+```
+
+Why: the function's only consumer is a route under `src/app/`, which never counts toward a CCF, so `src/utils/` has not been earned by any real reuse.
+
+## Correct — Route-Only Utility in the Feature It Represents
+
+```ts
+// src/features/editor/utils/absolutize-media-urls.ts
+export function absolutizeMediaUrls(order: RenderOrder): RenderOrder {
+  // ...
+}
+```
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+import { absolutizeMediaUrls } from "@/features/editor/utils/absolutize-media-urls";
+```
+
+Why: with no consumer outside `src/app/`, the function belongs in the feature it represents, the same way a component with no outside consumer does.

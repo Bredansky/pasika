@@ -7,7 +7,7 @@ const CVA_DEFINITION = `const buttonVariants = cva("inline-flex items-center", {
   },
 });`;
 
-void describe("A component's variant prop types MUST be derived from its cva definition with VariantProps rather than manually duplicated unions.", () => {
+void describe("A component's CVA variant props MUST be typed from its cva definition with VariantProps rather than manually duplicated unions.", () => {
   ruleTester.run("enforce-cva-variant-props", enforceCvaVariantPropsRule, {
     valid: [
       {

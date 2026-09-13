@@ -200,12 +200,12 @@ Applied to `src/**/globals.css` (and other stylesheets) through `@eslint/css` wi
 
 Applied to `package.json` through `@eslint/json`. The framework-agnostic `exact-version` rule applies to any repository, including pasika itself; `nextjs-stack` applies to a Next.js/React application, and the Vulyk rules apply to a repository adopting the framework.
 
-| Rule                      | Enforces                                                                            |
-| ------------------------- | ----------------------------------------------------------------------------------- |
-| `pasika/exact-version`    | Dependency and devDependency versions are pinned exactly, never ranges              |
-| `pasika/nextjs-stack`     | All Tech Stack Reference packages are listed in `package.json` (Next.js/React apps) |
-| `pasika/vulyk-dependency` | `vulyk` is listed in `devDependencies`, not `dependencies`                          |
-| `pasika/vulyk-docs`       | `vulyk.config.ts` tracks the framework's docs from pasika and `AGENTS.md` exists    |
+| Rule                      | Enforces                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `pasika/exact-version`    | Dependency and devDependency versions are pinned exactly, never ranges                            |
+| `pasika/nextjs-stack`     | All Tech Stack Reference packages are listed in `package.json` (Next.js/React apps)               |
+| `pasika/vulyk-dependency` | `vulyk` is listed in `devDependencies`, not `dependencies`                                        |
+| `pasika/tracked-docs`     | `vulyk.config.ts` tracks the framework's required tracked docs from pasika and `AGENTS.md` exists |
 
 ### Documentation rules
 

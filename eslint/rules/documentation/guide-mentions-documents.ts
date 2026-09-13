@@ -6,7 +6,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Link, ListItem, Nodes, Root } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isDocLink, linkTarget } from "./helpers";
 import { findDocsRoot, getProjectDocs } from "./project-index";
 
 /** Visit every ordered-list item (a How To step) and run a check. */
@@ -21,15 +21,10 @@ function visitSteps(node: Nodes, check: (item: ListItem) => void): void {
 
 /** Collect every markdown link in a subtree. */
 function collectMarkdownLinks(node: Nodes, out: Link[]): void {
-  if (node.type === "link" && node.url.endsWith(".md")) out.push(node);
+  if (node.type === "link" && isDocLink(node.url)) out.push(node);
   if ("children" in node) {
     for (const child of node.children) collectMarkdownLinks(child, out);
   }
-}
-
-/** The path part of a link URL, with any `#fragment` stripped. */
-function linkTarget(url: string): string {
-  return url.split("#")[0] ?? url;
 }
 
 export const guideMentionsDocumentsRule: MarkdownRuleDefinition = {
@@ -72,7 +67,7 @@ export const guideMentionsDocumentsRule: MarkdownRuleDefinition = {
         });
 
         const mentionsOf = (links: Link[], fileName: string): boolean =>
-          links.some((link) => link.url.split("/").pop() === fileName);
+          links.some((link) => linkTarget(link.url).split("/").pop() === fileName);
 
         for (const doc of owned) {
           if (doc.kind === "rule") {

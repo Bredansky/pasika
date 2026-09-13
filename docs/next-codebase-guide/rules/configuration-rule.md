@@ -8,7 +8,7 @@ Configuration modules centralize values that control application behavior. This 
 - An extracted configuration type, schema, or utility MUST live in its matching dedicated folder under `src/config/<config-name>/`.
 - An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.
 
-## Incorrect — Supporting Schema Outside Its Config Folder
+## Incorrect — Supporting Schema Outside Its Configuration Module
 
 ```text
 src/config/
@@ -17,7 +17,7 @@ src/config/
 └── home-feed-schema.ts
 ```
 
-Why: the schema sits outside the `home-feed/` configuration folder.
+Why: the schema sits outside the `home-feed/` configuration module.
 
 ## Correct — Configuration Module with Its Supporting Schema
 
@@ -38,4 +38,4 @@ export const homeFeedConfig = homeFeedConfigSchema.parse({
 });
 ```
 
-Why: the configuration module and its supporting schema are grouped in the same configuration folder.
+Why: the configuration module and its supporting schema are grouped in the same folder.

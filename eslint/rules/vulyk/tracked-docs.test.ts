@@ -3,9 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll } from "vitest";
 import { describe, vulykRuleTester } from "./rule-tester";
-import { vulykDocsRule } from "./vulyk-docs";
+import { trackedDocsRule } from "./tracked-docs";
 
-/** Tracks every required doc: baseline docs plus the Next.js-app docs. */
+/** Tracks every required tracked doc: the baseline set plus the Next.js-app set. */
 const PASIKA_CONFIG = `import { defineConfig } from "vulyk/config";
 export default defineConfig({
   entries: {
@@ -32,7 +32,7 @@ export default defineConfig({
   },
 });`;
 
-/** Tracks only the baseline docs, as a plain TypeScript repository requires. */
+/** Tracks only the baseline tracked docs, as a plain TypeScript repository requires. */
 const TYPESCRIPT_APP_CONFIG = `import { defineConfig } from "vulyk/config";
 export default defineConfig({
   entries: {
@@ -59,7 +59,7 @@ interface Project {
 }
 
 function makeProject(files: Record<string, string>): Project {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "vulyk-docs-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tracked-docs-"));
   for (const [name, content] of Object.entries(files)) {
     fs.writeFileSync(path.join(dir, name), content);
   }
@@ -77,8 +77,8 @@ const project = (files: Record<string, string>): Project => {
   return created;
 };
 
-void describe("A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` docs from `pasika` in `vulyk.config.ts`.", () => {
-  vulykRuleTester.run("vulyk-docs", vulykDocsRule, {
+void describe("A repository adopting the framework MUST track the framework's `documentation-guide`, `pasika-adoption-guide`, and `repository-policy` tracked docs from `pasika` in `vulyk.config.ts`.", () => {
+  vulykRuleTester.run("tracked-docs", trackedDocsRule, {
     valid: [
       {
         filename: project({ "vulyk.config.ts": TYPESCRIPT_APP_CONFIG, "AGENTS.md": "# AGENTS\n" }).packageJson,
@@ -91,7 +91,8 @@ void describe("A repository adopting the framework MUST track the framework's `d
         code: "{}",
         errors: [
           {
-            message: "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's docs.",
+            message:
+              "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's required tracked docs.",
           },
         ],
       },
@@ -100,7 +101,7 @@ void describe("A repository adopting the framework MUST track the framework's `d
         code: "{}",
         errors: [
           {
-            message: "vulyk.config.ts must track the framework's docs from the pasika repository.",
+            message: "vulyk.config.ts must track the framework's required tracked docs from the pasika repository.",
           },
         ],
       },
@@ -108,8 +109,8 @@ void describe("A repository adopting the framework MUST track the framework's `d
   });
 });
 
-void describe("A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` docs from `pasika` in `vulyk.config.ts`.", () => {
-  vulykRuleTester.run("vulyk-docs", vulykDocsRule, {
+void describe("A repository adopting the framework's Next.js app preset MUST additionally track the framework's `next-codebase-guide` and `next-tailwind-guide` tracked docs from `pasika` in `vulyk.config.ts`.", () => {
+  vulykRuleTester.run("tracked-docs", trackedDocsRule, {
     valid: [
       {
         filename: project({ "vulyk.config.ts": TYPESCRIPT_APP_CONFIG, "AGENTS.md": "# AGENTS\n" }).packageJson,
@@ -138,26 +139,26 @@ export default defineConfig({
         errors: [
           {
             message:
-              "vulyk.config.ts must track the framework's pasika-adoption-guide docs from pasika (Bredansky/pasika/docs/pasika-adoption-guide).",
+              "vulyk.config.ts must track the framework's pasika-adoption-guide tracked docs from pasika (Bredansky/pasika/docs/pasika-adoption-guide).",
           },
           {
             message:
-              "vulyk.config.ts must track the framework's repository-policy docs from pasika (Bredansky/pasika/docs/repository-policy.md).",
+              "vulyk.config.ts must track the framework's repository-policy tracked docs from pasika (Bredansky/pasika/docs/repository-policy.md).",
           },
         ],
       },
       {
-        // A Next.js app that tracks only the baseline docs is missing the two app-preset docs.
+        // A Next.js app that tracks only the baseline set is missing the two app-preset tracked docs.
         filename: project({ "vulyk.config.ts": TYPESCRIPT_APP_CONFIG, "AGENTS.md": "# AGENTS\n" }).packageJson,
         code: NEXTJS_PACKAGE_JSON,
         errors: [
           {
             message:
-              "vulyk.config.ts must track the framework's next-codebase-guide docs from pasika (Bredansky/pasika/docs/next-codebase-guide).",
+              "vulyk.config.ts must track the framework's next-codebase-guide tracked docs from pasika (Bredansky/pasika/docs/next-codebase-guide).",
           },
           {
             message:
-              "vulyk.config.ts must track the framework's next-tailwind-guide docs from pasika (Bredansky/pasika/docs/next-tailwind-guide).",
+              "vulyk.config.ts must track the framework's next-tailwind-guide tracked docs from pasika (Bredansky/pasika/docs/next-tailwind-guide).",
           },
         ],
       },
@@ -166,7 +167,7 @@ export default defineConfig({
 });
 
 void describe("A repository adopting the framework MUST have the `AGENTS.md` agent file that `vulyk` generates for the tracked docs.", () => {
-  vulykRuleTester.run("vulyk-docs", vulykDocsRule, {
+  vulykRuleTester.run("tracked-docs", trackedDocsRule, {
     valid: [
       {
         filename: project({ "vulyk.config.ts": TYPESCRIPT_APP_CONFIG, "AGENTS.md": "# AGENTS\n" }).packageJson,

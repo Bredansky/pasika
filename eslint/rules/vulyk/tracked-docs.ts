@@ -1,14 +1,15 @@
 /**
- * ESLint rule: pasika/vulyk-docs
+ * ESLint rule: pasika/tracked-docs
  *
  * The framework distributes its documentation as tracked docs that a
  * repository consumes through vulyk rather than copying in. This rule runs on
  * package.json and verifies the repository has a `vulyk.config.ts` that tracks
- * the framework's required docs from pasika — the documentation, adoption, and
- * repository-policy docs in any adopting repository, plus the code-organization
- * and styling docs in a Next.js app — and the `AGENTS.md` agent file vulyk
- * generates for them. The adjacent vulyk-dependency rule keeps the typed config
- * and CLI on the repository's pinned Vulyk version.
+ * the framework's required tracked docs from pasika — `documentation-guide`,
+ * `pasika-adoption-guide`, and `repository-policy` in any adopting repository,
+ * plus `next-codebase-guide` and `next-tailwind-guide` in a Next.js app — and
+ * the `AGENTS.md` agent file vulyk generates for them. The adjacent
+ * vulyk-dependency rule keeps the typed config and CLI on the repository's
+ * pinned Vulyk version.
  *
  * @see docs/pasika-adoption-guide/rules/vulyk-docs-rule.md
  */
@@ -21,15 +22,15 @@ import type { DocumentNode, MemberNode, ObjectNode } from "@humanwhocodes/momoa"
 /** The pasika GitHub repository that hosts the framework's tracked docs. */
 const PASIKA_REPO = "Bredansky/pasika";
 
-/** Docs any framework-adopting repository must track from pasika. */
-const BASE_REQUIRED_DOCS = [
+/** The required tracked docs any framework-adopting repository must consume from pasika. */
+const BASE_REQUIRED_TRACKED_DOCS = [
   { name: "documentation-guide", path: "docs/documentation-guide" },
   { name: "pasika-adoption-guide", path: "docs/pasika-adoption-guide" },
   { name: "repository-policy", path: "docs/repository-policy.md" },
 ] as const;
 
-/** Docs a Next.js app (the pasikaNextjsApp preset, which includes pasikaApp) must additionally track. */
-const NEXTJS_REQUIRED_DOCS = [
+/** The tracked docs a Next.js app (the pasikaNextjsApp preset, which includes pasikaApp) must additionally track. */
+const NEXTJS_REQUIRED_TRACKED_DOCS = [
   { name: "next-codebase-guide", path: "docs/next-codebase-guide" },
   { name: "next-tailwind-guide", path: "docs/next-tailwind-guide" },
 ] as const;
@@ -44,13 +45,13 @@ function hasDependency(root: ObjectNode, name: string): boolean {
   return section.value.members.some((member) => memberName(member) === name);
 }
 
-export const vulykDocsRule: JSONRuleDefinition = {
+export const trackedDocsRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require vulyk.config.ts to track the framework's required docs from pasika and the generated AGENTS.md.",
+        "Require vulyk.config.ts to track the framework's required tracked docs from pasika and the generated AGENTS.md.",
     },
   },
   create(context) {
@@ -65,7 +66,8 @@ export const vulykDocsRule: JSONRuleDefinition = {
         if (!existsSync(configPath)) {
           context.report({
             node,
-            message: "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's docs.",
+            message:
+              "No vulyk.config.ts found. Run npx vulyk init to create one that tracks the framework's required tracked docs.",
           });
           return;
         }
@@ -74,19 +76,19 @@ export const vulykDocsRule: JSONRuleDefinition = {
         if (!config.includes(PASIKA_REPO)) {
           context.report({
             node,
-            message: "vulyk.config.ts must track the framework's docs from the pasika repository.",
+            message: "vulyk.config.ts must track the framework's required tracked docs from the pasika repository.",
           });
           return;
         }
 
-        const requiredDocs = hasDependency(root, "next")
-          ? [...BASE_REQUIRED_DOCS, ...NEXTJS_REQUIRED_DOCS]
-          : BASE_REQUIRED_DOCS;
-        for (const doc of requiredDocs) {
-          if (!config.includes(doc.path)) {
+        const requiredTrackedDocs = hasDependency(root, "next")
+          ? [...BASE_REQUIRED_TRACKED_DOCS, ...NEXTJS_REQUIRED_TRACKED_DOCS]
+          : BASE_REQUIRED_TRACKED_DOCS;
+        for (const trackedDoc of requiredTrackedDocs) {
+          if (!config.includes(trackedDoc.path)) {
             context.report({
               node,
-              message: `vulyk.config.ts must track the framework's ${doc.name} docs from pasika (${PASIKA_REPO}/${doc.path}).`,
+              message: `vulyk.config.ts must track the framework's ${trackedDoc.name} tracked docs from pasika (${PASIKA_REPO}/${trackedDoc.path}).`,
             });
           }
         }

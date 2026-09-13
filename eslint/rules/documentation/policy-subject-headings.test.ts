@@ -1,7 +1,7 @@
 import { describe, documentationRuleTester } from "./rule-tester";
 import { policySubjectHeadingsRule } from "./policy-subject-headings";
 
-void describe("A Policy document MUST group its bullets under a heading per subject.", () => {
+void describe("A Policy MUST group its bullets under a heading per subject.", () => {
   documentationRuleTester.run("policy-subject-headings", policySubjectHeadingsRule, {
     valid: [
       {

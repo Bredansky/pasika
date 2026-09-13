@@ -1,6 +1,6 @@
 # Tech Stack Reference
 
-Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for. Each table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all.
+Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the hand-authored helpers a repository writes itself to the exact shape the framework's rules assume. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all — and each hand-authored helper is shown by its file name and contents only, since the folder it sits in follows from its consumers.
 
 ## Dependencies
 
@@ -15,6 +15,71 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 | `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants             |
 | `clsx`                     | Conditional class-name building block of `cn`                              |
 | `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                      |
+
+## `cn` — Class Merging
+
+Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this shape.
+
+```ts
+// cn.ts
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]): string {
+  return twMerge(clsx(inputs));
+}
+```
+
+## Route Error Handling Helpers
+
+`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function (including by `withUserId`/`withUserAccount`), validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all.
+
+```ts
+// http-error.ts
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+  }
+}
+```
+
+```ts
+// with-response.ts
+export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
+  responseSchema: TSchema,
+  handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> }>,
+): (...args: Args) => Promise<NextResponse<{ data: z.output<TSchema> | null; message: string }>> {
+  return async (...args) => {
+    try {
+      const { message, data } = await handler(...args);
+      return NextResponse.json({ data: responseSchema.parse(data), message });
+    } catch (error) {
+      if (error instanceof HttpError) {
+        return NextResponse.json({ data: null, message: error.message }, { status: error.status });
+      }
+      throw error;
+    }
+  };
+}
+```
+
+A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
+
+```ts
+// src/app/api/render-instagram-content/route.ts
+export const POST = withResponse(
+  renderApiResponseDataSchema,
+  withUserId(async (userId, request: NextRequest) => {
+    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+    const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
+    const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
+    return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  }),
+);
+```
 
 ## DevDependencies
 
