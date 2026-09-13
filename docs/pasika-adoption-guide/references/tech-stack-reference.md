@@ -50,21 +50,28 @@ export class HttpError extends Error {
 // with-response.ts
 export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
   responseSchema: TSchema,
-  handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> }>,
-): (...args: Args) => Promise<NextResponse<{ data: z.output<TSchema> | null; message: string }>> {
+  handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> } | Response>,
+  init?: ResponseInit,
+): (...args: Args) => Promise<NextResponse<{ data: z.output<TSchema> | null; message: string }> | Response> {
   return async (...args) => {
     try {
-      const { message, data } = await handler(...args);
-      return NextResponse.json({ data: responseSchema.parse(data), message });
+      const result = await handler(...args);
+      // A delegated module that owns its response — a file proxy streaming a
+      // body, a signature verifier that answers an invalid request itself —
+      // passes it through untouched.
+      if (result instanceof Response) return result;
+      return NextResponse.json({ data: responseSchema.parse(result.data), message: result.message }, init);
     } catch (error) {
       if (error instanceof HttpError) {
-        return NextResponse.json({ data: null, message: error.message }, { status: error.status });
+        return NextResponse.json({ data: null, message: error.message }, { ...init, status: error.status });
       }
       throw error;
     }
   };
 }
 ```
+
+Two parts of that body exist for the handlers a JSON envelope cannot express. `init` carries the response headers a handler needs its response to keep, such as a `Cache-Control` policy, and is passed to the error response too, so the status is the `HttpError`'s and the headers are still the handler's. The `Response` passthrough serves a handler whose delegated module builds the response itself — a binary file proxy that must stream a body with `Range` support, or a third-party verifier that answers an invalid signature before the handler runs — and it is why such a handler still needs no `try` of its own.
 
 A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
 
