@@ -1,6 +1,6 @@
 # Glossary Reference
 
-Use this reference to look up the terms this guide's workflows use for the framework's documentation distribution as it appears inside a consuming repository.
+Use this reference to look up the terms this guide's workflows use for the framework's documentation as it appears inside a consuming repository.
 
 | Term         | Definition                                                                                              |
 | ------------ | ------------------------------------------------------------------------------------------------------- |

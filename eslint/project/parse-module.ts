@@ -117,7 +117,11 @@ export function parseModule(file: string): ParsedModule {
       }
       if (statement.exportClause && ts.isNamedExports(statement.exportClause)) {
         for (const element of statement.exportClause.elements) {
-          exports.push({ name: element.name.text, kind: "other", line: lineOf(sourceFile, element) });
+          exports.push({
+            name: element.name.text,
+            kind: "other",
+            line: lineOf(sourceFile, element),
+          });
         }
       }
       continue;
@@ -151,7 +155,11 @@ export function parseModule(file: string): ParsedModule {
     }
 
     if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) {
-      exports.push({ name: statement.name.text, kind: "type", line: lineOf(sourceFile, statement) });
+      exports.push({
+        name: statement.name.text,
+        kind: "type",
+        line: lineOf(sourceFile, statement),
+      });
     }
   }
 

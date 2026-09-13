@@ -1,6 +1,6 @@
 # Rule Creation Rule
 
-Rules without a consistent creation process invent their own structure and enforcement language. This rule defines how to create a Rule document.
+Rules without a consistent creation process invent their own structure and enforcement language. This rule defines how to create a Rule.
 
 - Rule file names MUST match the document title in kebab-case and use the `-rule` suffix (e.g., `foo-rule.md`).
 - A Rule overview MUST contain one or two short sentences naming the problem the rule solves, and MUST NOT contain instructions or links to other documentation.
@@ -19,7 +19,7 @@ Rules without a consistent creation process invent their own structure and enfor
 
 ```markdown
 - Authors must remove unused sections.
-- New docs should use the -rule suffix.
+- New Rules should use the -rule suffix.
 ```
 
 Why: lower-case "must" and "should" do not carry RFC 2119 meaning.
@@ -28,7 +28,7 @@ Why: lower-case "must" and "should" do not carry RFC 2119 meaning.
 
 ```markdown
 - Authors MUST remove unused sections.
-- New docs SHOULD use the -rule suffix.
+- New Rules SHOULD use the -rule suffix.
 ```
 
 Why: uppercase keywords carry their canonical RFC 2119 meaning.
@@ -47,7 +47,7 @@ Why: rule contains a reference to another Reference.
 - Rule bodies MUST use RFC 2119 vocabulary: MUST, MUST NOT, SHOULD, SHOULD NOT, or MAY.
 ```
 
-Why: rule states requirements directly without referencing other docs.
+Why: rule states requirements directly without referencing other documents.
 
 ## Incorrect — Bullet Defines a Term
 

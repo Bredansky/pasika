@@ -1,22 +1,23 @@
 # Guide Creation Rule
 
-Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide document.
+Guides without a consistent creation process invent their own structure. This rule defines how to create a Guide.
 
 - Each How To step MUST use one sentence.
 - A Guide MUST contain one or more level-two sections whose headings start with `How To `.
 - Every Guide section MUST consist of its overview followed by exactly one numbered list of steps.
-- A Guide MAY link Rules, References, Policy documents, and other Guides.
+- A Guide MAY link Rules, References, Policies, and other Guides.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
 - When a step links another document, the step MUST name the concrete decision or result the reader will have after reading it.
 - A step that links another Guide MUST link directly to the relevant How To section.
+- A link that carries a `#` anchor MUST point at a heading the linked document contains.
 - How To sections MUST NOT nest inside other How To sections.
 - Guide file names MUST match the document title in kebab-case and use the `-guide` suffix (e.g., `foo-guide.md`).
 - A Guide with support files MUST become a folder named the same as its entry-point file, without the `.md` extension.
 - A Rule file MUST live in a `rules/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
 - A Reference file MUST live in a `references/` subfolder inside a `*-guide` folder that contains its matching Guide entry point.
-- A Guide whose steps use terms that a glossary Reference defines MUST link that Reference from its first step.
+- A How To section whose steps use terms that a glossary Reference defines MUST link that Reference from the section's first step.
 - A Guide entry point MUST reference each Rule it owns from within a How To step, MUST mention every Reference it owns, and MUST NOT link a document that does not exist.
 - A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.
 
@@ -29,7 +30,7 @@ feature-workflow-guide/
 └── option-reference.md
 ```
 
-Why: mixed Markdown files turn the doc folder into an undifferentiated list once the doc grows.
+Why: mixed Markdown files turn the guide folder into an undifferentiated list as the Guide grows.
 
 ## Correct — Support Documents Grouped by Kind
 
@@ -71,7 +72,7 @@ Why: the overview explains the workflow's purpose and timing, and the numbered l
 ## Incorrect — Step Links to Multiple Documents
 
 ```markdown
-1. Follow the [Naming Rule](rules/naming-rule.md) and the [Layout Rule](rules/layout-rule.md) so the doc looks right.
+1. Follow the [Naming Rule](rules/naming-rule.md) and the [Layout Rule](rules/layout-rule.md) so the document looks right.
 ```
 
 Why: step links two Rules and does not name a concrete decision or result.
@@ -79,7 +80,7 @@ Why: step links two Rules and does not name a concrete decision or result.
 ## Correct — Step Links to One Document
 
 ```markdown
-1. Follow the [Naming Rule](rules/naming-rule.md) so the doc has a predictable file name.
+1. Follow the [Naming Rule](rules/naming-rule.md) so the document has a predictable file name.
 ```
 
 Why: step links one Rule and names the concrete result the reader will have.
@@ -132,7 +133,7 @@ Why: step is one concise sentence with a concrete action.
 1. Follow the [Build Guide](build-guide.md) to build the project.
 ```
 
-Why: link points at a Guide file but does not anchor to a specific How To section, so the reader lands on the guide's introduction and has to search for the relevant workflow.
+Why: link points at a Guide but does not anchor to a specific How To section, so the reader lands on the guide's introduction and has to search for the relevant workflow.
 
 ## Correct — Guide Link Targets Its How To Section
 
@@ -142,7 +143,7 @@ Why: link points at a Guide file but does not anchor to a specific How To sectio
 
 Why: link anchors to the specific How To section, so the reader lands directly on the relevant workflow.
 
-## Incorrect — Guide Uses Defined Terms Without Linking the Glossary
+## Incorrect — Section Uses Defined Terms Without Linking the Glossary
 
 ```markdown
 ## How To Organize a Component
@@ -164,3 +165,19 @@ Why: the steps ask the reader to classify a component and to place it by its clo
 ```
 
 Why: the first step points at the one document that defines the terms, so the reader can resolve them before making any decision.
+
+## Incorrect — Anchor Names a Heading the Document Does Not Have
+
+```markdown
+1. Read the [Route Terms](references/glossary-reference.md#route-handler) so the handler's failures reach a response.
+```
+
+Why: the glossary groups that vocabulary under `## Route Terms`, so the anchor resolves to nothing and the reader lands at the top of the document instead of on the terms.
+
+## Correct — Anchor Names a Heading the Document Has
+
+```markdown
+1. Read the [Route Terms](references/glossary-reference.md#route-terms) so the handler's failures reach a response.
+```
+
+Why: the anchor matches a heading in the linked document, so the reader lands on the terms the step asks about.

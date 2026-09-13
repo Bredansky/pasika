@@ -2,7 +2,7 @@
  * ESLint rule: pasika/locale-dotted-path
  *
  * A namespaced locale MUST be read through its full dotted path
- * (locales.stream.watchLiveStream) rather than destructured.
+ * (locales.<feature>.<key>) rather than destructured.
  *
  * @see docs/next-codebase-guide/rules/locales-rule.md
  */

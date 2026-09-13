@@ -1,7 +1,7 @@
 import { describe, documentationRuleTester } from "./rule-tester";
 import { noCrossDocumentLinkRule } from "./no-cross-document-link";
 
-void describe("A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.", () => {
+void describe("A Policy MUST NOT link to Rules, References, Guides, or other Policies.", () => {
   documentationRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {
     valid: [{ filename: "foo-policy.md", code: "# Foo Policy\n\n- Values MUST be kebab-case." }],
     invalid: [
@@ -14,7 +14,7 @@ void describe("A Policy document MUST NOT link to Rules, References, Guides, or 
   });
 });
 
-void describe("A Guide MAY link Rules, References, Policy documents, and other Guides.", () => {
+void describe("A Guide MAY link Rules, References, Policies, and other Guides.", () => {
   documentationRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {
     valid: [
       // A guide may link a Rule, Reference, Policy, or another Guide.
@@ -27,7 +27,7 @@ void describe("A Guide MAY link Rules, References, Policy documents, and other G
   });
 });
 
-void describe("A Reference MUST NOT link to Rules, Guides, Policy documents, or other References.", () => {
+void describe("A Reference MUST NOT link to Rules, Guides, Policies, or other References.", () => {
   documentationRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {
     valid: [{ filename: "foo-reference.md", code: "# Foo Reference\n\nA term is defined here." }],
     invalid: [
@@ -35,6 +35,12 @@ void describe("A Reference MUST NOT link to Rules, Guides, Policy documents, or 
         filename: "foo-reference.md",
         code: "# Foo Reference\n\nSee the [Guide](foo-guide.md).",
         errors: [{ message: "reference links another document: foo-guide.md" }],
+      },
+      {
+        // A link into another document's section is still a link to it.
+        filename: "foo-reference.md",
+        code: "# Foo Reference\n\nSee [How To Build](build-guide.md#how-to-build).",
+        errors: [{ message: "reference links another document: build-guide.md#how-to-build" }],
       },
     ],
   });
@@ -48,6 +54,11 @@ void describe("A Rule MUST NOT link to References, Guides, or other Rules.", () 
         filename: "foo-rule.md",
         code: "# Foo Rule\n\nSee the [Reference](foo-reference.md).",
         errors: [{ message: "rule links another document: foo-reference.md" }],
+      },
+      {
+        filename: "foo-rule.md",
+        code: "# Foo Rule\n\nSee the [values](foo-reference.md#values).",
+        errors: [{ message: "rule links another document: foo-reference.md#values" }],
       },
     ],
   });

@@ -14,6 +14,7 @@ import { policyNoExamplesRule } from "./policy-no-examples";
 import { noCrossDocumentLinkRule } from "./no-cross-document-link";
 import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
 import { referenceBlockHeadingsRule } from "./reference-block-headings";
+import { referenceMaxHeadingDepthRule } from "./reference-max-heading-depth";
 import { supportDocumentPlacementRule } from "./support-document-placement";
 import { noTemplatePromptRule } from "./no-template-prompt";
 import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
@@ -40,6 +41,7 @@ export const documentationRules = {
   "no-cross-document-link": noCrossDocumentLinkRule,
   "reference-no-rfc-vocabulary": referenceNoRfcVocabularyRule,
   "reference-block-headings": referenceBlockHeadingsRule,
+  "reference-max-heading-depth": referenceMaxHeadingDepthRule,
   "support-document-placement": supportDocumentPlacementRule,
   "no-template-prompt": noTemplatePromptRule,
   "guide-folder-entry-point": guideFolderEntryPointRule,

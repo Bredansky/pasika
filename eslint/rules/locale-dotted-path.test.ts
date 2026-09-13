@@ -1,7 +1,7 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localeDottedPathRule } from "./locale-dotted-path";
 
-void describe("A namespaced locale MUST be read through its full dotted path (locales.stream.watchLiveStream).", () => {
+void describe("A namespaced locale MUST be read through its full dotted path (locales.<feature>.<key>).", () => {
   ruleTester.run("locale-dotted-path", localeDottedPathRule, {
     valid: [
       {

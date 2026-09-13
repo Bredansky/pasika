@@ -39,3 +39,31 @@ export function getTextContent(node: Nodes): string {
 export function getLine(node: Nodes): number {
   return node.position?.start.line ?? 0;
 }
+
+/**
+ * The path part of a link URL, with any `#fragment` stripped.
+ *
+ * Guides link into a document rather than at it — a section of another guide,
+ * a term group in a glossary — so every link check has to read the path.
+ */
+export function linkTarget(url: string): string {
+  return url.split("#")[0] ?? url;
+}
+
+/**
+ * Whether a link points at a markdown document, however it is anchored.
+ */
+export function isDocLink(url: string): boolean {
+  return linkTarget(url).endsWith(".md");
+}
+
+/**
+ * The anchor a heading's text produces, the way a Markdown renderer slugs it.
+ */
+export function headingAnchor(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[^\p{L}\p{N}\s-]/gu, "")
+    .replaceAll(/\s+/g, "-");
+}

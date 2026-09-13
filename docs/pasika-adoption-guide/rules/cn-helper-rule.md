@@ -1,8 +1,9 @@
 # cn Helper Rule
 
-Class names combine conditionally and conflict with each other. This rule requires the repository's `cn` helper to resolve those conflicts by merging `clsx` and `tailwind-merge`.
+Class names combine conditionally and conflict with each other. This rule requires the repository's `cn` helper to exist and to resolve those conflicts by composing `clsx` with `tailwind-merge`.
 
-- A repository MUST define its `cn` helper by merging `clsx` and `tailwind-merge`.
+- A repository MUST define a `cn` helper.
+- The `cn` helper MUST return `twMerge(clsx(...))`.
 
 ## Incorrect — Concatenation Without Conflict Resolution
 

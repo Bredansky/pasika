@@ -3,10 +3,10 @@
 Keeping every hook inline makes components bloated, while extracting every hook adds indirection without benefit. This rule defines concrete reuse and imperative-complexity triggers for extraction.
 
 - A custom hook MUST be extracted to its own file when two or more consumers use it.
-- A custom hook with exactly one consumer MUST be extracted when it contains two or more imperative categories and can be described as one coherent behavior.
+- A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.
 - An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.
 - When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
-- A custom hook with one consumer that contains fewer than two imperative categories MUST stay inline in its consumer file.
+- A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
@@ -29,7 +29,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: one coherent player-setup behavior combines subscriptions with resource lifecycle, so leaving it inline crosses the two-category threshold.
+Why: the hook combines two distinct kinds of work beyond `useEffect` — subscribing to player events and managing resource lifecycle — reaching an extraction score of 2.
 
 ## Correct — Complex Single-Use Hook Extracted
 
@@ -60,7 +60,7 @@ export function Player({ src }: PlayerProps): React.JSX.Element {
 }
 ```
 
-Why: the named hook owns the subscription and resource lifecycle for one coherent behavior, keeping the component focused on rendering.
+Why: the extracted hook still combines the same two kinds of work, keeping the component focused on rendering.
 
 ## Incorrect — Reused Hook Kept Inline
 
@@ -116,7 +116,7 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook has one consumer and no imperative category, so its separate file adds indirection before an extraction trigger exists.
+Why: the hook has one consumer and calls only `useMemo`, scoring zero, so its separate file adds indirection before an extraction trigger exists.
 
 ## Correct — Simple Single-Use Hook Inline
 
@@ -133,3 +133,37 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 ```
 
 Why: the hook stays beside its sole consumer until reuse or imperative complexity provides a mechanical extraction trigger.
+
+## Incorrect — Two Distinct Hooks Extracted Before They're Enough
+
+```ts
+// src/features/player/hooks/use-player-volume.ts
+export function usePlayerVolume(src: string): RefObject<HTMLVideoElement | null> {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    console.log("volume src changed", src);
+  }, [src]);
+
+  return playerRef;
+}
+```
+
+Why: `useRef` and `useEffect` are two distinct hooks, worth one point no matter how many are called, and neither call subscribes, does external I/O, manipulates the DOM, or manages a resource's lifecycle — any of which would add a second point.
+
+## Correct — Two Distinct Hooks Inline
+
+```tsx
+// src/features/player/player.tsx
+export function Player({ src }: PlayerProps): React.JSX.Element {
+  const playerRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    console.log("volume src changed", src);
+  }, [src]);
+
+  return <PlayerView ref={playerRef} />;
+}
+```
+
+Why: scoring 1, the hook stays inline until a side-effect category — a subscription, external I/O, DOM manipulation, or resource lifecycle — or a second consumer gives it a mechanical extraction trigger.

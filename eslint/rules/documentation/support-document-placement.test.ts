@@ -5,7 +5,7 @@ void describe("A Reference file MUST live in a references/ subfolder inside a *-
   documentationRuleTester.run("support-document-placement", supportDocumentPlacementRule, {
     valid: [
       {
-        filename: "docs/documentation-guide/references/documentation-types-reference.md",
+        filename: "docs/documentation-guide/references/glossary-reference.md",
         code: "# Documentation Types Reference",
       },
     ],

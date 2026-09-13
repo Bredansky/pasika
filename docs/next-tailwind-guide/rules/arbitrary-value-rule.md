@@ -2,7 +2,7 @@
 
 Literal arbitrary-value classes hide values used for the project's styling in component code. This rule requires every such value to have a named utility or token.
 
-- Components MUST NOT use arbitrary-value classes for project styling. They MUST use an existing Tailwind or project utility, or define a project token or custom utility first.
+- Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.
 
 ## Incorrect — Literal Arbitrary Radius
 

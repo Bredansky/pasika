@@ -4,12 +4,12 @@ Some requirements apply to the whole repository and span subjects too unrelated 
 
 - Policy file names MUST match the document title in kebab-case and use the `-policy` suffix (e.g., `foo-policy.md`).
 - A Policy overview MUST contain one or two short sentences naming the scope the requirements apply to, and MUST NOT contain instructions or links to other documentation.
-- A Policy document MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
-- A Policy document MUST group its bullets under a heading per subject.
-- A Policy document MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
-- A Policy document MUST NOT link to Rules, References, Guides, or other Policy documents.
+- A Policy MUST state every requirement as a bullet that uses RFC 2119 vocabulary.
+- A Policy MUST group its bullets under a heading per subject.
+- A Policy MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.
+- A Policy MUST NOT link to Rules, References, Guides, or other Policies.
 
-## Incorrect — Policy Document Carries Examples
+## Incorrect — Policy Carries Examples
 
 ```markdown
 # Agent Policy
@@ -28,7 +28,7 @@ Why: the violation is hidden instead of fixed.
 
 Why: the document pairs a repo-wide requirement with a worked example, so it competes with the Rule shape and grows one section per requirement.
 
-## Correct — Policy Document Lists Requirements Only
+## Correct — Policy Lists Requirements Only
 
 ```markdown
 # Agent Policy

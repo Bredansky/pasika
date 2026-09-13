@@ -6,7 +6,7 @@ This guide covers how to organize code in the repository's `src/` tree — place
 
 Use this no matter whether you are adding a new component or extracting from existing code; the steps below apply in any case.
 
-1. Read the [Glossary Reference](references/glossary-reference.md) to learn the terms these workflows use.
+1. Read the Component Terms in the [Glossary Reference](references/glossary-reference.md#component-terms) so you classify each component with the terms the steps below use.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Pick the component's placement per the [Component Placement Rule](rules/component-placement-rule.md).
@@ -26,51 +26,68 @@ Use this no matter whether you are adding a new component or extracting from exi
 
 Use this when adding or moving a type or schema.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-3. Follow the [Types and Schemas Rule](rules/types-and-schemas-rule.md) so the type or schema is extracted only once a consumer needs it independently.
-4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the type or schema module has predictable exports and import paths.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the type or schema in its support folder at the CCF of its consumers.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Types and Schemas Rule](rules/types-and-schemas-rule.md) so the type or schema is extracted only once a consumer needs it independently.
+5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the type or schema module has predictable exports and import paths.
 
 ## How To Organize a Constant
 
 Use this when adding or moving a constant.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-3. Follow the [Constants Rule](rules/constants-rule.md) so the value is extracted only once a second file imports it.
-4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the constant module has predictable exports and import paths.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the constant in its support folder at the CCF of its consumers.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Constants Rule](rules/constants-rule.md) so the value is extracted only once a second file imports it.
+5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the constant module has predictable exports and import paths.
 
 ## How To Organize a Utility
 
 Use this when adding, extracting, or moving a pure function.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-3. Follow the [Utilities Rule](rules/utilities-rule.md) so the pure function gets its own file in the right `utils/` folder.
-4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the utility module has predictable exports and import paths.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the function in its support folder at the CCF of its consumers.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Utilities Rule](rules/utilities-rule.md) so the pure function gets its own file in its consumers' `utils/` support folder.
+5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the utility module has predictable exports and import paths.
 
 ## How To Organize Configuration
 
 Use this when adding or moving an application configuration module.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-3. Follow the [Configuration Rule](rules/configuration-rule.md) so the module and the files that only support it stay together in `src/config/`.
-4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the configuration module has predictable exports and import paths.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can tell a configuration module from a support folder before the steps below place either.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Configuration Rule](rules/configuration-rule.md) so the module and the files that only support it stay together in `src/config/`.
+5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the configuration module has predictable exports and import paths.
 
 ## How To Organize a Custom Hook
 
 Use this when extracting or moving a custom hook.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-3. Follow the [Hook Extraction Rule](rules/hook-extraction-rule.md) so the hook is extracted only once reuse or imperative complexity requires it.
-4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the hook module has predictable exports and import paths.
+1. Read the Component Terms in the [Glossary Reference](references/glossary-reference.md#component-terms) so you can count the hook's imperative categories and read its extraction score before extracting it.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Hook Extraction Rule](rules/hook-extraction-rule.md) so the hook is extracted only once two consumers use it or its extraction score reaches two.
+5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the hook module has predictable exports and import paths.
+
+## How To Organize an API Route Handler
+
+Use this when adding or changing a Next.js route handler.
+
+1. Read the Route Terms in the [Glossary Reference](references/glossary-reference.md#route-terms) so the wrapper, the error type, and the delegated module the steps below name are the ones the rule defines.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
+4. Follow the [Route Handler Rule](rules/route-handler-rule.md) so the handler is wrapped in `withResponse` and each delegated module throws an `HttpError` for its own failures instead of returning one.
+5. For each delegated module, follow the [Utilities Rule](rules/utilities-rule.md) so it lands in a folder its real consumers justify, not `src/app/`.
+6. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the route module has predictable exports and import paths.
 
 ## How To Organize a Locale String
 
 Use this when adding or moving user-facing text.
 
-1. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-2. Follow the [Locales Rule](rules/locales-rule.md) so the string is registered under the right key in `src/locales/index.ts`.
-3. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the locale module has predictable exports and import paths.
+1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can tell whether the string belongs to one feature folder or to more than one.
+2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
+3. Follow the [Locales Rule](rules/locales-rule.md) so the string is registered under the right key in `src/locales/index.ts`.
+4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the locale module has predictable exports and import paths.
