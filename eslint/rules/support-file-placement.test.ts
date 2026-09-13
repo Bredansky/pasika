@@ -10,7 +10,8 @@ import { supportFilePlacementRule } from "./support-file-placement";
  * root from the working directory, exactly as it does in a repository.
  */
 const FIXTURE: Record<string, string> = {
-  // A route consumer forces the app-wide support folder.
+  // A route or page is an entry point, not a reuse site, so it never places a
+  // support file: only the feature consumer below counts for `use-stale`.
   "app/products/page.tsx":
     'import { useSearch } from "@/hooks/use-search";\nimport { useStale } from "@/features/stale/hooks/use-stale";\nexport default function Page() { return <span />; }\n',
   "hooks/use-search.ts": "export function useSearch() {}\n",
@@ -26,6 +27,7 @@ const FIXTURE: Record<string, string> = {
     'import { crossUtil } from "./utils/cross";',
     'import { useRetry } from "./hooks/use-retry";',
     'import { useCross } from "./hooks/use-cross";',
+    'import { useStale } from "@/features/stale/hooks/use-stale";',
     'import { misplacedConstant } from "@/features/orders/constants/misplaced";',
     'import { MisplacedType } from "@/features/orders/types/misplaced";',
     'import { misplacedUtil } from "@/features/orders/utils/misplaced";',
@@ -112,7 +114,6 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const REASONS = {
-  app: "a file under src/app/ imports it, so it belongs to the app-wide support folder",
   config: "every file that imports it belongs to that configuration module",
   ccf: "that is the closest folder its consumers share",
   features: "its consumers span more than one feature, so no feature can own it",
@@ -212,7 +213,7 @@ void describe("An extracted custom hook MUST live in a hooks/ folder at the CCF 
       },
       {
         ...ok("features/stale/hooks/use-stale.ts"),
-        errors: [move("src/hooks/", REASONS.app, ["app/products/page.tsx"])],
+        errors: [move("src/features/billing/hooks/", REASONS.ccf, ["features/billing/invoice.tsx"])],
       },
     ],
   });

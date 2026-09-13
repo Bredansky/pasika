@@ -34,7 +34,6 @@ import { sourceRootOf } from "./project-root";
 const CONFIG_OWNED_FOLDERS = new Set(["types", "constants"]);
 
 const REASON_TEXT: Record<string, string> = {
-  "app-consumer": "a file under src/app/ imports it, so it belongs to the app-wide support folder",
   "config-module": "every file that imports it belongs to that configuration module",
   ccf: "that is the closest folder its consumers share",
   "across-features": "its consumers span more than one feature, so no feature can own it",

@@ -1,20 +1,23 @@
 /**
  * ESLint rule: pasika/root-support-placement
  *
- * A pure function, type, schema, or constant with no consumer outside
- * src/app/ or a configuration module MUST live under src/features/<name>/, not
- * the matching root support folder or anywhere else. This mirrors
- * component-placement's zero-consumer fallback exactly, including the
- * mechanical part: that fallback does not just recommend a feature folder,
- * it checks the component already sits in one (`segments[0] !== "features"`).
- * Root src/utils/, src/types/, src/schemas/, and src/constants/ are earned by
- * actual cross-feature reuse, and an app/-only or config-only consumer never
- * counts toward that CCF, the same way it never counts toward a component's —
- * so a zero-consumer export sitting anywhere other than src/features/<name>/ is
- * exactly as wrong as one left in root. src/shared/ never validly absorbs it
- * either: neither the Utilities Rule, the Types and Schemas Rule, nor the
- * Constants Rule ever names src/shared/ as a destination, unlike the
- * Component Placement Rule's explicit use of it for cross-feature reuse.
+ * A pure function, type, schema, or constant whose only consumers are files
+ * under src/app/ MUST live under src/features/<name>/, not the matching root
+ * support folder or anywhere else. This mirrors component-placement's
+ * zero-consumer fallback exactly, including the mechanical part: that fallback
+ * does not just recommend a feature folder, it checks the component already sits
+ * in one (`segments[0] !== "features"`). Root src/utils/, src/types/,
+ * src/schemas/, and src/constants/ are earned by actual cross-feature reuse, and
+ * a consumer under src/app/ never counts toward that CCF, the same way it never
+ * counts toward a component's — so an app-only export sitting anywhere other
+ * than src/features/<name>/ is exactly as wrong as one left in root. A consumer
+ * that is not under src/app/ places the file wherever its CCF lands, whether
+ * that is a feature, a composition, or a configuration module, so this rule
+ * stays out: support-file-placement and the configuration rules own those.
+ * src/shared/ never validly absorbs the app-only case either: neither the
+ * Utilities Rule, the Types and Schemas Rule, nor the Constants Rule ever names
+ * src/shared/ as a destination, unlike the Component Placement Rule's explicit
+ * use of it for cross-feature reuse.
  *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
@@ -25,7 +28,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type { ExportKind } from "../project/parse-module";
 import { getProjectIndex, symbolKey } from "../project/index";
-import { folderSegmentsOf, isConfigModule, isUnderApp, segmentsOf } from "../project/ccf";
+import { folderSegmentsOf, isPlacingConsumer, segmentsOf } from "../project/ccf";
 import { sourceRootOf } from "./project-root";
 
 type SupportFolder = "utils" | "types" | "schemas" | "constants";
@@ -104,17 +107,17 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
       const consumers = [...(index.symbolConsumers.get(symbolKey(file, exp.name)) ?? [])];
       if (consumers.length === 0) continue;
 
-      const real = consumers.filter((consumer) => {
-        const consumerSegments = segmentsOf(consumer, sourceRoot);
-        return !isUnderApp(consumerSegments) && !isConfigModule(consumerSegments);
-      });
-      if (real.length > 0) continue;
+      // A consumer outside src/app/ places the file, so only an app-only export
+      // is left to this rule. A route or a page is an entry point rather than a
+      // reuse site, which is why it does not count toward a root support folder.
+      const outsideApp = consumers.filter((consumer) => isPlacingConsumer(consumer, sourceRoot));
+      if (outsideApp.length > 0) continue;
 
       const where = isRoot ? `root src/${supportFolder}/` : `src/${folderSegments.join("/")}/`;
       findings.push({
         line: exp.line,
         message:
-          `${label} "${exp.name}" has no consumer outside src/app/ or a configuration module, so it has not ` +
+          `${label} "${exp.name}" is consumed only from src/app/, so it has not ` +
           `earned ${where}; move it into the feature it represents (src/features/<feature>/${supportFolder}/). If no ` +
           `existing feature applies, introduce a new feature folder. See ${doc}`,
       });

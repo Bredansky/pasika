@@ -20,10 +20,17 @@ const FIXTURE: Record<string, string> = {
   "app/api/render-instagram-content/types.ts":
     'import type { RenderOrder } from "@/types/render-order";\nexport function useIt(order: RenderOrder) { return order; }\n',
 
-  // A root schemas/ schema whose only consumer is a configuration module.
+  // A root schemas/ schema whose only consumer is a configuration module: the
+  // configuration owns it, so this rule leaves it to `support-file-placement`.
   "schemas/github-error-response-schema.ts": "export const githubErrorResponseSchema = { message: undefined };\n",
   "config/github/index.ts":
     'import { githubErrorResponseSchema } from "@/schemas/github-error-response-schema";\nexport const githubConfig = githubErrorResponseSchema;\n',
+
+  // A type inside a configuration module, read by that module: it has not earned
+  // root either, but the configuration is where it belongs, not a feature.
+  "config/player/types/index.ts": 'export type PlayerMode = "auto" | "manual";\n',
+  "config/player/index.ts":
+    'import type { PlayerMode } from "./types";\nexport const playerConfig = { mode: "auto" as PlayerMode };\n',
 
   // A root constants/ constant whose only consumer is a route.ts under app/.
   "constants/max-render-jobs.ts": "export const maxRenderJobs = 10;\n",
@@ -81,7 +88,7 @@ const UTILITIES_DOC = "See docs/next-codebase-guide/rules/utilities-rule.md";
 const TYPES_AND_SCHEMAS_DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 const CONSTANTS_DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A pure function with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A pure function with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/utils/.
@@ -112,7 +119,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
         errors: [
           {
             message:
-              `Function "absolutizeMediaUrls" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Function "absolutizeMediaUrls" is consumed only from src/app/, so it ` +
               "has not earned root src/utils/; move it into the feature it represents (src/features/<feature>/utils/). " +
               `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
           },
@@ -125,7 +132,7 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
         errors: [
           {
             message:
-              `Function "formatCurrency" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Function "formatCurrency" is consumed only from src/app/, so it ` +
               "has not earned src/shared/utils/; move it into the feature it represents (src/features/<feature>/utils/). " +
               `If no existing feature applies, introduce a new feature folder. ${UTILITIES_DOC}`,
           },
@@ -135,13 +142,24 @@ void describe("A pure function with no consumer outside `src/app/` or a configur
   });
 });
 
-void describe("A type or schema with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A type or schema with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [
       // Reused by two features: has earned root src/types/.
       {
         code: read("types/invoice-status.ts"),
         filename: file("types/invoice-status.ts"),
+      },
+      // A configuration module consumes it, so its placement is the
+      // configuration rules' to state.
+      {
+        code: read("schemas/github-error-response-schema.ts"),
+        filename: file("schemas/github-error-response-schema.ts"),
+      },
+      // A configuration module owns this type from inside itself.
+      {
+        code: read("config/player/types/index.ts"),
+        filename: file("config/player/types/index.ts"),
       },
     ],
     invalid: [
@@ -151,21 +169,9 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
         errors: [
           {
             message:
-              `Type "RenderOrder" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Type "RenderOrder" is consumed only from src/app/, so it ` +
               "has not earned root src/types/; move it into the feature it represents (src/features/<feature>/types/). " +
               `If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
-          },
-        ],
-      },
-      {
-        code: read("schemas/github-error-response-schema.ts"),
-        filename: file("schemas/github-error-response-schema.ts"),
-        errors: [
-          {
-            message:
-              `Schema "githubErrorResponseSchema" has no consumer outside src/app/ or a configuration module, ` +
-              "so it has not earned root src/schemas/; move it into the feature it represents " +
-              `(src/features/<feature>/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
         ],
       },
@@ -176,7 +182,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
         errors: [
           {
             message:
-              `Schema "uploadResponseSchema" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Schema "uploadResponseSchema" is consumed only from src/app/, so it ` +
               "has not earned src/shared/schemas/; move it into the feature it represents " +
               `(src/features/<feature>/schemas/). If no existing feature applies, introduce a new feature folder. ${TYPES_AND_SCHEMAS_DOC}`,
           },
@@ -186,7 +192,7 @@ void describe("A type or schema with no consumer outside `src/app/` or a configu
   });
 });
 
-void describe("A constant with no consumer outside `src/app/` or a configuration module MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [],
     invalid: [
@@ -196,7 +202,7 @@ void describe("A constant with no consumer outside `src/app/` or a configuration
         errors: [
           {
             message:
-              `Constant "maxRenderJobs" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Constant "maxRenderJobs" is consumed only from src/app/, so it ` +
               "has not earned root src/constants/; move it into the feature it represents " +
               `(src/features/<feature>/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
           },
@@ -209,7 +215,7 @@ void describe("A constant with no consumer outside `src/app/` or a configuration
         errors: [
           {
             message:
-              `Constant "maxUploadSize" has no consumer outside src/app/ or a configuration module, so it ` +
+              `Constant "maxUploadSize" is consumed only from src/app/, so it ` +
               "has not earned src/shared/constants/; move it into the feature it represents " +
               `(src/features/<feature>/constants/). If no existing feature applies, introduce a new feature folder. ${CONSTANTS_DOC}`,
           },

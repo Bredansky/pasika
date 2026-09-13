@@ -18,6 +18,16 @@ export const isUnderApp = (segments: string[]): boolean => segments[0] === "app"
 export const isConfigModule = (segments: string[]): boolean => segments[0] === "config";
 export const isUnderCompositions = (segments: string[]): boolean => segments[0] === "compositions";
 
+/**
+ * Whether one consumer places a support file. A route or a page under `src/app/`
+ * is an entry point rather than a reuse site, so it never does, and neither does
+ * a file outside the source root.
+ */
+export function isPlacingConsumer(consumer: string, sourceRoot: string): boolean {
+  const segments = segmentsOf(consumer, sourceRoot);
+  return segments.length > 0 && !isUnderApp(segments);
+}
+
 /** The longest folder prefix every path shares. */
 function commonPrefix(folders: string[][]): string[] {
   if (folders.length === 0) return [];
@@ -99,7 +109,7 @@ const configModuleOf = (segments: string[]): string | undefined =>
 export interface SupportPlacement {
   countedConsumers: string[];
   expectedFolder: string[];
-  reason: "app-consumer" | "config-module" | "ccf" | "across-features" | "across-layers";
+  reason: "config-module" | "ccf" | "across-features" | "across-layers";
 }
 
 /**
@@ -107,25 +117,23 @@ export interface SupportPlacement {
  *
  * A consumer inside a support folder is owned by that folder's parent, so the
  * calculation lands on the scope that uses the file rather than on a sibling
- * support folder. A consumer under `src/app/` forces the root support folder, a
- * set of consumers inside one configuration module keeps the file in that module,
- * and consumers spanning features land in the root support folder.
+ * support folder. Consumers under `src/app/` never place a file — a route or a
+ * page is an entry point, not a reuse site — so an app-only support file belongs
+ * to the feature it represents, which `root-support-placement` states instead.
+ * A set of consumers inside one configuration module keeps the file in that
+ * module, and consumers spanning features land in the root support folder.
  */
 export function resolveSupportPlacement(
   supportFile: string,
   supportFolder: string,
   index: ProjectIndex,
 ): SupportPlacement | undefined {
-  const consumers = [...(index.consumers.get(supportFile) ?? [])].filter(
-    (consumer) => segmentsOf(consumer, index.sourceRoot).length > 0,
+  const consumers = [...(index.consumers.get(supportFile) ?? [])].filter((consumer) =>
+    isPlacingConsumer(consumer, index.sourceRoot),
   );
   if (consumers.length === 0) return undefined;
 
   const consumerSegments = consumers.map((consumer) => segmentsOf(consumer, index.sourceRoot));
-
-  if (consumerSegments.some((segments) => isUnderApp(segments))) {
-    return { countedConsumers: consumers, expectedFolder: [supportFolder], reason: "app-consumer" };
-  }
 
   const configModules = new Set(consumerSegments.map((segments) => configModuleOf(segments)));
   const [onlyConfigModule] = [...configModules];
