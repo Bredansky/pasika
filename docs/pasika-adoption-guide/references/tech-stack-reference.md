@@ -112,31 +112,16 @@ A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(
-  renderApiResponseDataSchema,
-  withUserId(async (userId, request: NextRequest) => {
-    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
-    const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
-    const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-    return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
-  }),
-);
+export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+  const userId = await getUserId();
+  const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
+  const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
+  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+});
 ```
 
 Write the handler at the `withResponse` call, never as an imported reference. Its body is one awaited call per step, and each step lives in a module of its own — steps branch, loop, and catch, and a handler may do none of that. One step means one call; the module's name is the test. `readPostSubmission` names one action, so its call is one step. `submitPosts` on `/api/post` just restates the route's own subject — that is bad: significant steps are hidden behind one await, and the reader cannot see them. Name each significant step and await it in the handler instead, each call going to its own module.
-
-The example nests `withUserId` inside `withResponse`. Such a wrapper is not part of this shape — an application writes it around its own caller lookup, and hands the result to the handler as its first argument:
-
-```ts
-// with-user-id.ts
-export function withUserId<Args extends unknown[], R>(
-  handler: (userId: string, ...args: Args) => Promise<R>,
-): (...args: Args) => Promise<R> {
-  return async (...args) => handler(await requireUserId(), ...args);
-}
-```
-
-That `requireUserId` throws an `HttpError` when there is no session, so nesting the wrapper inside `withResponse` is what turns a missing session into the `401` response, and what leaves the handler's own body without a session check — a bare sequence of `await`ed calls.
 
 ## Outbound Request Helper
 
