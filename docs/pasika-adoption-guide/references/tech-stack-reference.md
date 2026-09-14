@@ -54,6 +54,8 @@ type HandlerResult<TData> =
   | { message: string; data: TData; status?: number; headers?: HeadersInit }
   | { body: TData; status: number; headers?: HeadersInit };
 
+type AnyHandler = (...args: unknown[]) => Promise<HandlerResult<unknown>>;
+
 export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
   responseSchema: TSchema,
   handler: (...args: Args) => Promise<HandlerResult<z.input<TSchema>>>,
@@ -61,38 +63,50 @@ export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
 export function withResponse<Args extends unknown[]>(
   handler: (...args: Args) => Promise<HandlerResult<ReadableStream>>,
 ): (...args: Args) => Promise<NextResponse>;
-export function withResponse(...args: [unknown, unknown]) {
-  const streaming = typeof args[0] === "function";
-  const responseSchema = (streaming ? streamBody : args[0]) as z.ZodType;
-  const handler = (streaming ? args[0] : args[1]) as (...a: unknown[]) => Promise<HandlerResult<unknown>>;
+export function withResponse(responseSchema?: z.ZodType | AnyHandler, handler?: AnyHandler) {
+  const respond =
+    (schema: z.ZodType, wrapped: AnyHandler) =>
+    async (...requestArgs: unknown[]): Promise<NextResponse> => {
+      try {
+        const result = await wrapped(...requestArgs);
 
-  return async (...requestArgs: unknown[]) => {
-    try {
-      const result = await handler(...requestArgs);
+        // A result carrying a body is the response a JSON envelope cannot hold.
+        if ("body" in result) {
+          const { body, status, headers } = result;
+          return new NextResponse(streamBody.parse(body), { status, headers });
+        }
 
-      // A result carrying a body is the response a JSON envelope cannot hold.
-      if ("body" in result) {
-        const { body, status, headers } = result;
-        return new NextResponse(streamBody.parse(body), { status, headers });
+        const { message, data, status, headers } = result;
+        return NextResponse.json({ data: schema.parse(data), message }, { status, headers });
+      } catch (error) {
+        if (error instanceof HttpError) {
+          return NextResponse.json(
+            { data: null, message: error.message },
+            { status: error.status, headers: { "Cache-Control": "no-store" } },
+          );
+        }
+
+        throw error;
       }
+    };
 
-      const { message, data, status, headers } = result;
-      return NextResponse.json({ data: responseSchema.parse(data), message }, { status, headers });
-    } catch (error) {
-      if (error instanceof HttpError) {
-        return NextResponse.json(
-          { data: null, message: error.message },
-          { status: error.status, headers: { "Cache-Control": "no-store" } },
-        );
-      }
+  // A function in the schema slot is the streamed overload: the handler came
+  // first, and the stream contract stands in for the response schema.
+  if (typeof responseSchema === "function") {
+    return respond(streamBody, responseSchema);
+  }
 
-      throw error;
-    }
-  };
+  if (!responseSchema || !handler) {
+    return () => {
+      throw new HttpError("withResponse requires a response schema and a handler.", 500);
+    };
+  }
+
+  return respond(responseSchema, handler);
 }
 ```
 
-A handler's return value carries three things a plain `{ message, data }` cannot. `status` and `headers` let the handler set response metadata next to the data, while a failure response is built only from the caught `HttpError` and never inherits that metadata. A route whose response is not JSON calls `withResponse` with the handler alone — the overload that skips the schema — and returns `{ body, status, headers }` instead of the envelope, so a non-JSON body passes through unchanged. Every failure includes `Cache-Control: no-store` so the error is never cached as data.
+A handler's return value carries three things a plain `{ message, data }` cannot. `status` and `headers` let the handler set response metadata next to the data, while a failure response is built only from the caught `HttpError` and never inherits that metadata. A route whose response is not JSON calls `withResponse` with the handler alone — the overload that puts a function in the schema slot — and returns `{ body, status, headers }` instead of the envelope, so a non-JSON body passes through unchanged. Every failure includes `Cache-Control: no-store` so the error is never cached as data.
 
 A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
 
