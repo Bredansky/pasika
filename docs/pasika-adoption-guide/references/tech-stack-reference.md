@@ -48,7 +48,7 @@ export class HttpError extends Error {
 
 ```ts
 // with-response.ts
-export const streamedBody = z.instanceof(ReadableStream);
+const streamBody = z.instanceof(ReadableStream);
 
 type HandlerResult<TData> =
   | { message: string; data: TData; status?: number; headers?: HeadersInit }
@@ -57,15 +57,23 @@ type HandlerResult<TData> =
 export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
   responseSchema: TSchema,
   handler: (...args: Args) => Promise<HandlerResult<z.input<TSchema>>>,
-): (...args: Args) => Promise<NextResponse> {
-  return async (...args) => {
+): (...args: Args) => Promise<NextResponse>;
+export function withResponse<Args extends unknown[]>(
+  handler: (...args: Args) => Promise<HandlerResult<ReadableStream>>,
+): (...args: Args) => Promise<NextResponse>;
+export function withResponse(...args: [unknown, unknown]) {
+  const streaming = typeof args[0] === "function";
+  const responseSchema = (streaming ? streamBody : args[0]) as z.ZodType;
+  const handler = (streaming ? args[0] : args[1]) as (...a: unknown[]) => Promise<HandlerResult<unknown>>;
+
+  return async (...requestArgs: unknown[]) => {
     try {
-      const result = await handler(...args);
+      const result = await handler(...requestArgs);
 
       // A result carrying a body is the response a JSON envelope cannot hold.
       if ("body" in result) {
         const { body, status, headers } = result;
-        return new NextResponse(streamedBody.parse(body), { status, headers });
+        return new NextResponse(streamBody.parse(body), { status, headers });
       }
 
       const { message, data, status, headers } = result;
@@ -84,7 +92,7 @@ export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
 }
 ```
 
-A handler's return value carries three things a plain `{ message, data }` cannot. `status` and `headers` let the handler set response metadata next to the data, while a failure response is built only from the caught `HttpError` and never inherits that metadata. Passing `streamedBody` as the schema changes the return to `{ body, status, headers }`, so a non-JSON body passes through without a JSON envelope. Every failure includes `Cache-Control: no-store` so the error is never cached as data.
+A handler's return value carries three things a plain `{ message, data }` cannot. `status` and `headers` let the handler set response metadata next to the data, while a failure response is built only from the caught `HttpError` and never inherits that metadata. A route whose response is not JSON calls `withResponse` with the handler alone — the overload that skips the schema — and returns `{ body, status, headers }` instead of the envelope, so a non-JSON body passes through unchanged. Every failure includes `Cache-Control: no-store` so the error is never cached as data.
 
 A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
 

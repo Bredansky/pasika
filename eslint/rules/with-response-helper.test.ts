@@ -100,6 +100,34 @@ void describe("The withResponse helper MUST await the handler, validate its retu
     valid: [
       { filename: definition, code: declaration(CANONICAL_BODY) },
       { filename: definition, code: arrow(CANONICAL_BODY) },
+      // The overload form: two signatures plus one implementation with rest
+      // args. Beats are read by role from the implementation's body.
+      {
+        filename: definition,
+        code: `import { NextResponse } from "next/server";
+import { z } from "zod";
+import { HttpError } from "./http-error";
+
+const streamBody = z.instanceof(ReadableStream);
+
+export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
+  responseSchema: TSchema,
+  handler: (...args: Args) => Promise<{ message: string; data: unknown; status?: number; headers?: HeadersInit }>,
+): (...args: Args) => Promise<NextResponse>;
+export function withResponse<Args extends unknown[]>(
+  handler: (...args: Args) => Promise<{ body: ReadableStream; status: number; headers?: HeadersInit }>,
+): (...args: Args) => Promise<NextResponse>;
+export function withResponse(...args: [unknown, unknown]) {
+  const streaming = typeof args[0] === "function";
+  const responseSchema = (streaming ? streamBody : args[0]) as z.ZodType;
+  const handler = (streaming ? args[0] : args[1]) as (...a: unknown[]) => Promise<unknown>;
+
+  return async (...requestArgs: unknown[]) => {
+${bodyWith()}
+  };
+}
+`,
+      },
     ],
     invalid: [
       {

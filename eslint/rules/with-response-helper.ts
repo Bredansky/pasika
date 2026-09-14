@@ -8,7 +8,10 @@
  * status without letting a cache hold it, and rethrows anything else. The
  * shape half runs on every module that declares a function named
  * `withResponse`, wherever it sits, and reads the beats above out of its body
- * — placement is the placement rules' business, not this one's. The existence
+ * by role — the awaited call that runs the handler and the schema parse that
+ * validates its data — so an overloaded definition passes whatever parameter
+ * naming it chooses, and an overload signature, which has no body, is skipped.
+ * Placement is the placement rules' business, not this one's. The existence
  * half runs on the repository's eslint config file, the one module every
  * repository has at its root, and asks the project index whether any module
  * under src/ exports `withResponse`.
@@ -20,6 +23,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
+import type { FunctionDeclarationNode } from "../ast-types";
 import { getProjectIndex } from "../project/index";
 
 const HELPER = "withResponse";
@@ -57,8 +61,8 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   rethrows: "must rethrow a caught error that is not an HttpError",
 };
 
-function isNamed(node: ESTree.Identifier | null | undefined, name: string): boolean {
-  return node?.type === "Identifier" && node.name === name;
+function isNamed(node: { name?: string } | null | undefined, name: string): boolean {
+  return node?.name === name;
 }
 
 /** The `src/` tree beside the eslint config this check runs on — its own folder is the repository root. */
@@ -109,23 +113,22 @@ function findTryStatement(node: ts.Node): ts.TryStatement | undefined {
   return found;
 }
 
-/** True for `await handler(...)`, the call that runs the wrapped handler. */
-function awaitsHandlerCall(handlerName: string | undefined) {
-  return (node: ts.Node): boolean =>
-    ts.isAwaitExpression(node) &&
-    ts.isCallExpression(node.expression) &&
-    ts.isIdentifier(node.expression.expression) &&
-    node.expression.expression.text === handlerName;
+/** True for `await someFunction(...)`, the awaited call that runs the wrapped handler by role. */
+function awaitsCall(node: ts.Node): boolean {
+  return (
+    ts.isAwaitExpression(node) && ts.isCallExpression(node.expression) && ts.isIdentifier(node.expression.expression)
+  );
 }
 
-/** True for `responseSchema.parse(...)`, the call that validates the returned data. */
-function parsesThroughSchema(schemaName: string | undefined) {
-  return (node: ts.Node): boolean =>
+/** True for `someSchema.parse(...)` or `.safeParse(...)`, validation through a schema by role. */
+function parsesThroughSchema(node: ts.Node): boolean {
+  return (
     ts.isCallExpression(node) &&
     ts.isPropertyAccessExpression(node.expression) &&
     ts.isIdentifier(node.expression.expression) &&
-    node.expression.expression.text === schemaName &&
-    (node.expression.name.text === "parse" || node.expression.name.text === "safeParse");
+    node.expression.expression.text !== "JSON" &&
+    (node.expression.name.text === "parse" || node.expression.name.text === "safeParse")
+  );
 }
 
 /** True for `error instanceof HttpError`, the check that separates a modeled failure. */
@@ -177,7 +180,7 @@ function readsErrorStatus(errorName: string | undefined) {
 }
 
 /** Reads the canonical beats out of a definition's source text. */
-function collectBeats(text: string, schemaName: string | undefined, handlerName: string | undefined): Beats {
+function collectBeats(text: string): Beats {
   const beats: Beats = {
     awaitsHandler: false,
     validatesWithSchema: false,
@@ -192,33 +195,25 @@ function collectBeats(text: string, schemaName: string | undefined, handlerName:
   const tryStatement = findTryStatement(sourceFile);
   if (!tryStatement) return beats;
 
-  beats.awaitsHandler = contains(tryStatement.tryBlock, awaitsHandlerCall(handlerName));
-  beats.validatesWithSchema = contains(tryStatement.tryBlock, parsesThroughSchema(schemaName));
+  beats.awaitsHandler = contains(tryStatement.tryBlock, awaitsCall);
+  beats.validatesWithSchema = contains(tryStatement.tryBlock, parsesThroughSchema);
 
   const catchClause = tryStatement.catchClause;
   if (!catchClause) return beats;
 
-  const errorName = catchClause.variableDeclaration?.name;
-  const caughtName = errorName && ts.isIdentifier(errorName) ? errorName.text : undefined;
   beats.checksHttpError = contains(catchClause.block, checksHttpError);
   beats.answersWithNullData = contains(catchClause.block, answersWithNullData);
-  beats.usesErrorStatus = contains(catchClause.block, readsErrorStatus(caughtName));
+  beats.usesErrorStatus = contains(catchClause.block, readsErrorStatus(caughtErrorName(catchClause)));
   beats.answersUncached = contains(catchClause.block, answersUncached);
   beats.rethrows = contains(catchClause.block, ts.isThrowStatement);
 
   return beats;
 }
 
-/** The declared parameter names of a function-like node, `undefined` for a non-identifier pattern. */
-function parameterNames(node: ESTree.Node): (string | undefined)[] {
-  if (
-    node.type !== "FunctionDeclaration" &&
-    node.type !== "FunctionExpression" &&
-    node.type !== "ArrowFunctionExpression"
-  ) {
-    return [];
-  }
-  return node.params.map((parameter) => (parameter.type === "Identifier" ? parameter.name : undefined));
+/** The caught error's binding name in a catch clause, `undefined` when the clause binds none. */
+function caughtErrorName(catchClause: ts.CatchClause): string | undefined {
+  const name = catchClause.variableDeclaration?.name;
+  return name && ts.isIdentifier(name) ? name.text : undefined;
 }
 
 export const withResponseHelperRule: Rule.RuleModule = {
@@ -243,9 +238,9 @@ export const withResponseHelperRule: Rule.RuleModule = {
       };
     }
 
-    const check = (node: ESTree.Node, parameters: (string | undefined)[]): void => {
+    const check = (node: ESTree.Node): void => {
       const [start, end] = node.range ?? [0, context.sourceCode.text.length];
-      const beats = collectBeats(context.sourceCode.text.slice(start, end), parameters[0], parameters[1]);
+      const beats = collectBeats(context.sourceCode.text.slice(start, end));
       for (const beat of BEAT_KEYS) {
         if (beats[beat]) continue;
         context.report({
@@ -256,14 +251,18 @@ export const withResponseHelperRule: Rule.RuleModule = {
     };
 
     return {
-      FunctionDeclaration(node) {
-        if (isNamed(node.id, HELPER)) check(node, parameterNames(node));
+      FunctionDeclaration(node: FunctionDeclarationNode) {
+        if (!isNamed(node.id, HELPER)) return;
+        // An overload signature has no body to read beats from; only the
+        // implementation definition is checked.
+        if (!node.body) return;
+        check(node);
       },
       VariableDeclarator(node) {
         if (!isNamed(node.id.type === "Identifier" ? node.id : null, HELPER)) return;
         const init = node.init;
         if (init?.type !== "ArrowFunctionExpression" && init?.type !== "FunctionExpression") return;
-        check(init, parameterNames(init));
+        check(init);
       },
     };
   },
