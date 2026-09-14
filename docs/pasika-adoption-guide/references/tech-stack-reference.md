@@ -123,7 +123,7 @@ export const POST = withResponse(
 );
 ```
 
-The handler is written at that call rather than named by it, so the file the wrapper reads is the file the workflow is written in, and each step of that workflow is one of those awaited calls. Each call owns its step in a module of its own rather than in `route.ts`, since a handler holds no `try`, loop, or branch: a step that reads a request, calls a service, and answers for the failures it finds needs all three, and a step that grows them later would have to leave the file it grew in. A workflow of one step is therefore one call, and the handler keeps what a reader of the route needs — the response schema, the message, and the name of the step, which is the action the module performs and not the route's own subject. A call named after that subject instead holds a whole workflow, and its steps belong in the handler.
+The handler is written at the `withResponse` call, not imported into it, so the workflow reads in `route.ts` as one awaited call per step. Each step lives in a module of its own, because a handler holds no `try`, loop, or branch — and a step that reads a request, calls a service, and answers for its failures needs all three. A workflow of one step is one call. The handler keeps what a reader of the route needs: the response schema, the message, and the step's name. The name is the judgment — a module named for an action owns one step, while a module named after the route's own subject holds a whole workflow, and its steps belong in the handler.
 
 The example nests `withUserId` inside `withResponse`. Such a wrapper is not part of this shape — an application writes it around its own caller lookup, and hands the result to the handler as its first argument:
 
