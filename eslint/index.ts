@@ -43,6 +43,7 @@ import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { routeHandlerShapeRule } from "./rules/route-handler-shape";
 import { httpErrorUsageRule } from "./rules/http-error-usage";
 import { withResponseHelperRule } from "./rules/with-response-helper";
+import { zodFetchHelperRule } from "./rules/zod-fetch-helper";
 import { hookComplexityRule } from "./rules/hook-complexity";
 import { localeDottedPathRule } from "./rules/locale-dotted-path";
 import { localesLocationRule } from "./rules/locales-location";
@@ -117,6 +118,7 @@ const pasikaNextjsAppRules = {
   "route-handler-shape": routeHandlerShapeRule,
   "http-error-usage": httpErrorUsageRule,
   "with-response-helper": withResponseHelperRule,
+  "zod-fetch-helper": zodFetchHelperRule,
   "hook-complexity": hookComplexityRule,
   "locale-dotted-path": localeDottedPathRule,
   "locales-location": localesLocationRule,

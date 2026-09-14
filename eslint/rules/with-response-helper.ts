@@ -5,12 +5,13 @@
  * the boundary the Route Handler Rule is written against: it awaits the
  * handler, validates the data the handler returns through the response schema,
  * answers a thrown HttpError with `{ data: null, message }` at the error's
- * status, and rethrows anything else. The shape half runs on every module that
- * declares a function named `withResponse`, wherever it sits, and reads the
- * beats above out of its body — placement is the placement rules' business,
- * not this one's. The existence half runs on the repository's eslint config
- * file, the one module every repository has at its root, and asks the project
- * index whether any module under src/ exports `withResponse`.
+ * status without letting a cache hold it, and rethrows anything else. The
+ * shape half runs on every module that declares a function named
+ * `withResponse`, wherever it sits, and reads the beats above out of its body
+ * — placement is the placement rules' business, not this one's. The existence
+ * half runs on the repository's eslint config file, the one module every
+ * repository has at its root, and asks the project index whether any module
+ * under src/ exports `withResponse`.
  *
  * @see docs/pasika-adoption-guide/rules/with-response-helper-rule.md
  */
@@ -31,6 +32,7 @@ interface Beats {
   checksHttpError: boolean;
   answersWithNullData: boolean;
   usesErrorStatus: boolean;
+  answersUncached: boolean;
   rethrows: boolean;
 }
 
@@ -41,6 +43,7 @@ const BEAT_KEYS: (keyof Beats)[] = [
   "checksHttpError",
   "answersWithNullData",
   "usesErrorStatus",
+  "answersUncached",
   "rethrows",
 ];
 
@@ -50,6 +53,7 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   checksHttpError: "must check the caught error with instanceof HttpError",
   answersWithNullData: "must answer a thrown HttpError with { data: null, message }",
   usesErrorStatus: "must answer at the caught error's status",
+  answersUncached: "must answer a failure with a response no cache may hold",
   rethrows: "must rethrow a caught error that is not an HttpError",
 };
 
@@ -154,6 +158,15 @@ function answersWithNullData(node: ts.Node): boolean {
   });
 }
 
+/**
+ * True for a `no-store` cache directive, the only directive that keeps a
+ * failure response out of a shared cache — a 401 body served from one is not
+ * the response its reader was refused.
+ */
+function answersUncached(node: ts.Node): boolean {
+  return ts.isStringLiteralLike(node) && node.text.includes("no-store");
+}
+
 /** True for a read of the caught error's `status`. */
 function readsErrorStatus(errorName: string | undefined) {
   return (node: ts.Node): boolean =>
@@ -171,6 +184,7 @@ function collectBeats(text: string, schemaName: string | undefined, handlerName:
     checksHttpError: false,
     answersWithNullData: false,
     usesErrorStatus: false,
+    answersUncached: false,
     rethrows: false,
   };
 
@@ -189,6 +203,7 @@ function collectBeats(text: string, schemaName: string | undefined, handlerName:
   beats.checksHttpError = contains(catchClause.block, checksHttpError);
   beats.answersWithNullData = contains(catchClause.block, answersWithNullData);
   beats.usesErrorStatus = contains(catchClause.block, readsErrorStatus(caughtName));
+  beats.answersUncached = contains(catchClause.block, answersUncached);
   beats.rethrows = contains(catchClause.block, ts.isThrowStatement);
 
   return beats;
@@ -211,7 +226,7 @@ export const withResponseHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require a repository to define a ${HELPER} helper that validates the handler's data and maps a thrown HttpError to a response.`,
+      description: `Require a repository to define a ${HELPER} helper that validates the handler's data and maps a thrown HttpError to an uncached response.`,
     },
   },
   create(context) {

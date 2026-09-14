@@ -14,7 +14,10 @@ const CANONICAL_BODY = `    try {
       return NextResponse.json({ data: responseSchema.parse(data), message });
     } catch (error) {
       if (error instanceof HttpError) {
-        return NextResponse.json({ data: null, message: error.message }, { status: error.status });
+        return NextResponse.json(
+          { data: null, message: error.message },
+          { status: error.status, headers: { "Cache-Control": "no-store" } },
+        );
       }
       throw error;
     }`;
@@ -89,7 +92,7 @@ void describe("A repository MUST define a withResponse helper.", () => {
   });
 });
 
-void describe("The withResponse helper MUST await the handler, validate its returned data through the response schema, answer a thrown HttpError at error.status with { data: null, message }, and rethrow anything else.", () => {
+void describe("The withResponse helper MUST await the handler, validate its returned data through the response schema, answer a thrown HttpError at error.status with { data: null, message } that no cache may hold, and rethrow anything else.", () => {
   const { root } = makeProject({ "utils/with-response.ts": declaration(CANONICAL_BODY) });
   const definition = path.join(root, "src", "utils", "with-response.ts");
 
@@ -126,8 +129,15 @@ void describe("The withResponse helper MUST await the handler, validate its retu
       {
         // The failure's own status is dropped.
         filename: definition,
-        code: declaration(bodyWith([["{ status: error.status }", "{ status: 500 }"]])),
+        code: declaration(bodyWith([["status: error.status", "status: 500"]])),
         errors: [{ message: message("must answer at the caught error's status") }],
+      },
+      {
+        // A cacheable failure: a shared cache may serve the 401 body where the
+        // data belonged, past the session that produced it.
+        filename: definition,
+        code: declaration(bodyWith([[', headers: { "Cache-Control": "no-store" }', ""]])),
+        errors: [{ message: message("must answer a failure with a response no cache may hold") }],
       },
       {
         // A non-HttpError is swallowed instead of surfacing.

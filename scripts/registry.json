@@ -626,6 +626,18 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.",
+      "hash": "f929a31fd9",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.",
+      "hash": "17a3f78e7c",
+      "note": "Judgment: a reviewer reads the module the handler's single call names. If that name restates the route's own subject, the call holds a sequence of steps and they belong in the handler. No syntax tells one honest step from a workflow wearing a step's name, which is why no rule governs this bullet."
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.",
       "hash": "60b88a9cea",
       "ref": "pasika/http-error-usage"
@@ -1154,8 +1166,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }`, and rethrow anything else.",
-      "hash": "ba190abb26",
+      "text": "The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }` that no cache may hold, and rethrow anything else.",
+      "hash": "8dfd356f52",
       "ref": "pasika/with-response-helper"
     },
     {
@@ -1163,6 +1175,30 @@
       "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
       "hash": "06590f6d0c",
       "ref": "pasika/zirka-baseline"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "A repository MUST define a `zodFetch` helper, and `fetch` MUST NOT be called outside it.",
+      "hash": "727c396810",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "The `zodFetch` helper MUST read the response status and throw an error carrying the status an upstream failure reported.",
+      "hash": "6d6488245a",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.",
+      "hash": "0ae16ca952",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.",
+      "hash": "e6ba3aeab8",
+      "ref": "pasika/zod-fetch-helper"
     },
     {
       "doc": "repository-policy.md",

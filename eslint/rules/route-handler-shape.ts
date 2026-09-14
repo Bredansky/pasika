@@ -8,7 +8,10 @@
  * MUST NOT contain a try statement, a loop, or an if statement of its own,
  * and every function it calls MUST be imported rather than declared in
  * route.ts — otherwise the same logic this rule bans from the handler's own
- * body can reappear one function away, in the same file.
+ * body can reappear one function away, in the same file. The handler itself
+ * MUST be a function written at that call, not a reference to one declared
+ * elsewhere, so the workflow it composes is visible in route.ts and the bans
+ * above have something to read.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -133,7 +136,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a route.ts handler to be wrapped in withResponse, with no try, loop, or if of its own, and every function it calls imported rather than declared in route.ts.",
+        "Require a route.ts handler to be wrapped in withResponse, written there as a function, with no try, loop, or if of its own, and every function it calls imported rather than declared in route.ts.",
     },
   },
   create(context) {
@@ -164,7 +167,15 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
       }
 
       const handler = findHandler(init);
-      if (!handler?.body) return;
+      if (!handler?.body) {
+        context.report({
+          node,
+          message:
+            `Handler "${name}" must be written as a function inside withResponse, not passed as a reference. ` +
+            "See docs/next-codebase-guide/rules/route-handler-rule.md",
+        });
+        return;
+      }
 
       const { kinds, calledNames } = analyzeHandlerBody(handler.body, sourceText);
       for (const kind of kinds) {

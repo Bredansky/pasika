@@ -15,6 +15,9 @@ const NO_IF = (name: string): string =>
 const NOT_IMPORTED = (name: string, calledName: string): string =>
   `Handler "${name}" calls "${calledName}", which is declared in route.ts instead of imported. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
+const NOT_INLINE = (name: string): string =>
+  `Handler "${name}" must be written as a function inside withResponse, not passed as a reference. ` +
+  "See docs/next-codebase-guide/rules/route-handler-rule.md";
 
 void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
@@ -86,6 +89,44 @@ void describe("An HTTP method handler exported from `route.ts` MUST be wrapped i
         }));`,
         filename: srcFile("app/api/credentials/route.ts"),
         errors: [{ message: MUST_BE_WRAPPED("GET") }],
+      },
+    ],
+  });
+});
+
+void describe("A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.", () => {
+  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
+    valid: [
+      // The handler is the function the wrapper receives.
+      {
+        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
+          const status = await getStatus();
+          return { message: "OK.", data: status };
+        });`,
+        filename: srcFile("app/api/health/route.ts"),
+      },
+      // An application's own wrapper nests the handler's function in the call.
+      {
+        code: `export const GET = withResponse(schema, withUserId(async (userId, request: NextRequest) => {
+          const status = await getStatus(userId);
+          return { message: "OK.", data: status };
+        }));`,
+        filename: srcFile("app/api/health/route.ts"),
+      },
+    ],
+    invalid: [
+      // The workflow lives in another file, behind a reference to it.
+      {
+        code: `import { submitPosts } from "@/utils/submit-posts";
+export const POST = withResponse(schema, submitPosts);`,
+        filename: srcFile("app/api/post/route.ts"),
+        errors: [{ message: NOT_INLINE("POST") }],
+      },
+      // The same reference, behind an application wrapper.
+      {
+        code: `export const POST = withResponse(schema, withUserId(submitPosts));`,
+        filename: srcFile("app/api/post/route.ts"),
+        errors: [{ message: NOT_INLINE("POST") }],
       },
     ],
   });

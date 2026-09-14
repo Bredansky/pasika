@@ -3,7 +3,7 @@
 A route that fails has to answer with a status and a message instead of an unhandled error. This rule requires the repository's `withResponse` helper to exist and to be the boundary that turns a handler's result, or a failure thrown under it, into a response.
 
 - A repository MUST define a `withResponse` helper.
-- The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }`, and rethrow anything else.
+- The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }` that no cache may hold, and rethrow anything else.
 
 ## Incorrect — Every Failure Answers Alike
 
@@ -32,7 +32,10 @@ export function withResponse(responseSchema, handler) {
       return NextResponse.json({ data: responseSchema.parse(data), message });
     } catch (error) {
       if (error instanceof HttpError) {
-        return NextResponse.json({ data: null, message: error.message }, { status: error.status });
+        return NextResponse.json(
+          { data: null, message: error.message },
+          { status: error.status, headers: { "Cache-Control": "no-store" } },
+        );
       }
       throw error;
     }
@@ -40,4 +43,4 @@ export function withResponse(responseSchema, handler) {
 }
 ```
 
-Why: the handler's data is validated against the response schema before it becomes a body, an `HttpError` becomes the `{ data: null, message }` response at the status it carries, and any other error stays an error.
+Why: the handler's data is validated against the response schema before it becomes a body, an `HttpError` becomes the `{ data: null, message }` response at the status it carries, and any other error stays an error. The failure is answered uncacheable: a cached `401` body is what a later reader of the same URL is served in place of the data they asked for.
