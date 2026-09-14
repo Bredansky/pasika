@@ -106,7 +106,7 @@ export function withResponse(responseSchema?: z.ZodType | AnyHandler, handler?: 
 }
 ```
 
-A handler's return value carries three things a plain `{ message, data }` cannot. `status` and `headers` let a handler set response metadata — a `201`, a cache policy — next to its data. A failure response is built from the caught `HttpError` alone, so it never inherits that metadata. A route whose response is not JSON calls `withResponse` with the handler alone. That overload expects `{ body, status, headers }`, and passes the body through without a JSON envelope. Every failure is answered with `Cache-Control: no-store`, so an error is never cached as data.
+A handler returns `{ message, data }`, plus optional `status` and `headers` when the response needs them. A failure has neither: it is built from the caught `HttpError` alone, answered at the error's status with `Cache-Control: no-store`, so an error is never cached as data. For a non-JSON response, call `withResponse` with the handler alone and return `{ body, status, headers }` — the body passes through without a JSON envelope.
 
 A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
 
@@ -123,7 +123,7 @@ export const POST = withResponse(
 );
 ```
 
-The handler is written at the `withResponse` call, not imported into it. The workflow then reads in `route.ts` as one awaited call per step, and each step is one call to a module of its own — a step that reads a request, calls a service, and answers for its failures needs a `try`, loop, or branch, and a handler may hold none of them. A workflow of one step is one call. The handler keeps what a reader of the route needs: the response schema, the message, and each step's name. The name is also the judgment. A module named for an action owns one step. A module named after the route's own subject hides a whole workflow — and the steps it hides are promoted into the handler, each becoming one awaited call to a module of its own.
+Write the handler at the `withResponse` call, never as an imported reference. Its body is one awaited call per step, and each step lives in a module of its own — steps branch, loop, and catch, and a handler may do none of that. One step means one call; the module's name is the test. `readPostSubmission` names one action, so its call is one step. `submitPosts` on `/api/post` just restates the route's own subject — that is bad: significant steps are hidden behind one await, and the reader cannot see them. Name each significant step and await it in the handler instead, each call going to its own module.
 
 The example nests `withUserId` inside `withResponse`. Such a wrapper is not part of this shape — an application writes it around its own caller lookup, and hands the result to the handler as its first argument:
 
