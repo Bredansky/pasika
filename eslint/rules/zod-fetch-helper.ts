@@ -7,7 +7,7 @@
  * carrying the status an upstream failure reported, parses a failed response's
  * body through the error schema its caller named, validates a JSON body through
  * the response schema, and hands back the body, status and headers of a
- * response it does not decode — a body it parses as a stream first. The shape half runs on every module that
+ * response it does not decode — a body it parses as a stream and hands on unread. The shape half runs on every module that
  * declares a function named `zodFetch`, wherever it sits, and reads the beats
  * above out of its body — placement is the placement rules' business, not this
  * one's. The existence half runs on the repository's eslint config file, the
@@ -59,6 +59,9 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   validatesWithSchema: "must validate the JSON body through the response schema",
   handsBackBody: "must hand back the body of a response it does not decode",
 };
+
+/** Reported when a caller that relays the body would receive bytes the helper has already read. */
+const DECODED_BODY_MESSAGE = "must not decode the body it hands back";
 
 function isNamed(node: ESTree.Identifier | null | undefined, name: string): boolean {
   return node?.type === "Identifier" && node.name === name;
@@ -159,15 +162,106 @@ function parsesStreamBody(node: ts.Node): boolean {
   return parsesThroughSchema(node, "streamBody");
 }
 
-/** True for a returned object carrying a `body`, the part a caller that relays it needs. */
+/** The value a returned object literal hands back as its `body`, the part a caller that relays it needs. */
+function handedBackBody(node: ts.Node): ts.Expression | undefined {
+  if (!ts.isReturnStatement(node) || !node.expression) return undefined;
+  if (!ts.isObjectLiteralExpression(node.expression)) return undefined;
+
+  for (const property of node.expression.properties) {
+    if (ts.isPropertyAssignment(property) && property.name.getText() === "body") return property.initializer;
+    if (ts.isShorthandPropertyAssignment(property) && property.name.getText() === "body") return property.name;
+  }
+  return undefined;
+}
+
+/** True for a returned object carrying a `body`. */
 function handsBackBody(node: ts.Node): boolean {
-  if (!ts.isReturnStatement(node) || !node.expression) return false;
-  if (!ts.isObjectLiteralExpression(node.expression)) return false;
-  return node.expression.properties.some(
-    (property) =>
-      (ts.isPropertyAssignment(property) || ts.isShorthandPropertyAssignment(property)) &&
-      property.name.getText() === "body",
+  return handedBackBody(node) !== undefined;
+}
+
+/** The reads that consume a response body, leaving a caller that relays it nothing to pass on. */
+const BODY_DECODERS = new Set(["json", "text", "arrayBuffer", "blob", "bytes", "formData"]);
+
+/** True for `response.json()` or `await response.text()` — a call that consumes a body. */
+function decodesBody(node: ts.Node): boolean {
+  return (
+    ts.isCallExpression(node) &&
+    ts.isPropertyAccessExpression(node.expression) &&
+    BODY_DECODERS.has(node.expression.name.text)
   );
+}
+
+/** True when a read of a body happens anywhere inside this node. */
+function readsBody(node: ts.Node): boolean {
+  let found = false;
+  const visit = (current: ts.Node): void => {
+    if (found) return;
+    if (decodesBody(current)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(current, visit);
+  };
+  visit(node);
+  return found;
+}
+
+/** True for a name written as a property — `response.body` — which is not a value in scope. */
+function isPropertyName(node: ts.Identifier): boolean {
+  const parent = node.parent;
+  if (ts.isPropertyAccessExpression(parent)) return parent.name === node;
+  if (ts.isPropertyAssignment(parent)) return parent.name === node;
+  return false;
+}
+
+/** True when an expression reads a name a decoded body was bound to. */
+function carriesDecodedName(node: ts.Node, decoded: ReadonlySet<string>): boolean {
+  let found = false;
+  const visit = (current: ts.Node): void => {
+    if (found) return;
+    if (ts.isIdentifier(current) && decoded.has(current.text) && !isPropertyName(current)) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(current, visit);
+  };
+  visit(node);
+  return found;
+}
+
+/**
+ * Whether a body handed back to a caller is one the helper already decoded —
+ * whether the read is written at the return itself or bound to a name that is
+ * returned. A decoded read consumes the response, so the caller receives bytes
+ * it cannot relay, which for the branch that exists to relay them is the whole
+ * loss.
+ */
+function handsBackDecodedBody(text: string): boolean {
+  const sourceFile = ts.createSourceFile("zod-fetch.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const decoded = new Set<string>();
+
+  const collect = (node: ts.Node): void => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      readsBody(node.initializer)
+    ) {
+      decoded.add(node.name.text);
+    }
+    ts.forEachChild(node, collect);
+  };
+  collect(sourceFile);
+
+  let found = false;
+  const check = (node: ts.Node): void => {
+    if (found) return;
+    const body = handedBackBody(node);
+    if (body && (readsBody(body) || carriesDecodedName(body, decoded))) found = true;
+    if (!found) ts.forEachChild(node, check);
+  };
+  check(sourceFile);
+  return found;
 }
 
 /** Reads the canonical beats out of a definition's source text. */
@@ -250,6 +344,15 @@ export const zodFetchHelperRule: Rule.RuleModule = {
         context.report({
           node: reportNode,
           message: `${HELPER} ${BEAT_MESSAGES[beat]}. See ${DOC}`,
+        });
+      }
+
+      // A violation rather than a missing beat: every part of the shape can be
+      // present and the caller still be handed a body the helper has read.
+      if (handsBackDecodedBody(body)) {
+        context.report({
+          node: reportNode,
+          message: `${HELPER} ${DECODED_BODY_MESSAGE}. See ${DOC}`,
         });
       }
     };

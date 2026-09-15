@@ -1202,8 +1202,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.",
-      "hash": "e6ba3aeab8",
+      "text": "The `zodFetch` helper MUST hand back the body, status, and headers of the response when the caller named no response schema.",
+      "hash": "b90f8edb24",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "The `zodFetch` helper MUST NOT decode the body it hands back.",
+      "hash": "5714462031",
       "ref": "pasika/zod-fetch-helper"
     },
     {

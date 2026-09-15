@@ -250,7 +250,7 @@ export async function zodFetch(options) {
   });
 });
 
-void describe("The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.", () => {
+void describe("The `zodFetch` helper MUST hand back the body, status, and headers of the response when the caller named no response schema.", () => {
   ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
     valid: [{ filename: srcFile("utils/zod-fetch.ts"), code: declaration(CANONICAL_BODY) }],
     invalid: [
@@ -266,6 +266,42 @@ void describe("The `zodFetch` helper MUST hand back the body, status, and header
           ]),
         ),
         errors: [{ message: message("must hand back the body of a response it does not decode") }],
+      },
+    ],
+  });
+});
+
+void describe("The `zodFetch` helper MUST NOT decode the body it hands back.", () => {
+  ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
+    valid: [{ filename: srcFile("utils/zod-fetch.ts"), code: declaration(CANONICAL_BODY) }],
+    invalid: [
+      {
+        // The read is bound to a name, and that name is what the caller receives.
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: declaration(
+          bodyWith([
+            [
+              "    return { body: streamed.data, status: response.status, headers: response.headers };",
+              `    const decoded = await response.json();
+
+    return { body: decoded, status: response.status, headers: response.headers };`,
+            ],
+          ]),
+        ),
+        errors: [{ message: message("must not decode the body it hands back") }],
+      },
+      {
+        // The read is written at the return, so the caller receives it directly.
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: declaration(
+          bodyWith([
+            [
+              "    return { body: streamed.data, status: response.status, headers: response.headers };",
+              "    return { body: await response.json(), status: response.status, headers: response.headers };",
+            ],
+          ]),
+        ),
+        errors: [{ message: message("must not decode the body it hands back") }],
       },
     ],
   });

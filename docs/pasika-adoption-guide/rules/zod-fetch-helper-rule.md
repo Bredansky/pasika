@@ -6,7 +6,8 @@ A direct `fetch` call checks nothing about the response it gets back: the status
 - The `zodFetch` helper MUST read the response status and throw an error carrying the status an upstream failure reported.
 - The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and throw the message that schema carries.
 - The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.
-- The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.
+- The `zodFetch` helper MUST hand back the body, status, and headers of the response when the caller named no response schema.
+- The `zodFetch` helper MUST NOT decode the body it hands back.
 - The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.
 
 ## Incorrect — Every Upstream Failure Collapses
