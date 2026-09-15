@@ -19,7 +19,7 @@ Runtime packages a Next.js application ships in `dependencies` — what `pasikaN
 
 ## `cn` — Class Merging
 
-Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this behavior, and a repository imports the helper from `pasika/cn`.
+Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins within one utility group and the same variant, and a wider class later in the list replaces the narrower ones it covers. Every rule in the Next Tailwind Guide is written against this behavior, and a repository imports the helper from `pasika/cn`.
 
 ```ts
 import { cn } from "pasika/cn";
