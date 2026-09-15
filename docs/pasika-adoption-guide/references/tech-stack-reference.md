@@ -125,7 +125,7 @@ The handler is written where the route is, so a reader of `route.ts` sees the wo
 
 ## Outbound Request Helper
 
-`zodFetch` is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` subclass carrying the status the upstream reported and the reason it sent.
+`zodFetch` is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` carrying the status the upstream reported and the message the upstream sent.
 
 ```ts
 // zod-fetch.ts
@@ -136,46 +136,39 @@ import { HttpError } from "./http-error";
 // like any other: the response's own stream, not whatever the field happens to hold.
 const streamBody = z.instanceof(ReadableStream);
 
-interface ZodFetchOptions<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined> {
+interface ZodFetchOptions<
+  TSchema extends ZodType,
+  TErrorSchema extends ZodType<{ message: string }> | undefined = undefined,
+> {
   url: string | URL;
   init?: RequestInit;
   responseSchema?: TSchema;
   errorSchema?: TErrorSchema;
 }
 
-/** Extends HttpError so the status an upstream API reported reaches the client. */
-export class ZodFetchError extends HttpError {
-  public constructor(
-    status: number,
-    public readonly statusText: string,
-    public readonly body: string,
-    public readonly data: unknown,
-  ) {
-    super(`Request failed with status ${String(status)}${statusText ? ` ${statusText}` : ""}`, status);
-    this.name = "ZodFetchError";
-  }
-}
-
-export async function zodFetch<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined>(
+export async function zodFetch<
+  TSchema extends ZodType,
+  TErrorSchema extends ZodType<{ message: string }> | undefined = undefined,
+>(
   options: ZodFetchOptions<TSchema, TErrorSchema>,
 ): Promise<z.output<TSchema> | { body: ReadableStream<Uint8Array>; status: number; headers: Headers }> {
   const response = await fetch(options.url, options.init);
 
   if (!response.ok) {
     const body = await response.text();
-    let errorData: unknown;
+    let message = `Request failed with status ${String(response.status)}`;
 
     if (options.errorSchema && body) {
       try {
         const rawData: unknown = JSON.parse(body);
         const parsed = options.errorSchema.safeParse(rawData);
-        errorData = parsed.success ? parsed.data : undefined;
+        if (parsed.success) message = parsed.data.message;
       } catch {
-        errorData = undefined;
+        // A body that is not JSON leaves the fallback message in place.
       }
     }
 
-    throw new ZodFetchError(response.status, response.statusText, body, errorData);
+    throw new HttpError(message, response.status);
   }
 
   if (!options.responseSchema) {

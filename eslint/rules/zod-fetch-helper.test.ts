@@ -10,23 +10,23 @@ const CONFIG = "export default [];\n";
 
 /**
  * The failure path: the status decides, the body is read before it is thrown,
- * and the caller's error schema turns that body into the reason a call site reads.
+ * and the caller's error schema turns that body into the message a call site reads.
  */
 const FAILURE_BODY = `  if (!response.ok) {
     const body = await response.text();
-    let errorData: unknown;
+    let message = \`Request failed with status \${String(response.status)}\`;
 
     if (errorSchema && body) {
       try {
         const rawData: unknown = JSON.parse(body);
         const parsed = errorSchema.safeParse(rawData);
-        errorData = parsed.success ? parsed.data : undefined;
+        if (parsed.success) message = parsed.data.message;
       } catch {
-        errorData = undefined;
+        // A body that is not JSON leaves the fallback message in place.
       }
     }
 
-    throw new ZodFetchError(response.status, response.statusText, body, errorData);
+    throw new HttpError(message, response.status);
   }`;
 
 /** The canonical beats: the status decides, the schema validates, the body stays a body. */
@@ -155,10 +155,7 @@ void describe("The `zodFetch` helper MUST read the response status and throw an 
         filename: srcFile("utils/zod-fetch.ts"),
         code: declaration(
           bodyWith([
-            [
-              "throw new ZodFetchError(response.status, response.statusText, body, errorData)",
-              'throw new ZodFetchError(502, "Bad Gateway", body, errorData)',
-            ],
+            ["throw new HttpError(message, response.status);", "throw new HttpError(message, 502);"],
             [
               'throw new HttpError("The upstream answered without a body to relay.", response.status)',
               'throw new HttpError("The upstream answered without a body to relay.", 502)',
@@ -171,7 +168,7 @@ void describe("The `zodFetch` helper MUST read the response status and throw an 
   });
 });
 
-void describe("The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and carry the result on the error it throws.", () => {
+void describe("The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and throw the message that schema carries.", () => {
   ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
     valid: [
       { filename: srcFile("utils/zod-fetch.ts"), code: declaration(CANONICAL_BODY) },
@@ -181,8 +178,8 @@ void describe("The `zodFetch` helper MUST parse a failed response's body through
         code: declaration(
           bodyWithFailure([
             [
-              "        const parsed = errorSchema.safeParse(rawData);\n        errorData = parsed.success ? parsed.data : undefined;",
-              "        errorData = errorSchema.parse(rawData);",
+              "        const parsed = errorSchema.safeParse(rawData);\n        if (parsed.success) message = parsed.data.message;",
+              "        message = errorSchema.parse(rawData).message;",
             ],
           ]),
         ),
@@ -190,21 +187,21 @@ void describe("The `zodFetch` helper MUST parse a failed response's body through
     ],
     invalid: [
       {
-        // The body is read as text and thrown as text, so a caller holding the
-        // failure cannot read the reason the upstream sent.
+        // The failure path reads the body without asking the schema, so the
+        // message a caller reads is one this helper made up.
         filename: srcFile("utils/zod-fetch.ts"),
         code: declaration(
           bodyWithFailure([
             [
-              "        const parsed = errorSchema.safeParse(rawData);\n        errorData = parsed.success ? parsed.data : undefined;",
-              "        errorData = rawData;",
+              "        const parsed = errorSchema.safeParse(rawData);\n        if (parsed.success) message = parsed.data.message;",
+              '        if (rawData) message = "Request failed.";',
             ],
           ]),
         ),
         errors: [
           {
             message: message(
-              "must parse a failed response's body through the error schema its caller named, and carry the result on the error",
+              "must parse a failed response's body through the error schema its caller named, and throw the message it carries",
             ),
           },
         ],
@@ -215,7 +212,33 @@ void describe("The `zodFetch` helper MUST parse a failed response's body through
 
 void describe("The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.", () => {
   ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
-    valid: [{ filename: srcFile("utils/zod-fetch.ts"), code: arrow(CANONICAL_BODY) }],
+    valid: [
+      { filename: srcFile("utils/zod-fetch.ts"), code: arrow(CANONICAL_BODY) },
+      // The same beats written against an options object, so the check reads the
+      // call rather than the names this module happened to destructure.
+      {
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: `import { HttpError } from "./http-error";
+
+export async function zodFetch(options) {
+  const response = await fetch(options.url, options.init);
+
+  if (!response.ok) {
+    const body = await response.text();
+    const parsed = options.errorSchema?.safeParse(JSON.parse(body));
+
+    throw new HttpError(parsed?.success ? parsed.data.message : "Request failed.", response.status);
+  }
+
+  if (!options.responseSchema) {
+    return { body: options.streamBody.parse(response.body), status: response.status, headers: response.headers };
+  }
+
+  return options.responseSchema.parse(await response.json());
+}
+`,
+      },
+    ],
     invalid: [
       {
         // The decoded body is handed back unvalidated.

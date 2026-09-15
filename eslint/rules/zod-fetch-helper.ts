@@ -54,7 +54,7 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   readsStatus: "must read the response status",
   throwsStatusError: "must throw an error carrying the status the upstream reported",
   parsesErrorPayload:
-    "must parse a failed response's body through the error schema its caller named, and carry the result on the error",
+    "must parse a failed response's body through the error schema its caller named, and throw the message it carries",
   parsesStreamBody: "must parse the body it hands back as a stream",
   validatesWithSchema: "must validate the JSON body through the response schema",
   handsBackBody: "must hand back the body of a response it does not decode",
@@ -132,8 +132,7 @@ function throwsStatusError(node: ts.Node): boolean {
 /** The name a call's object answers to — `responseSchema` in a destructured call, `options.responseSchema` in a plain one. */
 function schemaNameOf(node: ts.Node): string | undefined {
   if (ts.isIdentifier(node)) return node.text;
-  if (ts.isPropertyAccessExpression(node)) return node.name.text;
-  return undefined;
+  return ts.isPropertyAccessExpression(node) ? node.name.text : undefined;
 }
 
 /** True for `schema.parse(...)`, the call that holds a body to the schema a call site named. */

@@ -1190,8 +1190,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and carry the result on the error it throws.",
-      "hash": "a819422716",
+      "text": "The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and throw the message that schema carries.",
+      "hash": "61753d9b7f",
       "ref": "pasika/zod-fetch-helper"
     },
     {

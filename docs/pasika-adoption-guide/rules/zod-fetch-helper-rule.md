@@ -4,7 +4,7 @@ Every outbound request repeats the same fetch, status check, decode, and validat
 
 - A repository MUST define a `zodFetch` helper, and `fetch` MUST NOT be called outside it.
 - The `zodFetch` helper MUST read the response status and throw an error carrying the status an upstream failure reported.
-- The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and carry the result on the error it throws.
+- The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and throw the message that schema carries.
 - The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.
 - The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.
 - The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.
@@ -33,59 +33,59 @@ export async function zodFetch({ url, init, responseSchema, errorSchema }) {
 
   if (!response.ok) {
     const body = await response.text();
-    let errorData: unknown;
+    let message = `Request failed with status ${String(response.status)}`;
 
     if (errorSchema && body) {
       try {
         const rawData: unknown = JSON.parse(body);
         const parsed = errorSchema.safeParse(rawData);
-        errorData = parsed.success ? parsed.data : undefined;
+        if (parsed.success) message = parsed.data.message;
       } catch {
-        errorData = undefined;
+        // A body that is not JSON leaves the fallback message in place.
       }
     }
 
-    throw new ZodFetchError(response.status, response.statusText, body, errorData);
+    throw new HttpError(message, response.status);
   }
 
   return responseSchema.parse(await response.json());
 }
 ```
 
-Why: the failure keeps the upstream status — through an `HttpError` subclass, so a route answers at it — and the body is held to the schema the call site named before anything downstream sees it.
+Why: the failure keeps the upstream status, so a route answers at it, and the message the upstream sent stands in wherever the schema the call site named accepts it.
 
 ## Incorrect — The Failure Keeps Only The Status
 
 ```ts
 if (!response.ok) {
-  throw new ZodFetchError(response.status, response.statusText, await response.text());
+  throw new HttpError(`Request failed with status ${String(response.status)}`, response.status);
 }
 ```
 
-Why: the body an upstream sent stays text the call site cannot read anything out of, so every caller that wants the upstream's own reason has to parse the failure itself, and the error schema it named goes unused.
+Why: the status the upstream reported survives, but nothing it said about the failure does, so every call site that wants the upstream's own reason has to read and parse the body itself.
 
-## Correct — The Failure Carries What The Caller's Schema Accepted
+## Correct — The Failure Says What The Upstream Said
 
 ```ts
 if (!response.ok) {
   const body = await response.text();
-  let errorData: unknown;
+  let message = `Request failed with status ${String(response.status)}`;
 
   if (errorSchema && body) {
     try {
       const rawData: unknown = JSON.parse(body);
       const parsed = errorSchema.safeParse(rawData);
-      errorData = parsed.success ? parsed.data : undefined;
+      if (parsed.success) message = parsed.data.message;
     } catch {
-      errorData = undefined;
+      // A body that is not JSON leaves the fallback message in place.
     }
   }
 
-  throw new ZodFetchError(response.status, response.statusText, body, errorData);
+  throw new HttpError(message, response.status);
 }
 ```
 
-Why: the body the upstream sent is held to the schema the call site named, so what that schema accepts travels on the failure as the reason a caller can read, and a body the schema rejects leaves the failure at the status it carried.
+Why: the body the upstream sent is held to the schema the call site named, so what that schema accepts becomes the message a caller reads, and a body the schema rejects leaves the failure at the status it reported.
 
 ## Incorrect — The Body Decoded Whatever It Turns Out To Be
 
@@ -110,19 +110,19 @@ export async function zodFetch({ url, init, responseSchema, errorSchema }) {
 
   if (!response.ok) {
     const body = await response.text();
-    let errorData: unknown;
+    let message = `Request failed with status ${String(response.status)}`;
 
     if (errorSchema && body) {
       try {
         const rawData: unknown = JSON.parse(body);
         const parsed = errorSchema.safeParse(rawData);
-        errorData = parsed.success ? parsed.data : undefined;
+        if (parsed.success) message = parsed.data.message;
       } catch {
-        errorData = undefined;
+        // A body that is not JSON leaves the fallback message in place.
       }
     }
 
-    throw new ZodFetchError(response.status, response.statusText, body, errorData);
+    throw new HttpError(message, response.status);
   }
 
   if (!responseSchema) {
