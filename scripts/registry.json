@@ -626,6 +626,24 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.",
+      "hash": "f929a31fd9",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler `route.ts` only re-exports MAY stay unwrapped.",
+      "hash": "9bc792a175",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.",
+      "hash": "17a3f78e7c",
+      "note": "Judgment: a reviewer reads the module the handler's single call names. If that name restates the route's own subject, the call holds a sequence of steps and they belong in the handler. No syntax tells one honest step from a workflow wearing a step's name, which is why no rule governs this bullet."
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.",
       "hash": "60b88a9cea",
       "ref": "pasika/http-error-usage"
@@ -824,8 +842,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
-      "text": "Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a `className` passed to the component.",
-      "hash": "ecc15933e6",
+      "text": "Components MUST use `cn` for conditional classes and a `className` passed to the component.",
+      "hash": "74cedd90d0",
       "ref": "pasika/enforce-cn-merge"
     },
     {
@@ -986,14 +1004,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "A repository MUST define a `cn` helper.",
-      "hash": "f7f9618f62",
+      "text": "A file that merges class names MUST import `cn` from `pasika/cn`.",
+      "hash": "18d2dba9f3",
       "ref": "pasika/cn-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "The `cn` helper MUST return `twMerge(clsx(...))`.",
-      "hash": "7508bad78e",
+      "text": "A file MUST NOT declare a `cn` of its own.",
+      "hash": "fa134a33a2",
       "ref": "pasika/cn-helper"
     },
     {
@@ -1070,8 +1088,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
-      "text": "A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
-      "hash": "9e209eaf1f",
+      "text": "A repository adopting the framework MUST list `pasika`, `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
+      "hash": "b59507e51a",
       "ref": "pasika/nextjs-stack"
     },
     {
@@ -1148,14 +1166,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "A repository MUST define a `withResponse` helper.",
-      "hash": "6feaf681b3",
+      "text": "The `withResponse` a route handler is wrapped in MUST be imported from `pasika/with-response`.",
+      "hash": "a03e1ece63",
       "ref": "pasika/with-response-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }`, and rethrow anything else.",
-      "hash": "ba190abb26",
+      "text": "A repository MUST NOT declare a `withResponse` of its own.",
+      "hash": "89dfaae587",
       "ref": "pasika/with-response-helper"
     },
     {
@@ -1163,6 +1181,18 @@
       "text": "A repository MUST take its lint, format, and TypeScript configuration from `zirka` and its rules from `pasika` rather than restating them locally.",
       "hash": "06590f6d0c",
       "ref": "pasika/zirka-baseline"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "A file MUST NOT call `fetch`.",
+      "hash": "74bbf08576",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "A file MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.",
+      "hash": "dac89b19bd",
+      "ref": "pasika/zod-fetch-helper"
     },
     {
       "doc": "repository-policy.md",

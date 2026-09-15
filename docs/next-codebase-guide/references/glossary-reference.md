@@ -6,16 +6,16 @@ Use this reference to look up the terms this guide's workflows and rules use. Te
 
 These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers, and the placement decisions this guide's workflows make with them.
 
-| Term                        | Definition                                                                                                      |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.           |
-| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.       |
-| Composition                 | A component that imports from two or more feature folders.                                                      |
-| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.             |
-| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind. |
-| Closest common folder (CCF) | The closest folder under `src/` shared by every file that uses an item.                                         |
-| Configuration module        | An app-wide module under `src/config/<config-name>/` that selects or parameterizes application behavior.        |
-| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                |
+| Term                        | Definition                                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                              |
+| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                          |
+| Composition                 | A component that imports from two or more feature folders.                                                                         |
+| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                |
+| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                    |
+| Closest common folder (CCF) | The closest folder under `src/` shared by every file that uses an item.                                                            |
+| Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`. |
+| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                   |
 
 ## Component Terms
 
@@ -39,9 +39,9 @@ These terms name the component classifications and the extraction triggers this 
 
 These terms name the parts of a route's error handling and the way a failure becomes a response.
 
-| Term             | Definition                                                                                                                                                     |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                                 |
-| `withResponse`   | The wrapper that awaits a route handler's `{ message, data }` result and turns either that result or a thrown `HttpError` into a `{ data, message }` response. |
-| `HttpError`      | The error type a failed call throws, carrying the status and message the route responds with; a module that needs a failure with its own name subclasses it.   |
-| Delegated module | A module outside `route.ts` that a handler's awaited calls reach and that raises an `HttpError` for its own failures.                                          |
+| Term             | Definition                                                                                                                                                                                                                                         |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                                                                                                                     |
+| `withResponse`   | The wrapper imported from `pasika/with-response` that awaits a route handler's result — the `{ message, data }` envelope, or the `{ body, status, headers }` a JSON response cannot hold — and turns it, or a thrown `HttpError`, into a response. |
+| `HttpError`      | The error imported from `pasika/http-error` that a failed call throws, carrying the status and message the route responds with, and `data` — what a failed upstream call answered with.                                                            |
+| Delegated module | A module outside `route.ts` that one of a handler's awaited calls reaches, that owns a single step of the handler's workflow, and that raises an `HttpError` for its own failures.                                                                 |

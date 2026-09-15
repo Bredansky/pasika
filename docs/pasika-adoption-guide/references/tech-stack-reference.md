@@ -1,105 +1,105 @@
 # Tech Stack Reference
 
-Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the hand-authored helpers a repository writes itself to the exact shape the framework's rules assume. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all — and each hand-authored helper is shown by its file name and contents only, since the folder it sits in follows from its consumers.
+Use this reference to look up the packages the framework's documentation depends on and what each one is responsible for, and the helpers the framework ships for a repository to import. Each package table groups packages by how a repository declares them — in `dependencies`, in `devDependencies`, or not at all — and each helper is shown by the entry a repository imports it from and what the caller does with it.
 
 ## Dependencies
 
 Runtime packages a Next.js application ships in `dependencies` — what `pasikaNextjsApp` adds beyond the `pasikaApp` baseline. A plain TypeScript repository lists none of them, so `pasikaApp` presumes no `dependencies` at all.
 
-| Package                    | Responsibility                                                             |
-| -------------------------- | -------------------------------------------------------------------------- |
-| `next`                     | App Router framework whose routing-file conventions define the `app` layer |
-| `react`                    | Component runtime the component Rules are written against                  |
-| `react-dom`                | Browser renderer for React components                                      |
-| `zod`                      | Runtime validation schemas the data-contract conventions require           |
-| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants             |
-| `clsx`                     | Conditional class-name building block of `cn`                              |
-| `tailwind-merge`           | Conflicting-utility resolution building block of `cn`                      |
+| Package                    | Responsibility                                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `next`                     | App Router framework whose routing-file conventions define the `app` layer                                                           |
+| `pasika`                   | Ships the helpers a repository imports — `cn`, `HttpError`, `withResponse`, and `zodFetch` — and the ESLint presets `zirka` composes |
+| `react`                    | Component runtime the component Rules are written against                                                                            |
+| `react-dom`                | Browser renderer for React components                                                                                                |
+| `zod`                      | Runtime validation schemas the data-contract conventions require                                                                     |
+| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants                                                                       |
+| `clsx`                     | Conditional class-name building block the packaged `cn` resolves against                                                             |
+| `tailwind-merge`           | Conflicting-utility resolution building block the packaged `cn` resolves against                                                     |
 
 ## `cn` — Class Merging
 
-Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins over an earlier one that sets the same property. Every rule in the Next Tailwind Guide is written against this shape.
+Combines conditional classes with `clsx` and resolves conflicting Tailwind utilities with `tailwind-merge`, so a later class wins within one utility group and the same variant, and a wider class later in the list replaces the narrower ones it covers. Every rule in the Next Tailwind Guide is written against this behavior, and a repository imports the helper from `pasika/cn`.
 
 ```ts
-// cn.ts
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { cn } from "pasika/cn";
 
-export function cn(...inputs: ClassValue[]): string {
-  return twMerge(clsx(inputs));
-}
+cn("px-2 py-1", isActive && "bg-slate-900", "bg-slate-700"); // "px-2 py-1 bg-slate-700"
 ```
 
 ## Route Error Handling Helpers
 
-`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function, validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all.
+`HttpError` and `withResponse` exist so a route can answer the failure it was handed: the error carries the status a failure should become, the message a client should read, and — when an upstream call was the one that failed — what it answered with, and the wrapper turns one into the response, so a handler holds no `try` and calls no `NextResponse`. The error comes from `pasika/http-error` and the wrapper from `pasika/with-response`, the wrapper answers a failure at the status it reported and never lets a cache hold it, so the same URL does not serve one reader's failure to the next.
 
 ```ts
-// http-error.ts
-export class HttpError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-  ) {
-    super(message);
-  }
-}
+import { HttpError } from "pasika/http-error";
+
+// message, status, and — for a failure an upstream call reported — what it answered with
+throw new HttpError("The order could not be created.", 502);
 ```
 
 ```ts
-// with-response.ts
-export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
-  responseSchema: TSchema,
-  handler: (...args: Args) => Promise<{ message: string; data: z.output<TSchema> } | Response>,
-  init?: ResponseInit,
-): (...args: Args) => Promise<NextResponse<{ data: z.output<TSchema> | null; message: string }> | Response> {
-  return async (...args) => {
-    try {
-      const result = await handler(...args);
-      // A delegated module that owns its response — a file proxy streaming a
-      // body, a signature verifier that answers an invalid request itself —
-      // passes it through untouched.
-      if (result instanceof Response) return result;
-      return NextResponse.json({ data: responseSchema.parse(result.data), message: result.message }, init);
-    } catch (error) {
-      if (error instanceof HttpError) {
-        return NextResponse.json({ data: null, message: error.message }, { ...init, status: error.status });
-      }
-      throw error;
-    }
-  };
-}
+import { withResponse } from "pasika/with-response";
+
+// The two forms a handler may return, exported by pasika/with-response
+type HandlerResult<TData> =
+  // The envelope a JSON route answers with
+  | { message: string; data: TData; status?: number; headers?: ResponseHeaders }
+  // The response a JSON envelope cannot hold
+  | { body: ReadableStream<Uint8Array>; status: number; headers?: ResponseHeaders };
 ```
 
-Two parts of that body exist for the handlers a JSON envelope cannot express. `init` carries the response headers a handler needs its response to keep, such as a `Cache-Control` policy, and is passed to the error response too, so the status is the `HttpError`'s and the headers are still the handler's. The `Response` passthrough serves a handler whose delegated module builds the response itself — a binary file proxy that must stream a body with `Range` support, or a third-party verifier that answers an invalid signature before the handler runs — and it is why such a handler still needs no `try` of its own.
+A handler returns `{ message, data }`, plus optional `status` and `headers` when the response needs them. A failure has neither: it is built from the caught `HttpError` alone, answered at the error's status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
 
-A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
+```ts
+export const GET = withResponse(async (request: NextRequest) => {
+  const file = await readUpstreamFile(request);
+
+  return { body: file.stream, status: file.status, headers: file.headers };
+});
+```
+
+A thrown `HttpError` is already the response, so the handler needs no `try`, branch, or loop, and reads as the steps it takes:
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(
-  renderApiResponseDataSchema,
-  withUserId(async (userId, request: NextRequest) => {
-    const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
-    const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
-    const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-    return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
-  }),
-);
+export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+  const userId = await getUserId();
+  const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
+  const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
+  const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
+  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+});
 ```
 
-The example nests `withUserId` inside `withResponse`. Such a wrapper is not part of this shape — an application writes it around its own caller lookup, and hands the result to the handler as its first argument:
+The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.
+
+## Outbound Request Helper
+
+`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` carrying the status the upstream reported and what it answered with — its body decoded when that body was JSON, and left as the text it arrived as when it was not.
 
 ```ts
-// with-user-id.ts
-export function withUserId<Args extends unknown[], R>(
-  handler: (userId: string, ...args: Args) => Promise<R>,
-): (...args: Args) => Promise<R> {
-  return async (...args) => handler(await requireUserId(), ...args);
+import { zodFetch } from "pasika/zod-fetch";
+
+// The options a call may name, exported by pasika/zod-fetch
+interface ZodFetchOptions<TSchema extends ZodType = never> {
+  url: string | URL;
+  init?: RequestInit;
+  responseSchema?: TSchema;
 }
 ```
 
-That `requireUserId` throws an `HttpError` when there is no session, so nesting the wrapper inside `withResponse` is what turns a missing session into the `401` response, and what leaves the handler's own body without a session check — a bare sequence of `await`ed calls.
+A call site names the schema its data should match, and receives what that schema accepted:
+
+```ts
+const orders = await zodFetch({
+  url: `${apiBase}/v1/orders`,
+  init: { method: "POST", body: JSON.stringify(order) },
+  responseSchema: ordersResponseSchema,
+});
+```
+
+A call that names no schema receives the response itself — `{ body, status, headers }` — for a handler whose own response relays a body nothing has read.
 
 ## DevDependencies
 
@@ -191,9 +191,8 @@ No pasika rule checks a CI workflow file today — everything above is verified 
 
 ## Not Declared
 
-Packages that never go into package.json. `pasika`'s rules reach a repository through `zirka`, and `agent-browser` is invoked by agents during a task.
+Packages that never go into package.json. `agent-browser` is invoked by agents during a task.
 
-| Package         | Responsibility                                                                                                                                                                                                                                                                                                                                                                        |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pasika`        | Owns this documentation and the pasika ESLint rulesets — the `pasikaApp` and `pasikaNextjsApp` presets `zirka` composes. The `pasikaNextjsApp` preset parses `src/**` with its own parser, which runs on the TypeScript pasika pins; consuming it fails at config load when the repository's hoisted TypeScript is on a different major, with an error naming the version to align on |
-| `agent-browser` | Drives a real browser so an agent can verify browser behavior                                                                                                                                                                                                                                                                                                                         |
+| Package         | Responsibility                                                |
+| --------------- | ------------------------------------------------------------- |
+| `agent-browser` | Drives a real browser so an agent can verify browser behavior |

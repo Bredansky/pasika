@@ -13,6 +13,7 @@ import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
 
 /** Packages a repository must list in `dependencies`. */
 export const NEXTJS_STACK_DEPENDENCIES = [
+  "pasika",
   "next",
   "react",
   "react-dom",

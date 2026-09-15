@@ -165,7 +165,7 @@ export const hookComplexityRule: Rule.RuleModule = {
     function checkHook(
       node: Rule.Node,
       name: string | undefined,
-      body: ESTree.BlockStatement | undefined,
+      body: ESTree.BlockStatement | null | undefined,
       exported: boolean,
     ): void {
       if (!exported) return;

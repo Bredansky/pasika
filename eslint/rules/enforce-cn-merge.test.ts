@@ -39,7 +39,7 @@ const CONDITIONAL_MESSAGE = `Use cn() for conditional classes in className. ${DO
 const INTERPOLATION_START = "$";
 const CONDITIONAL_TEMPLATE_CLASS = `<button className={\`rounded px-3 ${INTERPOLATION_START}{active ? "primary-surface" : "muted-surface"}\`} />`;
 
-void describe("Components MUST use cn or the project's equivalent class-merging helper for conditional classes and a className passed to the component.", () => {
+void describe("Components MUST use cn for conditional classes and a className passed to the component.", () => {
   ruleTester.run("enforce-cn-merge", enforceCnMergeRule, {
     valid: [
       {

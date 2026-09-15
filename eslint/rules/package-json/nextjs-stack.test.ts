@@ -8,7 +8,7 @@ function completePackage(): Record<string, Record<string, string>> {
   };
 }
 
-void describe("A repository adopting the framework MUST list next, react, react-dom, zod, class-variance-authority, clsx, and tailwind-merge as a dependency in package.json.", () => {
+void describe("A repository adopting the framework MUST list pasika, next, react, react-dom, zod, class-variance-authority, clsx, and tailwind-merge as a dependency in package.json.", () => {
   packageJsonRuleTester.run("nextjs-stack", nextjsStackRule, {
     valid: [{ code: JSON.stringify(completePackage()) }],
     invalid: [

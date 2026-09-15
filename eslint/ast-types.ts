@@ -82,11 +82,13 @@ export type JsxOpeningElementNode = Rule.Node & {
 /**
  * FunctionDeclaration as seen by a rule visitor. ESLint's ESTree typing says
  * `id` is always present, but an anonymous `export default function () {}`
- * reaches the visitor with `id: null`, so the field is kept nullable.
+ * reaches the visitor with `id: null`, so the field is kept nullable. `body`
+ * is likewise nullable: an overload signature (`function f(...): T;`) reaches
+ * the visitor with `body: null`.
  */
 export type FunctionDeclarationNode = Rule.Node & {
   id?: { name?: string } | null;
-  body?: ESTree.BlockStatement;
+  body?: ESTree.BlockStatement | null;
 };
 
 /**
