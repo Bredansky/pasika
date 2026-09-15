@@ -41,7 +41,7 @@ throw new HttpError("The order could not be created.", 502);
 ```ts
 import { withResponse } from "pasika/with-response";
 
-// What a handler returns
+// The two forms a handler may return, exported by pasika/with-response
 type HandlerResult<TData> =
   // The envelope a JSON route answers with
   | { message: string; data: TData; status?: number; headers?: ResponseHeaders }
@@ -81,6 +81,7 @@ The handler is written where the route is, so a reader of `route.ts` sees the wo
 ```ts
 import { zodFetch } from "pasika/zod-fetch";
 
+// The options a call may name, exported by pasika/zod-fetch
 interface ZodFetchOptions<TSchema extends ZodType = never> {
   url: string | URL;
   init?: RequestInit;
