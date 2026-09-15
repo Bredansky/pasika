@@ -1,6 +1,6 @@
 # Zod Fetch Helper Rule
 
-Every outbound request repeats the same fetch, status check, decode, and validation, and a failure that collapses into a bare error loses the status the upstream reported and the reason it sent. This rule requires the repository's `zodFetch` helper to exist, to be the only caller of `fetch`, and to be the one place an upstream response becomes data or a failure.
+A direct `fetch` call checks nothing about the response it gets back: the status the upstream answered with goes unread, the body goes unvalidated, and a failure means whatever the call site decides it means. This rule requires the repository's `zodFetch` helper to exist, to be the only caller of `fetch`, and to be the one place an upstream response becomes data or a failure.
 
 - A repository MUST define a `zodFetch` helper, and `fetch` MUST NOT be called outside it.
 - The `zodFetch` helper MUST read the response status and throw an error carrying the status an upstream failure reported.
