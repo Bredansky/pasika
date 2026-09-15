@@ -16,8 +16,9 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 ```ts
 // src/app/api/render-instagram-content/route.ts
 export const POST = async (request: NextRequest): Promise<NextResponse<RenderApiResponse>> => {
+  const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
-  const { jobIds } = await dispatchInstagramRenderWorkflow("user-1", orders);
+  const { jobIds } = await dispatchInstagramRenderWorkflow(userId, orders);
   return NextResponse.json({ data: jobIds, message: "Dispatched." });
 };
 ```
