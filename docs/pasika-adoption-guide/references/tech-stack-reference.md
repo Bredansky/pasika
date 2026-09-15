@@ -99,6 +99,8 @@ const orders = await zodFetch({
 });
 ```
 
+A call reading an endpoint that answers `204` passes `z.undefined()` as its `responseSchema`.
+
 A call that names no schema receives the response itself — `{ body, status, headers }` — for a handler whose own response relays a body nothing has read.
 
 ## DevDependencies
