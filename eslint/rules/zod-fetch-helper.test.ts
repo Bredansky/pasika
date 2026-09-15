@@ -8,12 +8,31 @@ import { zodFetchHelperRule } from "./zod-fetch-helper";
 const DOC = "See docs/pasika-adoption-guide/rules/zod-fetch-helper-rule.md";
 const CONFIG = "export default [];\n";
 
+/**
+ * The failure path: the status decides, the body is read before it is thrown,
+ * and the caller's error schema turns that body into the reason a call site reads.
+ */
+const FAILURE_BODY = `  if (!response.ok) {
+    const body = await response.text();
+    let errorData: unknown;
+
+    if (errorSchema && body) {
+      try {
+        const rawData: unknown = JSON.parse(body);
+        const parsed = errorSchema.safeParse(rawData);
+        errorData = parsed.success ? parsed.data : undefined;
+      } catch {
+        errorData = undefined;
+      }
+    }
+
+    throw new ZodFetchError(response.status, response.statusText, body, errorData);
+  }`;
+
 /** The canonical beats: the status decides, the schema validates, the body stays a body. */
 const CANONICAL_BODY = `  const response = await fetch(url, init);
 
-  if (!response.ok) {
-    throw new ZodFetchError(response.status, response.statusText, await response.text());
-  }
+${FAILURE_BODY}
 
   if (!responseSchema) {
     return { body: response.body, status: response.status, headers: response.headers };
@@ -27,14 +46,21 @@ function bodyWith(changes: [string, string][] = []): string {
   return text;
 }
 
+/** Replaces the failure path as a whole, so a variant reads as one decision. */
+function bodyWithFailure(changes: [string, string][]): string {
+  let failure = FAILURE_BODY;
+  for (const [from, to] of changes) failure = failure.replace(from, to);
+  return bodyWith([[FAILURE_BODY, failure]]);
+}
+
 const declaration = (body: string): string => `import { HttpError } from "./http-error";
 
-export async function zodFetch({ url, init, responseSchema }) {
+export async function zodFetch({ url, init, responseSchema, errorSchema }) {
 ${body}
 }
 `;
 
-const arrow = (body: string): string => `export const zodFetch = async ({ url, init, responseSchema }) => {
+const arrow = (body: string): string => `export const zodFetch = async ({ url, init, responseSchema, errorSchema }) => {
 ${body}
 };
 `;
@@ -124,12 +150,54 @@ void describe("The `zodFetch` helper MUST read the response status and throw an 
         code: declaration(
           bodyWith([
             [
-              "throw new ZodFetchError(response.status, response.statusText, await response.text())",
-              'throw new ZodFetchError(502, "Bad Gateway", "")',
+              "throw new ZodFetchError(response.status, response.statusText, body, errorData)",
+              'throw new ZodFetchError(502, "Bad Gateway", body, errorData)',
             ],
           ]),
         ),
         errors: [{ message: message("must throw an error carrying the status the upstream reported") }],
+      },
+    ],
+  });
+});
+
+void describe("The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and carry the result on the error it throws.", () => {
+  ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
+    valid: [
+      { filename: srcFile("utils/zod-fetch.ts"), code: declaration(CANONICAL_BODY) },
+      // The same beat, with the schema throwing instead of answering a result.
+      {
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: declaration(
+          bodyWithFailure([
+            [
+              "        const parsed = errorSchema.safeParse(rawData);\n        errorData = parsed.success ? parsed.data : undefined;",
+              "        errorData = errorSchema.parse(rawData);",
+            ],
+          ]),
+        ),
+      },
+    ],
+    invalid: [
+      {
+        // The body is read as text and thrown as text, so a caller holding the
+        // failure cannot read the reason the upstream sent.
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: declaration(
+          bodyWithFailure([
+            [
+              "        const parsed = errorSchema.safeParse(rawData);\n        errorData = parsed.success ? parsed.data : undefined;",
+              "        errorData = rawData;",
+            ],
+          ]),
+        ),
+        errors: [
+          {
+            message: message(
+              "must parse a failed response's body through the error schema its caller named, and carry the result on the error",
+            ),
+          },
+        ],
       },
     ],
   });

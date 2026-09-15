@@ -32,7 +32,7 @@ export function cn(...inputs: ClassValue[]): string {
 
 ## Route Error Handling Helpers
 
-`HttpError` and `withResponse` are the helpers the Route Handler Rule is written against. `HttpError` carries the status a failure should become; `withResponse` catches an `HttpError` thrown anywhere inside its wrapped function, validates the handler's returned data against a schema, and builds the `{ data, message }` response itself, so the handler never calls `NextResponse.json` at all, and a failure it catches is the one response a cache may never keep.
+`HttpError` and `withResponse` exist so a route can answer the failure it was handed: the error carries the status a failure should become and the message a client should read, and the wrapper turns one into the response, so a handler holds no `try` and calls no `NextResponse`. That response carries the status the failure reported and is never cached, so the same URL does not serve one reader's failure to the next.
 
 ```ts
 // http-error.ts
@@ -108,7 +108,7 @@ export function withResponse(responseSchema?: z.ZodType | AnyHandler, handler?: 
 
 A handler returns `{ message, data }`, plus optional `status` and `headers` when the response needs them. A failure has neither: it is built from the caught `HttpError` alone, answered at the error's status with `Cache-Control: no-store`, so an error is never cached as data. For a non-JSON response, call `withResponse` with the handler alone and return `{ body, status, headers }` — the body passes through without a JSON envelope.
 
-A route handler wrapped in `withResponse` has no `try`, loop, or `if` of its own — every delegated call is a bare `await`, since a thrown `HttpError` already short-circuits the rest:
+A thrown `HttpError` is already the response, so the handler needs no `try`, branch, or loop, and reads as the steps it takes:
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
@@ -121,21 +121,22 @@ export const POST = withResponse(renderApiResponseDataSchema, async (request: Ne
 });
 ```
 
-Write the handler at the `withResponse` call, never as an imported reference. Its body is one awaited call per step, and each step lives in a module of its own — steps branch, loop, and catch, and a handler may do none of that. One step means one call; the module's name is the test. `readPostSubmission` names one action, so its call is one step. `submitPosts` on `/api/post` just restates the route's own subject — that is bad: significant steps are hidden behind one await, and the reader cannot see them. Name each significant step and await it in the handler instead, each call going to its own module.
+The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.
 
 ## Outbound Request Helper
 
-`zodFetch` is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` subclass carrying the status the upstream reported.
+`zodFetch` is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` subclass carrying the status the upstream reported and the reason it sent.
 
 ```ts
 // zod-fetch.ts
 import { type z, type ZodType } from "zod";
 import { HttpError } from "./http-error";
 
-interface ZodFetchOptions<TSchema extends ZodType> {
+interface ZodFetchOptions<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined> {
   url: string | URL;
   init?: RequestInit;
   responseSchema?: TSchema;
+  errorSchema?: TErrorSchema;
 }
 
 /** Extends HttpError so the status an upstream API reported reaches the client. */
@@ -144,19 +145,33 @@ export class ZodFetchError extends HttpError {
     status: number,
     public readonly statusText: string,
     public readonly body: string,
+    public readonly data: unknown,
   ) {
     super(`Request failed with status ${String(status)}${statusText ? ` ${statusText}` : ""}`, status);
     this.name = "ZodFetchError";
   }
 }
 
-export async function zodFetch<TSchema extends ZodType>(
-  options: ZodFetchOptions<TSchema>,
+export async function zodFetch<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined>(
+  options: ZodFetchOptions<TSchema, TErrorSchema>,
 ): Promise<z.output<TSchema> | { body: ReadableStream<Uint8Array> | null; status: number; headers: Headers }> {
   const response = await fetch(options.url, options.init);
 
   if (!response.ok) {
-    throw new ZodFetchError(response.status, response.statusText, await response.text());
+    const body = await response.text();
+    let errorData: unknown;
+
+    if (options.errorSchema && body) {
+      try {
+        const rawData: unknown = JSON.parse(body);
+        const parsed = options.errorSchema.safeParse(rawData);
+        errorData = parsed.success ? parsed.data : undefined;
+      } catch {
+        errorData = undefined;
+      }
+    }
+
+    throw new ZodFetchError(response.status, response.statusText, body, errorData);
   }
 
   if (!options.responseSchema) {
@@ -167,9 +182,9 @@ export async function zodFetch<TSchema extends ZodType>(
 }
 ```
 
-The three parts of that body match the three things a call site can ask for. A call that names a `responseSchema` gets the decoded body validated against it, so a shape the contract does not allow fails where the request was made rather than in the caller. A call that names none gets the response itself — its `body`, `status`, and `headers` — which is the same triple a handler hands `withResponse` when its own response is not JSON, so a file proxy relays a stream nothing has read. And a status that is not ok throws before either branch, so the upstream status is decided before the body is touched, and the failure reaches the route as the status the upstream reported.
+The wrapper that answers a route reads only the caught error and knows nothing about which upstream failed, so the status that upstream reported and the reason it gave both have to travel on the error itself: an `HttpError` subclass, answered at its status without the helper knowing routes exist, keeping the raw body next to whatever the call site's error schema accepted. The caller names that schema because only it knows what the upstream's failures look like, and a body the schema rejects stays raw instead of becoming a reason the helper invented. The response schema is checked at the request, so a shape the contract forbids fails where the request was made, while a call naming none gets the response itself, since decoding would consume the body a proxy means to relay.
 
-The error a failed request throws is a subclass of `HttpError`, so the wrapper the Route Handler Rule requires answers it at that status without this helper knowing about routes at all:
+A call site names the schema its data should match:
 
 ```ts
 // src/features/publishing/utils/instagram.ts

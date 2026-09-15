@@ -4,8 +4,9 @@
  * A repository MUST define a `zodFetch` helper, every outbound request MUST go
  * through it, and that helper MUST be the boundary that turns an upstream
  * response into data or a failure: it reads the status, throws an error
- * carrying the status an upstream failure reported, validates a JSON body
- * through the response schema, and hands back the body, status and headers of a
+ * carrying the status an upstream failure reported, parses a failed response's
+ * body through the error schema its caller named, validates a JSON body through
+ * the response schema, and hands back the body, status and headers of a
  * response it does not decode. The shape half runs on every module that
  * declares a function named `zodFetch`, wherever it sits, and reads the beats
  * above out of its body — placement is the placement rules' business, not this
@@ -32,6 +33,7 @@ interface Beats {
   callsFetch: boolean;
   readsStatus: boolean;
   throwsStatusError: boolean;
+  parsesErrorPayload: boolean;
   validatesWithSchema: boolean;
   handsBackBody: boolean;
 }
@@ -41,6 +43,7 @@ const BEAT_KEYS: (keyof Beats)[] = [
   "callsFetch",
   "readsStatus",
   "throwsStatusError",
+  "parsesErrorPayload",
   "validatesWithSchema",
   "handsBackBody",
 ];
@@ -49,6 +52,8 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   callsFetch: "must be the module that calls fetch",
   readsStatus: "must read the response status",
   throwsStatusError: "must throw an error carrying the status the upstream reported",
+  parsesErrorPayload:
+    "must parse a failed response's body through the error schema its caller named, and carry the result on the error",
   validatesWithSchema: "must validate the JSON body through the response schema",
   handsBackBody: "must hand back the body of a response it does not decode",
 };
@@ -129,13 +134,23 @@ function schemaNameOf(node: ts.Node): string | undefined {
   return undefined;
 }
 
-/** True for `responseSchema.parse(...)`, the call that validates a decoded body. */
-function validatesWithSchema(node: ts.Node): boolean {
+/** True for `schema.parse(...)`, the call that holds a body to the schema a call site named. */
+function parsesThroughSchema(node: ts.Node, schemaName: string): boolean {
   if (!ts.isCallExpression(node)) return false;
   const callee = node.expression;
   if (!ts.isPropertyAccessExpression(callee)) return false;
   if (callee.name.text !== "parse" && callee.name.text !== "safeParse") return false;
-  return schemaNameOf(callee.expression) === "responseSchema";
+  return schemaNameOf(callee.expression) === schemaName;
+}
+
+/** True for `responseSchema.parse(...)`, the call that validates a decoded body. */
+function validatesWithSchema(node: ts.Node): boolean {
+  return parsesThroughSchema(node, "responseSchema");
+}
+
+/** True for `errorSchema.parse(...)`, the call that reads the body a failure carried. */
+function parsesErrorPayload(node: ts.Node): boolean {
+  return parsesThroughSchema(node, "errorSchema");
 }
 
 /** True for a read of a response's `body`, the part a caller that relays it needs. */
@@ -149,6 +164,7 @@ function collectBeats(text: string): Beats {
     callsFetch: false,
     readsStatus: false,
     throwsStatusError: false,
+    parsesErrorPayload: false,
     validatesWithSchema: false,
     handsBackBody: false,
   };
@@ -158,6 +174,7 @@ function collectBeats(text: string): Beats {
     if (callsFetch(node)) beats.callsFetch = true;
     if (branchesOnStatus(node)) beats.readsStatus = true;
     if (throwsStatusError(node)) beats.throwsStatusError = true;
+    if (parsesErrorPayload(node)) beats.parsesErrorPayload = true;
     if (validatesWithSchema(node)) beats.validatesWithSchema = true;
     if (handsBackBody(node)) beats.handsBackBody = true;
     ts.forEachChild(node, visit);
@@ -191,7 +208,7 @@ export const zodFetchHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch and that keeps the status an upstream failure reported.`,
+      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch and that keeps the status and the body an upstream failure reported.`,
     },
   },
   create(context) {
