@@ -38,4 +38,4 @@ export const homeFeedConfig = homeFeedConfigSchema.parse({
 });
 ```
 
-Why: the configuration module and its supporting schema are grouped in the same folder.
+Why: the supporting schema lives inside the configuration module that owns it.
