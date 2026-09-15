@@ -99,7 +99,7 @@ const orders = await zodFetch({
 });
 ```
 
-A success that carries no body is that schema's call, so an endpoint answering `204` is read by naming `z.undefined()` for it, while a schema that expects data makes the same answer a failure at the upstream's own status.
+A call reading an endpoint that answers `204` names `z.undefined()`, since a success with no body goes to the same schema.
 
 A call that names no schema receives the response itself — `{ body, status, headers }` — for a handler whose own response relays a body nothing has read.
 
