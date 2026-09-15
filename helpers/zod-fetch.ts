@@ -1,0 +1,65 @@
+import { z, type ZodType } from "zod";
+import { HttpError } from "./http-error";
+
+/** A body this helper hands on is one a caller relays, so it is held to a contract like any other. */
+const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanceof ReadableStream);
+
+export interface ZodFetchOptions<TSchema extends ZodType = never> {
+  url: string | URL;
+  init?: RequestInit;
+  responseSchema?: TSchema;
+}
+
+/** The response itself, for a caller whose own response relays a body nothing has read. */
+export interface ZodFetchRelayedResponse {
+  body: ReadableStream<Uint8Array>;
+  status: number;
+  headers: Headers;
+}
+
+/** A body that is not JSON stays the text the upstream sent it as. */
+function decodeFailureBody(body: string): unknown {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    return parsed;
+  } catch {
+    return body;
+  }
+}
+
+/**
+ * The only module in a repository that calls `fetch`. It hands a JSON body back as
+ * data the response schema accepted, and a failure back as an `HttpError` carrying
+ * the status the upstream reported, the message for a client, and what the upstream
+ * answered with. A call that names no response schema gets the response itself.
+ */
+export function zodFetch<TSchema extends ZodType>(
+  options: ZodFetchOptions<TSchema> & { responseSchema: TSchema },
+): Promise<z.output<TSchema>>;
+export function zodFetch(options: ZodFetchOptions): Promise<ZodFetchRelayedResponse>;
+export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unknown> {
+  const response = await fetch(options.url, options.init);
+
+  if (!response.ok) {
+    const body = await response.text();
+    const statusText = response.statusText === "" ? "" : ` ${response.statusText}`;
+
+    throw new HttpError(
+      `Request failed with status ${String(response.status)}${statusText}`,
+      response.status,
+      decodeFailureBody(body),
+    );
+  }
+
+  if (options.responseSchema === undefined) {
+    const streamed = streamBody.safeParse(response.body);
+
+    if (!streamed.success) {
+      throw new HttpError("The upstream answered without a body to relay.", response.status);
+    }
+
+    return { body: streamed.data, status: response.status, headers: response.headers };
+  }
+
+  return options.responseSchema.parse(await response.json());
+}

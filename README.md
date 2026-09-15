@@ -1,6 +1,6 @@
 # pasika
 
-Documentation, the lint rules derived from it, and the checks that apply and diagnose both.
+Documentation, the lint rules derived from it, the checks that apply and diagnose both, and the runtime helpers those rules are written against.
 
 `pasika` owns the framework's documentation and turns it into checks. Every requirement in `docs/` is recorded in an enforcement registry that says which ESLint rule or `pasika` check governs it — or, when none does, how a reviewer or agent applies it by hand. CI fails when a requirement has no recorded answer.
 
@@ -21,6 +21,11 @@ scripts/
   types/                          # registry schema
 constants/
   rfc2119.ts                      # single source of truth for RFC 2119 vocabulary
+helpers/
+  cn.ts                           # class merging — imported as pasika/cn
+  http-error.ts                   # the failure a route answers with — pasika/http-error
+  zod-fetch.ts                    # the one module that calls fetch — pasika/zod-fetch
+  with-response.ts                # the route boundary — pasika/with-response
 eslint/
   rules/                          # the lint rules, with fixture tests beside them
   rules/documentation/            # the documentation-guide rules, linting docs/ itself
@@ -221,6 +226,19 @@ Where a component, hook, value, type, or style belongs depends on which files us
 - The index is read from disk rather than from ESLint's file list, so a partial run such as `lint-staged` still judges against the true graph.
 
 All are inert in a repository with no `src/` tree.
+
+## Runtime helpers
+
+The four helpers the framework's rules are written against ship with the package, so a repository imports them instead of writing its own copy to the shape the rules expect:
+
+| Import                 | Exports                                            | Resolves against (optional peer) |
+| ---------------------- | -------------------------------------------------- | -------------------------------- |
+| `pasika/cn`            | `cn`                                               | `clsx`, `tailwind-merge`         |
+| `pasika/http-error`    | `HttpError`                                        | —                                |
+| `pasika/zod-fetch`     | `zodFetch`                                         | `zod`                            |
+| `pasika/with-response` | `withResponse`, `HandlerResult`, `ResponseHeaders` | `next`, `zod`                    |
+
+Every peer is optional, so installing `pasika` warns about none of them: a repository installs the packages whose imports it uses. The entries share one `HttpError`, so a failure `zodFetch` throws satisfies the `instanceof` check `withResponse` makes.
 
 ## Runtime dependency on typescript
 
