@@ -632,6 +632,18 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler `route.ts` only re-exports MAY stay unwrapped.",
+      "hash": "9bc792a175",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A route whose response a package's own verifier builds, such as QStash's `verifySignatureAppRouter`, MAY stay unwrapped.",
+      "hash": "8a0bef6af9",
+      "note": "Judgment: a package's verifier answers before the handler runs, so the route has no handler of its own to wrap. No syntax separates that call from a handler that skipped the wrapper, so the repository scopes the rule off for that file instead."
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.",
       "hash": "17a3f78e7c",
       "note": "Judgment: a reviewer reads the module the handler's single call names. If that name restates the route's own subject, the call holds a sequence of steps and they belong in the handler. No syntax tells one honest step from a workflow wearing a step's name, which is why no rule governs this bullet."

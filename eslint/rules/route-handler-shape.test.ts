@@ -32,12 +32,6 @@ void describe("An HTTP method handler exported from `route.ts` MUST be wrapped i
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
       },
-      // A re-exported handler reference isn't a recognizable function, so
-      // there is nothing to check.
-      {
-        code: `export const POST = someImportedHandler;`,
-        filename: srcFile("app/api/webhook/route.ts"),
-      },
       // A route.ts export that is not an HTTP method is not this rule's concern.
       {
         code: `export function absolutizeMediaUrls(order) {
@@ -113,6 +107,24 @@ export const POST = withResponse(schema, submitPosts);`,
         errors: [{ message: NOT_INLINE("POST") }],
       },
     ],
+  });
+});
+
+void describe("A handler `route.ts` only re-exports MAY stay unwrapped.", () => {
+  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
+    valid: [
+      // A package's handler arrives as a reference the file did not write.
+      {
+        code: `const handler = NextAuth({ providers: [] });\n\nexport const GET = handler;\nexport const POST = handler;`,
+        filename: srcFile("app/api/auth/[...nextauth]/route.ts"),
+      },
+      // The same handler handed on as named re-exports, which no visitor reads.
+      {
+        code: `import { handler } from "./handler";\n\nexport { handler as GET, handler as POST };`,
+        filename: srcFile("app/api/webhook/route.ts"),
+      },
+    ],
+    invalid: [],
   });
 });
 

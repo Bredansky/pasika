@@ -4,6 +4,8 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.
+- A handler `route.ts` only re-exports MAY stay unwrapped.
+- A route whose response a package's own verifier builds, such as QStash's `verifySignatureAppRouter`, MAY stay unwrapped.
 - A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.
 - A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.

@@ -61,5 +61,13 @@ export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unkno
     return { body: streamed.data, status: response.status, headers: response.headers };
   }
 
-  return options.responseSchema.parse(await response.json());
+  const body = await response.text();
+
+  if (body === "") {
+    throw new HttpError("The upstream answered without a body to decode.", response.status);
+  }
+
+  const decoded: unknown = JSON.parse(body);
+
+  return options.responseSchema.parse(decoded);
 }

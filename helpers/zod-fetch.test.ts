@@ -100,4 +100,15 @@ describe("zodFetch", () => {
 
     expect(error).toMatchObject({ status: 204, message: "The upstream answered without a body to relay." });
   });
+
+  test("throws at the upstream's own status when a success carries no body to decode", async () => {
+    answerWith(new Response(null, { status: 204 }));
+
+    const error = await zodFetch({
+      url: "https://api.test/orders/7",
+      responseSchema: payloadSchema,
+    }).catch((caught: unknown) => caught);
+
+    expect(error).toMatchObject({ status: 204, message: "The upstream answered without a body to decode." });
+  });
 });
