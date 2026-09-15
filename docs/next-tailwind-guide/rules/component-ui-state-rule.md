@@ -16,7 +16,7 @@ Why: every caller has to reconstruct the saving or disabled treatment, and the b
 ## Correct — State Exposed Through Component Props
 
 ```tsx
-import { cn } from "@/utils/cn";
+import { cn } from "pasika/cn";
 
 type ButtonProps = {
   children: React.ReactNode;
