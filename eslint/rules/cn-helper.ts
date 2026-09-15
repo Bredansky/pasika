@@ -1,7 +1,7 @@
 /**
  * ESLint rule: pasika/cn-helper
  *
- * A module MUST import `cn` from `pasika/cn` and MUST NOT declare one of its
+ * A file MUST import `cn` from `pasika/cn` and MUST NOT declare one of its
  * own, so every class merge in a repository is the one the framework maintains
  * rather than a copy that stops receiving its fixes. The rule reports a
  * declaration named `cn` wherever it sits — placement is the placement rules'
@@ -18,7 +18,7 @@ const HELPER = "cn";
 const ENTRY = "pasika/cn";
 const DOC = "docs/pasika-adoption-guide/rules/cn-helper-rule.md";
 
-const DECLARED = `A module must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
+const DECLARED = `A file must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
 const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
 
 /** True for a node written as this identifier — a declaration's name, or a specifier's local binding. */

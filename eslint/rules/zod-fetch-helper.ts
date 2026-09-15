@@ -2,7 +2,7 @@
  * ESLint rule: pasika/zod-fetch-helper
  *
  * Every outbound request in a repository MUST go through the `zodFetch`
- * imported from `pasika/zod-fetch`: the helper is the one module that calls
+ * imported from `pasika/zod-fetch`: the helper is the one file that calls
  * `fetch`, so a `fetch` call anywhere else is a request that skipped the status
  * check, the schema validation, and the failure the helper carries. The rule
  * reports a `fetch` call — written bare or on a global object — wherever it
@@ -21,7 +21,7 @@ const ENTRY = "pasika/zod-fetch";
 const DOC = "docs/pasika-adoption-guide/rules/zod-fetch-helper-rule.md";
 
 const FETCHED = `fetch must not be called; make the request through ${HELPER} from ${ENTRY}. See ${DOC}`;
-const DECLARED = `A module must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
+const DECLARED = `A file must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
 const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
 
 /** The objects a bare `fetch` resolves through, so `globalThis.fetch(...)` is the same request. */

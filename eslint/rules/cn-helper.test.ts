@@ -4,7 +4,7 @@ import { cnHelperRule } from "./cn-helper";
 const DOC = "See docs/pasika-adoption-guide/rules/cn-helper-rule.md";
 const BUTTON = "src/features/ui/button.tsx";
 
-void describe("A module that merges class names MUST import cn from pasika/cn.", () => {
+void describe("A file that merges class names MUST import cn from pasika/cn.", () => {
   ruleTester.run("cn-helper", cnHelperRule, {
     valid: [
       {
@@ -43,19 +43,19 @@ void describe("A module that merges class names MUST import cn from pasika/cn.",
   });
 });
 
-void describe("A module MUST NOT declare a cn of its own.", () => {
+void describe("A file MUST NOT declare a cn of its own.", () => {
   ruleTester.run("cn-helper", cnHelperRule, {
     valid: [{ filename: BUTTON, code: 'import { cn } from "pasika/cn";' }],
     invalid: [
       {
         filename: "src/utils/cn.ts",
         code: 'import { clsx, type ClassValue } from "clsx";\nimport { twMerge } from "tailwind-merge";\n\nexport function cn(...inputs: ClassValue[]): string {\n  return twMerge(clsx(inputs));\n}',
-        errors: [{ message: `A module must not declare its own cn; import it from pasika/cn. ${DOC}` }],
+        errors: [{ message: `A file must not declare its own cn; import it from pasika/cn. ${DOC}` }],
       },
       {
         filename: "src/features/ui/button.tsx",
         code: "export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs));",
-        errors: [{ message: `A module must not declare its own cn; import it from pasika/cn. ${DOC}` }],
+        errors: [{ message: `A file must not declare its own cn; import it from pasika/cn. ${DOC}` }],
       },
     ],
   });

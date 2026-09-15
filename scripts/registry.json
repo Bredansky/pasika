@@ -998,14 +998,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "A module that merges class names MUST import `cn` from `pasika/cn`.",
-      "hash": "034efe9fc3",
+      "text": "A file that merges class names MUST import `cn` from `pasika/cn`.",
+      "hash": "18d2dba9f3",
       "ref": "pasika/cn-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "A module MUST NOT declare a `cn` of its own.",
-      "hash": "7e29136e0d",
+      "text": "A file MUST NOT declare a `cn` of its own.",
+      "hash": "fa134a33a2",
       "ref": "pasika/cn-helper"
     },
     {
@@ -1178,14 +1178,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "A module MUST NOT call `fetch`.",
-      "hash": "2946c80316",
+      "text": "A file MUST NOT call `fetch`.",
+      "hash": "74bbf08576",
       "ref": "pasika/zod-fetch-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "A module MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.",
-      "hash": "2233602364",
+      "text": "A file MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.",
+      "hash": "dac89b19bd",
       "ref": "pasika/zod-fetch-helper"
     },
     {

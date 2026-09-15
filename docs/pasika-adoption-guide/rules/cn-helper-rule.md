@@ -1,9 +1,9 @@
 # cn Helper Rule
 
-Class names combine conditionally and conflict with each other. This rule requires the `cn` a module merges them with to come from the framework rather than from a copy of its own.
+Class names combine conditionally and conflict with each other. This rule requires the `cn` a file merges them with to come from the framework rather than from a copy of its own.
 
-- A module that merges class names MUST import `cn` from `pasika/cn`.
-- A module MUST NOT declare a `cn` of its own.
+- A file that merges class names MUST import `cn` from `pasika/cn`.
+- A file MUST NOT declare a `cn` of its own.
 
 ## Incorrect — A Local Copy Of The Merge
 
@@ -16,7 +16,7 @@ export function cn(...classes: ClassValue[]): string {
 }
 ```
 
-Why: the module keeps a copy of the helper, so a fix to the framework's merge never reaches this one and two merges drift apart.
+Why: the file keeps a copy of the helper, so a fix to the framework's merge never reaches this one and two merges drift apart.
 
 ## Correct — The Framework's Merge, Imported
 
@@ -28,4 +28,4 @@ export function Button({ className }: ButtonProps) {
 }
 ```
 
-Why: class names resolve through the one helper the framework maintains, and the module declares none of its own.
+Why: class names resolve through the one helper the framework maintains, and the file declares none of its own.

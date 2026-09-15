@@ -2,8 +2,8 @@
 
 A direct `fetch` call checks nothing about the response it gets back: the status the upstream answered with goes unread, the body goes unvalidated, and a failure means whatever the call site decides it means. This rule requires every outbound request to go through the `zodFetch` the framework ships, the only caller of `fetch` and the one place an upstream response becomes data or a failure.
 
-- A module MUST NOT call `fetch`.
-- A module MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.
+- A file MUST NOT call `fetch`.
+- A file MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.
 
 ## Incorrect — The Request The Module Makes Itself
 
