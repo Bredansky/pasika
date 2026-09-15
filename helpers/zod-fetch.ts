@@ -32,6 +32,10 @@ function decodeFailureBody(body: string): unknown {
  * data the response schema accepted, and a failure back as an `HttpError` carrying
  * the status the upstream reported, the message for a client, and what the upstream
  * answered with. A call that names no response schema gets the response itself.
+ *
+ * A success that carries no body is the schema's call: one that allows its data to
+ * be absent, such as `z.undefined()` for an endpoint answering `204`, accepts it, and
+ * one that does not makes it a failure at the upstream's own status.
  */
 export function zodFetch<TSchema extends ZodType>(
   options: ZodFetchOptions<TSchema> & { responseSchema: TSchema },
@@ -64,6 +68,10 @@ export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unkno
   const body = await response.text();
 
   if (body === "") {
+    const absent = options.responseSchema.safeParse(undefined);
+
+    if (absent.success) return absent.data;
+
     throw new HttpError("The upstream answered without a body to decode.", response.status);
   }
 

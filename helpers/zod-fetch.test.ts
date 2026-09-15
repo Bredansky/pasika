@@ -101,7 +101,15 @@ describe("zodFetch", () => {
     expect(error).toMatchObject({ status: 204, message: "The upstream answered without a body to relay." });
   });
 
-  test("throws at the upstream's own status when a success carries no body to decode", async () => {
+  test("answers a success the response schema allows to carry no body", async () => {
+    answerWith(new Response(null, { status: 204 }));
+
+    await expect(
+      zodFetch({ url: "https://api.test/workflows/7/dispatches", responseSchema: z.undefined() }),
+    ).resolves.toBeUndefined();
+  });
+
+  test("throws at the upstream's own status when a success carries no body the schema wants", async () => {
     answerWith(new Response(null, { status: 204 }));
 
     const error = await zodFetch({
