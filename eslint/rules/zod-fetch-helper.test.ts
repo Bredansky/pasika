@@ -35,7 +35,13 @@ const CANONICAL_BODY = `  const response = await fetch(url, init);
 ${FAILURE_BODY}
 
   if (!responseSchema) {
-    return { body: response.body, status: response.status, headers: response.headers };
+    const streamed = streamBody.safeParse(response.body);
+
+    if (!streamed.success) {
+      throw new HttpError("The upstream answered without a body to relay.", response.status);
+    }
+
+    return { body: streamed.data, status: response.status, headers: response.headers };
   }
 
   return responseSchema.parse(await response.json());`;
@@ -153,6 +159,10 @@ void describe("The `zodFetch` helper MUST read the response status and throw an 
               "throw new ZodFetchError(response.status, response.statusText, body, errorData)",
               'throw new ZodFetchError(502, "Bad Gateway", body, errorData)',
             ],
+            [
+              'throw new HttpError("The upstream answered without a body to relay.", response.status)',
+              'throw new HttpError("The upstream answered without a body to relay.", 502)',
+            ],
           ]),
         ),
         errors: [{ message: message("must throw an error carrying the status the upstream reported") }],
@@ -227,12 +237,40 @@ void describe("The `zodFetch` helper MUST hand back the body, status, and header
         code: declaration(
           bodyWith([
             [
-              "return { body: response.body, status: response.status, headers: response.headers };",
+              "return { body: streamed.data, status: response.status, headers: response.headers };",
               "return { status: response.status, headers: response.headers };",
             ],
           ]),
         ),
         errors: [{ message: message("must hand back the body of a response it does not decode") }],
+      },
+    ],
+  });
+});
+
+void describe("The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.", () => {
+  ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
+    valid: [{ filename: srcFile("utils/zod-fetch.ts"), code: declaration(CANONICAL_BODY) }],
+    invalid: [
+      {
+        // The body is handed on as it arrived, so a caller that relays it gets
+        // whatever the field held rather than a stream it can pass on.
+        filename: srcFile("utils/zod-fetch.ts"),
+        code: declaration(
+          bodyWith([
+            [
+              `    const streamed = streamBody.safeParse(response.body);
+
+    if (!streamed.success) {
+      throw new HttpError("The upstream answered without a body to relay.", response.status);
+    }
+
+    return { body: streamed.data, status: response.status, headers: response.headers };`,
+              "    return { body: response.body, status: response.status, headers: response.headers };",
+            ],
+          ]),
+        ),
+        errors: [{ message: message("must parse the body it hands back as a stream") }],
       },
     ],
   });

@@ -1207,6 +1207,12 @@
       "ref": "pasika/zod-fetch-helper"
     },
     {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.",
+      "hash": "9bf9e65b6b",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
       "doc": "repository-policy.md",
       "text": "A commit MUST NOT use the `--no-verify` flag.",
       "hash": "e1c615452f",

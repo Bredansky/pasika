@@ -7,6 +7,7 @@ Every outbound request repeats the same fetch, status check, decode, and validat
 - The `zodFetch` helper MUST parse a failed response's body through the error schema its caller named, and carry the result on the error it throws.
 - The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.
 - The `zodFetch` helper MUST hand back the body, status, and headers of a response it does not decode, without consuming the body.
+- The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.
 
 ## Incorrect — Every Upstream Failure Collapses
 
@@ -102,6 +103,8 @@ Why: the body is decoded before anything asks what it is, so a call that means t
 ## Correct — A Body The Caller Passes On
 
 ```ts
+const streamBody = z.instanceof(ReadableStream);
+
 export async function zodFetch({ url, init, responseSchema, errorSchema }) {
   const response = await fetch(url, init);
 
@@ -123,11 +126,17 @@ export async function zodFetch({ url, init, responseSchema, errorSchema }) {
   }
 
   if (!responseSchema) {
-    return { body: response.body, status: response.status, headers: response.headers };
+    const streamed = streamBody.safeParse(response.body);
+
+    if (!streamed.success) {
+      throw new HttpError("The upstream answered without a body to relay.", response.status);
+    }
+
+    return { body: streamed.data, status: response.status, headers: response.headers };
   }
 
   return responseSchema.parse(await response.json());
 }
 ```
 
-Why: a call that names no schema asks for the response itself — its body, status, and headers — so the status is decided before the body is touched, and a caller that has to relay the bytes receives them unread.
+Why: a call that names no schema asks for the response itself — its body, status, and headers — so the status is decided before the body is touched, and a caller that has to relay the bytes receives them unread and as a stream. An upstream that answers with no body fails at the status it reported, instead of handing the caller nothing to relay.

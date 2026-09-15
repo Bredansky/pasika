@@ -7,7 +7,7 @@
  * carrying the status an upstream failure reported, parses a failed response's
  * body through the error schema its caller named, validates a JSON body through
  * the response schema, and hands back the body, status and headers of a
- * response it does not decode. The shape half runs on every module that
+ * response it does not decode — a body it parses as a stream first. The shape half runs on every module that
  * declares a function named `zodFetch`, wherever it sits, and reads the beats
  * above out of its body — placement is the placement rules' business, not this
  * one's. The existence half runs on the repository's eslint config file, the
@@ -28,12 +28,12 @@ import { getProjectIndex } from "../project/index";
 const HELPER = "zodFetch";
 const DOC = "docs/pasika-adoption-guide/rules/zod-fetch-helper-rule.md";
 const ESLINT_CONFIG = /^eslint\.config\.(?:cjs|cts|js|mjs|mts|ts)$/;
-
 interface Beats {
   callsFetch: boolean;
   readsStatus: boolean;
   throwsStatusError: boolean;
   parsesErrorPayload: boolean;
+  parsesStreamBody: boolean;
   validatesWithSchema: boolean;
   handsBackBody: boolean;
 }
@@ -44,6 +44,7 @@ const BEAT_KEYS: (keyof Beats)[] = [
   "readsStatus",
   "throwsStatusError",
   "parsesErrorPayload",
+  "parsesStreamBody",
   "validatesWithSchema",
   "handsBackBody",
 ];
@@ -54,6 +55,7 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   throwsStatusError: "must throw an error carrying the status the upstream reported",
   parsesErrorPayload:
     "must parse a failed response's body through the error schema its caller named, and carry the result on the error",
+  parsesStreamBody: "must parse the body it hands back as a stream",
   validatesWithSchema: "must validate the JSON body through the response schema",
   handsBackBody: "must hand back the body of a response it does not decode",
 };
@@ -153,9 +155,20 @@ function parsesErrorPayload(node: ts.Node): boolean {
   return parsesThroughSchema(node, "errorSchema");
 }
 
-/** True for a read of a response's `body`, the part a caller that relays it needs. */
+/** True for `streamBody.parse(...)`, the call that holds a body a caller relays to the stream contract. */
+function parsesStreamBody(node: ts.Node): boolean {
+  return parsesThroughSchema(node, "streamBody");
+}
+
+/** True for a returned object carrying a `body`, the part a caller that relays it needs. */
 function handsBackBody(node: ts.Node): boolean {
-  return ts.isPropertyAccessExpression(node) && node.name.text === "body";
+  if (!ts.isReturnStatement(node) || !node.expression) return false;
+  if (!ts.isObjectLiteralExpression(node.expression)) return false;
+  return node.expression.properties.some(
+    (property) =>
+      (ts.isPropertyAssignment(property) || ts.isShorthandPropertyAssignment(property)) &&
+      property.name.getText() === "body",
+  );
 }
 
 /** Reads the canonical beats out of a definition's source text. */
@@ -165,6 +178,7 @@ function collectBeats(text: string): Beats {
     readsStatus: false,
     throwsStatusError: false,
     parsesErrorPayload: false,
+    parsesStreamBody: false,
     validatesWithSchema: false,
     handsBackBody: false,
   };
@@ -175,6 +189,7 @@ function collectBeats(text: string): Beats {
     if (branchesOnStatus(node)) beats.readsStatus = true;
     if (throwsStatusError(node)) beats.throwsStatusError = true;
     if (parsesErrorPayload(node)) beats.parsesErrorPayload = true;
+    if (parsesStreamBody(node)) beats.parsesStreamBody = true;
     if (validatesWithSchema(node)) beats.validatesWithSchema = true;
     if (handsBackBody(node)) beats.handsBackBody = true;
     ts.forEachChild(node, visit);
@@ -208,7 +223,7 @@ export const zodFetchHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch and that keeps the status and the body an upstream failure reported.`,
+      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch, that keeps the status and the body an upstream failure reported, and that hands back a body a caller can relay.`,
     },
   },
   create(context) {

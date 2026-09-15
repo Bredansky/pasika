@@ -132,6 +132,10 @@ The handler is written where the route is, so a reader of `route.ts` sees the wo
 import { type z, type ZodType } from "zod";
 import { HttpError } from "./http-error";
 
+// A body this helper hands on is one a caller relays, so it is held to a contract
+// like any other: the response's own stream, not whatever the field happens to hold.
+const streamBody = z.instanceof(ReadableStream);
+
 interface ZodFetchOptions<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined> {
   url: string | URL;
   init?: RequestInit;
@@ -154,7 +158,7 @@ export class ZodFetchError extends HttpError {
 
 export async function zodFetch<TSchema extends ZodType, TErrorSchema extends ZodType | undefined = undefined>(
   options: ZodFetchOptions<TSchema, TErrorSchema>,
-): Promise<z.output<TSchema> | { body: ReadableStream<Uint8Array> | null; status: number; headers: Headers }> {
+): Promise<z.output<TSchema> | { body: ReadableStream<Uint8Array>; status: number; headers: Headers }> {
   const response = await fetch(options.url, options.init);
 
   if (!response.ok) {
@@ -175,14 +179,18 @@ export async function zodFetch<TSchema extends ZodType, TErrorSchema extends Zod
   }
 
   if (!options.responseSchema) {
-    return { body: response.body, status: response.status, headers: response.headers };
+    const streamed = streamBody.safeParse(response.body);
+
+    if (!streamed.success) {
+      throw new HttpError("The upstream answered without a body to relay.", response.status);
+    }
+
+    return { body: streamed.data, status: response.status, headers: response.headers };
   }
 
   return options.responseSchema.parse(await response.json());
 }
 ```
-
-The wrapper that answers a route reads only the caught error and knows nothing about which upstream failed, so the status that upstream reported and the reason it gave both have to travel on the error itself: an `HttpError` subclass, answered at its status without the helper knowing routes exist, keeping the raw body next to whatever the call site's error schema accepted. The caller names that schema because only it knows what the upstream's failures look like, and a body the schema rejects stays raw instead of becoming a reason the helper invented. The response schema is checked at the request, so a shape the contract forbids fails where the request was made, while a call naming none gets the response itself, since decoding would consume the body a proxy means to relay.
 
 A call site names the schema its data should match:
 
