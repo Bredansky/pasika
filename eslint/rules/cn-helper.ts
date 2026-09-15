@@ -1,68 +1,29 @@
 /**
  * ESLint rule: pasika/cn-helper
  *
- * A repository MUST define a `cn` helper, and that helper MUST return
- * twMerge(clsx(...)). The shape half runs on every module that declares a
- * function named `cn`, wherever it sits, and checks the expression it returns
- * — placement is the placement rules' business, not this one's. The existence
- * half runs on the repository's eslint config file, the one module every
- * repository has at its root, and asks the project index whether any module
- * under src/ exports `cn`.
+ * A module MUST import `cn` from `pasika/cn` and MUST NOT declare one of its
+ * own, so every class merge in a repository is the one the framework maintains
+ * rather than a copy that stops receiving its fixes. The rule reports a
+ * declaration named `cn` wherever it sits — placement is the placement rules'
+ * business, not this one's — and a binding of that name to any other source,
+ * whether a package or another module of the repository.
  *
  * @see docs/pasika-adoption-guide/rules/cn-helper-rule.md
  */
 
-import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import { getProjectIndex } from "../project/index";
 
 const HELPER = "cn";
+const ENTRY = "pasika/cn";
 const DOC = "docs/pasika-adoption-guide/rules/cn-helper-rule.md";
-const ESLINT_CONFIG = /^eslint\.config\.(?:cjs|cts|js|mjs|mts|ts)$/;
 
-function isNamed(node: ESTree.Identifier | null | undefined, name: string): boolean {
+const DECLARED = `A module must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
+const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
+
+/** True for a node written as this identifier — a declaration's name, or a specifier's local binding. */
+function isNamed(node: { type: string; name?: string } | null | undefined, name: string): boolean {
   return node?.type === "Identifier" && node.name === name;
-}
-
-function isCallTo(node: ESTree.Node | undefined, callee: string): node is ESTree.CallExpression {
-  return node?.type === "CallExpression" && node.callee.type === "Identifier" && node.callee.name === callee;
-}
-
-/** True when the expression is the canonical composition, `twMerge(clsx(...))`. */
-function isComposition(node: ESTree.Node | undefined): boolean {
-  if (!isCallTo(node, "twMerge")) return false;
-  const first = node.arguments[0];
-  return first !== undefined && first.type !== "SpreadElement" && isCallTo(first, "clsx");
-}
-
-/** The expression a function hands back, whether its body is a block or an expression. */
-function returnedExpression(body: ESTree.Node | undefined): ESTree.Node | undefined {
-  if (!body) return undefined;
-  if (body.type !== "BlockStatement") return body;
-  for (const statement of body.body) {
-    if (statement.type === "ReturnStatement") return statement.argument ?? undefined;
-  }
-  return undefined;
-}
-
-/** The `src/` tree beside the eslint config this check runs on — its own folder is the repository root. */
-function sourceRootFor(context: Rule.RuleContext): string {
-  return path.join(path.dirname(path.resolve(context.filename)), "src");
-}
-
-/**
- * Whether any module under `src/` exports a value with this name, asked of the
- * project index. A tree with no `src/` folder has nothing to define and is not
- * in scope, so it passes.
- */
-function definesHelper(context: Rule.RuleContext, name: string): boolean {
-  const index = getProjectIndex(sourceRootFor(context));
-  if (!index) return true;
-  for (const parsed of index.modules.values()) {
-    if (parsed.exports.some((exported) => exported.name === name)) return true;
-  }
-  return false;
 }
 
 export const cnHelperRule: Rule.RuleModule = {
@@ -70,41 +31,34 @@ export const cnHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require a repository to define a ${HELPER} helper that returns twMerge(clsx(...)).`,
+      description: `Require ${HELPER} to be imported from ${ENTRY} rather than declared in the repository.`,
     },
   },
   create(context) {
-    if (ESLINT_CONFIG.test(path.basename(context.filename))) {
-      return {
-        Program() {
-          if (definesHelper(context, HELPER)) return;
-          context.report({
-            node: context.sourceCode.ast,
-            loc: { line: 1, column: 0 },
-            message: `A repository must define a ${HELPER} helper. See ${DOC}`,
-          });
-        },
-      };
-    }
-
-    const check = (body: ESTree.Node | undefined, reportNode: Rule.Node): void => {
-      if (isComposition(returnedExpression(body))) return;
-      context.report({
-        node: reportNode,
-        message: `${HELPER} must return twMerge(clsx(...)). See ${DOC}`,
-      });
+    /**
+     * The names an import or a re-export binds, so a binding of the helper's
+     * name to a source that is not the package entry is reported at the
+     * specifier it was written as.
+     */
+    const checkSource = (node: ESTree.ImportDeclaration | ESTree.ExportNamedDeclaration): void => {
+      if (!node.source || node.source.value === ENTRY) return;
+      for (const specifier of node.specifiers) {
+        if (!isNamed(specifier.local, HELPER)) continue;
+        context.report({ node: specifier, message: IMPORTED });
+      }
     };
 
     return {
       FunctionDeclaration(node) {
-        if (isNamed(node.id, HELPER)) check(node.body, node);
+        if (isNamed(node.id, HELPER)) context.report({ node, message: DECLARED });
       },
       VariableDeclarator(node) {
-        if (!isNamed(node.id.type === "Identifier" ? node.id : null, HELPER)) return;
-        const init = node.init;
-        if (init?.type !== "ArrowFunctionExpression" && init?.type !== "FunctionExpression") return;
-        check(init.body, node);
+        if (isNamed(node.id.type === "Identifier" ? node.id : null, HELPER)) {
+          context.report({ node, message: DECLARED });
+        }
       },
+      ImportDeclaration: checkSource,
+      ExportNamedDeclaration: checkSource,
     };
   },
 };

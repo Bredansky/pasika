@@ -2,7 +2,7 @@
 
 A repository that adopts the framework installs its packages through package.json. This rule requires the packages it names below to be declared in the section each belongs to.
 
-- A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.
+- A repository adopting the framework MUST list `pasika`, `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.
 - A repository adopting the framework MUST list `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` as a devDependency in package.json.
 
 ## Incorrect — Stack Package Missing From the Manifest
@@ -16,13 +16,14 @@ A repository that adopts the framework installs its packages through package.jso
 }
 ```
 
-Why: `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` are absent from `dependencies`, so the app cannot render in the browser or resolve conflicting utilities. The manifest has no `devDependencies` section at all, so `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` are absent too.
+Why: `pasika`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` are absent from `dependencies`, so the framework's helpers do not resolve and the app cannot render in the browser or resolve conflicting utilities. The manifest has no `devDependencies` section at all, so `typescript`, `tailwindcss`, `eslint`, `prettier`, `husky`, `lint-staged`, `zirka`, `jsdom`, `@vitejs/plugin-react`, `@testing-library/react`, and `@testing-library/dom` are absent too.
 
 ## Correct — Every Stack Package Declared in Its Section
 
 ```json
 {
   "dependencies": {
+    "pasika": "0.11.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

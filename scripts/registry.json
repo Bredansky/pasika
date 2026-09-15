@@ -836,8 +836,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
-      "text": "Components MUST use `cn` or the project's equivalent class-merging helper for conditional classes and a `className` passed to the component.",
-      "hash": "ecc15933e6",
+      "text": "Components MUST use `cn` for conditional classes and a `className` passed to the component.",
+      "hash": "74cedd90d0",
       "ref": "pasika/enforce-cn-merge"
     },
     {
@@ -998,14 +998,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "A repository MUST define a `cn` helper.",
-      "hash": "f7f9618f62",
+      "text": "A module that merges class names MUST import `cn` from `pasika/cn`.",
+      "hash": "034efe9fc3",
       "ref": "pasika/cn-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
-      "text": "The `cn` helper MUST return `twMerge(clsx(...))`.",
-      "hash": "7508bad78e",
+      "text": "A module MUST NOT declare a `cn` of its own.",
+      "hash": "7e29136e0d",
       "ref": "pasika/cn-helper"
     },
     {
@@ -1082,8 +1082,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/next-js-stack-rule.md",
-      "text": "A repository adopting the framework MUST list `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
-      "hash": "9e209eaf1f",
+      "text": "A repository adopting the framework MUST list `pasika`, `next`, `react`, `react-dom`, `zod`, `class-variance-authority`, `clsx`, and `tailwind-merge` as a dependency in package.json.",
+      "hash": "b59507e51a",
       "ref": "pasika/nextjs-stack"
     },
     {
@@ -1160,14 +1160,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "A repository MUST define a `withResponse` helper.",
-      "hash": "6feaf681b3",
+      "text": "The `withResponse` a route handler is wrapped in MUST be imported from `pasika/with-response`.",
+      "hash": "a03e1ece63",
       "ref": "pasika/with-response-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }` that no cache may hold, and rethrow anything else.",
-      "hash": "8dfd356f52",
+      "text": "A repository MUST NOT declare a `withResponse` of its own.",
+      "hash": "89dfaae587",
       "ref": "pasika/with-response-helper"
     },
     {
@@ -1178,44 +1178,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "A repository MUST define a `zodFetch` helper, and `fetch` MUST NOT be called outside it.",
-      "hash": "727c396810",
+      "text": "A module MUST NOT call `fetch`.",
+      "hash": "2946c80316",
       "ref": "pasika/zod-fetch-helper"
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST read the response status and throw an error carrying the status an upstream failure reported.",
-      "hash": "6d6488245a",
-      "ref": "pasika/zod-fetch-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST carry the body a failed response answered with on the error it throws.",
-      "hash": "40a5dfc3c0",
-      "ref": "pasika/zod-fetch-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST validate a JSON body through the response schema before returning it.",
-      "hash": "0ae16ca952",
-      "ref": "pasika/zod-fetch-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST hand back the body, status, and headers of the response when the caller named no response schema.",
-      "hash": "b90f8edb24",
-      "ref": "pasika/zod-fetch-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST NOT decode the body it hands back.",
-      "hash": "5714462031",
-      "ref": "pasika/zod-fetch-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "The `zodFetch` helper MUST parse the body it hands back as a stream before returning it.",
-      "hash": "9bf9e65b6b",
+      "text": "A module MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.",
+      "hash": "2233602364",
       "ref": "pasika/zod-fetch-helper"
     },
     {

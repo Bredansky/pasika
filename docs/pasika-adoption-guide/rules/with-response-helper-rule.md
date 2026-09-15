@@ -1,13 +1,15 @@
 # With Response Helper Rule
 
-A route that fails has to answer with a status and a message instead of an unhandled error. This rule requires the repository's `withResponse` helper to exist and to be the boundary that turns a handler's result, or a failure thrown under it, into a response.
+A route that fails has to answer with a status and a message instead of an unhandled error. This rule requires the wrapper a route handler is wrapped in to be the framework's own, so the response it builds is the one the framework's rules describe.
 
-- A repository MUST define a `withResponse` helper.
-- The `withResponse` helper MUST await the handler, validate its returned data through the response schema, answer a thrown `HttpError` at `error.status` with `{ data: null, message }` that no cache may hold, and rethrow anything else.
+- The `withResponse` a route handler is wrapped in MUST be imported from `pasika/with-response`.
+- A repository MUST NOT declare a `withResponse` of its own.
 
-## Incorrect — Every Failure Answers Alike
+## Incorrect — A Wrapper The Repository Maintains
 
 ```ts
+import { NextResponse } from "next/server";
+
 export function withResponse(responseSchema, handler) {
   return async (...args) => {
     try {
@@ -20,27 +22,18 @@ export function withResponse(responseSchema, handler) {
 }
 ```
 
-Why: a missing session, a rejected credential, and a programming mistake all leave the route as the same 500, so the status a failure carried never reaches the client and nothing above the route can tell a modeled failure from a bug.
+Why: every failure leaves at the same status, so the status a delegated module reported never reaches the client, and the copy moves only when this repository moves it.
 
-## Correct — The Failure Keeps Its Own Status
+## Correct — The Framework's Wrapper, Imported
 
 ```ts
-export function withResponse(responseSchema, handler) {
-  return async (...args) => {
-    try {
-      const { message, data } = await handler(...args);
-      return NextResponse.json({ data: responseSchema.parse(data), message });
-    } catch (error) {
-      if (error instanceof HttpError) {
-        return NextResponse.json(
-          { data: null, message: error.message },
-          { status: error.status, headers: { "Cache-Control": "no-store" } },
-        );
-      }
-      throw error;
-    }
-  };
-}
+import { withResponse } from "pasika/with-response";
+
+export const POST = withResponse(createOrderResponseSchema, async (request: NextRequest) => {
+  const order = await createOrder(request);
+
+  return { message: "Order created.", data: order, status: 201 };
+});
 ```
 
-Why: the handler's data is validated against the response schema before it becomes a body, an `HttpError` becomes the `{ data: null, message }` response at the status it carries, and any other error stays an error. The failure is answered uncacheable: a cached `401` body is what a later reader of the same URL is served in place of the data they asked for.
+Why: the response body, the failure envelope, and the status a failure carries are the framework's, and the route names no wrapper of its own.

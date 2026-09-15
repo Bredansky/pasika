@@ -1,21 +1,11 @@
 # cn Helper Rule
 
-Class names combine conditionally and conflict with each other. This rule requires the repository's `cn` helper to exist and to resolve those conflicts by composing `clsx` with `tailwind-merge`.
+Class names combine conditionally and conflict with each other. This rule requires the `cn` a module merges them with to come from the framework rather than from a copy of its own.
 
-- A repository MUST define a `cn` helper.
-- The `cn` helper MUST return `twMerge(clsx(...))`.
+- A module that merges class names MUST import `cn` from `pasika/cn`.
+- A module MUST NOT declare a `cn` of its own.
 
-## Incorrect — Concatenation Without Conflict Resolution
-
-```ts
-export function cn(...classes: Array<string | false | null | undefined>): string {
-  return classes.filter(Boolean).join(" ");
-}
-```
-
-Why: joining classes keeps both `px-2` and `px-4` in the output, so the last-declared utility silently wins and variant overrides are unreliable.
-
-## Correct — Merging clsx and tailwind-merge
+## Incorrect — A Local Copy Of The Merge
 
 ```ts
 import { clsx, type ClassValue } from "clsx";
@@ -26,4 +16,16 @@ export function cn(...classes: ClassValue[]): string {
 }
 ```
 
-Why: `clsx` builds the conditional class string and `twMerge` removes conflicting utilities, so a later variant reliably overrides an earlier one.
+Why: the module keeps a copy of the helper, so a fix to the framework's merge never reaches this one and two merges drift apart.
+
+## Correct — The Framework's Merge, Imported
+
+```ts
+import { cn } from "pasika/cn";
+
+export function Button({ className }: ButtonProps) {
+  return <button className={cn("px-2 py-1", className)} />;
+}
+```
+
+Why: class names resolve through the one helper the framework maintains, and the module declares none of its own.
