@@ -5,8 +5,9 @@
  * through it, and that helper MUST be the boundary that turns an upstream
  * response into data or a failure: it reads the status, throws an error
  * carrying the status an upstream failure reported, parses a failed response's
- * body through the error schema its caller named, validates a JSON body through
- * the response schema, and hands back the body, status and headers of a
+ * body through the error schema its caller named, carries that body and what
+ * the schema accepted of it on the error it throws, validates a JSON body
+ * through the response schema, and hands back the body, status and headers of a
  * response it does not decode — a body it parses as a stream and hands on unread. The shape half runs on every module that
  * declares a function named `zodFetch`, wherever it sits, and reads the beats
  * above out of its body — placement is the placement rules' business, not this
@@ -33,6 +34,7 @@ interface Beats {
   readsStatus: boolean;
   throwsStatusError: boolean;
   parsesErrorPayload: boolean;
+  carriesFailureBody: boolean;
   parsesStreamBody: boolean;
   validatesWithSchema: boolean;
   handsBackBody: boolean;
@@ -44,6 +46,7 @@ const BEAT_KEYS: (keyof Beats)[] = [
   "readsStatus",
   "throwsStatusError",
   "parsesErrorPayload",
+  "carriesFailureBody",
   "parsesStreamBody",
   "validatesWithSchema",
   "handsBackBody",
@@ -54,7 +57,8 @@ const BEAT_MESSAGES: Record<keyof Beats, string> = {
   readsStatus: "must read the response status",
   throwsStatusError: "must throw an error carrying the status the upstream reported",
   parsesErrorPayload:
-    "must parse a failed response's body through the error schema its caller named, and throw the message it carries",
+    "must parse a failed response's body through the error schema its caller named, and carry what it accepted",
+  carriesFailureBody: "must carry the body a failed response answered with",
   parsesStreamBody: "must parse the body it hands back as a stream",
   validatesWithSchema: "must validate the JSON body through the response schema",
   handsBackBody: "must hand back the body of a response it does not decode",
@@ -214,18 +218,56 @@ function isPropertyName(node: ts.Identifier): boolean {
   return false;
 }
 
-/** True when an expression reads a name a decoded body was bound to. */
-function carriesDecodedName(node: ts.Node, decoded: ReadonlySet<string>): boolean {
+/** True when an expression reads one of these names as a value. */
+function carriesName(node: ts.Node, names: ReadonlySet<string>): boolean {
   let found = false;
   const visit = (current: ts.Node): void => {
     if (found) return;
-    if (ts.isIdentifier(current) && decoded.has(current.text) && !isPropertyName(current)) {
+    if (ts.isIdentifier(current) && names.has(current.text) && !isPropertyName(current)) {
       found = true;
       return;
     }
     ts.forEachChild(current, visit);
   };
   visit(node);
+  return found;
+}
+
+/** Names a read of a response body was bound to, so a throw that names one carries that body. */
+function bodyReadNames(sourceFile: ts.SourceFile): Set<string> {
+  const names = new Set<string>();
+  const visit = (node: ts.Node): void => {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      if (readsBody(node.initializer)) names.add(node.name.text);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+  return names;
+}
+
+/**
+ * Whether a throw is handed the body a failure read — as the read itself, or as
+ * the name it was bound to. A caller logs that body, and a module that knows the
+ * upstream's failure shape names the reason out of it, so a throw without it
+ * leaves the failure with nothing but its status.
+ */
+function throwsBody(sourceFile: ts.SourceFile): boolean {
+  const names = bodyReadNames(sourceFile);
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (found) return;
+    if (ts.isThrowStatement(node) && ts.isNewExpression(node.expression)) {
+      for (const argument of node.expression.arguments ?? []) {
+        if (readsBody(argument) || carriesName(argument, names)) {
+          found = true;
+          return;
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
   return found;
 }
 
@@ -237,46 +279,38 @@ function carriesDecodedName(node: ts.Node, decoded: ReadonlySet<string>): boolea
  * loss.
  */
 function handsBackDecodedBody(text: string): boolean {
-  const sourceFile = ts.createSourceFile("zod-fetch.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const decoded = new Set<string>();
-
-  const collect = (node: ts.Node): void => {
-    if (
-      ts.isVariableDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.initializer &&
-      readsBody(node.initializer)
-    ) {
-      decoded.add(node.name.text);
-    }
-    ts.forEachChild(node, collect);
-  };
-  collect(sourceFile);
+  const sourceFile = parseBody(text);
+  const decoded = bodyReadNames(sourceFile);
 
   let found = false;
   const check = (node: ts.Node): void => {
     if (found) return;
     const body = handedBackBody(node);
-    if (body && (readsBody(body) || carriesDecodedName(body, decoded))) found = true;
+    if (body && (readsBody(body) || carriesName(body, decoded))) found = true;
     if (!found) ts.forEachChild(node, check);
   };
   check(sourceFile);
   return found;
 }
 
+/** The helper's text as a tree, parents included, for the reads that need one walk to cross-reference. */
+function parseBody(text: string): ts.SourceFile {
+  return ts.createSourceFile("zod-fetch.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+}
+
 /** Reads the canonical beats out of a definition's source text. */
 function collectBeats(text: string): Beats {
+  const sourceFile = parseBody(text);
   const beats: Beats = {
     callsFetch: false,
     readsStatus: false,
     throwsStatusError: false,
     parsesErrorPayload: false,
+    carriesFailureBody: throwsBody(sourceFile),
     parsesStreamBody: false,
     validatesWithSchema: false,
     handsBackBody: false,
   };
-
-  const sourceFile = ts.createSourceFile("zod-fetch.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const visit = (node: ts.Node): void => {
     if (callsFetch(node)) beats.callsFetch = true;
     if (branchesOnStatus(node)) beats.readsStatus = true;
@@ -316,7 +350,7 @@ export const zodFetchHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch, that keeps the status and the body an upstream failure reported, and that hands back a body a caller can relay.`,
+      description: `Require a repository to define a ${HELPER} helper that is the only caller of fetch, that carries the status, the body and the accepted payload of an upstream failure on the error it throws, and that hands back a body a caller can relay.`,
     },
   },
   create(context) {
