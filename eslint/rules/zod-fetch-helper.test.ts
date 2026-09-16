@@ -45,6 +45,24 @@ void describe("A file MUST NOT call fetch.", () => {
   });
 });
 
+void describe("A file that is a test — one named `*.test.*` or `*.spec.*`, or inside a `tests` folder — MAY call `fetch`.", () => {
+  ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
+    valid: [
+      {
+        // The global is stubbed here on purpose: a mocked CDN file is what the test asserts about.
+        filename: "src/features/auth/utils/fetch-interceptor.test.ts",
+        code: "export async function serve(url: string) {\n  return await fetch(url);\n}",
+      },
+      {
+        // A spec's own setup reads the auth response's headers before the browser gets them.
+        filename: "src/tests/e2e/setup.ts",
+        code: 'export async function readSession(baseUrl: string) {\n  return await fetch(baseUrl + "/api/auth/session");\n}',
+      },
+    ],
+    invalid: [],
+  });
+});
+
 void describe("A file MUST import zodFetch from pasika/zod-fetch and MUST NOT declare one of its own.", () => {
   ruleTester.run("zod-fetch-helper", zodFetchHelperRule, {
     valid: [
