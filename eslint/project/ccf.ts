@@ -127,10 +127,9 @@ export function resolveSupportPlacement(
   supportFile: string,
   supportFolder: string,
   index: ProjectIndex,
+  importedBy: Iterable<string> = index.consumers.get(supportFile) ?? [],
 ): SupportPlacement | undefined {
-  const consumers = [...(index.consumers.get(supportFile) ?? [])].filter((consumer) =>
-    isPlacingConsumer(consumer, index.sourceRoot),
-  );
+  const consumers = [...importedBy].filter((consumer) => isPlacingConsumer(consumer, index.sourceRoot));
   if (consumers.length === 0) return undefined;
 
   const consumerSegments = consumers.map((consumer) => segmentsOf(consumer, index.sourceRoot));

@@ -796,7 +796,7 @@
       "doc": "next-codebase-guide/rules/utilities-rule.md",
       "text": "Exports with different CCFs MUST be split into separately placed utility modules.",
       "hash": "afa76fb815",
-      "note": "per-export consumer analysis is not yet enforced"
+      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",

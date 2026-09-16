@@ -25,6 +25,7 @@ const FIXTURE: Record<string, string> = {
     'import { CrossType } from "./types/cross";',
     'import { calcTotal } from "./utils/calc-total";',
     'import { crossUtil } from "./utils/cross";',
+    'import { billingOnly, sharedUtility } from "./utils/mixed";',
     'import { useRetry } from "./hooks/use-retry";',
     'import { useCross } from "./hooks/use-cross";',
     'import { useStale } from "@/features/stale/hooks/use-stale";',
@@ -48,6 +49,7 @@ const FIXTURE: Record<string, string> = {
     'import { crossValue } from "@/features/billing/constants/cross";',
     'import { CrossType } from "@/features/billing/types/cross";',
     'import { crossUtil } from "@/features/billing/utils/cross";',
+    'import { sharedUtility } from "@/features/billing/utils/mixed";',
     'import { useCross } from "@/features/billing/hooks/use-cross";',
     "export function Order() { return <span />; }",
     "",
@@ -55,6 +57,8 @@ const FIXTURE: Record<string, string> = {
   "features/billing/constants/cross.ts": "export const crossValue = 1;\n",
   "features/billing/types/cross.ts": "export type CrossType = string;\n",
   "features/billing/utils/cross.ts": "export function crossUtil() { return 0; }\n",
+  "features/billing/utils/mixed.ts":
+    "export function billingOnly() { return 0; }\nexport function sharedUtility() { return 0; }\n",
   "features/billing/hooks/use-cross.ts": "export function useCross() {}\n",
 
   // Sitting in the wrong feature.
@@ -198,6 +202,23 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
       {
         ...ok("features/billing/utils/cross.ts"),
         errors: [move("src/utils/", REASONS.features, ["features/billing/invoice.tsx", "features/orders/order.tsx"])],
+      },
+    ],
+  });
+});
+
+void describe("Exports with different CCFs MUST be split into separately placed utility modules.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/utils/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split utility exports with different CCFs: billingOnly → src/features/billing/utils/, sharedUtility → src/utils/.",
+          },
+        ],
       },
     ],
   });
