@@ -1,8 +1,10 @@
 /**
  * ESLint rule: pasika/cross-feature-import
  *
- * A component that imports from two or more feature folders MUST live in
- * src/compositions/.
+ * A component that imports from two or more feature folders other than the one
+ * it lives in MUST live in src/compositions/. The folder a file already lives
+ * in is not a feature it combines, so it never counts toward the two — a
+ * component importing its own feature's support folders stays where it is.
  *
  * @see docs/next-codebase-guide/rules/component-placement-rule.md
  */
@@ -26,7 +28,7 @@ export const crossFeatureImportRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require non-composition files that import from two or more feature folders to live in src/compositions/.",
+        "Require non-composition files that import from two or more feature folders other than their own to live in src/compositions/.",
     },
   },
   create(context) {
@@ -42,6 +44,11 @@ export const crossFeatureImportRule: Rule.RuleModule = {
     const isInApp = fileSegments[0] === "app";
     const isConfig = fileSegments[0] === "config";
     if (isInCompositions || isInApp || isConfig) return {};
+
+    // The feature the file already lives in. Importing from it is not importing
+    // from a feature folder the component combines, so it cannot count: a file's
+    // own folder is never a reason for the file to live somewhere else.
+    const ownFeature = fileSegments[0] === FEATURES_SEGMENT ? fileSegments[1] : undefined;
 
     const importedFeatures = new Set<string>();
     let alreadyReported = false;
@@ -61,7 +68,7 @@ export const crossFeatureImportRule: Rule.RuleModule = {
         if (!resolved) return;
 
         const feature = featureNameOf(resolved, sourceRoot);
-        if (feature) importedFeatures.add(feature);
+        if (feature !== undefined && feature !== ownFeature) importedFeatures.add(feature);
 
         if (importedFeatures.size >= 2) {
           alreadyReported = true;

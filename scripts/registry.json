@@ -332,14 +332,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A component that imports from two or more feature folders MUST live in `src/compositions/`.",
-      "hash": "a00c621fbe",
+      "text": "A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.",
+      "hash": "10844fbc57",
       "ref": "pasika/cross-feature-import"
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "b3d12b8551",
+      "text": "A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "534fd3c418",
       "ref": "pasika/component-placement"
     },
     {
