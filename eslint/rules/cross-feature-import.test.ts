@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { crossFeatureImportRule } from "./cross-feature-import";
 
-void describe("A component that imports from two or more feature folders MUST live in src/compositions/.", () => {
+void describe("A component that imports from two or more feature folders other than its own MUST live in src/compositions/.", () => {
   ruleTester.run("cross-feature-import", crossFeatureImportRule, {
     valid: [
       {
@@ -28,15 +28,33 @@ void describe("A component that imports from two or more feature folders MUST li
         code: 'import { a } from "@/features/billing/a"; import { b } from "@/features/home/b";',
         filename: srcFile("config/theme/index.ts"),
       },
+      {
+        code: 'import { invoiceSchema } from "./schemas"; import { Button } from "@/features/ui/button";',
+        filename: srcFile("features/billing/dashboard.tsx"),
+      },
+      {
+        code: 'import { BillingPanel } from "@/features/billing/BillingPanel"; import { HomeBanner } from "@/features/home/HomeBanner";',
+        filename: srcFile("features/billing/dashboard.tsx"),
+      },
     ],
     invalid: [
       {
-        code: 'import { BillingPanel } from "@/features/billing/BillingPanel"; import { HomeBanner } from "@/features/home/HomeBanner";',
+        code: 'import { HomeBanner } from "@/features/home/HomeBanner"; import { StreamCard } from "@/features/stream/StreamCard";',
         filename: srcFile("features/billing/dashboard.tsx"),
         errors: [
           {
             message:
-              "This component imports from two or more feature folders (billing, home) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
+              "This component imports from two or more feature folders (home, stream) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
+          },
+        ],
+      },
+      {
+        code: 'import { BillingPanel } from "@/features/billing/BillingPanel"; import { HomeBanner } from "@/features/home/HomeBanner"; import { StreamCard } from "@/features/stream/StreamCard";',
+        filename: srcFile("features/billing/dashboard.tsx"),
+        errors: [
+          {
+            message:
+              "This component imports from two or more feature folders (home, stream) and must live in src/compositions/. See docs/next-codebase-guide/rules/component-placement-rule.md",
           },
         ],
       },

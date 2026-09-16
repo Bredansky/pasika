@@ -80,7 +80,7 @@ const featureMessage = (currentFolder: string): string =>
   `This component has no consumer outside src/app/ or a configuration module, ` +
   `so it belongs in the feature folder it represents, not in ${currentFolder}. ${DOC}`;
 
-void describe("A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("features/search/search-form.tsx"), filename: file("features/search/search-form.tsx") }],
     invalid: [

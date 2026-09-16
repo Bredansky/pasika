@@ -2,8 +2,8 @@
 
 Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
-- A component that imports from two or more feature folders MUST live in `src/compositions/`.
-- A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
+- A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.
+- A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
 - A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
 - A component whose CCF is `src/features/` MUST live in `src/shared/`.
@@ -42,11 +42,11 @@ Why: the component's CCF is `src/features/`, so it lives in `src/shared/`.
 
 ```tsx
 // src/features/billing/billing-aggregate-view.tsx
-import { BillingPanel } from "./BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
+import { StreamCard } from "@/features/stream/StreamCard";
 ```
 
-Why: the component imports from two feature folders, so it cannot live in either feature folder.
+Why: the component imports from two feature folders other than the one it lives in, so it cannot live in a feature folder.
 
 ## Correct — Multi-Feature Component in `src/compositions/`
 
@@ -56,7 +56,7 @@ import { BillingPanel } from "@/features/billing/BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
 ```
 
-Why: the component imports from two feature folders, so it lives in `src/compositions/`.
+Why: the component imports from two feature folders other than the one it lives in, so it lives in `src/compositions/`. A component's own feature folder never counts as one of them, which is what leaves a component that reads its own siblings or support folders in the feature it represents.
 
 ## Incorrect — Ordinary Component Under `src/app/`
 
