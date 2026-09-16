@@ -61,6 +61,14 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         }
         if (hasDirectExport) return;
 
+        if (siblingModules.length === 1 && hasAnyReExport) {
+          context.report({
+            node,
+            message: `${folder}/index.ts re-exports a sole support file; define its exports directly in index.ts instead. See ${guide}`,
+          });
+          return;
+        }
+
         const missing = siblingModules.filter((entry) => {
           const stem = entry.replace(/\.(?:[cm]?tsx?|jsx?)$/, "");
           return !exportedFiles.has(stem);

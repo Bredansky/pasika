@@ -752,8 +752,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A `types/` or `schemas/` folder MUST either define its exports directly in `index.ts` or group related types and schemas in files that `index.ts` named-re-exports.",
-      "hash": "b13a973306",
+      "text": "A `types/` or `schemas/` folder with one support file MUST define its exports directly in `index.ts`; with several support files, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
+      "hash": "0cef4647fe",
       "ref": "pasika/support-folder-shape"
     },
     {

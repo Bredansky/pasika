@@ -15,8 +15,14 @@ function fixture(folder: string, index: string, sibling: string): string {
 
 void describe("A constants/ folder MUST either define its constants directly in index.ts or group related constants in files that index.ts named-re-exports.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
-  const reExported = fixture("constants", 'export { value } from "./retry";\n', "retry.ts");
-  const wildcardReExported = fixture("constants", 'export * from "./retry";\n', "retry.ts");
+  const grouped = fixture(
+    "constants",
+    'export { value } from "./retry";\nexport { timeout } from "./timeout";\n',
+    "retry.ts",
+  );
+  writeFileSync(path.join(path.dirname(grouped), "timeout.ts"), "export const timeout = 1;\n");
+  const singleReExport = fixture("constants", 'export { value } from "./retry";\n', "retry.ts");
+  const singleWildcardReExport = fixture("constants", 'export * from "./retry";\n', "retry.ts");
   const invalid = fixture("constants", "\n", "retry.ts");
   const mixedAndNamed = fixture(
     "constants",
@@ -27,10 +33,11 @@ void describe("A constants/ folder MUST either define its constants directly in 
   ruleTester.run("support-folder-shape", supportFolderShapeRule, {
     valid: [
       { code: "export const value = 1;", filename: valid },
-      { code: 'export { value } from "./retry";', filename: reExported },
-      { code: 'export * from "./retry";', filename: wildcardReExported },
+      { code: 'export { value } from "./retry";\nexport { timeout } from "./timeout";', filename: grouped },
     ],
     invalid: [
+      { code: 'export { value } from "./retry";', filename: singleReExport, errors: 1 },
+      { code: 'export * from "./retry";', filename: singleWildcardReExport, errors: 1 },
       { code: "", filename: invalid, errors: 1 },
       {
         code: 'export const value = 1;\nexport { retryDelayMs } from "./retry";',
@@ -46,9 +53,10 @@ void describe("A constants/ folder MUST either define its constants directly in 
   });
 });
 
-void describe("A types/ or schemas/ folder MUST either define its exports directly in index.ts or group related types and schemas in files that index.ts named-re-exports.", () => {
-  const valid = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
-  const wildcardValid = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");
+void describe("A `types/` or `schemas/` folder with one support file MUST define its exports directly in `index.ts`; with several support files, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
+  const direct = fixture("types", "export interface Invoice { id: string; }\n", "invoice.ts");
+  const singleReExport = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
+  const singleWildcardReExport = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");
   const invalid = fixture("schemas", "\n", "invoice-schema.ts");
   const mixedAndNamed = fixture(
     "types",
@@ -61,11 +69,10 @@ void describe("A types/ or schemas/ folder MUST either define its exports direct
     "invoice-schema.ts",
   );
   ruleTester.run("support-folder-shape", supportFolderShapeRule, {
-    valid: [
-      { code: 'export { Invoice } from "./invoice";', filename: valid },
-      { code: 'export * from "./invoice-schema";', filename: wildcardValid },
-    ],
+    valid: [{ code: "export interface Invoice { id: string; }", filename: direct }],
     invalid: [
+      { code: 'export { Invoice } from "./invoice";', filename: singleReExport, errors: 1 },
+      { code: 'export * from "./invoice-schema";', filename: singleWildcardReExport, errors: 1 },
       { code: "", filename: invalid, errors: 1 },
       {
         code: 'export type Value = number;\nexport { Invoice } from "./invoice";',
