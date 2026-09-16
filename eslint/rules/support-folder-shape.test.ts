@@ -53,7 +53,7 @@ void describe("A constants/ folder MUST either define its constants directly in 
   });
 });
 
-void describe("A `types/` or `schemas/` folder with one support file MUST define its exports directly in `index.ts`; with several support files, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
+void describe("A `types/` or `schemas/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
   const direct = fixture("types", "export interface Invoice { id: string; }\n", "invoice.ts");
   const singleReExport = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
   const singleWildcardReExport = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");

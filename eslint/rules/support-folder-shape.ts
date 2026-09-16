@@ -64,7 +64,7 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         if (siblingModules.length === 1 && hasAnyReExport) {
           context.report({
             node,
-            message: `${folder}/index.ts re-exports a sole support file; define its exports directly in index.ts instead. See ${guide}`,
+            message: `${folder}/index.ts re-exports exactly one sibling module; define that module's exports directly in index.ts instead. See ${guide}`,
           });
           return;
         }
