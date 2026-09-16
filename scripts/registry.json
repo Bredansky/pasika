@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder MUST either define its constants directly in `index.ts` or group related constants in files that `index.ts` named-re-exports.",
-      "hash": "2d1591194c",
+      "text": "A `constants/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related constants in files that `index.ts` named-re-exports.",
+      "hash": "c836f17653",
       "ref": "pasika/support-folder-shape"
     },
     {
