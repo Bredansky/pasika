@@ -93,12 +93,12 @@ describe("zodFetch", () => {
     expect(relayed.body.locked).toBe(false);
   });
 
-  test("throws at the upstream's own status when it answered with nothing to relay", async () => {
+  test("throws a 502 when the upstream answered with nothing to relay", async () => {
     answerWith(new Response(null, { status: 204 }));
 
     const error = await zodFetch({ url: "https://api.test/file" }).catch((caught: unknown) => caught);
 
-    expect(error).toMatchObject({ status: 204, message: "The upstream answered without a body to relay." });
+    expect(error).toMatchObject({ status: 502, message: "The upstream answered without a body to relay." });
   });
 
   test("answers a success the response schema allows to carry no body", async () => {
@@ -109,7 +109,7 @@ describe("zodFetch", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("throws at the upstream's own status when a success carries no body the schema wants", async () => {
+  test("throws a 502 when a success carries no body the schema wants", async () => {
     answerWith(new Response(null, { status: 204 }));
 
     const error = await zodFetch({
@@ -117,6 +117,6 @@ describe("zodFetch", () => {
       responseSchema: payloadSchema,
     }).catch((caught: unknown) => caught);
 
-    expect(error).toMatchObject({ status: 204, message: "The upstream answered without a body to decode." });
+    expect(error).toMatchObject({ status: 502, message: "The upstream answered without a body to decode." });
   });
 });
