@@ -7,8 +7,9 @@
  * check, the schema validation, and the failure the helper carries. The rule
  * reports a `fetch` call — written bare or on a global object — wherever it
  * sits, and a binding of the helper's name to anything but the package entry,
- * whether a declaration or an import from another source. Placement is the
- * placement rules' business, not this one's.
+ * whether a declaration or an import from another source. A test file is left
+ * alone: a mocked network is what such a file is there to exercise. Placement
+ * is the placement rules' business, not this one's.
  *
  * @see docs/pasika-adoption-guide/rules/zod-fetch-helper-rule.md
  */
@@ -26,6 +27,14 @@ const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
 
 /** The objects a bare `fetch` resolves through, so `globalThis.fetch(...)` is the same request. */
 const GLOBAL_OBJECTS = new Set(["globalThis", "window", "self", "global"]);
+
+/**
+ * A file that asserts rather than ships: it names itself a test or a spec, or it
+ * sits in a folder that holds them. Such a file stubs the global to intercept a
+ * request, or reads a response's headers for itself, and the helper's contract is
+ * what it is checking.
+ */
+const TEST_FILE = /(?:^|[\\/])(?:__tests__|tests)[\\/]|[.](?:test|spec)[.][cm]?[jt]sx?$/;
 
 function isNamed(node: ESTree.Node | null | undefined, name: string): boolean {
   return node?.type === "Identifier" && node.name === name;
@@ -52,6 +61,8 @@ export const zodFetchHelperRule: Rule.RuleModule = {
     },
   },
   create(context) {
+    if (TEST_FILE.test(context.filename)) return {};
+
     /**
      * The names an import or a re-export binds, so a binding of the helper's
      * name to a source that is not the package entry is reported at the

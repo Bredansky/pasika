@@ -1190,6 +1190,12 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
+      "text": "A file that is a test — one named `*.test.*` or `*.spec.*`, or inside a `tests` folder — MAY call `fetch`.",
+      "hash": "af26ee9387",
+      "ref": "pasika/zod-fetch-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
       "text": "A file MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.",
       "hash": "dac89b19bd",
       "ref": "pasika/zod-fetch-helper"

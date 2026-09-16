@@ -98,7 +98,7 @@ Why: each delegated module owns one step — reading the payload, creating a pub
 ## Incorrect — HttpError Returned From An `async` Function
 
 ```ts
-// src/utils/require-session.ts
+// src/features/auth/utils/get-user-id.ts
 export async function getUserId() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -113,7 +113,7 @@ Why: returning `new HttpError(...)` inside an `async` function resolves `getUser
 ## Correct — HttpError Thrown From An `async` Function
 
 ```ts
-// src/utils/require-session.ts
+// src/features/auth/utils/get-user-id.ts
 export async function getUserId(): Promise<string> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {

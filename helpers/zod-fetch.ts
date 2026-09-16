@@ -17,6 +17,13 @@ export interface ZodFetchRelayedResponse {
   headers: Headers;
 }
 
+/**
+ * The status a body the helper cannot hand on leaves with. The upstream answered at
+ * a success status, so the failure is this gateway's: it could not relay what it got,
+ * and a 2xx carrying `{ data: null, message }` would read as a success to its caller.
+ */
+const BAD_GATEWAY = 502;
+
 /** A body that is not JSON stays the text the upstream sent it as. */
 function decodeFailureBody(body: string): unknown {
   try {
@@ -35,7 +42,7 @@ function decodeFailureBody(body: string): unknown {
  *
  * A success that carries no body is the schema's call: one that allows its data to
  * be absent, such as `z.undefined()` for an endpoint answering `204`, accepts it, and
- * one that does not makes it a failure at the upstream's own status.
+ * one that does not makes it a failure of this gateway's own, a 502.
  */
 export function zodFetch<TSchema extends ZodType>(
   options: ZodFetchOptions<TSchema> & { responseSchema: TSchema },
@@ -59,7 +66,7 @@ export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unkno
     const streamed = streamBody.safeParse(response.body);
 
     if (!streamed.success) {
-      throw new HttpError("The upstream answered without a body to relay.", response.status);
+      throw new HttpError("The upstream answered without a body to relay.", BAD_GATEWAY);
     }
 
     return { body: streamed.data, status: response.status, headers: response.headers };
@@ -72,7 +79,7 @@ export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unkno
 
     if (absent.success) return absent.data;
 
-    throw new HttpError("The upstream answered without a body to decode.", response.status);
+    throw new HttpError("The upstream answered without a body to decode.", BAD_GATEWAY);
   }
 
   const decoded: unknown = JSON.parse(body);
