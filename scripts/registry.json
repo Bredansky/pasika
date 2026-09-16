@@ -794,6 +794,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "Exports with different CCFs MUST be split into separately placed utility modules.",
+      "hash": "afa76fb815",
+      "note": "per-export consumer analysis is not yet enforced"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
       "text": "An extracted utility MUST live in the `utils/` folder at the CCF of its consumers.",
       "hash": "bb1130ed9d",
       "ref": "pasika/support-file-placement"
