@@ -674,6 +674,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MUST NOT contain a `map` operation in its body.",
+      "hash": "2e0b8cf42f",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
       "text": "A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.",
       "hash": "0d8021c81a",
       "ref": "pasika/route-handler-shape"

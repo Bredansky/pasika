@@ -12,6 +12,9 @@ const NO_LOOP = (name: string): string =>
 const NO_IF = (name: string): string =>
   `Handler "${name}" contains an if statement of its own; delegate that to a function it calls. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
+const NO_MAP = (name: string): string =>
+  `Handler "${name}" contains a map operation of its own; delegate that to a function it calls. ` +
+  "See docs/next-codebase-guide/rules/route-handler-rule.md";
 const NOT_IMPORTED = (name: string, calledName: string): string =>
   `Handler "${name}" calls "${calledName}", which is declared in route.ts instead of imported. ` +
   "See docs/next-codebase-guide/rules/route-handler-rule.md";
@@ -145,13 +148,7 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain a `try` stat
       {
         code: `export const POST = withResponse(schema, async (request: NextRequest) => {
           const body = await request.json();
-          const ids = body.orders.map((order) => {
-            try {
-              return order.id;
-            } catch {
-              return "";
-            }
-          });
+          const ids = await getIds(body);
           return { message: "OK.", data: ids };
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
@@ -190,12 +187,7 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain a loop in it
       {
         code: `export const POST = withResponse(schema, async (request: NextRequest) => {
           const body = await request.json();
-          const ids = body.orders.map((order) => {
-            for (const layer of order.layers) {
-              layer.url = layer.url;
-            }
-            return order.id;
-          });
+          const ids = await getIds(body);
           return { message: "OK.", data: ids };
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
@@ -232,10 +224,7 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain an `if` stat
       {
         code: `export const POST = withResponse(schema, async (request: NextRequest) => {
           const body = await request.json();
-          const ids = body.orders.map((order) => {
-            if (!order.id) return "";
-            return order.id;
-          });
+          const ids = await getIds(body);
           return { message: "OK.", data: ids };
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
@@ -315,6 +304,31 @@ void describe("A function that a handler wrapped in `withResponse` calls MUST be
         });`,
         filename: srcFile("app/api/render-instagram-content/route.ts"),
         errors: [{ message: NOT_IMPORTED("POST", "dispatchWithRetry") }],
+      },
+    ],
+  });
+});
+
+void describe("A handler wrapped in `withResponse` MUST NOT contain a `map` operation in its body.", () => {
+  ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
+    valid: [
+      {
+        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
+          const values = await getMappedValues(request);
+          return { message: "OK.", data: values };
+        });`,
+        filename: srcFile("app/api/health/route.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
+          const body = await request.json();
+          const values = body.items.map((item) => item.id);
+          return { message: "OK.", data: values };
+        });`,
+        filename: srcFile("app/api/health/route.ts"),
+        errors: [{ message: NO_MAP("GET") }],
       },
     ],
   });

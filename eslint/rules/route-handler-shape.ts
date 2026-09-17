@@ -58,7 +58,7 @@ function isFunctionBoundary(node: ts.Node): boolean {
   return ts.isFunctionExpression(node) || ts.isArrowFunction(node) || ts.isFunctionDeclaration(node);
 }
 
-type ControlFlowKind = "try" | "loop" | "if";
+type ControlFlowKind = "try" | "loop" | "if" | "map";
 
 interface HandlerAnalysis {
   kinds: Set<ControlFlowKind>;
@@ -91,6 +91,13 @@ function analyzeHandlerBody(body: ESTree.Node, sourceText: string): HandlerAnaly
     if (ts.isTryStatement(node)) kinds.add("try");
     if (isLoop(node)) kinds.add("loop");
     if (ts.isIfStatement(node)) kinds.add("if");
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.text === "map"
+    ) {
+      kinds.add("map");
+    }
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) calledNames.add(node.expression.text);
     if (isFunctionBoundary(node)) return;
     ts.forEachChild(node, visit);
@@ -103,6 +110,7 @@ const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
   try: "a try statement",
   loop: "a loop",
   if: "an if statement",
+  map: "a map operation",
 };
 
 function isFunctionLikeInit(node: ESTree.Expression | null | undefined): boolean {

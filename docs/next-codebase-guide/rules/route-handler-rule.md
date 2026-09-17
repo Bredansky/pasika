@@ -10,6 +10,7 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
 - A handler wrapped in `withResponse` MUST NOT contain a loop in its body.
+- A handler wrapped in `withResponse` MUST NOT contain a `map` operation in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
 
 ## Incorrect — Handler Not Wrapped In `withResponse`
@@ -258,11 +259,12 @@ export const POST = withResponse(schema, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, orderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
-  return { message: "Dispatched.", data: ordersWithJobIds.map((order) => order.jobId) };
+  const jobIds = await getJobIds(ordersWithJobIds);
+  return { message: "Dispatched.", data: jobIds };
 });
 ```
 
-Why: `createPublicationsForOrders` owns the loop over orders, so the handler's body has no loop of its own.
+Why: `createPublicationsForOrders` owns the loop over orders and `getJobIds` owns the mapping, so the handler's body has neither operation of its own.
 
 ## Incorrect — Handler Branches On A Missing Parameter
 
