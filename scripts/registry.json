@@ -404,12 +404,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constants module MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.",
-      "hash": "0967d850ef",
-      "note": "covered by generic per-export placement rule"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.",
       "hash": "34022a9e2b",
       "ref": "pasika/support-file-placement"
@@ -425,6 +419,12 @@
       "text": "A `constants/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related constants in files that `index.ts` named-re-exports.",
       "hash": "c836f17653",
       "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A constants file MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "d299191425",
+      "note": "covered by generic per-export placement rule"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
@@ -746,12 +746,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A types or schemas module MUST calculate each exported item’s CCF from that item's direct consumers and MUST split exports whose CCFs differ.",
-      "hash": "90e9bf9b84",
-      "note": "covered by generic per-export placement rule"
-    },
-    {
-      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the CCF of their consumers.",
       "hash": "d8f89cd54a",
       "ref": "pasika/support-file-placement"
@@ -767,6 +761,12 @@
       "text": "A `types/` or `schemas/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
       "hash": "5d9d97e321",
       "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A types or schemas file MUST calculate each exported item’s CCF from that item's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "62613c21dd",
+      "note": "covered by generic per-export placement rule"
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
@@ -806,14 +806,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "Exports with different CCFs MUST be split into separately placed utility modules.",
-      "hash": "afa76fb815",
+      "text": "An extracted utility MUST live in the `utils/` folder at the CCF of its consumers.",
+      "hash": "bb1130ed9d",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "An extracted utility MUST live in the `utils/` folder at the CCF of its consumers.",
-      "hash": "bb1130ed9d",
+      "text": "Exports with different CCFs MUST be split into separately placed utility modules.",
+      "hash": "afa76fb815",
       "ref": "pasika/support-file-placement"
     },
     {
