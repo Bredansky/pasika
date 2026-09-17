@@ -542,12 +542,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A hooks module MUST calculate each exported hook's CCF from that hook's direct consumers and MUST split exports whose CCFs differ.",
-      "hash": "411ac29e80",
-      "note": "covered by generic per-export placement rule"
-    },
-    {
-      "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
       "text": "An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.",
       "hash": "9b975cbb62",
       "ref": "pasika/support-file-placement"

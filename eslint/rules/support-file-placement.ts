@@ -35,7 +35,7 @@ import { sourceRootOf } from "./project-root";
 const CONFIG_OWNED_FOLDERS = new Set(["types", "constants"]);
 const EXPORT_KIND_BY_SUPPORT_FOLDER = new Map<string, ExportKind>([
   ["constants", "constant"],
-  ["hooks", "hook"],
+
   ["schemas", "schema"],
   ["types", "type"],
   ["utils", "function"],
