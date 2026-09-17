@@ -6,7 +6,6 @@ Types and schemas are easy to bury in component files or scatter across the proj
 - Importing a type or schema alongside the component that defines it MUST NOT require extraction.
 - A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.
 - A types or schemas module MUST calculate each exported item’s CCF from that item's direct consumers and MUST split exports whose CCFs differ.
-
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the CCF of their consumers.
 - When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
 - A `types/` or `schemas/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related types and schemas in files that `index.ts` named-re-exports.
