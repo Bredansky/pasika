@@ -404,6 +404,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A constants module MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "0967d850ef",
+      "note": "covered by generic per-export placement rule"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.",
       "hash": "34022a9e2b",
       "ref": "pasika/support-file-placement"
@@ -533,6 +539,12 @@
       "text": "A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.",
       "hash": "aa6d353adf",
       "ref": "pasika/hook-complexity"
+    },
+    {
+      "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
+      "text": "A hooks module MUST calculate each exported hook's CCF from that hook's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "411ac29e80",
+      "note": "covered by generic per-export placement rule"
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
@@ -737,6 +749,12 @@
       "text": "A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.",
       "hash": "e63d1fbcb8",
       "ref": "pasika/type-extraction"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A types or schemas module MUST calculate each exported item’s CCF from that item's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "90e9bf9b84",
+      "note": "covered by generic per-export placement rule"
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
