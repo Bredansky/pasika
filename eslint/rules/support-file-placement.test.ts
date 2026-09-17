@@ -21,8 +21,10 @@ const FIXTURE: Record<string, string> = {
   "features/billing/invoice.tsx": [
     'import { maxRetries } from "./constants";',
     'import { crossValue } from "./constants/cross";',
+    'import { billingConstant, sharedConstant } from "./constants/mixed";',
     'import { DateRange } from "./types";',
     'import { CrossType } from "./types/cross";',
+    'import type { BillingOnlyType, SharedType } from "./types/mixed";',
     'import { calcTotal } from "./utils/calc-total";',
     'import { crossUtil } from "./utils/cross";',
     'import { billingOnly, sharedUtility } from "./utils/mixed";',
@@ -47,7 +49,9 @@ const FIXTURE: Record<string, string> = {
   // Consumed from two features, so no feature can own them.
   "features/orders/order.tsx": [
     'import { crossValue } from "@/features/billing/constants/cross";',
+    'import { sharedConstant } from "@/features/billing/constants/mixed";',
     'import { CrossType } from "@/features/billing/types/cross";',
+    'import type { SharedType } from "@/features/billing/types/mixed";',
     'import { crossUtil } from "@/features/billing/utils/cross";',
     'import { sharedUtility } from "@/features/billing/utils/mixed";',
     'import { useCross } from "@/features/billing/hooks/use-cross";',
@@ -55,7 +59,9 @@ const FIXTURE: Record<string, string> = {
     "",
   ].join("\n"),
   "features/billing/constants/cross.ts": "export const crossValue = 1;\n",
+  "features/billing/constants/mixed.ts": "export const billingConstant = 1;\nexport const sharedConstant = 1;\n",
   "features/billing/types/cross.ts": "export type CrossType = string;\n",
+  "features/billing/types/mixed.ts": "export type BillingOnlyType = string;\nexport type SharedType = string;\n",
   "features/billing/utils/cross.ts": "export function crossUtil() { return 0; }\n",
   "features/billing/utils/mixed.ts":
     "export function billingOnly() { return 0; }\nexport function sharedUtility() { return 0; }\n",
@@ -202,6 +208,40 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
       {
         ...ok("features/billing/utils/cross.ts"),
         errors: [move("src/utils/", REASONS.features, ["features/billing/invoice.tsx", "features/orders/order.tsx"])],
+      },
+    ],
+  });
+});
+
+void describe("A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/constants/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split constants exports with different CCFs: billingConstant → src/features/billing/constants/, sharedConstant → src/constants/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A file in `types/` or `schemas/` MUST calculate each exported type or schema's CCF from that item's direct consumers and MUST split exports whose CCFs differ.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/types/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split types exports with different CCFs: BillingOnlyType → src/features/billing/types/, SharedType → src/types/.",
+          },
+        ],
       },
     ],
   });
