@@ -326,8 +326,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.",
-      "hash": "42f258782a",
+      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.tsx` that named-re-exports that component.",
+      "hash": "9abd3cd83e",
       "ref": "pasika/application-structure"
     },
     {
@@ -524,8 +524,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
-      "text": "The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
-      "hash": "d3fba850df",
+      "text": "The nested folder's `index.tsx` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
+      "hash": "77892d98cf",
       "ref": "pasika/enforce-barrel-exports"
     },
     {

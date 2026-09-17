@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { ProjectIndex } from "./index";
 
@@ -97,9 +98,29 @@ export function resolveComponentPlacement(componentFile: string, index: ProjectI
 
 export const formatFolder = (folder: string[]): string => `src/${folder.join("/")}/`;
 
-/** The folder that owns a consumer: its own folder, stepped out of any support folder. */
+/** Whether a folder is a structurally valid named component folder. */
+function isValidComponentFolder(folder: string[], sourceRoot: string): boolean {
+  const name = folder[folder.length - 1];
+  if (!name || SUPPORT_FOLDERS.has(name)) return false;
+  const folderPath = path.join(sourceRoot, ...folder);
+  return fs.existsSync(path.join(folderPath, `${name}.tsx`)) && fs.existsSync(path.join(folderPath, "index.tsx"));
+}
+
+/**
+ * The folder that owns a consumer: its own folder, stepped out of support
+ * folders and invalid grouping folders. A non-support folder is a component
+ * scope only when the application structure proves it is a named component
+ * folder; this keeps a non-component grouping folder from changing a support
+ * file's CCF.
+ */
 function owningFolderOf(consumer: string, sourceRoot: string): string[] {
-  return outOfSupportFolders(folderSegmentsOf(consumer, sourceRoot));
+  const result = outOfSupportFolders(folderSegmentsOf(consumer, sourceRoot));
+  const [topLevel] = result;
+  let minimumDepth = result.length;
+  if (topLevel === "features") minimumDepth = 2;
+  if (topLevel === "compositions" || topLevel === "shared") minimumDepth = 1;
+  while (result.length > minimumDepth && !isValidComponentFolder(result, sourceRoot)) result.pop();
+  return result;
 }
 
 /** The configuration module a file belongs to. `config/<name>/...` only: `config/<file>.ts` is not a module. */

@@ -5,7 +5,7 @@ Without nesting, exclusive children can look reusable and their relationship to 
 - A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
 - A component MUST NOT be nested only because it has support files.
 - A nested component's support files MUST live in its folder.
-- The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
+- The nested folder's `index.tsx` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
 
 ## Incorrect — Exclusive Children Kept Flat
 
@@ -25,10 +25,10 @@ Why: `BlogPage` owns children that no sibling uses, but all three files sit as f
 ```text
 src/features/blog/
   BlogPage/
-    index.ts                  # re-exports only BlogPage.tsx
+    index.tsx                  # re-exports only BlogPage.tsx
     BlogPage.tsx
-    blog-header.tsx           # not re-exported from index.ts
-    blog-footer.tsx           # not re-exported from index.ts
+    blog-header.tsx           # not re-exported from index.tsx
+    blog-footer.tsx           # not re-exported from index.tsx
     hooks/
       use-blog-filter.ts
 ```
@@ -40,7 +40,7 @@ Why: nesting `BlogPage` into `BlogPage/` makes the parent–child relationship v
 ```text
 src/features/blog/
   BlogPage/
-    index.ts
+    index.tsx
     BlogPage.tsx
     hooks/
       use-blog-filter.ts
@@ -62,17 +62,17 @@ Why: without exclusive children, `BlogPage` stays flat and its support files rem
 ## Incorrect — Exclusive Child Re-Exported
 
 ```ts
-// src/features/blog/BlogPage/index.ts
+// src/features/blog/BlogPage/index.tsx
 export { BlogPage } from "./BlogPage";
 export { BlogHeader } from "./blog-header";
 ```
 
-Why: the barrel re-exports the child as well as the nested component, so outside consumers can import `blog-header.tsx` through `index.ts` and the child stops being exclusive to `BlogPage`.
+Why: the barrel re-exports the child as well as the nested component, so outside consumers can import `blog-header.tsx` through `index.tsx` and the child stops being exclusive to `BlogPage`.
 
 ## Correct — Only the Nested Component Re-Exported
 
 ```tsx
-// src/features/blog/BlogPage/index.ts
+// src/features/blog/BlogPage/index.tsx
 export { BlogPage } from "./BlogPage";
 
 // src/features/blog/BlogPage/BlogPage.tsx

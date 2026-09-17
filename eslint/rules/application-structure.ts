@@ -98,6 +98,10 @@ function componentFolderStart(segments: string[]): number {
   return -1;
 }
 
+function hasComponentBarrel(folderPath: string): boolean {
+  return fs.existsSync(path.join(folderPath, "index.tsx"));
+}
+
 /**
  * A folder inside a feature folder, compositions/, or shared/ that is not a
  * support folder must be a component folder: it must contain a `.tsx` file with
@@ -117,8 +121,8 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
     if (!fs.existsSync(path.join(folderPath, `${folder}.tsx`))) {
       return `A folder that is not a support folder must be a component folder; add "${folder}.tsx" to ${label} or move its files into a support folder.`;
     }
-    if (!fs.existsSync(path.join(folderPath, "index.ts"))) {
-      return `A component folder must have an index.ts that named-re-exports its component; add index.ts to ${label}.`;
+    if (!hasComponentBarrel(folderPath)) {
+      return `A component folder must have an index.tsx that named-re-exports its component; add index.tsx to ${label}.`;
     }
   }
   return undefined;

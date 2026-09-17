@@ -32,7 +32,7 @@ const FIXTURE: Record<string, string> = {
   // nesting, so placement must accept it. The consumer is in the same feature,
   // so the CCF is the feature folder and the nested folder adds the component
   // name.
-  "features/catalog/CatalogPanel/index.ts": 'export { CatalogPanel } from "./CatalogPanel";\n',
+  "features/catalog/CatalogPanel/index.tsx": 'export { CatalogPanel } from "./CatalogPanel";\n',
   "features/catalog/CatalogPanel/CatalogPanel.tsx":
     'import { CatalogItem } from "../catalog-item";\nimport { CatalogPanelHeader } from "./catalog-panel-header";\nexport function CatalogPanel() { return <CatalogItem />; }\n',
   "features/catalog/CatalogPanel/catalog-panel-header.tsx":

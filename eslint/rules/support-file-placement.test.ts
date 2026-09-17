@@ -76,7 +76,14 @@ const FIXTURE: Record<string, string> = {
   // A nested component is the only consumer, so the support file belongs in its folder.
   "features/billing/InvoiceCard/InvoiceCard.tsx":
     'import { useCard } from "../hooks/use-card";\nexport function InvoiceCard() { return <span />; }\n',
+  "features/billing/InvoiceCard/index.tsx": 'export { InvoiceCard } from "./InvoiceCard";\n',
   "features/billing/hooks/use-card.ts": "export function useCard() {}\n",
+
+  // `components/` is not a component-folder scope; its component owns the
+  // feature folder for support-file CCF calculation.
+  "features/billing/components/credential-form.tsx":
+    'import type { CredentialType } from "./types/credential-type";\nexport function CredentialForm() { return <span />; }\n',
+  "features/billing/components/types/credential-type.ts": "export type CredentialType = string;\n",
 
   // A configuration module and the files that only it uses.
   "config/home-feed/index.ts": [
@@ -386,6 +393,18 @@ void describe("A nested component's support files MUST live in its folder.", () 
             "features/billing/InvoiceCard/InvoiceCard.tsx",
           ]),
         ],
+      },
+    ],
+  });
+});
+
+void describe("A support export consumed by a component in `components/` MUST use the feature folder, because `components/` is not a valid component-folder scope.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/components/types/credential-type.ts"),
+        errors: [move("src/features/billing/types/", REASONS.ccf, ["features/billing/components/credential-form.tsx"])],
       },
     ],
   });

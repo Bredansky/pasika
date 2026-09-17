@@ -21,7 +21,7 @@ function createNestedComponentFolder(): string {
 }
 
 const componentDir = createNestedComponentFolder();
-const barrel = path.join(componentDir, "index.ts");
+const barrel = path.join(componentDir, "index.tsx");
 
 /** A kebab folder holding a dumb component: the barrel must re-export the
  * component's PascalCase name, not the folder name. */
@@ -34,9 +34,9 @@ function createKebabComponentFolder(): string {
 }
 
 const kebabComponentDir = createKebabComponentFolder();
-const kebabBarrel = path.join(kebabComponentDir, "index.ts");
+const kebabBarrel = path.join(kebabComponentDir, "index.tsx");
 
-void describe("The nested folder's index.ts MUST named-re-export the nested component and MUST NOT re-export its exclusive children.", () => {
+void describe("The nested folder's index.tsx MUST named-re-export the nested component and MUST NOT re-export its exclusive children.", () => {
   ruleTester.run("enforce-barrel-exports", enforceBarrelExportsRule, {
     valid: [
       { code: 'export { BlogPage } from "./BlogPage";', filename: barrel },
@@ -51,7 +51,7 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
         errors: [
           {
             message:
-              'index.ts must not re-export exclusive children: BlogHeader. Only "BlogPage" may be re-exported. ' +
+              'index.tsx must not re-export exclusive children: BlogHeader. Only "BlogPage" may be re-exported. ' +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],
@@ -62,7 +62,7 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
         errors: [
           {
             message:
-              'index.ts in "BlogPage/" must re-export "BlogPage". ' +
+              'index.tsx in "BlogPage/" must re-export "BlogPage". ' +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],
