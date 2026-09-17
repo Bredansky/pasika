@@ -37,6 +37,7 @@ write(
   'export const statusColors = { paid: "#000", open: "#fff" };\nexport type StatusColor = keyof typeof statusColors;\n',
 );
 write("features/billing/types/invoice.ts", "export interface InvoiceRow { id: string; }\n");
+write("features/billing/types/mixed-constant.ts", "export type Mixed = string;\nexport const mixed = 1;\n");
 // A schema-plus-type file parked in utils/ must still be sent to schemas/.
 write(
   "features/billing/utils/misplaced-schema.ts",
@@ -127,6 +128,24 @@ void describe("A support folder MUST NOT contain a component.", () => {
         errors: [
           {
             message: "A support folder must not contain a component; move invoice-row.tsx beside utils/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A `types/`, `schemas/`, or `constants/` folder MUST NOT mix unrelated support kinds; keep types, schemas, and constants in their matching folders.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [valid("features/billing/types/invoice.ts")],
+    invalid: [
+      {
+        code: "export type Mixed = string; export const mixed = 1;",
+        filename: file("features/billing/types/mixed-constant.ts"),
+        errors: [
+          {
+            message:
+              "A types/ folder must not mix unrelated support kinds; keep types, schemas, and constants in their matching folders.",
           },
         ],
       },

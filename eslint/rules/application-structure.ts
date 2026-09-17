@@ -81,6 +81,13 @@ function expectedSupportFolder(kinds: Set<ExportKind>): string | undefined {
   return undefined;
 }
 
+function mixedSupportKinds(folder: string, kinds: Set<ExportKind>): boolean {
+  if (folder === "types") return kinds.has("type") && (kinds.has("constant") || kinds.has("schema"));
+  if (folder === "schemas") return kinds.has("schema") && kinds.has("constant");
+  if (folder === "constants") return kinds.has("constant") && kinds.has("schema");
+  return false;
+}
+
 function configModuleRoot(filename: string, sourceRoot: string): string | undefined {
   const segments = segmentsOf(filename, sourceRoot);
   if (segments[0] !== "config" || segments.length < 3) return undefined;
@@ -244,6 +251,13 @@ export const applicationStructureRule: Rule.RuleModule = {
       return report(
         context,
         `A support folder must not contain a component; move ${path.basename(filename)} beside ${currentFolder}/.`,
+      );
+    }
+
+    if (mixedSupportKinds(currentFolder, kinds)) {
+      return report(
+        context,
+        `A ${currentFolder}/ folder must not mix unrelated support kinds; keep types, schemas, and constants in their matching folders.`,
       );
     }
 
