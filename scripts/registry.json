@@ -416,9 +416,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related constants in files that `index.ts` named-re-exports.",
-      "hash": "c836f17653",
+      "text": "A `constants/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.",
+      "hash": "066735c9c0",
       "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "e61aca9eff",
+      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
@@ -428,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration module.",
-      "hash": "26510a9fee",
+      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.",
+      "hash": "d37cf43f88",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -752,9 +758,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A `types/` or `schemas/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
-      "hash": "5d9d97e321",
+      "text": "A `types/` or `schemas/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
+      "hash": "2edfd6312e",
       "ref": "pasika/support-folder-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A file in `types/` or `schemas/` MUST calculate each exported type or schema's CCF from that item's direct consumers and MUST split exports whose CCFs differ.",
+      "hash": "f54344f5e5",
+      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
@@ -764,14 +776,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema used only to implement one configuration module MUST live in that module's `types/` or `schemas/` folder.",
-      "hash": "7a5f58f278",
+      "text": "A type or schema used only to implement one configuration file MUST live in that file's `types/` or `schemas/` folder.",
+      "hash": "8d94518cc4",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration module.",
-      "hash": "8ceaedda1b",
+      "text": "A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration file.",
+      "hash": "ac20eb9c56",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -800,6 +812,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "Exports with different CCFs MUST be split into separately placed utility files.",
+      "hash": "b69d5c8b06",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
       "text": "When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.",
       "hash": "ff2b2398f3",
       "ref": "pasika/support-file-placement"
@@ -824,8 +842,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "A utility used only to implement one configuration module MUST live in that module's `utils/` folder.",
-      "hash": "c9d890d2d7",
+      "text": "A utility used only to implement one configuration file MUST live in that file's `utils/` folder.",
+      "hash": "ebe8729ede",
       "ref": "pasika/support-file-placement"
     },
     {

@@ -14,7 +14,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index";
+import { getProjectIndex, symbolKey } from "../project/index";
+import type { ExportKind } from "../project/parse-module";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -32,6 +33,13 @@ import { sourceRootOf } from "./project-root";
  * it even when consumers exist outside the module.
  */
 const CONFIG_OWNED_FOLDERS = new Set(["types", "constants"]);
+const EXPORT_KIND_BY_SUPPORT_FOLDER = new Map<string, ExportKind>([
+  ["constants", "constant"],
+
+  ["schemas", "schema"],
+  ["types", "type"],
+  ["utils", "function"],
+]);
 
 const REASON_TEXT: Record<string, string> = {
   "config-module": "every file that imports it belongs to that configuration module",
@@ -63,6 +71,38 @@ export const supportFilePlacementRule: Rule.RuleModule = {
 
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
+
+    const groupedExportKind = EXPORT_KIND_BY_SUPPORT_FOLDER.get(supportFolder);
+    if (groupedExportKind !== undefined) {
+      const utilityExports =
+        index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === groupedExportKind) ?? [];
+      const placements = utilityExports
+        .map((entry) => ({
+          name: entry.name,
+          placement: resolveSupportPlacement(
+            supportFile,
+            supportFolder,
+            index,
+            index.symbolConsumers.get(symbolKey(supportFile, entry.name)),
+          ),
+        }))
+        .filter(
+          (entry): entry is { name: string; placement: NonNullable<typeof entry.placement> } =>
+            entry.placement !== undefined,
+        );
+      const folders = new Set(placements.map((entry) => formatFolder(entry.placement.expectedFolder)));
+      if (folders.size > 1) {
+        return {
+          Program(node) {
+            context.report({
+              node,
+              loc: { line: 1, column: 0 },
+              message: `Split ${supportFolder} exports with different CCFs: ${placements.map((entry) => `${entry.name} → ${formatFolder(entry.placement.expectedFolder)}`).join(", ")}.`,
+            });
+          },
+        };
+      }
+    }
 
     const placement = resolveSupportPlacement(supportFile, supportFolder, index);
     if (!placement || sameFolder(currentFolder, placement.expectedFolder)) return {};

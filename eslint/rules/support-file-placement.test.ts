@@ -21,10 +21,13 @@ const FIXTURE: Record<string, string> = {
   "features/billing/invoice.tsx": [
     'import { maxRetries } from "./constants";',
     'import { crossValue } from "./constants/cross";',
+    'import { billingConstant, sharedConstant } from "./constants/mixed";',
     'import { DateRange } from "./types";',
     'import { CrossType } from "./types/cross";',
+    'import type { BillingOnlyType, SharedType } from "./types/mixed";',
     'import { calcTotal } from "./utils/calc-total";',
     'import { crossUtil } from "./utils/cross";',
+    'import { billingOnly, sharedUtility } from "./utils/mixed";',
     'import { useRetry } from "./hooks/use-retry";',
     'import { useCross } from "./hooks/use-cross";',
     'import { useStale } from "@/features/stale/hooks/use-stale";',
@@ -46,15 +49,22 @@ const FIXTURE: Record<string, string> = {
   // Consumed from two features, so no feature can own them.
   "features/orders/order.tsx": [
     'import { crossValue } from "@/features/billing/constants/cross";',
+    'import { sharedConstant } from "@/features/billing/constants/mixed";',
     'import { CrossType } from "@/features/billing/types/cross";',
+    'import type { SharedType } from "@/features/billing/types/mixed";',
     'import { crossUtil } from "@/features/billing/utils/cross";',
+    'import { sharedUtility } from "@/features/billing/utils/mixed";',
     'import { useCross } from "@/features/billing/hooks/use-cross";',
     "export function Order() { return <span />; }",
     "",
   ].join("\n"),
   "features/billing/constants/cross.ts": "export const crossValue = 1;\n",
+  "features/billing/constants/mixed.ts": "export const billingConstant = 1;\nexport const sharedConstant = 1;\n",
   "features/billing/types/cross.ts": "export type CrossType = string;\n",
+  "features/billing/types/mixed.ts": "export type BillingOnlyType = string;\nexport type SharedType = string;\n",
   "features/billing/utils/cross.ts": "export function crossUtil() { return 0; }\n",
+  "features/billing/utils/mixed.ts":
+    "export function billingOnly() { return 0; }\nexport function sharedUtility() { return 0; }\n",
   "features/billing/hooks/use-cross.ts": "export function useCross() {}\n",
 
   // Sitting in the wrong feature.
@@ -203,6 +213,57 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
   });
 });
 
+void describe("A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/constants/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split constants exports with different CCFs: billingConstant → src/features/billing/constants/, sharedConstant → src/constants/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A file in `types/` or `schemas/` MUST calculate each exported type or schema's CCF from that item's direct consumers and MUST split exports whose CCFs differ.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/types/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split types exports with different CCFs: BillingOnlyType → src/features/billing/types/, SharedType → src/types/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Exports with different CCFs MUST be split into separately placed utility files.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/utils/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split utils exports with different CCFs: billingOnly → src/features/billing/utils/, sharedUtility → src/utils/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("An extracted custom hook MUST live in a hooks/ folder at the CCF of its consumers.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("features/billing/hooks/use-retry.ts"), ok("hooks/use-search.ts")],
@@ -231,7 +292,7 @@ void describe("When a custom hook's CCF is src/features/, it MUST move to src/ho
   });
 });
 
-void describe("A type or schema used only to implement one configuration module MUST live in that module's types/ or schemas/ folder.", () => {
+void describe("A type or schema used only to implement one configuration file MUST live in that file's types/ or schemas/ folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/home-feed/types/index.ts"), ok("config/home-feed/schemas/index.ts")],
     invalid: [
@@ -243,7 +304,7 @@ void describe("A type or schema used only to implement one configuration module 
   });
 });
 
-void describe("A utility used only to implement one configuration module MUST live in that module's utils/ folder.", () => {
+void describe("A utility used only to implement one configuration file MUST live in that file's utils/ folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/home-feed/utils/build-url.ts")],
     invalid: [
@@ -281,7 +342,7 @@ void describe("A constant in one configuration module that only another configur
   });
 });
 
-void describe("A constant MAY live in src/config/<config-name>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration module.", () => {
+void describe("A constant MAY live in src/config/<config-name>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     // Consumers outside the config module do not place a config-owned constant;
     // only a consuming config module does, and that case has its own test above.
@@ -290,7 +351,7 @@ void describe("A constant MAY live in src/config/<config-name>/ instead of a con
   });
 });
 
-void describe("A type MAY stay in src/config/<config-name>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration module.", () => {
+void describe("A type MAY stay in src/config/<config-name>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration file.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/player/types/index.ts")],
     invalid: [],
