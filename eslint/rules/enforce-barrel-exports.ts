@@ -52,7 +52,8 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
     if (!filename) return {};
 
     const baseName = path.basename(filename);
-    if (baseName !== "index.ts" && baseName !== "index.cts" && baseName !== "index.mts") return {};
+    const isIndexFile = baseName === "index.ts";
+    if (!isIndexFile) return {};
 
     const dirPath = path.dirname(filename);
     const folderName = path.basename(dirPath);

@@ -45,10 +45,12 @@ write(
 // A proper nested component folder: same-named component + index that re-exports it.
 write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');
 write("features/billing/InvoicePanel/InvoicePanel.tsx", "export function InvoicePanel() { return <main />; }\n");
-// A folder that is neither support nor component: a component inside it is not named after the folder.
-write("features/billing/random-folder/foo.tsx", "export function Foo() { return <main />; }\n");
+// A generic grouping folder is not a component folder because it lacks the
+// same-named component and index barrel.
+write("features/billing/components/foo.tsx", "export function Foo() { return <main />; }\n");
 // A component folder missing its index barrel.
 write("features/billing/BarePanel/BarePanel.tsx", "export function BarePanel() { return <main />; }\n");
+
 process.chdir(root);
 
 const valid = (relativePath: string): { code: string; filename: string } => ({
@@ -194,11 +196,11 @@ void describe("A feature folder, src/compositions/, src/shared/, and a nested co
     invalid: [
       {
         code: "export function Foo() { return <main />; }",
-        filename: file("features/billing/random-folder/foo.tsx"),
+        filename: file("features/billing/components/foo.tsx"),
         errors: [
           {
             message:
-              'A folder that is not a support folder must be a component folder; add "random-folder.tsx" to src/features/billing/random-folder/ or move its files into a support folder.',
+              'A folder that is not a support folder must be a component folder; add "components.tsx" to src/features/billing/components/ or move its files into a support folder.',
           },
         ],
       },
