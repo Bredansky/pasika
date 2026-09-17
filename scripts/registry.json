@@ -812,14 +812,38 @@
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "Exports with different CCFs MUST be split into separately placed utility files.",
-      "hash": "b69d5c8b06",
+      "text": "When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.",
+      "hash": "ff2b2398f3",
       "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "When a utility's CCF is `src/features/`, it MUST move to `src/utils/`.",
-      "hash": "ff2b2398f3",
+      "text": "A utility used only to implement one configuration file MUST live in that file's `utils/` folder.",
+      "hash": "ebe8729ede",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "A pure function with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
+      "hash": "8c403de34c",
+      "ref": "pasika/root-support-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "Utilities that are used together MAY be grouped in one file.",
+      "hash": "23f36f077b",
+      "note": "grants permission, so there is nothing to check"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "An exported utility's CCF MUST be calculated from that export's direct consumers, not from every export in the file that declares it.",
+      "hash": "25519ba068",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/utilities-rule.md",
+      "text": "Exports with different CCFs MUST be split into separately placed utility files.",
+      "hash": "b69d5c8b06",
       "ref": "pasika/support-file-placement"
     },
     {
@@ -833,24 +857,6 @@
       "text": "A utility file that exports one function MUST have a name in that function's kebab-case form.",
       "hash": "9b82ca27ee",
       "ref": "pasika/util-file-name"
-    },
-    {
-      "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "Utilities that are used together MAY be grouped in one file.",
-      "hash": "23f36f077b",
-      "note": "grants permission, so there is nothing to check"
-    },
-    {
-      "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "A utility used only to implement one configuration file MUST live in that file's `utils/` folder.",
-      "hash": "ebe8729ede",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/utilities-rule.md",
-      "text": "A pure function with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
-      "hash": "8c403de34c",
-      "ref": "pasika/root-support-placement"
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",

@@ -8,7 +8,7 @@ Pure functions should not be hidden in component files. This rule extracts them 
 - A utility used only to implement one configuration file MUST live in that file's `utils/` folder.
 - A pure function with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 - Utilities that are used together MAY be grouped in one file.
-- An exported utility's CCF is calculated from that export's direct consumers, not from every export in the file that declares it.
+- An exported utility's CCF MUST be calculated from that export's direct consumers, not from every export in the file that declares it.
 - Exports with different CCFs MUST be split into separately placed utility files.
 - A utility MUST be imported directly without a barrel.
 - A utility file that exports one function MUST have a name in that function's kebab-case form.

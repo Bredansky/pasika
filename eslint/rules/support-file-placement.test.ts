@@ -247,6 +247,23 @@ void describe("A file in `types/` or `schemas/` MUST calculate each exported typ
   });
 });
 
+void describe("An exported utility's CCF MUST be calculated from that export's direct consumers, not from every export in the file that declares it.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        ...ok("features/billing/utils/mixed.ts"),
+        errors: [
+          {
+            message:
+              "Split utils exports with different CCFs: billingOnly → src/features/billing/utils/, sharedUtility → src/utils/.",
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("Exports with different CCFs MUST be split into separately placed utility files.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],
