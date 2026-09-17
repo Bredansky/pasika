@@ -99,7 +99,7 @@ function componentFolderStart(segments: string[]): number {
 }
 
 function hasComponentBarrel(folderPath: string): boolean {
-  return fs.existsSync(path.join(folderPath, "index.tsx"));
+  return fs.existsSync(path.join(folderPath, "index.ts"));
 }
 
 /**
@@ -122,7 +122,7 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
       return `A folder that is not a support folder must be a component folder; add "${folder}.tsx" to ${label} or move its files into a support folder.`;
     }
     if (!hasComponentBarrel(folderPath)) {
-      return `A component folder must have an index.tsx that named-re-exports its component; add index.tsx to ${label}.`;
+      return `A component folder must have an index.ts that named-re-exports its component; add index.ts to ${label}.`;
     }
   }
   return undefined;

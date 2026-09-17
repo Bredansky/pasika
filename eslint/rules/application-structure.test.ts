@@ -43,7 +43,7 @@ write(
   'import { z } from "zod";\nexport const paymentSchema = z.object({});\nexport type Payment = z.infer<typeof paymentSchema>;\n',
 );
 // A proper nested component folder: same-named component + index that re-exports it.
-write("features/billing/InvoicePanel/index.tsx", 'export { InvoicePanel } from "./InvoicePanel";\n');
+write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');
 write("features/billing/InvoicePanel/InvoicePanel.tsx", "export function InvoicePanel() { return <main />; }\n");
 // A generic grouping folder is not a component folder because it lacks the
 // same-named component and index barrel.
@@ -185,7 +185,7 @@ void describe("An extracted configuration type, schema, or utility MUST live in 
   });
 });
 
-void describe("A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a .tsx file with the same name and an index.tsx that named-re-exports that component.", () => {
+void describe("A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a .tsx file with the same name and an index.ts that named-re-exports that component.", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
     valid: [
       {
@@ -210,7 +210,7 @@ void describe("A feature folder, src/compositions/, src/shared/, and a nested co
         errors: [
           {
             message:
-              "A component folder must have an index.tsx that named-re-exports its component; add index.tsx to src/features/billing/BarePanel/.",
+              "A component folder must have an index.ts that named-re-exports its component; add index.ts to src/features/billing/BarePanel/.",
           },
         ],
       },

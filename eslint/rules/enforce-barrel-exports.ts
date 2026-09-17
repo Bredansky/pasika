@@ -1,7 +1,7 @@
 /**
  * ESLint rule: pasika/enforce-barrel-exports
  *
- * Enforces the "Folder Nesting Rule" — index.tsx only re-exports parent component.
+ * Enforces the "Folder Nesting Rule" — index.ts only re-exports parent component.
  *
  * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
@@ -44,7 +44,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Enforce index.tsx barrels only re-export the parent component.",
+      description: "Enforce index.ts barrels only re-export the parent component.",
     },
   },
   create(context) {
@@ -52,7 +52,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
     if (!filename) return {};
 
     const baseName = path.basename(filename);
-    const isIndexFile = baseName === "index.tsx";
+    const isIndexFile = baseName === "index.ts";
     if (!isIndexFile) return {};
 
     const dirPath = path.dirname(filename);
@@ -86,7 +86,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
           context.report({
             loc: { line: 1, column: 0 },
             message:
-              `index.tsx in "${folderName}/" must re-export "${parentName}". ` +
+              `index.ts in "${folderName}/" must re-export "${parentName}". ` +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           });
           return;
@@ -97,7 +97,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
           context.report({
             loc: { line: 1, column: 0 },
             message:
-              `index.tsx must not re-export exclusive children: ${nonParentExports.join(", ")}. ` +
+              `index.ts must not re-export exclusive children: ${nonParentExports.join(", ")}. ` +
               `Only "${parentName}" may be re-exported. ` +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           });

@@ -76,7 +76,7 @@ const FIXTURE: Record<string, string> = {
   // A nested component is the only consumer, so the support file belongs in its folder.
   "features/billing/InvoiceCard/InvoiceCard.tsx":
     'import { useCard } from "../hooks/use-card";\nexport function InvoiceCard() { return <span />; }\n',
-  "features/billing/InvoiceCard/index.tsx": 'export { InvoiceCard } from "./InvoiceCard";\n',
+  "features/billing/InvoiceCard/index.ts": 'export { InvoiceCard } from "./InvoiceCard";\n',
   "features/billing/hooks/use-card.ts": "export function useCard() {}\n",
 
   // `components/` is not a component-folder scope; its component owns the

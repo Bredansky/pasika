@@ -11,14 +11,14 @@ import { componentNestingRule } from "./component-nesting";
  */
 const FIXTURE: Record<string, string> = {
   // Nested only because of support files: no exclusive child components.
-  "features/blog/BlogPage/index.tsx": 'export { BlogPage } from "./BlogPage";\n',
+  "features/blog/BlogPage/index.ts": 'export { BlogPage } from "./BlogPage";\n',
   "features/blog/BlogPage/BlogPage.tsx": "export function BlogPage() { return <div />; }\n",
   "features/blog/BlogPage/hooks/use-blog-filter.ts": "export function useBlogFilter() { return true; }\n",
   "features/blog/listing.tsx":
     'import { BlogPage } from "./BlogPage";\nexport function Listing() { return <BlogPage />; }\n',
 
   // Nested with an exclusive child component: the nesting is justified.
-  "features/orders/OrderCard/index.tsx": 'export { OrderCard } from "./OrderCard";\n',
+  "features/orders/OrderCard/index.ts": 'export { OrderCard } from "./OrderCard";\n',
   "features/orders/OrderCard/OrderCard.tsx":
     'import { OrderBadge } from "./order-badge";\nexport function OrderCard() { return <OrderBadge />; }\n',
   "features/orders/OrderCard/order-badge.tsx": "export function OrderBadge() { return <span />; }\n",

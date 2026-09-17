@@ -103,7 +103,7 @@ function isValidComponentFolder(folder: string[], sourceRoot: string): boolean {
   const name = folder[folder.length - 1];
   if (!name || SUPPORT_FOLDERS.has(name)) return false;
   const folderPath = path.join(sourceRoot, ...folder);
-  return fs.existsSync(path.join(folderPath, `${name}.tsx`)) && fs.existsSync(path.join(folderPath, "index.tsx"));
+  return fs.existsSync(path.join(folderPath, `${name}.tsx`)) && fs.existsSync(path.join(folderPath, "index.ts"));
 }
 
 /**
