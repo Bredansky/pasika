@@ -207,7 +207,7 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
   });
 });
 
-void describe("Exports with different CCFs MUST be split into separately placed utility modules.", () => {
+void describe("Exports with different CCFs MUST be split into separately placed utility files.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],
     invalid: [
@@ -252,7 +252,7 @@ void describe("When a custom hook's CCF is src/features/, it MUST move to src/ho
   });
 });
 
-void describe("A type or schema used only to implement one configuration module MUST live in that module's types/ or schemas/ folder.", () => {
+void describe("A type or schema used only to implement one configuration file MUST live in that file's types/ or schemas/ folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/home-feed/types/index.ts"), ok("config/home-feed/schemas/index.ts")],
     invalid: [
@@ -264,7 +264,7 @@ void describe("A type or schema used only to implement one configuration module 
   });
 });
 
-void describe("A utility used only to implement one configuration module MUST live in that module's utils/ folder.", () => {
+void describe("A utility used only to implement one configuration file MUST live in that file's utils/ folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/home-feed/utils/build-url.ts")],
     invalid: [
@@ -302,7 +302,7 @@ void describe("A constant in one configuration module that only another configur
   });
 });
 
-void describe("A constant MAY live in src/config/<config-name>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration module.", () => {
+void describe("A constant MAY live in src/config/<config-name>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     // Consumers outside the config module do not place a config-owned constant;
     // only a consuming config module does, and that case has its own test above.
@@ -311,7 +311,7 @@ void describe("A constant MAY live in src/config/<config-name>/ instead of a con
   });
 });
 
-void describe("A type MAY stay in src/config/<config-name>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration module.", () => {
+void describe("A type MAY stay in src/config/<config-name>/ when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration file.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("config/player/types/index.ts")],
     invalid: [],

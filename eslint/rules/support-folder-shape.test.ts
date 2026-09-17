@@ -13,7 +13,7 @@ function fixture(folder: string, index: string, sibling: string): string {
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related constants in files that `index.ts` named-re-exports.", () => {
+void describe("A `constants/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const grouped = fixture(
     "constants",
@@ -53,7 +53,7 @@ void describe("A `constants/` folder with exactly one sibling module MUST define
   });
 });
 
-void describe("A `types/` or `schemas/` folder with exactly one sibling module MUST define that module's exports directly in `index.ts`; with several sibling modules, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
+void describe("A `types/` or `schemas/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
   const direct = fixture("types", "export interface Invoice { id: string; }\n", "invoice.ts");
   const singleReExport = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
   const singleWildcardReExport = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");
