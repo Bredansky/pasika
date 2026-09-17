@@ -314,6 +314,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
+      "text": "A `types/`, `schemas/`, or `constants/` folder MUST NOT mix unrelated support kinds; keep types, schemas, and constants in their matching folders.",
+      "hash": "d0bdcc117b",
+      "ref": "pasika/application-structure"
+    },
+    {
+      "doc": "next-codebase-guide/rules/application-structure-rule.md",
       "text": "A support folder MUST NOT contain a component.",
       "hash": "25be7e89ec",
       "ref": "pasika/application-structure"
