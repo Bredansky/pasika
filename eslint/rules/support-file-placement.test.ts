@@ -216,7 +216,7 @@ void describe("Exports with different CCFs MUST be split into separately placed 
         errors: [
           {
             message:
-              "Split utility exports with different CCFs: billingOnly → src/features/billing/utils/, sharedUtility → src/utils/.",
+              "Split utils exports with different CCFs: billingOnly → src/features/billing/utils/, sharedUtility → src/utils/.",
           },
         ],
       },

@@ -15,6 +15,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex, symbolKey } from "../project/index";
+import type { ExportKind } from "../project/parse-module";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -32,6 +33,13 @@ import { sourceRootOf } from "./project-root";
  * it even when consumers exist outside the module.
  */
 const CONFIG_OWNED_FOLDERS = new Set(["types", "constants"]);
+const EXPORT_KIND_BY_SUPPORT_FOLDER = new Map<string, ExportKind>([
+  ["constants", "constant"],
+  ["hooks", "hook"],
+  ["schemas", "schema"],
+  ["types", "type"],
+  ["utils", "function"],
+]);
 
 const REASON_TEXT: Record<string, string> = {
   "config-module": "every file that imports it belongs to that configuration module",
@@ -64,8 +72,10 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
-    if (supportFolder === "utils") {
-      const utilityExports = index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === "function") ?? [];
+    const groupedExportKind = EXPORT_KIND_BY_SUPPORT_FOLDER.get(supportFolder);
+    if (groupedExportKind !== undefined) {
+      const utilityExports =
+        index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === groupedExportKind) ?? [];
       const placements = utilityExports
         .map((entry) => ({
           name: entry.name,
@@ -87,7 +97,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
             context.report({
               node,
               loc: { line: 1, column: 0 },
-              message: `Split utility exports with different CCFs: ${placements.map((entry) => `${entry.name} → ${formatFolder(entry.placement.expectedFolder)}`).join(", ")}.`,
+              message: `Split ${supportFolder} exports with different CCFs: ${placements.map((entry) => `${entry.name} → ${formatFolder(entry.placement.expectedFolder)}`).join(", ")}.`,
             });
           },
         };
