@@ -1236,12 +1236,7 @@
       "hash": "dac89b19bd",
       "ref": "pasika/zod-fetch-helper"
     },
-    {
-      "doc": "pasika-adoption-guide/rules/zod-fetch-helper-rule.md",
-      "text": "A structured JSON request SHOULD pass its payload and request schema through `zodFetch`'s `request` option; use `init` directly for `FormData`, streams, and other non-JSON bodies.",
-      "hash": "fecb9b3424",
-      "note": "the helper API supports this convention, but call-site adoption is repository-specific"
-    },
+
     {
       "doc": "repository-policy.md",
       "text": "A commit MUST NOT use the `--no-verify` flag.",

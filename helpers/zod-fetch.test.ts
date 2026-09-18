@@ -42,32 +42,30 @@ describe("zodFetch", () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://api.test/media", init);
   });
 
-  test("A structured JSON request SHOULD pass its payload and request schema through `zodFetch`'s `request` option; use `init` directly for `FormData`, streams, and other non-JSON bodies.", async () => {
+  test("validates a structured JSON request body before fetching", async () => {
     answerWith(Response.json({ id: "abc" }));
     const requestSchema = z.object({ title: z.string() });
+    const init = { method: "POST", body: JSON.stringify({ title: "hello" }) };
 
     await zodFetch({
       url: "https://api.test/media",
-      request: { schema: requestSchema, data: { title: "hello" } },
-      init: { method: "POST" },
+      init,
+      requestSchema,
       responseSchema: payloadSchema,
     });
 
-    const [, init] = vi.mocked(fetch).mock.calls[0] ?? [];
-    expect(init?.method).toBe("POST");
-    expect(new Headers(init?.headers).get("Content-Type")).toBe("application/json");
-    expect(init?.body).toBe(JSON.stringify({ title: "hello" }));
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://api.test/media", init);
   });
 
-  test("rejects an invalid structured JSON request before fetching", async () => {
+  test("rejects an invalid structured JSON request body before fetching", async () => {
     answerWith(Response.json({ id: "abc" }));
     const requestSchema = z.object({ title: z.string() });
 
     await expect(
       zodFetch({
         url: "https://api.test/media",
-        request: { schema: requestSchema, data: { title: 42 } },
-        init: { method: "POST" },
+        init: { method: "POST", body: JSON.stringify({ title: 42 }) },
+        requestSchema,
         responseSchema: payloadSchema,
       }),
     ).rejects.toBeInstanceOf(z.ZodError);

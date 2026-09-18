@@ -85,6 +85,7 @@ import { zodFetch } from "pasika/zod-fetch";
 interface ZodFetchOptions<TSchema extends ZodType = never> {
   url: string | URL;
   init?: RequestInit;
+  requestSchema?: ZodType;
   responseSchema?: TSchema;
 }
 ```
@@ -95,9 +96,12 @@ A call site names the schema its data should match, and receives what that schem
 const orders = await zodFetch({
   url: `${apiBase}/v1/orders`,
   init: { method: "POST", body: JSON.stringify(order) },
+  requestSchema: createOrderRequestSchema,
   responseSchema: ordersResponseSchema,
 });
 ```
+
+A `requestSchema` validates the JSON value already serialized in `init.body` before `fetch` runs; it does not construct or modify the request. Leave it out for `FormData`, streams, and other bodies whose schema is not JSON.
 
 A call reading an endpoint that answers `204` passes `z.undefined()` as its `responseSchema`.
 
