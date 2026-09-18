@@ -1236,7 +1236,6 @@
       "hash": "dac89b19bd",
       "ref": "pasika/zod-fetch-helper"
     },
-
     {
       "doc": "repository-policy.md",
       "text": "A commit MUST NOT use the `--no-verify` flag.",
