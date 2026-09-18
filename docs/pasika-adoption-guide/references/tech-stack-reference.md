@@ -44,12 +44,12 @@ import { withResponse } from "pasika/with-response";
 // The two forms a handler may return, exported by pasika/with-response
 type HandlerResult<TData> =
   // The envelope a JSON route answers with
-  | { message: string; data: TData; status?: number; headers?: ResponseHeaders }
+  | { data: TData; status?: number; headers?: ResponseHeaders }
   // The response a JSON envelope cannot hold
   | { body: ReadableStream<Uint8Array>; status: number; headers?: ResponseHeaders };
 ```
 
-A handler returns `{ message, data }`, plus optional `status` and `headers` when the response needs them. A failure has neither: it is built from the caught `HttpError` alone, answered at the error's status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
+A handler returns `{ data }`, plus optional `status` and `headers` when the response needs them. A successful JSON response is `{ success: true, data }`. A failure is `{ success: false, data: null, message }`, built from the caught `HttpError` and answered at its status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
 
 ```ts
 export const GET = withResponse(async (request: NextRequest) => {
@@ -68,15 +68,23 @@ export const POST = withResponse(renderApiResponseDataSchema, async (request: Ne
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  return { data: jobIds };
 });
+```
+
+For clients of JSON routes, `responseEnvelope` from `pasika/response-envelope` describes the standard success and failure body without coupling `zodFetch` to that application contract:
+
+```ts
+import { responseEnvelope } from "pasika/response-envelope";
+
+const responseSchema = responseEnvelope(orderResponseSchema);
 ```
 
 The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.
 
 ## Outbound Request Helper
 
-`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It validates the standard `{ data, message }` response envelope, hands the `data` field back as the response schema accepted, and returns a failure as an `HttpError` carrying the status the upstream reported and what it answered with — its body decoded when that body was JSON, and left as the text it arrived as when it was not.
+`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against and the one module in a repository that calls `fetch`. It validates whatever response schema the call names and returns the parsed response without imposing an application envelope; repositories using the standard `{ success, data, message }` contract can compose the exported `responseEnvelope` schema.
 
 ```ts
 import { zodFetch } from "pasika/zod-fetch";
@@ -90,7 +98,7 @@ interface ZodFetchOptions<TSchema extends ZodType = never> {
 }
 ```
 
-A call site names the schema its `data` field should match, and receives that field after `zodFetch` validates the envelope:
+A call site names the schema the response body should match and receives the parsed response:
 
 ```ts
 const orders = await zodFetch({

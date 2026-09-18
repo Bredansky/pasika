@@ -5,6 +5,7 @@ export default defineConfig({
     "eslint/pasika/index": "eslint/index.ts",
     "helpers/cn": "helpers/cn.ts",
     "helpers/http-error": "helpers/http-error.ts",
+    "helpers/response-envelope": "helpers/response-envelope.ts",
     "helpers/zod-fetch": "helpers/zod-fetch.ts",
     "helpers/with-response": "helpers/with-response.ts",
   },

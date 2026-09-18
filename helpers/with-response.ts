@@ -9,7 +9,7 @@ const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanc
 export type ResponseHeaders = Headers | Record<string, string>;
 
 export type HandlerResult<TData> =
-  | { message: string; data: TData; status?: number; headers?: ResponseHeaders }
+  | { data: TData; status?: number; headers?: ResponseHeaders }
   | { body: ReadableStream<Uint8Array>; status: number; headers?: ResponseHeaders };
 
 type AnyHandler = (...args: unknown[]) => Promise<HandlerResult<unknown>>;
@@ -21,7 +21,7 @@ function missingHandler(): never {
 
 /**
  * Turns a handler's result, or a failure thrown under it, into a response: the data
- * goes through the response schema, an `HttpError` becomes `{ data: null, message }`
+ * goes through the response schema, an `HttpError` becomes `{ success: false, data: null, message }`
  * at its own status and is never cached, and anything else stays an error.
  *
  * A handler whose own response is not JSON calls it with the handler alone and returns
@@ -49,12 +49,12 @@ export function withResponse(
           return new NextResponse(streamBody.parse(body), { status, headers });
         }
 
-        const { message, data, status, headers } = result;
-        return NextResponse.json({ data: schema.parse(data), message }, { status, headers });
+        const { data, status, headers } = result;
+        return NextResponse.json({ success: true, data: schema.parse(data) }, { status, headers });
       } catch (error) {
         if (error instanceof HttpError) {
           return NextResponse.json(
-            { data: null, message: error.message },
+            { success: false, data: null, message: error.message },
             { status: error.status, headers: { "Cache-Control": "no-store" } },
           );
         }
