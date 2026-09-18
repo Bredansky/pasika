@@ -83,7 +83,7 @@ function expectedSupportFolder(kinds: Set<ExportKind>): string | undefined {
 
 function mixedSupportKinds(folder: string, kinds: Set<ExportKind>): boolean {
   if (folder === "types") return kinds.has("type") && (kinds.has("constant") || kinds.has("schema"));
-  if (folder === "schemas") return kinds.has("schema") && kinds.has("constant");
+  if (folder === "schemas") return kinds.has("schema") && (kinds.has("constant") || kinds.has("type"));
   if (folder === "constants") return kinds.has("constant") && kinds.has("schema");
   return false;
 }

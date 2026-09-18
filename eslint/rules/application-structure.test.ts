@@ -97,10 +97,6 @@ void describe("A folder holding support files MUST be named hooks/, types/, sche
   ruleTester.run("application-structure", applicationStructureRule, {
     valid: [
       valid("features/billing/utils/format-date.ts"),
-      // A file's primary kind decides its folder; inferred types do not make a
-      // schema file a types file, and return-type interfaces do not make a
-      // utils file a types file.
-      valid("features/billing/schemas/invoice-schema.ts"),
       valid("features/billing/utils/format-invoice.ts"),
       valid("features/billing/constants/status-colors.ts"),
       valid("features/billing/types/invoice.ts"),
@@ -113,6 +109,16 @@ void describe("A folder holding support files MUST be named hooks/, types/, sche
       {
         ...valid("features/billing/utils/misplaced-schema.ts"),
         errors: [{ message: "Move this file to a schemas/ folder; utils/ is reserved for schemas." }],
+      },
+      {
+        code: 'import { z } from "zod"; export const invoiceSchema = z.object({}); export type Invoice = z.infer<typeof invoiceSchema>;',
+        filename: file("features/billing/schemas/invoice-schema.ts"),
+        errors: [
+          {
+            message:
+              "A schemas/ folder must not mix unrelated support kinds; keep types, schemas, and constants in their matching folders.",
+          },
+        ],
       },
     ],
   });
