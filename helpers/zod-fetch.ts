@@ -4,9 +4,15 @@ import { HttpError } from "./http-error";
 /** A body this helper hands on is one a caller relays, so it is held to a contract like any other. */
 const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanceof ReadableStream);
 
-export interface ZodFetchOptions<TSchema extends ZodType = never> {
+export interface ZodFetchRequest<TSchema extends ZodType = ZodType> {
+  schema: TSchema;
+  data: z.input<TSchema>;
+}
+
+export interface ZodFetchOptions<TSchema extends ZodType = never, TRequestSchema extends ZodType = ZodType> {
   url: string | URL;
   init?: RequestInit;
+  request?: ZodFetchRequest<TRequestSchema>;
   responseSchema?: TSchema;
 }
 
@@ -49,7 +55,16 @@ export function zodFetch<TSchema extends ZodType>(
 ): Promise<z.output<TSchema>>;
 export function zodFetch(options: ZodFetchOptions): Promise<ZodFetchRelayedResponse>;
 export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unknown> {
-  const response = await fetch(options.url, options.init);
+  let init = options.init;
+
+  if (options.request !== undefined) {
+    const body = options.request.schema.parse(options.request.data);
+    const headers = new Headers(options.init?.headers);
+    headers.set("Content-Type", "application/json");
+    init = { ...options.init, headers, body: JSON.stringify(body) };
+  }
+
+  const response = await fetch(options.url, init);
 
   if (!response.ok) {
     const body = await response.text();

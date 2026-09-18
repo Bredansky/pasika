@@ -5,6 +5,7 @@ A direct `fetch` call checks nothing about the response it gets back: the status
 - A file MUST NOT call `fetch`.
 - A file that is a test — one named `*.test.*` or `*.spec.*`, or inside a `tests` folder — MAY call `fetch`.
 - A file MUST import `zodFetch` from `pasika/zod-fetch` and MUST NOT declare one of its own.
+- A structured JSON request SHOULD pass its payload and request schema through `zodFetch`'s `request` option; use `init` directly for `FormData`, streams, and other non-JSON bodies.
 
 ## Incorrect — The Request The Module Makes Itself
 
@@ -32,6 +33,38 @@ const orders = await zodFetch({
 ```
 
 Why: the body is validated through the schema the call site named, and a failure leaves with the status the upstream reported and what it answered with.
+
+## Incorrect — Serialize A Request Without Its Schema
+
+```ts
+const result = await zodFetch({
+  url: `${apiBase}/orders`,
+  init: {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(order),
+  },
+  responseSchema: orderResponseSchema,
+});
+```
+
+Why: the request can drift from the endpoint contract before the network call, and each caller has to repeat serialization and header setup.
+
+## Correct — Validate A Structured JSON Request
+
+```ts
+const result = await zodFetch({
+  url: `${apiBase}/orders`,
+  request: {
+    schema: createOrderRequestSchema,
+    data: order,
+  },
+  init: { method: "POST" },
+  responseSchema: orderResponseSchema,
+});
+```
+
+Why: the request payload is validated before any network call and serialized consistently, while the response still goes through the same response schema.
 
 ## Incorrect — A Local Copy Of The Helper
 
