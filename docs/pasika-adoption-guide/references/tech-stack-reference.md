@@ -76,7 +76,7 @@ The handler is written where the route is, so a reader of `route.ts` sees the wo
 
 ## Outbound Request Helper
 
-`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It hands a JSON body back as data the response schema accepted, and a failure back as an `HttpError` carrying the status the upstream reported and what it answered with — its body decoded when that body was JSON, and left as the text it arrived as when it was not.
+`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against, and the one module in a repository that calls `fetch`. It validates the standard `{ data, message }` response envelope, hands the `data` field back as the response schema accepted, and returns a failure as an `HttpError` carrying the status the upstream reported and what it answered with — its body decoded when that body was JSON, and left as the text it arrived as when it was not.
 
 ```ts
 import { zodFetch } from "pasika/zod-fetch";
@@ -90,7 +90,7 @@ interface ZodFetchOptions<TSchema extends ZodType = never> {
 }
 ```
 
-A call site names the schema its data should match, and receives what that schema accepted:
+A call site names the schema its `data` field should match, and receives that field after `zodFetch` validates the envelope:
 
 ```ts
 const orders = await zodFetch({
