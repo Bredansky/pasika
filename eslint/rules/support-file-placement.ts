@@ -72,6 +72,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
+    let placement = resolveSupportPlacement(supportFile, supportFolder, index);
     const groupedExportKind = EXPORT_KIND_BY_SUPPORT_FOLDER.get(supportFolder);
     if (groupedExportKind !== undefined) {
       const utilityExports =
@@ -102,9 +103,10 @@ export const supportFilePlacementRule: Rule.RuleModule = {
           },
         };
       }
+      const [firstPlacement] = placements;
+      if (firstPlacement !== undefined) placement = firstPlacement.placement;
     }
 
-    const placement = resolveSupportPlacement(supportFile, supportFolder, index);
     if (!placement || sameFolder(currentFolder, placement.expectedFolder)) return {};
 
     // A type or constant whose meaning comes from a configuration may stay with

@@ -117,6 +117,36 @@ function build(sourceRoot: string, files: string[]): ProjectIndex {
     }
   }
 
+  // Propagate consumers through re-export barrels. A consumer importing a
+  // symbol from `constants/index.ts` also consumes that symbol's source file.
+  // Repeat until stable so nested barrels (`index.ts` -> sibling index.ts ->
+  // source module) are handled as well.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [file, module] of modules) {
+      for (const reexport of module.reexports) {
+        const target = resolveSpecifier(file, reexport.specifier, sourceRoot);
+        if (!target || !modules.has(target)) continue;
+
+        const names =
+          reexport.names.length > 0 ? reexport.names : (modules.get(target)?.exports.map((entry) => entry.name) ?? []);
+        for (const name of names) {
+          const sourceConsumers = symbolConsumers.get(symbolKey(file, name));
+          if (sourceConsumers === undefined) continue;
+
+          const targetConsumers = symbolConsumers.get(symbolKey(target, name)) ?? new Set<string>();
+          for (const consumer of sourceConsumers) {
+            if (targetConsumers.has(consumer)) continue;
+            targetConsumers.add(consumer);
+            changed = true;
+          }
+          symbolConsumers.set(symbolKey(target, name), targetConsumers);
+        }
+      }
+    }
+  }
+
   return { sourceRoot, modules, consumers, symbolConsumers };
 }
 

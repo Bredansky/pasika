@@ -22,6 +22,7 @@ export interface ModuleImport {
 export interface ParsedModule {
   file: string;
   imports: ModuleImport[];
+  reexports: ModuleImport[];
   exports: ModuleExport[];
 }
 
@@ -85,6 +86,7 @@ export function parseModule(file: string): ParsedModule {
   const sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
   const imports: ModuleImport[] = [];
+  const reexports: ModuleImport[] = [];
   const exports: ModuleExport[] = [];
 
   const addImport = (specifierNode: ts.Expression, names: string[], node: ts.Node): void => {
@@ -114,6 +116,13 @@ export function parseModule(file: string): ParsedModule {
           }
         }
         addImport(statement.moduleSpecifier, names, statement);
+        if (ts.isStringLiteral(statement.moduleSpecifier)) {
+          reexports.push({
+            specifier: statement.moduleSpecifier.text,
+            names,
+            line: lineOf(sourceFile, statement),
+          });
+        }
       }
       if (statement.exportClause && ts.isNamedExports(statement.exportClause)) {
         for (const element of statement.exportClause.elements) {
@@ -163,5 +172,5 @@ export function parseModule(file: string): ParsedModule {
     }
   }
 
-  return { file: path.resolve(file), imports, exports };
+  return { file: path.resolve(file), imports, reexports, exports };
 }
