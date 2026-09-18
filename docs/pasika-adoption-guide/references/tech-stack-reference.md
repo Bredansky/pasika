@@ -72,6 +72,14 @@ export const POST = withResponse(renderApiResponseDataSchema, async (request: Ne
 });
 ```
 
+For clients of JSON routes, `responseEnvelope` from `pasika/response-envelope` describes the standard success and failure body without coupling `zodFetch` to that application contract:
+
+```ts
+import { responseEnvelope } from "pasika/response-envelope";
+
+const responseSchema = responseEnvelope(orderResponseSchema);
+```
+
 The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.
 
 ## Outbound Request Helper
