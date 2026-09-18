@@ -4,9 +4,10 @@ import { HttpError } from "./http-error";
 /** A body this helper hands on is one a caller relays, so it is held to a contract like any other. */
 const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanceof ReadableStream);
 
-export interface ZodFetchOptions<TSchema extends ZodType = never> {
+export interface ZodFetchOptions<TSchema extends ZodType = never, TRequestSchema extends ZodType = ZodType> {
   url: string | URL;
   init?: RequestInit;
+  requestSchema?: TRequestSchema;
   responseSchema?: TSchema;
 }
 
@@ -49,6 +50,12 @@ export function zodFetch<TSchema extends ZodType>(
 ): Promise<z.output<TSchema>>;
 export function zodFetch(options: ZodFetchOptions): Promise<ZodFetchRelayedResponse>;
 export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unknown> {
+  if (options.requestSchema !== undefined) {
+    const rawBody = options.init?.body;
+    const body: unknown = typeof rawBody === "string" ? JSON.parse(rawBody) : rawBody;
+    options.requestSchema.parse(body);
+  }
+
   const response = await fetch(options.url, options.init);
 
   if (!response.ok) {

@@ -42,6 +42,37 @@ describe("zodFetch", () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://api.test/media", init);
   });
 
+  test("validates a structured JSON request body before fetching", async () => {
+    answerWith(Response.json({ id: "abc" }));
+    const requestSchema = z.object({ title: z.string() });
+    const init = { method: "POST", body: JSON.stringify({ title: "hello" }) };
+
+    await zodFetch({
+      url: "https://api.test/media",
+      init,
+      requestSchema,
+      responseSchema: payloadSchema,
+    });
+
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith("https://api.test/media", init);
+  });
+
+  test("rejects an invalid structured JSON request body before fetching", async () => {
+    answerWith(Response.json({ id: "abc" }));
+    const requestSchema = z.object({ title: z.string() });
+
+    await expect(
+      zodFetch({
+        url: "https://api.test/media",
+        init: { method: "POST", body: JSON.stringify({ title: 42 }) },
+        requestSchema,
+        responseSchema: payloadSchema,
+      }),
+    ).rejects.toBeInstanceOf(z.ZodError);
+
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
   test("throws the status the upstream reported, with what it answered with", async () => {
     answerWith(
       new Response(JSON.stringify({ message: "Too many requests." }), {
