@@ -44,12 +44,12 @@ import { withResponse } from "pasika/with-response";
 // The two forms a handler may return, exported by pasika/with-response
 type HandlerResult<TData> =
   // The envelope a JSON route answers with
-  | { message: string; data: TData; status?: number; headers?: ResponseHeaders }
+  | { data: TData; status?: number; headers?: ResponseHeaders }
   // The response a JSON envelope cannot hold
   | { body: ReadableStream<Uint8Array>; status: number; headers?: ResponseHeaders };
 ```
 
-A handler returns `{ message, data }`, plus optional `status` and `headers` when the response needs them. A failure has neither: it is built from the caught `HttpError` alone, answered at the error's status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
+A handler returns `{ data }`, plus optional `status` and `headers` when the response needs them. A successful JSON response is `{ success: true, data }`. A failure is `{ success: false, data: null, message }`, built from the caught `HttpError` and answered at its status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
 
 ```ts
 export const GET = withResponse(async (request: NextRequest) => {
@@ -68,7 +68,7 @@ export const POST = withResponse(renderApiResponseDataSchema, async (request: Ne
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 

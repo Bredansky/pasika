@@ -21,6 +21,10 @@
       "types": "./dist/helpers/http-error.d.ts",
       "import": "./dist/helpers/http-error.js"
     },
+    "./response-envelope": {
+      "types": "./dist/helpers/response-envelope.d.ts",
+      "import": "./dist/helpers/response-envelope.js"
+    },
     "./zod-fetch": {
       "types": "./dist/helpers/zod-fetch.d.ts",
       "import": "./dist/helpers/zod-fetch.js"

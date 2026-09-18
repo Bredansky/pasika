@@ -13,10 +13,10 @@ import { NextResponse } from "next/server";
 export function withResponse(responseSchema, handler) {
   return async (...args) => {
     try {
-      const { message, data } = await handler(...args);
-      return NextResponse.json({ data: responseSchema.parse(data), message });
+      const { data } = await handler(...args);
+      return NextResponse.json({ success: true, data: responseSchema.parse(data) });
     } catch (error) {
-      return NextResponse.json({ data: null, message: "Request failed." }, { status: 500 });
+      return NextResponse.json({ success: false, data: null, message: "Request failed." }, { status: 500 });
     }
   };
 }
@@ -32,7 +32,7 @@ import { withResponse } from "pasika/with-response";
 export const POST = withResponse(createOrderResponseSchema, async (request: NextRequest) => {
   const order = await createOrder(request);
 
-  return { message: "Order created.", data: order, status: 201 };
+  return { data: order, status: 201 };
 });
 ```
 

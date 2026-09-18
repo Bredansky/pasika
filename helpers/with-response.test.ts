@@ -18,7 +18,6 @@ describe("withResponse", () => {
   test("answers the handler's data through the response schema", async () => {
     const handler = withResponse(responseSchema, () =>
       Promise.resolve({
-        message: "Created.",
         data: { id: "abc" },
         status: 201,
         headers: { "x-step": "read" },
@@ -29,7 +28,7 @@ describe("withResponse", () => {
 
     expect(response.status).toBe(201);
     expect(response.headers.get("x-step")).toBe("read");
-    await expect(response.json()).resolves.toEqual({ message: "Created.", data: { id: "abc" } });
+    await expect(response.json()).resolves.toEqual({ success: true, data: { id: "abc" } });
   });
 
   test("answers an HttpError at the status it carries, uncacheable", async () => {
@@ -39,7 +38,7 @@ describe("withResponse", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("cache-control")).toBe("no-store");
-    await expect(response.json()).resolves.toEqual({ data: null, message: "Missing session." });
+    await expect(response.json()).resolves.toEqual({ success: false, data: null, message: "Missing session." });
   });
 
   test("lets a failure that is not an HttpError stay an error", async () => {
@@ -50,7 +49,7 @@ describe("withResponse", () => {
 
   test("rejects data the response schema does not allow", async () => {
     const strictSchema = z.object({ id: z.string().min(5) });
-    const handler = withResponse(strictSchema, () => Promise.resolve({ message: "Ok.", data: { id: "ab" } }));
+    const handler = withResponse(strictSchema, () => Promise.resolve({ data: { id: "ab" } }));
 
     await expect(handler()).rejects.toBeInstanceOf(z.ZodError);
   });
@@ -68,13 +67,11 @@ describe("withResponse", () => {
   });
 
   test("hands the request arguments to the handler", async () => {
-    const handler = withResponse(responseSchema, (request: string) =>
-      Promise.resolve({ message: request, data: { id: "abc" } }),
-    );
+    const handler = withResponse(responseSchema, (_request: string) => Promise.resolve({ data: { id: "abc" } }));
 
     const response = await handler("from the request");
 
-    await expect(response.json()).resolves.toEqual({ message: "from the request", data: { id: "abc" } });
+    await expect(response.json()).resolves.toEqual({ success: true, data: { id: "abc" } });
   });
 
   test("answers a call that names a schema and no handler beside it at 500", async () => {
@@ -82,6 +79,7 @@ describe("withResponse", () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
+      success: false,
       data: null,
       message: "withResponse requires a response schema and a handler.",
     });
