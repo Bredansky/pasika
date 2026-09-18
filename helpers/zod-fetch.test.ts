@@ -18,7 +18,7 @@ afterEach(() => {
 
 describe("zodFetch", () => {
   test("hands a JSON body back as data the response schema accepted", async () => {
-    answerWith(Response.json({ id: "abc" }));
+    answerWith(Response.json({ data: { id: "abc" }, message: "Loaded." }));
 
     await expect(zodFetch({ url: "https://api.test/media", responseSchema: payloadSchema })).resolves.toEqual({
       id: "abc",
@@ -34,7 +34,7 @@ describe("zodFetch", () => {
   });
 
   test("passes the request through to fetch", async () => {
-    answerWith(Response.json({ id: "abc" }));
+    answerWith(Response.json({ data: { id: "abc" }, message: "Loaded." }));
     const init = { method: "POST", body: "payload" };
 
     await zodFetch({ url: "https://api.test/media", init, responseSchema: payloadSchema });
@@ -43,7 +43,7 @@ describe("zodFetch", () => {
   });
 
   test("validates a structured JSON request body before fetching", async () => {
-    answerWith(Response.json({ id: "abc" }));
+    answerWith(Response.json({ data: { id: "abc" }, message: "Loaded." }));
     const requestSchema = z.object({ title: z.string() });
     const init = { method: "POST", body: JSON.stringify({ title: "hello" }) };
 
@@ -58,7 +58,7 @@ describe("zodFetch", () => {
   });
 
   test("rejects an invalid structured JSON request body before fetching", async () => {
-    answerWith(Response.json({ id: "abc" }));
+    answerWith(Response.json({ data: { id: "abc" }, message: "Loaded." }));
     const requestSchema = z.object({ title: z.string() });
 
     await expect(
