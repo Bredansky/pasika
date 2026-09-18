@@ -10,6 +10,13 @@ import { supportFilePlacementRule } from "./support-file-placement";
  * root from the working directory, exactly as it does in a repository.
  */
 const FIXTURE: Record<string, string> = {
+  // A root constants barrel re-exports a feature-local constant. The consumer
+  // imports through the barrel, so the placement graph must follow the export.
+  "constants/index.ts": 'export * from "./feature-only";\n',
+  "constants/feature-only.ts": "export const featureOnlyConstant = 1;\n",
+  "features/billing/root-consumer.tsx":
+    'import { featureOnlyConstant } from "@/constants";\nexport function RootConsumer() { return <span>{featureOnlyConstant}</span>; }\n',
+
   // A route or page is an entry point, not a reuse site, so it never places a
   // support file: only the feature consumer below counts for `use-stale`.
   "app/products/page.tsx":
@@ -153,6 +160,10 @@ void describe("Extracted constants MUST live in a constants/ folder at the CCF o
       {
         ...ok("features/orders/constants/misplaced.ts"),
         errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/invoice.tsx"])],
+      },
+      {
+        ...ok("constants/feature-only.ts"),
+        errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/root-consumer.tsx"])],
       },
     ],
   });
