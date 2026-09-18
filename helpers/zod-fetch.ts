@@ -90,10 +90,6 @@ export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unkno
   }
 
   const decoded: unknown = JSON.parse(body);
-  const responseEnvelopeSchema = z.object({
-    data: options.responseSchema,
-    message: z.string(),
-  });
 
-  return responseEnvelopeSchema.parse(decoded).data;
+  return options.responseSchema.parse(decoded);
 }
