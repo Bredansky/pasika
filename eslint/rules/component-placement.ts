@@ -21,6 +21,7 @@ import {
   resolveComponentPlacement,
   segmentsOf,
 } from "../project/ccf";
+import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 const REASON_TEXT: Record<string, string> = {
@@ -75,9 +76,26 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     const currentFolder = folderSegmentsOf(componentFile, sourceRoot);
     const placement = resolveComponentPlacement(componentFile, index);
+    const ownFeature = segments[0] === "features" ? segments[1] : undefined;
+    const importsForeignFeature = module.imports.some((moduleImport) => {
+      const resolved = resolveSpecifier(componentFile, moduleImport.specifier, sourceRoot);
+      const importedSegments = resolved ? segmentsOf(resolved, sourceRoot) : [];
+      return importedSegments[0] === "features" && importedSegments[1] !== ownFeature;
+    });
 
     return {
       Program(node) {
+        if (importsForeignFeature && segments[0] === "features" && currentFolder[0] !== "compositions") {
+          context.report({
+            node,
+            loc: { line: 1, column: 0 },
+            message:
+              "Move this component to src/compositions/ — it imports from another feature folder. " +
+              "See docs/next-codebase-guide/rules/component-placement-rule.md",
+          });
+          return;
+        }
+
         if (!placement) {
           // No consumer counts, so the component belongs to the feature it represents.
           if (segments[0] !== "features" || segments.length < 3) {
