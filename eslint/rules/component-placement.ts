@@ -85,7 +85,8 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     return {
       Program(node) {
-        if (importsForeignFeature && segments[0] === "features" && currentFolder[0] !== "compositions") {
+        if (importsForeignFeature && currentFolder[0] === "compositions") return;
+        if (importsForeignFeature && segments[0] === "features") {
           context.report({
             node,
             loc: { line: 1, column: 0 },

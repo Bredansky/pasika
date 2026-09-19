@@ -62,6 +62,8 @@ const FIXTURE: Record<string, string> = {
   "features/editor/editor-selector.tsx":
     'import { CredentialBadge } from "@/features/credentials/credential-badge";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
   "features/credentials/credential-badge.tsx": "export function CredentialBadge() { return <span />; }\n",
+  "compositions/editor-selector.tsx":
+    'import { CredentialBadge } from "@/features/credentials/credential-badge";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
 };
 
 // realpath: on macOS the temp dir is a symlink, and the rule resolves its source
@@ -171,7 +173,7 @@ void describe("A component whose CCF is src/features/ MUST live in src/shared/."
 
 void describe("A feature component importing a foreign feature MUST live in src/compositions/.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
-    valid: [],
+    valid: [{ code: read("compositions/editor-selector.tsx"), filename: file("compositions/editor-selector.tsx") }],
     invalid: [
       {
         code: read("features/editor/editor-selector.tsx"),
