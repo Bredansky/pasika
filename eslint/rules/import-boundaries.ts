@@ -131,6 +131,7 @@ export const importBoundariesRule: Rule.RuleModule = {
         (isCodeModule &&
           importerLayer === "features" &&
           ((importedLayer === "features" && importerFeature === importedFeature) ||
+            importedLayer === "compositions" ||
             importedLayer === "shared" ||
             importedIsRootSupport)) ||
         (isCodeModule && importerLayer === "shared" && (importedLayer === "shared" || importedIsRootSupport)) ||

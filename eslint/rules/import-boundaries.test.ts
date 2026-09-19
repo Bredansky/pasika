@@ -86,7 +86,7 @@ void describe("A file under src/compositions/ MUST NOT import from src/app/.", (
   });
 });
 
-void describe("A file in a feature folder MUST NOT import from another feature folder, src/compositions/, or src/app/.", () => {
+void describe("A file in a feature folder MUST NOT import from another feature folder or `src/app/`; it MAY import an explicitly composition-owned component from `src/compositions/`.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
@@ -97,6 +97,10 @@ void describe("A file in a feature folder MUST NOT import from another feature f
         code: 'import { formatDate } from "@/utils/format-date";',
         filename: srcFile("features/billing/invoice.tsx"),
       },
+      {
+        code: 'import { Checkout } from "@/compositions/checkout";',
+        filename: srcFile("features/billing/invoice.tsx"),
+      },
     ],
     invalid: [
       {
@@ -104,11 +108,7 @@ void describe("A file in a feature folder MUST NOT import from another feature f
         filename: srcFile("features/billing/invoice.tsx"),
         errors: [{ message: BOUNDARY_MESSAGE }],
       },
-      {
-        code: 'import { Checkout } from "@/compositions/checkout";',
-        filename: srcFile("features/billing/invoice.tsx"),
-        errors: [{ message: BOUNDARY_MESSAGE }],
-      },
+
       {
         code: 'import { metadata } from "@/app/layout";',
         filename: srcFile("features/billing/invoice.tsx"),

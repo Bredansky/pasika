@@ -488,8 +488,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.",
-      "hash": "e91ffc37d1",
+      "text": "A file in a feature folder MUST NOT import from another feature folder or `src/app/`; it MAY import an explicitly composition-owned component from `src/compositions/`.",
+      "hash": "a79bab2aa8",
       "ref": "pasika/import-boundaries"
     },
     {

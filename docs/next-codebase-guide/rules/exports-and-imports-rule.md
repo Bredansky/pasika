@@ -6,7 +6,7 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - Imports MUST use whichever of the relative path and the `@/*` alias has fewer segments, counting each `../` step and each name in the path as one segment.
 - Imports MUST use the relative path when the relative path and the `@/*` alias have the same number of segments.
 - A file under `src/compositions/` MUST NOT import from `src/app/`.
-- A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.
+- A file in a feature folder MUST NOT import from another feature folder or `src/app/`; it MAY import an explicitly composition-owned component from `src/compositions/`.
 - A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
 - A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
 - A configuration module MUST import only from root support folders and its own files.
