@@ -56,6 +56,12 @@ const FIXTURE: Record<string, string> = {
     'import { StatusBadge } from "@/shared/status-badge";\nimport { Badge } from "@/features/payments/badge";\nexport function OrderCard() { return <StatusBadge />; }\n',
   "shared/status-badge.tsx": "export function StatusBadge() { return <span />; }\n",
   "features/payments/badge.tsx": "export function Badge() { return <span />; }\n",
+
+  // A feature-local component imports one foreign feature; it must be a composition
+  // so component placement agrees with the layer-boundary rule.
+  "features/editor/editor-selector.tsx":
+    'import { CredentialBadge } from "@/features/credentials/credential-badge";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
+  "features/credentials/credential-badge.tsx": "export function CredentialBadge() { return <span />; }\n",
 };
 
 // realpath: on macOS the temp dir is a symlink, and the rule resolves its source
@@ -156,6 +162,23 @@ void describe("A component whose CCF is src/features/ MUST live in src/shared/."
               "its consumers span more than one feature, and no feature may import from another",
               ["src/features/orders/order-card.tsx", "src/features/payments/payment-summary.tsx"],
             ),
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A feature component importing a foreign feature MUST live in src/compositions/.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [],
+    invalid: [
+      {
+        code: read("features/editor/editor-selector.tsx"),
+        filename: file("features/editor/editor-selector.tsx"),
+        errors: [
+          {
+            message: `Move this component to src/compositions/ — it imports from another feature folder. ${DOC}`,
           },
         ],
       },
