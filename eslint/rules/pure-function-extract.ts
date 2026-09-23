@@ -8,9 +8,9 @@
  * graph the other placement rules read, so a pure helper declared beside a
  * handler never gets a second, cross-file consumer to trigger extraction any
  * other way. This rule therefore checks route.ts module-scope declarations
- * whether or not they are exported, while every other file keeps requiring
- * export first, since an unexported helper elsewhere is invisible outside its
- * file and extracting it would add indirection no consumer needs yet.
+ * whether or not they are exported. Component files follow the same module-scope
+ * rule: private pure helpers still belong in utils/, because the requirement is
+ * about concern separation rather than cross-file visibility.
  *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  */
@@ -99,7 +99,6 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         const exported = node.parent?.type === "ExportNamedDeclaration";
         const moduleLevel = exported || node.parent?.type === "Program";
         if (!moduleLevel) return;
-        if (!isRouteFile && !exported) return;
 
         const name = node.id?.name;
         if (!name) return;
@@ -118,7 +117,6 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         const exported = container?.type === "ExportNamedDeclaration";
         const moduleLevel = exported || container?.type === "Program";
         if (!moduleLevel) return;
-        if (!isRouteFile && !exported) return;
 
         if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;

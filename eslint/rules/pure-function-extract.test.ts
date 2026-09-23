@@ -24,11 +24,6 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         code: 'export function formatPrice(n) { return "$" + n.toFixed(2); }',
         filename: srcFile("features/billing/utils/format-price.ts"),
       },
-      // Non-exported functions are fine (not visible outside the file)
-      {
-        code: "function helper() { return 42; }",
-        filename: srcFile("features/dashboard/dashboard.tsx"),
-      },
       // route.ts may export exactly the names Next.js requires
       {
         code: 'export async function GET() { return new Response("ok"); }',
@@ -67,6 +62,28 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
           {
             message:
               'Extract pure function "formatPrice" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Private module-scope pure helper in a component file
+      {
+        code: 'function formatCredentialLabel(value) { return value.charAt(0).toUpperCase() + value.slice(1); }\nexport function CredentialForm() { return <div>{formatCredentialLabel("telegram")}</div>; }',
+        filename: srcFile("features/credentials/SettingsPage/CredentialForm.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatCredentialLabel" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Private module-scope arrow helper in a component file
+      {
+        code: 'const formatCredentialLabel = (value) => value.charAt(0).toUpperCase() + value.slice(1);\nexport function CredentialForm() { return <div>{formatCredentialLabel("telegram")}</div>; }',
+        filename: srcFile("features/credentials/SettingsPage/CredentialForm.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatCredentialLabel" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
