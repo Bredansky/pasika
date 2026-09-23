@@ -8,8 +8,22 @@
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";
-import type { StyleSheetPlain } from "@eslint/css-tree";
+import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { blockChildren } from "./helpers";
+
+function reportRawDeclarations(context: Parameters<CSSRuleDefinition["create"]>[0], rule: CssNodePlain): void {
+  for (const child of blockChildren(rule)) {
+    if (child.type === "Declaration") {
+      if (child.property.startsWith("--")) continue;
+      context.report({
+        node: child,
+        message: `Style declaration "${child.property}" inside a global selector must use @apply.`,
+      });
+      continue;
+    }
+    if (child.type === "Rule") reportRawDeclarations(context, child);
+  }
+}
 
 export const applyUsageRule: CSSRuleDefinition = {
   meta: {
@@ -22,23 +36,14 @@ export const applyUsageRule: CSSRuleDefinition = {
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        // Project style declarations inside global selectors are the ones in
-        // @layer base rules. Each rule's declarations must go through @apply,
-        // not raw CSS properties.
-        const layers = node.children.filter((child) => child.type === "Atrule" && child.name === "layer");
-        for (const layer of layers) {
-          for (const child of blockChildren(layer)) {
-            if (child.type !== "Rule") continue;
-            for (const declaration of blockChildren(child)) {
-              if (declaration.type !== "Declaration") continue;
-              // @apply itself arrives as an Atrule, so a raw Declaration means
-              // the project wrote a property by hand instead of applying a
-              // utility.
-              context.report({
-                node: declaration,
-                message: `Style declaration "${declaration.property}" inside a global selector must use @apply.`,
-              });
-            }
+        // Check every top-level selector, not only @layer base. Theme selectors
+        // may declare CSS custom properties directly; every other styling
+        // declaration must go through Tailwind's @apply.
+        for (const child of node.children) {
+          if (child.type === "Rule") reportRawDeclarations(context, child);
+          if (child.type !== "Atrule" || child.name !== "layer") continue;
+          for (const layered of blockChildren(child)) {
+            if (layered.type === "Rule") reportRawDeclarations(context, layered);
           }
         }
       },

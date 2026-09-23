@@ -14,6 +14,7 @@ import { cssEntryPointRule } from "./css-entry-point";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { unusedUtilityRule } from "./unused-utility";
 import { singleUseUtilityRule } from "./single-use-utility";
+import { globalSelectorStylingRule } from "./global-selector-styling";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
@@ -29,6 +30,7 @@ export const tailwindRules = {
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
   "single-use-utility": singleUseUtilityRule,
+  "global-selector-styling": globalSelectorStylingRule,
 };
 
 export type TailwindRuleName = keyof typeof tailwindRules;
