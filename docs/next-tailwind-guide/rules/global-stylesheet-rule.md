@@ -7,7 +7,8 @@ Use the global stylesheet to define Tailwind, the shared theme, and base styles.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
-- Outside `@layer base`, a global selector MAY only scope CSS variable overrides; element and component styling MUST stay in Tailwind classes at the consumer.
+- Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
+- Element and component styling MUST NOT be declared in global selectors; shared styling MUST use `@utility`, while single-use styling MUST stay in the component markup.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 

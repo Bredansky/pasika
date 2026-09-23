@@ -980,8 +980,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Outside `@layer base`, a global selector MAY only scope CSS variable overrides; element and component styling MUST stay in Tailwind classes at the consumer.",
-      "hash": "c2fec8fd16",
+      "text": "Outside `@layer base`, a global selector MUST only scope CSS variable overrides.",
+      "hash": "6b3c897fb6",
+      "ref": "pasika/global-selector-styling"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Element and component styling MUST NOT be declared in global selectors; shared styling MUST use `@utility`, while single-use styling MUST stay in the component markup.",
+      "hash": "80c73422b1",
       "ref": "pasika/global-selector-styling"
     },
     {

@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { globalSelectorStylingRule } from "./global-selector-styling";
 
-void describe("Outside `@layer base`, a global selector MAY only scope CSS variable overrides; element and component styling MUST stay in Tailwind classes at the consumer.", () => {
+void describe("Outside `@layer base`, a global selector MUST only scope CSS variable overrides.", () => {
   tailwindRuleTester.run("global-selector-styling", globalSelectorStylingRule, {
     valid: [
       { code: `:root { --base-canvas: #fff; }\n.dark { --base-canvas: #000; }` },
@@ -38,6 +38,22 @@ void describe("Outside `@layer base`, a global selector MAY only scope CSS varia
       },
       {
         code: `.dark { --base-canvas: #000; color: white; }`,
+        errors: [
+          {
+            message:
+              "Global selectors outside @layer base may only override CSS variables; keep element/component styling as Tailwind classes in the consumer.",
+          },
+        ],
+      },
+    ],
+  });
+});
+void describe("Element and component styling MUST NOT be declared in global selectors; shared styling MUST use `@utility`, while single-use styling MUST stay in the component markup.", () => {
+  tailwindRuleTester.run("global-selector-styling-component-policy", globalSelectorStylingRule, {
+    valid: [{ code: `@utility shared-skin { @apply flex items-center; }` }],
+    invalid: [
+      {
+        code: `.component { @apply flex items-center; }`,
         errors: [
           {
             message:
