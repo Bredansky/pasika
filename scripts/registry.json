@@ -980,6 +980,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Outside `@layer base`, a global selector MAY only scope CSS variable overrides; element and component styling MUST stay in Tailwind classes at the consumer.",
+      "hash": "c2fec8fd16",
+      "ref": "pasika/global-selector-styling"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
       "ref": "pasika/stylesheet-ordering"
