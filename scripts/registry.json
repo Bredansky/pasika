@@ -994,7 +994,7 @@
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.",
       "hash": "50f1692be2",
-      "ref": "pasika/shared-style-dedup"
+      "ref": "pasika/shared-style-dedup, pasika/single-use-utility"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

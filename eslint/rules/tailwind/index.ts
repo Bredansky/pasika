@@ -13,6 +13,7 @@ import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { cssEntryPointRule } from "./css-entry-point";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { unusedUtilityRule } from "./unused-utility";
+import { singleUseUtilityRule } from "./single-use-utility";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
@@ -27,6 +28,7 @@ export const tailwindRules = {
   "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
+  "single-use-utility": singleUseUtilityRule,
 };
 
 export type TailwindRuleName = keyof typeof tailwindRules;
