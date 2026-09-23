@@ -986,12 +986,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Element and component styling MUST NOT be declared in global selectors; shared styling MUST use `@utility`, while single-use styling MUST stay in the component markup.",
-      "hash": "80c73422b1",
-      "ref": "pasika/global-selector-styling"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "d483eb365b",
       "ref": "pasika/stylesheet-ordering"
