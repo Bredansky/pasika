@@ -5,20 +5,20 @@ void describe("A smart component with one outer DOM element in every rendered re
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section data-testid="AccountPanel">{String(open)}</section>;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <section data-testid="AccountPanel">{String(open)}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
       {
         // `return (...)` wraps the JSX in a ParenthesizedExpression, which is the
         // formatting prettier produces for multi-line returns. The root must be
         // found through the parens, not reported as "no single outer element".
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return (\n    <section data-testid="AccountPanel">{String(open)}</section>\n  );\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return (\n    <section data-testid="AccountPanel">{String(open)}</section>\n  );\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
     ],
     invalid: [
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section>{String(open)}</section>;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <section>{String(open)}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
@@ -27,7 +27,7 @@ void describe("A smart component with one outer DOM element in every rendered re
         ],
       },
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return (\n    <section data-testid="account-panel">{String(open)}</section>\n  );\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return (\n    <section data-testid="account-panel">{String(open)}</section>\n  );\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
@@ -43,13 +43,13 @@ void describe("A smart component that conditionally renders nothing MAY return n
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
-        code: `export function AccountPanel() {\n  const [enabled] = useState(false);\n  if (!enabled) return null;\n  return <section data-testid="AccountPanel">{String(enabled)}</section>;\n}`,
+        code: `export async function AccountPanel() {\n  const enabled = await zodFetch({ url, responseSchema });\n  if (!enabled) return null;\n  return <section data-testid="AccountPanel">{String(enabled)}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
     ],
     invalid: [
       {
-        code: `export function AccountPanel() {\n  const [enabled] = useState(false);\n  if (!enabled) return null;\n  return <section>{String(enabled)}</section>;\n}`,
+        code: `export async function AccountPanel() {\n  const enabled = await zodFetch({ url, responseSchema });\n  if (!enabled) return null;\n  return <section>{String(enabled)}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
@@ -65,13 +65,13 @@ void describe("A smart component whose rendered branches all resolve to the same
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
-        code: `export function VideoHeroPlayer() {\n  const [isPlaying, setIsPlaying] = useState(false);\n  if (isPlaying) {\n    return (\n      <div data-testid="VideoHeroPlayer" className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div data-testid="VideoHeroPlayer" className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
+        code: `export async function VideoHeroPlayer() {\n  const isPlaying = await zodFetch({ url, responseSchema });\n  if (isPlaying) {\n    return (\n      <div data-testid="VideoHeroPlayer" className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div data-testid="VideoHeroPlayer" className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
         filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
       },
     ],
     invalid: [
       {
-        code: `export function VideoHeroPlayer() {\n  const [isPlaying, setIsPlaying] = useState(false);\n  if (isPlaying) {\n    return (\n      <div className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
+        code: `export async function VideoHeroPlayer() {\n  const isPlaying = await zodFetch({ url, responseSchema });\n  if (isPlaying) {\n    return (\n      <div className="h-full w-full">\n        <iframe src="x" />\n      </div>\n    );\n  }\n  return (\n    <div className="h-full w-full">\n      <button type="button" />\n    </div>\n  );\n}`,
         filename: srcFile("features/home/hero-media/VideoHeroPlayer.tsx"),
         errors: [
           {
@@ -114,13 +114,13 @@ void describe("A smart component MUST render exactly one outer DOM element in ev
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <section data-testid="AccountPanel">{open ? <p /> : <p />}</section>;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <section data-testid="AccountPanel">{open ? <p /> : <p />}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
     ],
     invalid: [
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return open ? <section /> : <aside />;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return open ? <section /> : <aside />;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
@@ -132,7 +132,7 @@ void describe("A smart component MUST render exactly one outer DOM element in ev
         ],
       },
       {
-        code: `export function AccountPanel() {\n  const [open] = useState(false);\n  return <>{open ? <section /> : <aside />}</>;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <>{open ? <section /> : <aside />}</>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {

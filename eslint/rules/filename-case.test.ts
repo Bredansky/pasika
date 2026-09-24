@@ -5,13 +5,13 @@ void describe("A smart component file name MUST be PascalCase.tsx.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {
     valid: [
       {
-        code: "export function AccountPanel() { useState(false); return <section />; }",
+        code: "export function AccountPanel() { const handleSave = () => save(); return <ProfileCard onSave={handleSave} />; }",
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
     ],
     invalid: [
       {
-        code: "export function AccountPanel() { useState(false); return <section />; }",
+        code: "export function AccountPanel() { const handleSave = () => save(); return <ProfileCard onSave={handleSave} />; }",
         filename: srcFile("features/account/account-panel.tsx"),
         errors: [
           {
@@ -23,17 +23,17 @@ void describe("A smart component file name MUST be PascalCase.tsx.", () => {
   });
 });
 
-void describe("An async server component fetches data, so it is smart and MUST be PascalCase.tsx.", () => {
+void describe("A component that fetches data through zodFetch is smart and MUST be PascalCase.tsx.", () => {
   ruleTester.run("filename-case", filenameCaseRule, {
     valid: [
       {
-        code: "export async function HomeFeed() { const data = await fetchFeed(); return <section />; }",
+        code: "export async function HomeFeed() { const data = await zodFetch({ url, responseSchema }); return <section />; }",
         filename: srcFile("features/home/HomeFeed.tsx"),
       },
     ],
     invalid: [
       {
-        code: "export async function HomeFeed() { const data = await fetchFeed(); return <section />; }",
+        code: "export async function HomeFeed() { const data = await zodFetch({ url, responseSchema }); return <section />; }",
         filename: srcFile("features/home/home-feed.tsx"),
         errors: [
           {
@@ -50,6 +50,14 @@ void describe("A dumb component file name MUST be kebab-case.tsx.", () => {
     valid: [
       {
         code: "export function AccountPanel() { return <section />; }",
+        filename: srcFile("features/account/account-panel.tsx"),
+      },
+      {
+        code: "export function AccountPanel() { useMemo(() => 1, []); return <section />; }",
+        filename: srcFile("features/account/account-panel.tsx"),
+      },
+      {
+        code: "export async function AccountPanel() { const value = await localCalculation(); return <section>{value}</section>; }",
         filename: srcFile("features/account/account-panel.tsx"),
       },
     ],

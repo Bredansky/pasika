@@ -9,6 +9,7 @@ export interface ComponentInfo {
 
 const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
 const isHookCallName = (name: string): boolean => /^use[A-Z]/.test(name);
+const isHandlerName = (name: string): boolean => /^handle[A-Z]/.test(name);
 
 function isExported(node: ts.Node): boolean {
   if (!ts.canHaveModifiers(node)) return false;
@@ -44,39 +45,106 @@ function containsJsx(node: ts.Node): boolean {
   return found;
 }
 
-function containsSmartCall(node: ts.Node): boolean {
+function containsDataFetch(node: ts.Node): boolean {
   let found = false;
+
   const visit = (child: ts.Node): void => {
     if (found) return;
-    if (ts.isCallExpression(child)) {
-      const expression = child.expression;
-      let name = "";
-      if (ts.isIdentifier(expression)) {
-        name = expression.text;
-      } else if (ts.isPropertyAccessExpression(expression)) {
-        name = expression.name.text;
-      }
-      if (isHookCallName(name)) {
-        found = true;
-        return;
-      }
+
+    if (ts.isCallExpression(child) && ts.isIdentifier(child.expression) && child.expression.text === "zodFetch") {
+      found = true;
+      return;
     }
+
     ts.forEachChild(child, visit);
   };
+
   ts.forEachChild(node, visit);
   return found;
 }
 
-function isAsyncFunction(node: ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression): boolean {
-  return (ts.getModifiers(node) ?? []).some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword);
+function isComponentTagName(tagName: ts.JsxTagNameExpression): boolean {
+  if (ts.isIdentifier(tagName)) return isPascalCase(tagName.text);
+  if (ts.isPropertyAccessExpression(tagName)) {
+    let root: ts.Expression = tagName.expression;
+    while (ts.isPropertyAccessExpression(root)) root = root.expression;
+    return ts.isIdentifier(root) && isPascalCase(root.text);
+  }
+  return false;
+}
+
+function containsOwnedHandlerProp(node: ts.Node): boolean {
+  const handlerNames = new Set<string>();
+
+  const collectHandlers = (child: ts.Node): void => {
+    if (
+      ts.isVariableDeclaration(child) &&
+      ts.isIdentifier(child.name) &&
+      isHandlerName(child.name.text) &&
+      child.initializer &&
+      (ts.isArrowFunction(child.initializer) ||
+        ts.isFunctionExpression(child.initializer) ||
+        (ts.isCallExpression(child.initializer) &&
+          ts.isPropertyAccessExpression(child.initializer.expression) &&
+          child.initializer.expression.name.text === "useCallback") ||
+        (ts.isCallExpression(child.initializer) &&
+          ts.isIdentifier(child.initializer.expression) &&
+          child.initializer.expression.text === "useCallback"))
+    ) {
+      handlerNames.add(child.name.text);
+    } else if (ts.isFunctionDeclaration(child) && child.name && isHandlerName(child.name.text)) {
+      handlerNames.add(child.name.text);
+    }
+
+    ts.forEachChild(child, collectHandlers);
+  };
+
+  ts.forEachChild(node, collectHandlers);
+  if (handlerNames.size === 0) return false;
+
+  let found = false;
+  const findPassedHandler = (child: ts.Node): void => {
+    if (found) return;
+
+    let attributes: ts.JsxAttributes | undefined;
+    let tagName: ts.JsxTagNameExpression | undefined;
+    if (ts.isJsxElement(child)) {
+      attributes = child.openingElement.attributes;
+      tagName = child.openingElement.tagName;
+    } else if (ts.isJsxSelfClosingElement(child)) {
+      attributes = child.attributes;
+      tagName = child.tagName;
+    }
+
+    if (attributes && tagName && isComponentTagName(tagName)) {
+      for (const property of attributes.properties) {
+        if (!ts.isJsxAttribute(property) || !ts.isIdentifier(property.name) || !/^on[A-Z]/.test(property.name.text)) {
+          continue;
+        }
+        const initializer = property.initializer;
+        if (!initializer || !ts.isJsxExpression(initializer) || !initializer.expression) continue;
+        if (ts.isIdentifier(initializer.expression) && handlerNames.has(initializer.expression.text)) {
+          found = true;
+          return;
+        }
+      }
+    }
+
+    ts.forEachChild(child, findPassedHandler);
+  };
+
+  ts.forEachChild(node, findPassedHandler);
+  return found;
+}
+
+function isSmartComponent(node: ts.Node): boolean {
+  return containsDataFetch(node) || containsOwnedHandlerProp(node);
 }
 
 function componentFromFunction(node: ts.FunctionDeclaration): ComponentInfo | undefined {
   const name = node.name?.text;
   if (!name || !isPascalCase(name) || !containsJsx(node)) return undefined;
-  // Async server components fetch data (server-side), which is what makes a
-  // component smart; the hook-based detector misses them.
-  return { name, declaration: node, smart: containsSmartCall(node) || isAsyncFunction(node) };
+  return { name, declaration: node, smart: isSmartComponent(node) };
 }
 
 function componentFromVariable(node: ts.VariableDeclaration): ComponentInfo | undefined {
@@ -87,7 +155,7 @@ function componentFromVariable(node: ts.VariableDeclaration): ComponentInfo | un
   return {
     name: node.name.text,
     declaration: node,
-    smart: containsSmartCall(initializer),
+    smart: isSmartComponent(initializer),
   };
 }
 

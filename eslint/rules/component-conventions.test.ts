@@ -13,7 +13,7 @@ describe("component convention helpers", () => {
   it("finds exported and optionally private function components", () => {
     const source = `
       function PrivateCard() { return <article />; }
-      export async function AccountPanel() { return <section />; }
+      export async function AccountPanel() { await zodFetch({ url, responseSchema }); return <section />; }
       export function helper() { return <div />; }
       export function NoMarkup() { return "text"; }
     `;
@@ -42,11 +42,49 @@ describe("component convention helpers", () => {
     ]);
   });
 
-  it("classifies arrow and function-expression components and their hook calls", () => {
+  it("classifies components by data fetching or child handler ownership, not hook usage", () => {
     const components = parseComponentInfo(
       `
         export const AccountPanel = () => { React.useState(false); return <section />; };
         export const ProfileCard = function () { return <article />; };
+        export const SavePanel = () => {
+          const handleSave = () => save();
+          return <ProfileCard onSave={handleSave} />;
+        };
+        export const MemoizedSavePanel = () => {
+          const handleSave = React.useCallback(() => save(), []);
+          return <ProfileCard onSave={handleSave} />;
+        };
+        export const DirectMemoizedSavePanel = () => {
+          const handleSave = useCallback(() => save(), []);
+          return <UI.ProfileCard onSave={handleSave} />;
+        };
+        export const FunctionHandlerPanel = () => {
+          function handleSave() { save(); }
+          return <ProfileCard onSave={handleSave}></ProfileCard>;
+        };
+        export const NonHandlerPropPanel = () => {
+          const handleSave = () => save();
+          return <ProfileCard label={handleSave} />;
+        };
+        export const ValuelessHandlerPanel = () => {
+          const handleSave = () => save();
+          return <ProfileCard onSave />;
+        };
+        export const InlineHandlerPanel = () => {
+          const handleSave = () => save();
+          return <ProfileCard onSave={() => handleSave()} />;
+        };
+        export const DomHandlerPanel = () => {
+          const handleClick = () => save();
+          return <button onClick={handleClick} />;
+        };
+        export const ForwardingPanel = ({ onSave }) => <ProfileCard onSave={onSave} />;
+        export const AsyncPanel = async () => <section>{await localCalculation()}</section>;
+        export const DataPanel = async () => {
+          const data = await zodFetch({ url, responseSchema });
+          return <section>{data}</section>;
+        };
         export const notAComponent = () => <div />;
         export const MissingInitializer = undefined;
         export const PlainValue = 42;
@@ -55,8 +93,19 @@ describe("component convention helpers", () => {
     );
 
     expect(components.map(({ name, smart }) => ({ name, smart }))).toEqual([
-      { name: "AccountPanel", smart: true },
+      { name: "AccountPanel", smart: false },
       { name: "ProfileCard", smart: false },
+      { name: "SavePanel", smart: true },
+      { name: "MemoizedSavePanel", smart: true },
+      { name: "DirectMemoizedSavePanel", smart: true },
+      { name: "FunctionHandlerPanel", smart: true },
+      { name: "NonHandlerPropPanel", smart: false },
+      { name: "ValuelessHandlerPanel", smart: false },
+      { name: "InlineHandlerPanel", smart: false },
+      { name: "DomHandlerPanel", smart: false },
+      { name: "ForwardingPanel", smart: false },
+      { name: "AsyncPanel", smart: false },
+      { name: "DataPanel", smart: true },
     ]);
   });
 
