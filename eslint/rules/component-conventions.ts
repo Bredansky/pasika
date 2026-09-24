@@ -310,6 +310,117 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
   return roots[0];
 }
 
+function literalTestIds(attributes: readonly ts.JsxAttributeLike[]): string[] {
+  return attributes.flatMap((candidate) => {
+    if (!ts.isJsxAttribute(candidate) || !ts.isIdentifier(candidate.name) || candidate.name.text !== "data-testid") {
+      return [];
+    }
+    return candidate.initializer && ts.isStringLiteral(candidate.initializer) ? [candidate.initializer.text] : [];
+  });
+}
+
+function combineTestIdPaths(left: string[][], right: string[][]): string[][] {
+  return left.flatMap((leftPath) => right.map((rightPath) => [...leftPath, ...rightPath]));
+}
+
+function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][] {
+  let unwrapped = expression;
+  while (ts.isParenthesizedExpression(unwrapped)) unwrapped = unwrapped.expression;
+
+  if (ts.isConditionalExpression(unwrapped)) {
+    return [
+      ...renderedTestIdPathsFromExpression(unwrapped.whenTrue),
+      ...renderedTestIdPathsFromExpression(unwrapped.whenFalse),
+    ];
+  }
+
+  if (ts.isJsxSelfClosingElement(unwrapped)) {
+    return [literalTestIds(unwrapped.attributes.properties)];
+  }
+
+  if (ts.isJsxElement(unwrapped)) {
+    let paths = [literalTestIds(unwrapped.openingElement.attributes.properties)];
+
+    for (const child of unwrapped.children) {
+      if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
+        paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(child));
+        continue;
+      }
+
+      if (ts.isJsxExpression(child) && child.expression) {
+        const childExpression = child.expression;
+        if (
+          ts.isConditionalExpression(childExpression) ||
+          ts.isJsxElement(childExpression) ||
+          ts.isJsxSelfClosingElement(childExpression) ||
+          ts.isJsxFragment(childExpression) ||
+          ts.isParenthesizedExpression(childExpression)
+        ) {
+          paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(childExpression));
+        }
+      }
+    }
+
+    return paths;
+  }
+
+  if (ts.isJsxFragment(unwrapped)) {
+    let paths: string[][] = [[]];
+
+    for (const child of unwrapped.children) {
+      if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
+        paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(child));
+        continue;
+      }
+
+      if (ts.isJsxExpression(child) && child.expression) {
+        const childExpression = child.expression;
+        if (
+          ts.isConditionalExpression(childExpression) ||
+          ts.isJsxElement(childExpression) ||
+          ts.isJsxSelfClosingElement(childExpression) ||
+          ts.isJsxFragment(childExpression) ||
+          ts.isParenthesizedExpression(childExpression)
+        ) {
+          paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(childExpression));
+        }
+      }
+    }
+
+    return paths;
+  }
+
+  return [[]];
+}
+
+export function findRenderedTestIdPaths(component: ComponentInfo): string[][] {
+  const declaration = component.declaration;
+  let body: ts.ConciseBody | undefined;
+
+  if (ts.isFunctionDeclaration(declaration)) body = declaration.body;
+  else if (declaration.initializer && ts.isArrowFunction(declaration.initializer)) body = declaration.initializer.body;
+  else if (declaration.initializer && ts.isFunctionExpression(declaration.initializer)) {
+    body = declaration.initializer.body;
+  }
+
+  if (!body) return [];
+  if (!ts.isBlock(body)) return renderedTestIdPathsFromExpression(body);
+
+  const returns: ts.ReturnStatement[] = [];
+  const visit = (node: ts.Node): void => {
+    if (node !== body && (ts.isFunctionLike(node) || ts.isClassLike(node))) return;
+    if (ts.isReturnStatement(node)) returns.push(node);
+    ts.forEachChild(node, visit);
+  };
+  visit(body);
+
+  return returns.flatMap((statement) => {
+    const expression = statement.expression;
+    if (!expression || expression.kind === ts.SyntaxKind.NullKeyword) return [];
+    return renderedTestIdPathsFromExpression(expression);
+  });
+}
+
 export function getTestId(root: SimpleRoot): { value?: string; attribute?: ts.JsxAttribute } {
   const attribute = root.attributes.find(
     (candidate): candidate is ts.JsxAttribute =>

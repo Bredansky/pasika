@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { findSimpleRoot, getTestId, parseComponentInfo, type ComponentInfo } from "./component-conventions";
+import {
+  findRenderedTestIdPaths,
+  findSimpleRoot,
+  getTestId,
+  parseComponentInfo,
+  type ComponentInfo,
+} from "./component-conventions";
 
 const filename = "/repo/src/features/account/account-panel.tsx";
 
@@ -128,6 +134,44 @@ describe("component convention helpers", () => {
     expect(
       findSimpleRoot(componentOf("function Card() { if (ready) return <section />; return <aside />; }"), "", filename),
     ).toBeUndefined();
+  });
+
+  it("tracks stable test-id anchors across component composition and rendered branches", () => {
+    expect(
+      findRenderedTestIdPaths(componentOf("const Card = () => <Panel><Content data-testid='Card' /></Panel>;")),
+    ).toEqual([["Card"]]);
+
+    expect(
+      findRenderedTestIdPaths(
+        componentOf("const Card = () => ready ? <section data-testid='Card' /> : <aside data-testid='Card' />;"),
+      ),
+    ).toEqual([["Card"], ["Card"]]);
+
+    expect(
+      findRenderedTestIdPaths(
+        componentOf(
+          "function Card() { if (!ready) return null; return <><Header />{wide ? <main data-testid='Card' /> : <section data-testid='Card' />}</>; }",
+        ),
+      ),
+    ).toEqual([["Card"], ["Card"]]);
+
+    expect(
+      findRenderedTestIdPaths(
+        componentOf("const Card = function () { return (<section data-testid='Card'><span /></section>); };"),
+      ),
+    ).toEqual([["Card"]]);
+
+    expect(
+      findRenderedTestIdPaths(
+        componentOf("function Card() { const content = <section data-testid='Card' />; return content; }"),
+      ),
+    ).toEqual([[]]);
+
+    expect(
+      findRenderedTestIdPaths(
+        componentOf("const Card = () => <><section data-testid /><aside data-testid={id} /></>;"),
+      ),
+    ).toEqual([[]]);
   });
 
   it("reads literal, valueless, expression, and absent test IDs", () => {

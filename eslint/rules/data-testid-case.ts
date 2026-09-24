@@ -1,19 +1,17 @@
 /**
  * ESLint rule: pasika/data-testid-case
  *
- * Enforces that a smart component renders exactly one outer DOM element and
- * sets data-testid on it. When the rendered result has one statically
- * identifiable intrinsic root, the data-testid value and casing are checked.
- * A smart component with no single statically identifiable root (multiple
- * roots, branches returning different tags, a fragment) must wrap its content
- * in one outer element instead, so tests always have a stable element to
- * anchor data-testid to.
+ * Enforces that every rendered path of a smart component exposes exactly one
+ * stable data-testid matching the component name. The anchor may live on an
+ * intrinsic element or on a child component that forwards data-testid to the
+ * meaningful DOM surface, so no artificial wrapper is needed only to satisfy
+ * the rule.
  *
  * @see docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import { findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions";
+import { findRenderedTestIdPaths, findSimpleRoot, getTestId, parseComponentInfo } from "./component-conventions";
 
 const NEXT_ROUTING_FILES = new Set([
   "default",
@@ -37,7 +35,6 @@ const NEXT_ROUTING_FILES = new Set([
   "twitter-image",
 ]);
 
-const isPascalCase = (value: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(value);
 const isKebabCase = (value: string): boolean => /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(value);
 
 export const dataTestIdCaseRule: Rule.RuleModule = {
@@ -59,31 +56,48 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
     return {
       Program(node) {
         for (const component of components) {
-          const root = findSimpleRoot(component, text, filename);
-          if (root) {
-            const { value } = getTestId(root);
-            const expected = component.smart ? component.name : toKebabCase(component.name);
-            if (component.smart && value === undefined) {
+          if (component.smart) {
+            const expected = component.name;
+            const renderedPaths = findRenderedTestIdPaths(component);
+            const hasStableAnchor =
+              renderedPaths.length > 0 &&
+              renderedPaths.every((values) => values.filter((value) => value === expected).length === 1);
+
+            if (hasStableAnchor) continue;
+
+            const hasSingleWrongCasedAnchor =
+              renderedPaths.length > 0 &&
+              renderedPaths.every((values) => values.length === 1 && values[0] !== expected) &&
+              new Set(renderedPaths.map((values) => values[0])).size === 1;
+
+            if (hasSingleWrongCasedAnchor) {
               context.report({
                 node,
-                message: `Smart component "${component.name}" with one outer DOM element must set data-testid="${expected}".`,
+                message: `data-testid for smart component "${component.name}" must be PascalCase: expected "${expected}".`,
               });
               continue;
             }
-            if (value === undefined || value === expected) continue;
-            if (component.smart ? !isPascalCase(value) || value !== expected : !isKebabCase(value)) {
-              context.report({
-                node,
-                message: `data-testid for ${component.smart ? "smart" : "dumb"} component "${component.name}" must be ${component.smart ? "PascalCase" : "kebab-case"}: expected "${expected}".`,
-              });
-            }
-          } else if (component.smart) {
+
             context.report({
               node,
               message:
-                `Smart component "${component.name}" has no single outer element; wrap its content in one outer ` +
-                `element with data-testid="${component.name}" instead of rendering multiple roots. ` +
+                `Smart component "${component.name}" must expose exactly one stable data-testid="${expected}" anchor for itself in every rendered result. ` +
+                "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
                 "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
+            });
+            continue;
+          }
+
+          const root = findSimpleRoot(component, text, filename);
+          if (!root) continue;
+
+          const { value } = getTestId(root);
+          const expected = toKebabCase(component.name);
+          if (value === undefined || value === expected) continue;
+          if (!isKebabCase(value)) {
+            context.report({
+              node,
+              message: `data-testid for dumb component "${component.name}" must be kebab-case: expected "${expected}".`,
             });
           }
         }
