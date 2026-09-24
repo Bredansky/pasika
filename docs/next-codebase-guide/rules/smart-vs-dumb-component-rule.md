@@ -14,22 +14,21 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 
 ```tsx
 // src/features/social/social-stats-panel.tsx
-"use client";
-
-import { useSocialStats } from "./hooks/use-social-stats";
+import { zodFetch } from "pasika/zod-fetch";
+import { socialStatsResponseSchema } from "./schemas";
 import { PlatformCard } from "./platform-card";
-import { locales } from "@/locales";
 
-export function SocialStatsPanel(): React.JSX.Element {
-  const { stats, isLoading } = useSocialStats();
+export async function SocialStatsPanel(): Promise<React.JSX.Element> {
+  const stats = await zodFetch({
+    url: "/api/social-stats",
+    responseSchema: socialStatsResponseSchema,
+  });
 
   return (
     <div data-testid="social-stats-panel">
-      {isLoading ? (
-        <p>{locales.social.loading}</p>
-      ) : (
-        stats.map((stat) => <PlatformCard key={stat.platform} data={stat} />)
-      )}
+      {stats.map((stat) => (
+        <PlatformCard key={stat.platform} data={stat} />
+      ))}
     </div>
   );
 }
@@ -41,22 +40,21 @@ Why: fetching data makes the component smart, but its file name and `data-testid
 
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
-"use client";
-
-import { useSocialStats } from "./hooks/use-social-stats";
+import { zodFetch } from "pasika/zod-fetch";
+import { socialStatsResponseSchema } from "./schemas";
 import { PlatformCard } from "./platform-card";
-import { locales } from "@/locales";
 
-export function SocialStatsPanel(): React.JSX.Element {
-  const { stats, isLoading } = useSocialStats();
+export async function SocialStatsPanel(): Promise<React.JSX.Element> {
+  const stats = await zodFetch({
+    url: "/api/social-stats",
+    responseSchema: socialStatsResponseSchema,
+  });
 
   return (
     <div data-testid="SocialStatsPanel">
-      {isLoading ? (
-        <p>{locales.social.loading}</p>
-      ) : (
-        stats.map((stat) => <PlatformCard key={stat.platform} data={stat} />)
-      )}
+      {stats.map((stat) => (
+        <PlatformCard key={stat.platform} data={stat} />
+      ))}
     </div>
   );
 }
@@ -114,12 +112,12 @@ Why: the component is dumb, so its file name and `data-testid` use `kebab-case`.
 
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
-"use client";
+import { zodFetch } from "pasika/zod-fetch";
 
-export function SocialStatsPanel(): React.JSX.Element {
-  const { stats, isLoading } = useSocialStats();
+export async function SocialStatsPanel(): Promise<React.JSX.Element> {
+  const stats = await zodFetch({ url: "/api/social-stats", responseSchema: socialStatsResponseSchema });
 
-  return isLoading ? <p>{locales.social.loading}</p> : <PlatformList stats={stats} />;
+  return stats.length === 0 ? <p>No stats</p> : <PlatformList stats={stats} />;
 }
 ```
 
@@ -129,14 +127,14 @@ Why: this smart component has no single outer element, so no `data-testid` can a
 
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
-"use client";
+import { zodFetch } from "pasika/zod-fetch";
 
-export function SocialStatsPanel(): React.JSX.Element {
-  const { stats, isLoading } = useSocialStats();
+export async function SocialStatsPanel(): Promise<React.JSX.Element> {
+  const stats = await zodFetch({ url: "/api/social-stats", responseSchema: socialStatsResponseSchema });
 
   return (
     <section data-testid="SocialStatsPanel">
-      {isLoading ? <p>{locales.social.loading}</p> : <PlatformList stats={stats} />}
+      {stats.length === 0 ? <p>No stats</p> : <PlatformList stats={stats} />}
     </section>
   );
 }
