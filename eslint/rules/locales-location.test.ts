@@ -17,6 +17,10 @@ void describe("All locales MUST live in the named locales object exported from s
         filename: "/project/src/app/page.tsx",
       },
       {
+        code: "export function Divider() { return <span>—</span>; }",
+        filename: "/project/src/shared/divider.tsx",
+      },
+      {
         code: 'export const config = { apiUrl: "https://api.example.com" };',
         filename: "/project/src/config/api/index.ts",
       },
@@ -47,6 +51,24 @@ void describe("All locales MUST live in the named locales object exported from s
       },
     ],
     invalid: [
+      {
+        code: 'export function Settings() { return <p className="text-muted-ink">Manage your social media platforms and AI tools credentials</p>; }',
+        filename: "/project/src/features/settings/settings.tsx",
+        errors: [
+          {
+            message: "User-facing JSX text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: "export default function Page() { return <h1>Settings</h1>; }",
+        filename: "/project/src/app/page.tsx",
+        errors: [
+          {
+            message: "User-facing JSX text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
       {
         code: 'const messages = { title: "Welcome", description: "Hello" };',
         filename: "/project/src/features/home/home-page.tsx",
