@@ -452,9 +452,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Repeated domain literals SHOULD use existing enums/constants.",
-      "hash": "09ec522733",
-      "note": "A reviewer decides whether a repeated literal names a reusable domain concept with an existing enum or constant."
+      "text": "A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.",
+      "hash": "9b0984eb4c",
+      "note": "A reviewer decides whether a repeated literal is already represented by an existing enum or constant."
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
