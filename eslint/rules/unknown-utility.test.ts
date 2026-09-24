@@ -100,8 +100,13 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="primary-surface" />', filename: srcFile("shared/card.tsx") },
       // Structural built-ins and unchecked prefixes survive the reset.
       { code: '<div className="flex items-center justify-between" />', filename: srcFile("shared/card.tsx") },
-      // Variants leave the utility itself unchanged.
-      { code: '<div className="hover:bg-primary-canvas sm:text-primary-ink" />', filename: srcFile("shared/card.tsx") },
+      // Variants leave the utility itself unchanged, including named group/peer variants that contain `/`.
+      {
+        code: '<div className="hover:bg-primary-canvas sm:text-primary-ink peer-hover/menu-button:text-primary-ink group-focus-within/menu-item:opacity-100" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      // Opacity modifiers use `/` on the utility itself and remain valid.
+      { code: '<div className="bg-primary-canvas/50" />', filename: srcFile("shared/card.tsx") },
       // Project tokens in the non-color namespaces.
       { code: '<div className="rounded-card font-display" />', filename: srcFile("shared/card.tsx") },
       // Font-size and value namespaces (text, animate, ease, aspect) come from the project's @theme.
