@@ -4,8 +4,8 @@ Repository-wide linting and staged-file linting serve different feedback loops. 
 
 - A repository MUST declare a `lint` script in package.json that runs ESLint across the repository.
 - A repository MUST declare a `format` script in package.json that runs `prettier --check` across the repository.
-- A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript or TypeScript files.
-- A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged files ESLint does not already format.
+- A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.
+- A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged CSS, Markdown, and JSON files.
 
 ## Incorrect — Staged Checks Reuse the Repository-Wide Scripts
 
@@ -16,8 +16,8 @@ Repository-wide linting and staged-file linting serve different feedback loops. 
     "format": "prettier --check ."
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "npm run lint --",
-    "*.{css,md,json}": "npm run format --"
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint --",
+    "*.{css,json,md}": ["npm run lint --", "npm run format --"]
   }
 }
 ```
@@ -35,8 +35,8 @@ Why: `npm run lint --` and `npm run format --` append the staged file paths afte
     "format:staged": "prettier --write"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": "npm run lint:staged --",
-    "*.{css,md,json}": "npm run format:staged --"
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint:staged --",
+    "*.{css,json,md}": ["npm run lint:staged --", "npm run format:staged --"]
   }
 }
 ```

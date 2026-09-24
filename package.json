@@ -54,10 +54,13 @@
     "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
-    "!(*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx)": "npm run format:staged --",
-    "*.ts|*.mts|*.cts|*.tsx|*.js|*.cjs|*.mjs|*.jsx": [
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": [
       "npm run lint:staged --",
       "npm run test:unit:staged --"
+    ],
+    "*.{css,json,md}": [
+      "npm run lint:staged --",
+      "npm run format:staged --"
     ]
   },
   "dependencies": {

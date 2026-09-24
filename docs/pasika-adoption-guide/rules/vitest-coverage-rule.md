@@ -116,10 +116,12 @@ Why: Vitest's changed per-file coverage measures each entire changed file, not o
   "scripts": {
     "test:unit:coverage": "vitest run --coverage",
     "test:unit:staged": "vitest related --run",
-    "lint:staged": "eslint --fix"
+    "lint:staged": "eslint --fix",
+    "format:staged": "prettier --write"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"]
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
+    "*.{css,json,md}": ["npm run lint:staged --", "npm run format:staged --"]
   }
 }
 ```

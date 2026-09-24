@@ -452,6 +452,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Repeated domain literals SHOULD use existing enums/constants.",
+      "hash": "09ec522733",
+      "note": "A reviewer decides whether a repeated literal names a reusable domain concept with an existing enum or constant."
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`.",
       "hash": "0dc977aa8f",
       "ref": "pasika/prefer-enum"
@@ -1124,14 +1130,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
-      "text": "A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript or TypeScript files.",
-      "hash": "dcb479260a",
+      "text": "A repository MUST declare a `lint:staged` script in package.json that runs ESLint with no repository-wide argument, and configure `lint-staged` to run it (`npm run lint:staged --`) for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.",
+      "hash": "a2c21693c9",
       "ref": "pasika/lint-setup"
     },
     {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
-      "text": "A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged files ESLint does not already format.",
-      "hash": "4ac89f02f0",
+      "text": "A repository MUST declare a `format:staged` script in package.json that runs prettier with no repository-wide argument, and configure `lint-staged` to run it (`npm run format:staged --`) for staged CSS, Markdown, and JSON files.",
+      "hash": "2abfb85898",
       "ref": "pasika/lint-setup"
     },
     {

@@ -170,19 +170,20 @@ npx libyear --limit-major-individual=1
 
 ## lint-staged Wiring
 
-Every named `*:staged` script is wired into `lint-staged` against the glob it applies to, never through the repository-wide script of the same check (see the Lint Setup Rule for why that distinction matters). A JavaScript or TypeScript file matches two of these at once, so its entry chains both commands.
+Every named `*:staged` script is wired into `lint-staged` against the glob it applies to, never through the repository-wide script of the same check (see the Lint Setup Rule for why that distinction matters). When the same files need two checks, their entry chains those commands so they run in order.
 
-| Glob                                                  | Runs                          | Required by          |
-| ----------------------------------------------------- | ----------------------------- | -------------------- |
-| `*.{js,jsx,ts,tsx}`                                   | `npm run lint:staged --`      | Lint Setup Rule      |
-| `*.{js,jsx,ts,tsx}`                                   | `npm run test:unit:staged --` | Vitest Coverage Rule |
-| Files ESLint does not format (e.g. `*.{css,md,json}`) | `npm run format:staged --`    | Lint Setup Rule      |
+| Glob                                | Runs                          | Required by          |
+| ----------------------------------- | ----------------------------- | -------------------- |
+| `*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}` | `npm run lint:staged --`      | Lint Setup Rule      |
+| `*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}` | `npm run test:unit:staged --` | Vitest Coverage Rule |
+| `*.{css,json,md}`                   | `npm run lint:staged --`      | Lint Setup Rule      |
+| `*.{css,json,md}`                   | `npm run format:staged --`    | Lint Setup Rule      |
 
 ```json
 {
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
-    "*.{css,md,json}": "npm run format:staged --"
+    "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
+    "*.{css,json,md}": ["npm run lint:staged --", "npm run format:staged --"]
   }
 }
 ```
