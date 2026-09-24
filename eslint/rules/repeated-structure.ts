@@ -34,7 +34,7 @@ type JsxNode = Rule.Node & {
 };
 
 /** A JSX child: another element, a fragment, or a non-element (text, expression). */
-type JsxChild = Rule.Node | JsxNode;
+type JsxChild = Rule.Node | JsxNode | JsxExpressionContainer;
 
 /** The parser-specific `type` string of any node, JSX included. */
 function nodeKind(node: { type: string }): string {
@@ -134,6 +134,13 @@ function blockChildren(node: JsxNode): JsxNode[] {
   return (node.children ?? []).filter(isJsxNode);
 }
 
+/** JSX elements/fragments and expression containers, excluding formatting text. */
+function structuralChildren(node: JsxNode): (JsxNode | JsxExpressionContainer)[] {
+  return (node.children ?? []).filter(
+    (child): child is JsxNode | JsxExpressionContainer => isJsxNode(child) || isJsxExpressionContainer(child),
+  );
+}
+
 export const repeatedStructureRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -155,6 +162,11 @@ export const repeatedStructureRule: Rule.RuleModule = {
     };
 
     function checkChildren(node: JsxNode): void {
+      checkSubstantialBlocks(node);
+      checkSmallElementExpressionPairs(node);
+    }
+
+    function checkSubstantialBlocks(node: JsxNode): void {
       const children = blockChildren(node);
       const seen = new Map<string, JsxNode[]>();
 
@@ -170,14 +182,44 @@ export const repeatedStructureRule: Rule.RuleModule = {
         const first = group[0];
         if (!first || !isSubstantial(first)) continue;
 
-        context.report({
-          node: first,
-          message:
-            `The same arrangement of elements appears ${String(group.length)} times here; ` +
-            "extract it as a named component. Different data or labels do not prevent extraction. " +
-            "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
-        });
+        reportRepeatedStructure(first, group.length);
       }
+    }
+
+    function checkSmallElementExpressionPairs(node: JsxNode): void {
+      const children = structuralChildren(node);
+      const seen = new Map<string, JsxNode[]>();
+
+      for (let index = 0; index < children.length - 1; index += 1) {
+        const first = children[index];
+        const second = children[index + 1];
+        if (!first || !second || !isJsxNode(first) || !isJsxExpressionContainer(second) || isSubstantial(first)) {
+          continue;
+        }
+
+        const sig = `${signature(first)}/{}`;
+        const group = seen.get(sig) ?? [];
+        group.push(first);
+        seen.set(sig, group);
+      }
+
+      for (const [, group] of seen) {
+        if (group.length < 2) continue;
+        const first = group[0];
+        if (!first) continue;
+
+        reportRepeatedStructure(first, group.length);
+      }
+    }
+
+    function reportRepeatedStructure(node: JsxNode, count: number): void {
+      context.report({
+        node,
+        message:
+          `The same arrangement of elements appears ${String(count)} times here; ` +
+          "extract it as a named component. Different data or labels do not prevent extraction. " +
+          "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
+      });
     }
   },
 };
