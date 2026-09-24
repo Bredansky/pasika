@@ -12,14 +12,15 @@
  * shadows, ...). When the stylesheets reset the default theme with `--*: initial`
  * — which the framework mandates — the defaults are dead, so only the project's
  * own @theme variables and @utility names count. Classes outside those
- * namespaces — structural utilities like `flex`, spacing values like `p-4`,
- * variants, arbitrary values — pass through unchecked, so the rule only claims
- * the surface it can validate soundly.
+ * namespaces fall back to `tailwind-merge`'s Tailwind utility knowledge, so
+ * structural utilities like `items-center` remain valid while arbitrary names
+ * like `settings-page-heading` are rejected.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
@@ -259,6 +260,44 @@ const SIDE_WIDTH_TOKEN_RE = /^(?:x|y|t|r|b|l|s|e)-(?:\d+\.?\d*|\.\d+)(?:%|px|rem
 /** Offsets like `outline-offset-2`. */
 const OFFSET_TOKEN_RE = /^offset-(?:\d+\.?\d*|\.\d+)(?:%|px|rem|em)?$/;
 
+const require = createRequire(import.meta.url);
+type TailwindMerge = (...classLists: string[]) => string;
+let tailwindMerge: TailwindMerge | null | undefined;
+
+/** Load the consumer's Tailwind utility classifier without making the optional peer mandatory for non-Next presets. */
+function getTailwindMerge(): TailwindMerge | undefined {
+  if (tailwindMerge !== undefined) return tailwindMerge ?? undefined;
+
+  try {
+    const moduleValue: unknown = require("tailwind-merge");
+    if (
+      typeof moduleValue === "object" &&
+      moduleValue !== null &&
+      "twMerge" in moduleValue &&
+      typeof moduleValue.twMerge === "function"
+    ) {
+      const merge = moduleValue.twMerge;
+      tailwindMerge = (...classLists): string => {
+        const result: unknown = Reflect.apply(merge, undefined, classLists);
+        return typeof result === "string" ? result : classLists.join(" ");
+      };
+    } else {
+      tailwindMerge = null;
+    }
+  } catch {
+    tailwindMerge = null;
+  }
+
+  return tailwindMerge ?? undefined;
+}
+
+/** `tailwind-merge` keeps duplicate unknown classes but collapses duplicate Tailwind utilities. */
+function isBuiltInTailwindUtility(utility: string): boolean | undefined {
+  const twMerge = getTailwindMerge();
+  if (!twMerge) return undefined;
+  return twMerge(utility, utility) === utility;
+}
+
 interface Inventory {
   utilities: Set<string>;
   /** Prefixes of functional custom utilities such as `fade-in-*`. */
@@ -488,17 +527,17 @@ function isKnown(className: string, inventory: Inventory): boolean {
     // known even when the project resets the default theme — the project may
     // also define its own tokens in the same namespace (`--aspect-video`).
     if (STATIC_VALUE_TOKENS[prefix]?.includes(token)) return true;
-    // A bare prefix is either a theme namespace the project defines itself
-    // (`--animate-float` makes `animate-float` valid) or a custom-utility
-    // family (`primary-surfce` is a typo of `primary-surface`). Classes like
-    // `items-center` and `flex`, with neither, pass through.
+    // A bare prefix may be a theme namespace the project defines itself
+    // (`--animate-float` makes `animate-float` valid). Otherwise ask
+    // tailwind-merge whether Tailwind itself recognizes the utility instead of
+    // accepting every previously unseen prefix as possibly built in.
     const projectTokens = inventory.themeTokens.get(prefix);
     if (projectTokens) {
       if (projectTokens.has(token)) return true;
       if (!inventory.defaultsReset && DEFAULT_TOKENS[prefix]?.includes(token)) return true;
       return false;
     }
-    return !inventory.utilityPrefixes.has(prefix);
+    return isBuiltInTailwindUtility(utility) ?? !inventory.utilityPrefixes.has(prefix);
   }
   if (NUMERIC_TOKEN_RE.test(token) || SIDE_WIDTH_TOKEN_RE.test(token) || OFFSET_TOKEN_RE.test(token)) return true;
   if (PREFIX_BUILTINS[prefix]?.includes(token)) return true;
@@ -585,7 +624,13 @@ export const unknownUtilityRule: Rule.RuleModule = {
       }
 
       if (expression.type === "TemplateLiteral") {
-        for (const quasi of expression.quasis) reportUnknownClasses(node, quasi.value.raw);
+        const lastQuasi = expression.quasis.length - 1;
+        for (const [index, quasi] of expression.quasis.entries()) {
+          let value = quasi.value.raw;
+          if (index > 0) value = value.replace(/^\S*/, "");
+          if (index < lastQuasi) value = value.replace(/\S*$/, "");
+          reportUnknownClasses(node, value);
+        }
         return;
       }
 
