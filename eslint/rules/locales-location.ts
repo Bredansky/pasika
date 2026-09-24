@@ -38,6 +38,13 @@ function looksLikeUserFacingString(value: unknown): boolean {
   return typeof value === "string" && /^\p{Lu}/u.test(value);
 }
 
+/** JSX child text is display text when it contains at least one letter. */
+function looksLikeUserFacingJsxText(value: unknown): boolean {
+  return typeof value === "string" && /\p{L}/u.test(value);
+}
+
+type JsxTextNode = Rule.Node & { value?: unknown };
+
 export const localesLocationRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -55,10 +62,19 @@ export const localesLocationRule: Rule.RuleModule = {
     if (srcIdx === -1) return {};
 
     const folder = segments[srcIdx + 1];
-    if (folder === "app" || folder === "config") return {};
+    const skipObjectLiteralCheck = folder === "app" || folder === "config";
 
     return {
+      JSXText(node: JsxTextNode) {
+        if (!looksLikeUserFacingJsxText(node.value)) return;
+
+        context.report({
+          node,
+          message: "User-facing JSX text must come from src/locales/index.ts, not be written inline.",
+        });
+      },
       VariableDeclarator(node) {
+        if (skipObjectLiteralCheck) return;
         if (
           node.id.type === "Identifier" &&
           node.init?.type === "ObjectExpression" &&
