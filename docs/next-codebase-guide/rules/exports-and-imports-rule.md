@@ -3,6 +3,7 @@
 Without consistent exports, import paths, and layer boundaries, it is harder to tell what a file contains and which files may depend on it. This rule gives each file a predictable export style and keeps imports consistent with the application structure.
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
+- Consecutive import declarations MUST NOT be separated by a blank line.
 - Imports MUST use whichever of the relative path and the `@/*` alias has fewer segments, counting each `../` step and each name in the path as one segment.
 - Imports MUST use the relative path when the relative path and the `@/*` alias have the same number of segments.
 - A file under `src/compositions/` MUST NOT import from `src/app/`.

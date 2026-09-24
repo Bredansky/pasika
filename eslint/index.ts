@@ -14,6 +14,7 @@ import tsParser from "@typescript-eslint/parser";
 import { assertTypescriptAlignment } from "./ts-alignment";
 import { filenameCaseRule } from "./rules/filename-case";
 import { importBoundariesRule } from "./rules/import-boundaries";
+import { importSpacingRule } from "./rules/import-spacing";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
 import { unknownUtilityRule } from "./rules/unknown-utility";
@@ -80,6 +81,7 @@ const pasikaNextjsAppRules = {
   // Framework-agnostic TypeScript rules.
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
+  "import-spacing": importSpacingRule,
   "named-exports": namedExportsRule,
   "support-file-placement": supportFilePlacementRule,
   "support-folder-shape": supportFolderShapeRule,

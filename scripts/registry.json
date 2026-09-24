@@ -470,6 +470,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "Consecutive import declarations MUST NOT be separated by a blank line.",
+      "hash": "d0a25ccac0",
+      "ref": "pasika/import-spacing"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "Imports MUST use whichever of the relative path and the `@/*` alias has fewer segments, counting each `../` step and each name in the path as one segment.",
       "hash": "47c4ccc7fd",
       "ref": "pasika/import-boundaries"
