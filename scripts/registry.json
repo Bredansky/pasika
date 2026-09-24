@@ -710,8 +710,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component MUST expose exactly one stable `data-testid` anchor in every rendered result, and its value MUST match the component name in `PascalCase`.",
-      "hash": "22053fae34",
+      "text": "A smart component MUST expose exactly one stable `data-testid` anchor for itself in every rendered result, and its value MUST match the component name in `PascalCase`; `data-testid` anchors that belong to nested components do not count toward this requirement.",
+      "hash": "d741702fc1",
       "ref": "pasika/data-testid-case"
     },
     {

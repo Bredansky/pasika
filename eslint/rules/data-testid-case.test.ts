@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { dataTestIdCaseRule } from "./data-testid-case";
 
-void describe("A smart component MUST expose exactly one stable `data-testid` anchor in every rendered result, and its value MUST match the component name in `PascalCase`.", () => {
+void describe("A smart component MUST expose exactly one stable `data-testid` anchor for itself in every rendered result, and its value MUST match the component name in `PascalCase`; `data-testid` anchors that belong to nested components do not count toward this requirement.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
@@ -15,6 +15,10 @@ void describe("A smart component MUST expose exactly one stable `data-testid` an
         code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return (\n    <section data-testid="AccountPanel">{String(open)}</section>\n  );\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
+      {
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return (\n    <section data-testid="AccountPanel">\n      <ChildSmart data-testid="ChildSmart" open={open} />\n    </section>\n  );\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+      },
     ],
     invalid: [
       {
@@ -23,7 +27,7 @@ void describe("A smart component MUST expose exactly one stable `data-testid` an
         errors: [
           {
             message:
-              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
@@ -57,7 +61,7 @@ void describe("A smart component that conditionally renders nothing MAY return n
         errors: [
           {
             message:
-              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
@@ -82,7 +86,7 @@ void describe("Each rendered branch of a smart component MUST expose the stable 
         errors: [
           {
             message:
-              'Smart component "VideoHeroPlayer" must expose exactly one stable data-testid="VideoHeroPlayer" anchor in every rendered result. ' +
+              'Smart component "VideoHeroPlayer" must expose exactly one stable data-testid="VideoHeroPlayer" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
@@ -141,7 +145,7 @@ void describe("The smart component's `data-testid` MUST live on an existing mean
         errors: [
           {
             message:
-              'Smart component "CredentialFormDialog" must expose exactly one stable data-testid="CredentialFormDialog" anchor in every rendered result. ' +
+              'Smart component "CredentialFormDialog" must expose exactly one stable data-testid="CredentialFormDialog" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
@@ -153,7 +157,7 @@ void describe("The smart component's `data-testid` MUST live on an existing mean
         errors: [
           {
             message:
-              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
@@ -165,7 +169,7 @@ void describe("The smart component's `data-testid` MUST live on an existing mean
         errors: [
           {
             message:
-              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor for itself in every rendered result. ' +
               "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },

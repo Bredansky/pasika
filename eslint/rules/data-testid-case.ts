@@ -81,7 +81,7 @@ export const dataTestIdCaseRule: Rule.RuleModule = {
             context.report({
               node,
               message:
-                `Smart component "${component.name}" must expose exactly one stable data-testid="${expected}" anchor in every rendered result. ` +
+                `Smart component "${component.name}" must expose exactly one stable data-testid="${expected}" anchor for itself in every rendered result. ` +
                 "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
                 "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
             });
