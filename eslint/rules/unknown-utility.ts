@@ -505,11 +505,10 @@ function isColorToken(token: string, inventory: Inventory): boolean {
 function isKnown(className: string, inventory: Inventory): boolean {
   // Arbitrary values and parenthesized CSS-variable utilities can't be validated here.
   if (className.includes("[") || className.includes("(")) return true;
-  // Strip the trailing `!` marker and the `/opacity` modifier.
-  const base = className.replace(/!+$/, "").split("/")[0] ?? "";
-  // Variants (`hover:bg-x`, `sm:text-y`) don't change the utility itself.
-  const segments = base.split(":");
-  const utility = segments[segments.length - 1] ?? "";
+  // Strip variants first so `/name` in named group/peer variants is preserved;
+  // only a slash on the utility itself is an opacity modifier.
+  const segments = className.replace(/!+$/, "").split(":");
+  const utility = (segments[segments.length - 1] ?? "").split("/")[0] ?? "";
   if (!utility.includes("-")) return true; // single-word built-ins like `flex` are out of scope
   const dash = utility.indexOf("-");
   // A compound prefix like `ring-offset-<color>` or `backdrop-blur-<token>`
