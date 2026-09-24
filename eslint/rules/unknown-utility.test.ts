@@ -208,6 +208,19 @@ void describe("A utility class a component statically references MUST be a custo
         filename: srcFile("shared/card.tsx"),
         errors: [{ message: message("primary-surfce") }],
       },
+      // An arbitrary custom-looking class is not a Tailwind built-in merely because its prefix is new.
+      {
+        code: '<div className="settings-page-heading" />',
+        filename: srcFile("features/settings/settings-page.tsx"),
+        errors: [{ message: message("settings-page-heading") }],
+      },
+      // Complete static classes inside a dynamic template are still validated; only expression-adjacent fragments are skipped.
+      {
+        // eslint-disable-next-line no-template-curly-in-string -- the code under test is itself a template literal
+        code: "<div className={`settings-page-heading bg-${tone}-canvas`} />",
+        filename: srcFile("features/settings/settings-page.tsx"),
+        errors: [{ message: message("settings-page-heading") }],
+      },
       // A class defined as a plain CSS selector is real but must be an @utility.
       {
         code: '<div className="animate-blink" />',
@@ -303,6 +316,11 @@ void describe("A utility class a component statically references MUST be a custo
         code: 'cn("bg-primary-canvas", isActive && "bg-primay-canvas")',
         filename: srcFile("shared/card.tsx"),
         errors: [{ message: message("bg-primay-canvas") }],
+      },
+      {
+        code: 'cn(isActive ? "settings-page-heading" : "flex", ["items-center"])',
+        filename: srcFile("features/settings/settings-page.tsx"),
+        errors: [{ message: message("settings-page-heading") }],
       },
       {
         code: '<div className="hover:bg-primay-canvas" />',
