@@ -8,8 +8,8 @@ const COMPLETE_SCRIPTS = {
   "format:staged": "prettier --write",
 };
 const COMPLETE_LINT_STAGED = {
-  "*.{js,jsx,ts,tsx,mjs,mts,cjs,cts}": "npm run lint:staged --",
-  "*.{css,md,json}": "npm run format:staged --",
+  "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint:staged --",
+  "*.{css,json,md}": ["npm run lint:staged --", "npm run format:staged --"],
 };
 
 void describe("A repository MUST declare a lint script in package.json that runs ESLint across the repository.", () => {
@@ -92,7 +92,7 @@ void describe("A repository MUST declare a format script in package.json that ru
   });
 });
 
-void describe("A repository MUST declare a lint:staged script in package.json that runs ESLint with no repository-wide argument, and configure lint-staged to run it (npm run lint:staged --) for staged JavaScript or TypeScript files.", () => {
+void describe("A repository MUST declare a lint:staged script in package.json that runs ESLint with no repository-wide argument, and configure lint-staged to run it (npm run lint:staged --) for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.", () => {
   packageJsonRuleTester.run("lint-setup", lintSetupRule, {
     valid: [{ code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, "lint-staged": COMPLETE_LINT_STAGED }) }],
     invalid: [
@@ -100,7 +100,7 @@ void describe("A repository MUST declare a lint:staged script in package.json th
         // lint:staged script missing entirely, and lint-staged has no entry for it either
         code: JSON.stringify({
           scripts: { lint: "eslint .", format: "prettier --check .", "format:staged": "prettier --write" },
-          "lint-staged": { "*.{css,md,json}": "npm run format:staged --" },
+          "lint-staged": { "*.{css,json,md}": "npm run format:staged --" },
         }),
         errors: [
           {
@@ -109,7 +109,7 @@ void describe("A repository MUST declare a lint:staged script in package.json th
           },
           {
             message:
-              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript or TypeScript files.',
+              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.',
           },
         ],
       },
@@ -131,14 +131,30 @@ void describe("A repository MUST declare a lint:staged script in package.json th
         code: JSON.stringify({
           scripts: COMPLETE_SCRIPTS,
           "lint-staged": {
-            "*.{js,jsx,ts,tsx,mjs,mts,cjs,cts}": "npm run lint --",
-            "*.{css,md,json}": "npm run format:staged --",
+            "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint --",
+            "*.{css,json,md}": "npm run format:staged --",
           },
         }),
         errors: [
           {
             message:
-              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript or TypeScript files.',
+              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.',
+          },
+        ],
+      },
+      {
+        // source files are linted, but Markdown/JSON/CSS bypass ESLint
+        code: JSON.stringify({
+          scripts: COMPLETE_SCRIPTS,
+          "lint-staged": {
+            "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint:staged --",
+            "*.{css,json,md}": "npm run format:staged --",
+          },
+        }),
+        errors: [
+          {
+            message:
+              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.',
           },
         ],
       },
@@ -146,7 +162,7 @@ void describe("A repository MUST declare a lint:staged script in package.json th
   });
 });
 
-void describe("A repository MUST declare a format:staged script in package.json that runs prettier with no repository-wide argument, and configure lint-staged to run it (npm run format:staged --) for staged files ESLint does not already format.", () => {
+void describe("A repository MUST declare a format:staged script in package.json that runs prettier with no repository-wide argument, and configure lint-staged to run it (npm run format:staged --) for staged CSS, Markdown, and JSON files.", () => {
   packageJsonRuleTester.run("lint-setup", lintSetupRule, {
     valid: [{ code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, "lint-staged": COMPLETE_LINT_STAGED }) }],
     invalid: [
@@ -154,7 +170,10 @@ void describe("A repository MUST declare a format:staged script in package.json 
         // format:staged script missing entirely, and lint-staged has no entry for it either
         code: JSON.stringify({
           scripts: { lint: "eslint .", "lint:staged": "eslint --fix", format: "prettier --check ." },
-          "lint-staged": { "*.{js,jsx,ts,tsx,mjs,mts,cjs,cts}": "npm run lint:staged --" },
+          "lint-staged": {
+            "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint:staged --",
+            "*.{css,json,md}": "npm run lint:staged --",
+          },
         }),
         errors: [
           {
@@ -163,7 +182,7 @@ void describe("A repository MUST declare a format:staged script in package.json 
           },
           {
             message:
-              'package.json lint-staged must run "npm run format:staged --" for staged files ESLint does not already format.',
+              'package.json lint-staged must run "npm run format:staged --" for staged CSS, Markdown, and JSON files.',
           },
         ],
       },
@@ -185,14 +204,30 @@ void describe("A repository MUST declare a format:staged script in package.json 
         code: JSON.stringify({
           scripts: COMPLETE_SCRIPTS,
           "lint-staged": {
-            "*.{js,jsx,ts,tsx,mjs,mts,cjs,cts}": "npm run lint:staged --",
-            "*.{css,md,json}": "npm run format --",
+            "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": "npm run lint:staged --",
+            "*.{css,json,md}": ["npm run lint:staged --", "npm run format --"],
           },
         }),
         errors: [
           {
             message:
-              'package.json lint-staged must run "npm run format:staged --" for staged files ESLint does not already format.',
+              'package.json lint-staged must run "npm run format:staged --" for staged CSS, Markdown, and JSON files.',
+          },
+        ],
+      },
+      {
+        // format:staged exists, but is wired only to source files
+        code: JSON.stringify({
+          scripts: COMPLETE_SCRIPTS,
+          "lint-staged": {
+            "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": ["npm run lint:staged --", "npm run format:staged --"],
+            "*.{css,json,md}": "npm run lint:staged --",
+          },
+        }),
+        errors: [
+          {
+            message:
+              'package.json lint-staged must run "npm run format:staged --" for staged CSS, Markdown, and JSON files.',
           },
         ],
       },

@@ -62,9 +62,11 @@ const COMPLETE_SCRIPTS = {
   "test:unit:coverage": "vitest run --coverage",
   "test:unit:staged": STAGED_COMMAND,
   "lint:staged": "eslint --fix",
+  "format:staged": "prettier --write",
 };
 const COMPLETE_LINT_STAGED = {
-  "*.{js,jsx,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
+  "*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}": ["npm run lint:staged --", "npm run test:unit:staged --"],
+  "*.{css,json,md}": ["npm run lint:staged --", "npm run format:staged --"],
 };
 const COMPLETE_MANIFEST = {
   scripts: COMPLETE_SCRIPTS,

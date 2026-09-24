@@ -6,9 +6,9 @@
  * repository. It MUST also declare lint:staged and format:staged scripts
  * that run ESLint and prettier with no repository-wide argument, and
  * configure lint-staged to run them (npm run lint:staged --, npm run
- * format:staged --) for staged files — lint:staged for JavaScript or
- * TypeScript, format:staged for the files ESLint does not already format
- * (via the prettier plugin zirka bundles). The *:staged scripts must carry
+ * format:staged --) for staged files — lint:staged for JavaScript,
+ * TypeScript, CSS, Markdown, and JSON; format:staged for CSS, Markdown, and
+ * JSON. The *:staged scripts must carry
  * no repository-wide argument of their own, or the file paths lint-staged
  * appends land after it and every commit re-checks the whole repository.
  *
@@ -33,6 +33,7 @@ function stringValues(value: ValueNode): string[] {
 }
 
 const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
+const REQUIRED_NON_SOURCE_EXTENSIONS = ["css", "json", "md"] as const;
 const DIRECT_ESLINT_PATTERN = /(?:^|&&|\|\||;)\s*(?:npx\s+)?eslint(?:\s|$)/;
 const REPOSITORY_ARGUMENT_PATTERN = /(?:^|\s)\.(?=\s|$)/;
 const PRETTIER_PATTERN = /\bprettier\b/;
@@ -48,6 +49,10 @@ function runsPrettier(command: string): boolean {
 
 function runsNamedScript(command: string, name: string): boolean {
   return command.includes(`npm run ${name}`);
+}
+
+function globIncludesExtension(glob: string, extension: string): boolean {
+  return new RegExp(`(?:^|[^a-z])${extension}(?:[^a-z]|$)`, "i").test(glob);
 }
 
 export const lintSetupRule: JSONRuleDefinition = {
@@ -127,32 +132,36 @@ export const lintSetupRule: JSONRuleDefinition = {
         }
 
         const lintStagedConfig = root.members.find((member) => memberName(member) === "lint-staged");
-        const runsStagedScript = (name: string): boolean =>
-          lintStagedConfig?.value.type === "Object" &&
-          lintStagedConfig.value.members.some((member) =>
-            stringValues(member.value).some((command) => runsNamedScript(command, name)),
-          );
-
-        const hasStagedLintEntry =
-          lintStagedConfig?.value.type === "Object" &&
-          lintStagedConfig.value.members.some(
+        const stagedMembers = lintStagedConfig?.value.type === "Object" ? lintStagedConfig.value.members : [];
+        const runsStagedScriptForGlob = (name: string, matchesGlob: (glob: string) => boolean): boolean =>
+          stagedMembers.some(
             (member) =>
-              SOURCE_GLOB_PATTERN.test(memberName(member)) &&
-              stringValues(member.value).some((command) => runsNamedScript(command, "lint:staged")),
+              matchesGlob(memberName(member)) &&
+              stringValues(member.value).some((command) => runsNamedScript(command, name)),
           );
-        if (!hasStagedLintEntry) {
+        const runsStagedScriptForExtension = (name: string, extension: string): boolean =>
+          runsStagedScriptForGlob(name, (glob) => globIncludesExtension(glob, extension));
+
+        const hasStagedSourceLint = runsStagedScriptForGlob("lint:staged", (glob) => SOURCE_GLOB_PATTERN.test(glob));
+        const hasStagedNonSourceLint = REQUIRED_NON_SOURCE_EXTENSIONS.every((extension) =>
+          runsStagedScriptForExtension("lint:staged", extension),
+        );
+        if (!hasStagedSourceLint || !hasStagedNonSourceLint) {
           context.report({
             node: lintStagedConfig ?? node,
             message:
-              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript or TypeScript files.',
+              'package.json lint-staged must run "npm run lint:staged --" for staged JavaScript, TypeScript, CSS, Markdown, and JSON files.',
           });
         }
 
-        if (!runsStagedScript("format:staged")) {
+        const hasStagedNonSourceFormat = REQUIRED_NON_SOURCE_EXTENSIONS.every((extension) =>
+          runsStagedScriptForExtension("format:staged", extension),
+        );
+        if (!hasStagedNonSourceFormat) {
           context.report({
             node: lintStagedConfig ?? node,
             message:
-              'package.json lint-staged must run "npm run format:staged --" for staged files ESLint does not already format.',
+              'package.json lint-staged must run "npm run format:staged --" for staged CSS, Markdown, and JSON files.',
           });
         }
       },
