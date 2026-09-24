@@ -27,6 +27,21 @@ describe("component convention helpers", () => {
     ]);
   });
 
+  it("finds components exported by a separate named export", () => {
+    const source = `
+      function Button() { return <button />; }
+      const Badge = () => <span />;
+      function PrivateCard() { return <article />; }
+      export { Button, Badge as StatusBadge };
+      export { ExternalCard } from "./external-card";
+    `;
+
+    expect(parseComponentInfo(source, filename).map(({ name, smart }) => ({ name, smart }))).toEqual([
+      { name: "Button", smart: false },
+      { name: "Badge", smart: false },
+    ]);
+  });
+
   it("classifies arrow and function-expression components and their hook calls", () => {
     const components = parseComponentInfo(
       `
