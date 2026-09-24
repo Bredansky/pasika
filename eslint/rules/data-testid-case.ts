@@ -4,8 +4,8 @@
  * Enforces that every rendered path of a smart component exposes exactly one
  * stable data-testid matching the component name. The anchor may live on an
  * intrinsic element or on a child component that forwards data-testid to the
- * meaningful DOM surface, so portal/composition components do not need an
- * artificial wrapper only to satisfy the rule.
+ * meaningful DOM surface, so no artificial wrapper is needed only to satisfy
+ * the rule.
  *
  * @see docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md
  */

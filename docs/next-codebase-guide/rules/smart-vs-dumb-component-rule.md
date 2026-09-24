@@ -6,7 +6,7 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
 - A smart component MUST expose exactly one stable `data-testid` anchor for itself in every rendered result, and its value MUST match the component name in `PascalCase`; `data-testid` anchors that belong to nested components do not count toward this requirement.
-- The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If the component composes a portal or another non-DOM wrapper, pass `data-testid` to the child component that owns that DOM surface and make that child forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.
+- The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If that surface is owned by a child component, pass `data-testid` to that child and make it forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
 - [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
 

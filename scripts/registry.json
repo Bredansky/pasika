@@ -716,8 +716,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If the component composes a portal or another non-DOM wrapper, pass `data-testid` to the child component that owns that DOM surface and make that child forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.",
-      "hash": "0d43ee256b",
+      "text": "The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If that surface is owned by a child component, pass `data-testid` to that child and make it forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.",
+      "hash": "0f0c7e06af",
       "ref": "pasika/data-testid-case"
     },
     {
