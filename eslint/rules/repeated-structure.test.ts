@@ -103,8 +103,48 @@ void describe("A block of elements MUST be extracted as a named component when t
         `,
         filename: componentFile,
       },
+      // Small element/expression pairs with different element structure are not repeated.
+      {
+        code: `
+          export function View() {
+            return (
+              <main>
+                <div className="heading">Platforms</div>
+                {platformOptions}
+                <section className="heading">AI Tools</section>
+                {aiToolOptions}
+              </main>
+            );
+          }
+        `,
+        filename: componentFile,
+      },
     ],
     invalid: [
+      {
+        // Small repeated heading + options groups are still one repeated structure.
+        code: `
+          export function CredentialForm() {
+            return (
+              <SelectContent>
+                <div className="text-muted-ink px-2 py-1 text-xs font-semibold">{locales.credentials.platforms}</div>
+                {platformOptions}
+                <div className="text-muted-ink px-2 py-1 text-xs font-semibold">{locales.credentials.aiTools}</div>
+                {aiToolOptions}
+              </SelectContent>
+            );
+          }
+        `,
+        filename: srcFile("features/credentials/SettingsPage/credential-form.tsx"),
+        errors: [
+          {
+            message:
+              "The same arrangement of elements appears 2 times here; extract it as a named component. " +
+              "Different data or labels do not prevent extraction. " +
+              "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
+          },
+        ],
+      },
       {
         // Repeated fragments exercise conditional and logical JSX traversal.
         code: `
