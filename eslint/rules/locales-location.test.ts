@@ -49,6 +49,45 @@ void describe("All locales MUST live in the named locales object exported from s
         code: 'const baseLayer = { content: "Hello World" };',
         filename: "/project/src/features/editor/layers-utils.test.ts",
       },
+      // Styling/data props can contain strings without becoming display text.
+      {
+        code: 'export function Button({ active }) { return <button className={active ? "block" : "hidden"} data-testid="delete-button" />; }',
+        filename: "/project/src/shared/button.tsx",
+      },
+      // Non-toast APIs are not assumed to display their string arguments.
+      {
+        code: 'logger.error("Failed to connect");',
+        filename: "/project/src/features/home/logger.ts",
+      },
+      // Dynamic toast content already comes from runtime data.
+      {
+        code: "toast.error(error.message);",
+        filename: "/project/src/features/home/actions.ts",
+      },
+      {
+        code: "let validationLabel;",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+      },
+      {
+        code: "export function DynamicName({ name }) { return <input placeholder={name} />; }",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+      },
+      {
+        code: "export function Count({ count }) { return <span>{count - 1}</span>; }",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+      },
+      {
+        code: "setOptions({ ...base });",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+      },
+      {
+        code: "export function Toggle() { return <button aria-label />; }",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+      },
+      {
+        code: 'export function OutsideSrc() { return <span className="block" />; }',
+        filename: "/project/component.tsx",
+      },
     ],
     invalid: [
       {
@@ -85,6 +124,93 @@ void describe("All locales MUST live in the named locales object exported from s
         errors: [
           {
             message: "User-facing strings must live in src/locales/, not inline in component files.",
+          },
+        ],
+      },
+      {
+        code: 'export function CredentialName() { return <input placeholder="Account name" />; }',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing JSX attribute text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'export function Status({ active }) { return <span>{active ? "Active" : "Inactive"}</span>; }',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing JSX expression text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'export function ErrorMessage({ error }) { return <span>{error && "Try again"}</span>; }',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing JSX expression text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'export function Greeting({ name }) { return <span>{"Hello " + name}</span>; }',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing JSX expression text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: "export function CredentialName() { return <input placeholder={`Account name`} />; }",
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing JSX attribute text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'setConfirmation({ title: "Delete Credential", description: "Are you sure you want to delete this credential?", confirmText: "Delete" });',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing object properties must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'setConfirmation({ "title": "Delete Credential" });',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing object properties must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'let validationLabel = "Not validated"; validationLabel = "Valid";',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing variable text must come from src/locales/index.ts, not be written inline.",
+          },
+          {
+            message: "User-facing variable text must come from src/locales/index.ts, not be written inline.",
+          },
+        ],
+      },
+      {
+        code: 'toast.success("Account name updated successfully"); toast.error("Failed to update account name");',
+        filename: "/project/src/features/credentials/CredentialCard.tsx",
+        errors: [
+          {
+            message: "User-facing toast text must come from src/locales/index.ts, not be written inline.",
+          },
+          {
+            message: "User-facing toast text must come from src/locales/index.ts, not be written inline.",
           },
         ],
       },
