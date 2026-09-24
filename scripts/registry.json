@@ -710,14 +710,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.",
-      "hash": "31dc8b3188",
+      "text": "A smart component MUST expose exactly one stable `data-testid` anchor in every rendered result, and its value MUST match the component name in `PascalCase`.",
+      "hash": "22053fae34",
       "ref": "pasika/data-testid-case"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set `data-testid` on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.",
-      "hash": "a8241ec2d4",
+      "text": "The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If the component composes a portal or another non-DOM wrapper, pass `data-testid` to the child component that owns that DOM surface and make that child forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.",
+      "hash": "0d43ee256b",
       "ref": "pasika/data-testid-case"
     },
     {

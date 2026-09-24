@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { dataTestIdCaseRule } from "./data-testid-case";
 
-void describe("A smart component with one outer DOM element in every rendered result MUST set data-testid on that element, and its value MUST match the component name in PascalCase.", () => {
+void describe("A smart component MUST expose exactly one stable `data-testid` anchor in every rendered result, and its value MUST match the component name in `PascalCase`.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
@@ -10,8 +10,8 @@ void describe("A smart component with one outer DOM element in every rendered re
       },
       {
         // `return (...)` wraps the JSX in a ParenthesizedExpression, which is the
-        // formatting prettier produces for multi-line returns. The root must be
-        // found through the parens, not reported as "no single outer element".
+        // formatting prettier produces for multi-line returns. Anchor analysis
+        // must see through those parens.
         code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return (\n    <section data-testid="AccountPanel">{String(open)}</section>\n  );\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
@@ -22,7 +22,10 @@ void describe("A smart component with one outer DOM element in every rendered re
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
-            message: 'Smart component "AccountPanel" with one outer DOM element must set data-testid="AccountPanel".',
+            message:
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },
@@ -53,7 +56,10 @@ void describe("A smart component that conditionally renders nothing MAY return n
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
-            message: 'Smart component "AccountPanel" with one outer DOM element must set data-testid="AccountPanel".',
+            message:
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },
@@ -61,7 +67,7 @@ void describe("A smart component that conditionally renders nothing MAY return n
   });
 });
 
-void describe("A smart component whose rendered branches all resolve to the same outer tag MUST set data-testid on it once; branches rendering different tags MUST wrap in one outer element.", () => {
+void describe("Each rendered branch of a smart component MUST expose the stable data-testid, even when branches use different DOM tags.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
@@ -76,7 +82,9 @@ void describe("A smart component whose rendered branches all resolve to the same
         errors: [
           {
             message:
-              'Smart component "VideoHeroPlayer" with one outer DOM element must set data-testid="VideoHeroPlayer".',
+              'Smart component "VideoHeroPlayer" must expose exactly one stable data-testid="VideoHeroPlayer" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },
@@ -110,35 +118,55 @@ void describe("A dumb component MAY set data-testid on its root element, and the
   });
 });
 
-void describe("A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set data-testid on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.", () => {
+void describe("The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If the component composes a portal or another non-DOM wrapper, pass `data-testid` to the child component that owns that DOM surface and make that child forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.", () => {
   ruleTester.run("data-testid-case", dataTestIdCaseRule, {
     valid: [
       {
         code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <section data-testid="AccountPanel">{open ? <p /> : <p />}</section>;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
       },
+      {
+        code: `export function CredentialFormDialog() {\n  const handleSuccess = () => save();\n  return (\n    <Dialog>\n      <DialogTrigger />\n      <DialogContent data-testid="CredentialFormDialog">\n        <CredentialForm onSuccess={handleSuccess} />\n      </DialogContent>\n    </Dialog>\n  );\n}`,
+        filename: srcFile("features/credentials/CredentialFormDialog.tsx"),
+      },
+      {
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return open ? <section data-testid="AccountPanel" /> : <aside data-testid="AccountPanel" />;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+      },
     ],
     invalid: [
       {
-        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return open ? <section /> : <aside />;\n}`,
-        filename: srcFile("features/account/AccountPanel.tsx"),
+        code: `export function CredentialFormDialog() {\n  const handleSuccess = () => save();\n  return (\n    <Dialog>\n      <DialogTrigger />\n      <DialogContent>\n        <CredentialForm onSuccess={handleSuccess} />\n      </DialogContent>\n    </Dialog>\n  );\n}`,
+        filename: srcFile("features/credentials/CredentialFormDialog.tsx"),
         errors: [
           {
             message:
-              'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
-              'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
+              'Smart component "CredentialFormDialog" must expose exactly one stable data-testid="CredentialFormDialog" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],
       },
       {
-        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <>{open ? <section /> : <aside />}</>;\n}`,
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return open ? <section data-testid="AccountPanel" /> : <aside />;\n}`,
         filename: srcFile("features/account/AccountPanel.tsx"),
         errors: [
           {
             message:
-              'Smart component "AccountPanel" has no single outer element; wrap its content in one outer element ' +
-              'with data-testid="AccountPanel" instead of rendering multiple roots. ' +
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
+              "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
+          },
+        ],
+      },
+      {
+        code: `export async function AccountPanel() {\n  const open = await zodFetch({ url, responseSchema });\n  return <><section data-testid="AccountPanel" /><aside data-testid="AccountPanel" /></>;\n}`,
+        filename: srcFile("features/account/AccountPanel.tsx"),
+        errors: [
+          {
+            message:
+              'Smart component "AccountPanel" must expose exactly one stable data-testid="AccountPanel" anchor in every rendered result. ' +
+              "Place it on the existing DOM surface or on a child component that forwards data-testid instead of adding an artificial wrapper. " +
               "See docs/next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
           },
         ],

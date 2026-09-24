@@ -5,8 +5,8 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 - A component's name MUST be `PascalCase`.
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
-- A smart component with one outer DOM element in every rendered result MUST set `data-testid` on that element, and its value MUST match the component name in `PascalCase`.
-- A smart component MUST render exactly one outer DOM element in every rendered result, and MUST set `data-testid` on it; a smart component with no single outer element MUST wrap its content in one instead of rendering multiple roots.
+- A smart component MUST expose exactly one stable `data-testid` anchor in every rendered result, and its value MUST match the component name in `PascalCase`.
+- The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If the component composes a portal or another non-DOM wrapper, pass `data-testid` to the child component that owns that DOM surface and make that child forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.
 - A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
 - [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
 
@@ -108,39 +108,49 @@ export function PlatformCard({
 
 Why: the component is dumb, so its file name and `data-testid` use `kebab-case`.
 
-## Incorrect — Smart Component Renders Multiple Roots
+## Incorrect — Artificial Wrapper Added Only for `data-testid`
 
 ```tsx
-// src/features/social/SocialStatsPanel.tsx
-import { zodFetch } from "pasika/zod-fetch";
+// src/features/credentials/CredentialFormDialog.tsx
 
-export async function SocialStatsPanel(): Promise<React.JSX.Element> {
-  const stats = await zodFetch({ url: "/api/social-stats", responseSchema: socialStatsResponseSchema });
-
-  return stats.length === 0 ? <p>No stats</p> : <PlatformList stats={stats} />;
-}
-```
-
-Why: this smart component has no single outer element, so no `data-testid` can anchor tests to the component. It must wrap its content in one outer element.
-
-## Correct — Smart Component Wraps Multiple Roots
-
-```tsx
-// src/features/social/SocialStatsPanel.tsx
-import { zodFetch } from "pasika/zod-fetch";
-
-export async function SocialStatsPanel(): Promise<React.JSX.Element> {
-  const stats = await zodFetch({ url: "/api/social-stats", responseSchema: socialStatsResponseSchema });
+export function CredentialFormDialog(): React.JSX.Element {
+  const handleSuccess = (): void => save();
 
   return (
-    <section data-testid="SocialStatsPanel">
-      {stats.length === 0 ? <p>No stats</p> : <PlatformList stats={stats} />}
-    </section>
+    <div data-testid="CredentialFormDialog" className="contents">
+      <Dialog>
+        <DialogTrigger />
+        <DialogContent>
+          <CredentialForm onSuccess={handleSuccess} />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 ```
 
-Why: the wrapper gives tests one stable outer element to anchor `data-testid="SocialStatsPanel"` to, no matter which branch renders.
+Why: the extra `div` exists only to satisfy the test selector. It does not own the dialog surface, and portal-based content still renders elsewhere in the DOM.
+
+## Correct — Anchor the Existing Meaningful Surface
+
+```tsx
+// src/features/credentials/CredentialFormDialog.tsx
+
+export function CredentialFormDialog(): React.JSX.Element {
+  const handleSuccess = (): void => save();
+
+  return (
+    <Dialog>
+      <DialogTrigger />
+      <DialogContent data-testid="CredentialFormDialog">
+        <CredentialForm onSuccess={handleSuccess} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+Why: `DialogContent` owns the meaningful dialog DOM surface. It must accept and forward `data-testid` to that surface; if it does not, fix `DialogContent` rather than adding a wrapper around `CredentialFormDialog`.
 
 ## Incorrect — Component Named in camelCase
 

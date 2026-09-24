@@ -9,9 +9,9 @@ export default defineConfig({
       exclude: ["**/*.test.ts"],
       thresholds: {
         lines: 91.67,
-        functions: 95.59,
-        branches: 80.17,
-        statements: 86.77,
+        functions: 95.65,
+        branches: 80.19,
+        statements: 86.8,
         autoUpdate: true,
       },
     },
