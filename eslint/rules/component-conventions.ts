@@ -15,6 +15,21 @@ function isExported(node: ts.Node): boolean {
   return (ts.getModifiers(node) ?? []).some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword);
 }
 
+function namedExportedLocalNames(sourceFile: ts.SourceFile): Set<string> {
+  const names = new Set<string>();
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isExportDeclaration(statement) || statement.moduleSpecifier || !statement.exportClause) continue;
+    if (!ts.isNamedExports(statement.exportClause)) continue;
+
+    for (const element of statement.exportClause.elements) {
+      names.add((element.propertyName ?? element.name).text);
+    }
+  }
+
+  return names;
+}
+
 function containsJsx(node: ts.Node): boolean {
   let found = false;
   const visit = (child: ts.Node): void => {
@@ -91,17 +106,23 @@ export function parseComponentInfo(
 ): ComponentInfo[] {
   const sourceFile = ts.createSourceFile(path.resolve(filename), text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const components: ComponentInfo[] = [];
+  const namedExports = namedExportedLocalNames(sourceFile);
 
   for (const statement of sourceFile.statements) {
-    const exported = isExported(statement);
-    if (!exported && !options?.includeNonExported) continue;
+    const statementExported = isExported(statement);
+
     if (ts.isFunctionDeclaration(statement)) {
+      const name = statement.name?.text;
+      if (!options?.includeNonExported && !statementExported && (!name || !namedExports.has(name))) continue;
       const component = componentFromFunction(statement);
       if (component) components.push(component);
       continue;
     }
+
     if (ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
+        const name = ts.isIdentifier(declaration.name) ? declaration.name.text : undefined;
+        if (!options?.includeNonExported && !statementExported && (!name || !namedExports.has(name))) continue;
         const component = componentFromVariable(declaration);
         if (component) components.push(component);
       }

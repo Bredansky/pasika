@@ -63,6 +63,15 @@ void describe("A dumb component file name MUST be kebab-case.tsx.", () => {
           },
         ],
       },
+      {
+        code: "function Button() { return <button />; } export { Button };",
+        filename: srcFile("shared/Button.tsx"),
+        errors: [
+          {
+            message: 'Dumb component files must use kebab-case.tsx. Filename "Button.tsx" is not kebab-case.',
+          },
+        ],
+      },
     ],
   });
 });
