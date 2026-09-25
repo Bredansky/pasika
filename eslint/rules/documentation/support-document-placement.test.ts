@@ -8,6 +8,10 @@ void describe("A Reference file MUST live in a references/ subfolder inside a *-
         filename: "docs/documentation-guide/references/glossary-reference.md",
         code: "# Documentation Types Reference",
       },
+      {
+        filename: "docs/documentation-guide/_templates/grouped-reference.md",
+        code: "# [Topic] Reference",
+      },
     ],
     invalid: [
       {

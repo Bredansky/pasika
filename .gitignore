@@ -4,3 +4,9 @@
 dist/
 node_modules/
 coverage/
+
+# managed by vulyk
+.vulyk/cache/
+.vulyk/state.json
+.vulyk/tmp/
+# end vulyk

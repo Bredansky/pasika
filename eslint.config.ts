@@ -6,7 +6,6 @@ import { documentationRules, repoPackageJsonRules, huskyRules } from "./eslint/i
 
 const documentationBlock: Linter.Config = {
   files: ["docs/**/*.md"],
-  ignores: ["**/_*/**"],
   plugins: { markdown, pasika: { rules: documentationRules } },
   language: "markdown/gfm",
   rules: Object.fromEntries(Object.keys(documentationRules).map((name) => [`pasika/${name}`, "error"])),

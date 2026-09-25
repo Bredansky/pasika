@@ -17,6 +17,7 @@ import { importBoundariesRule } from "./rules/import-boundaries";
 import { importSpacingRule } from "./rules/import-spacing";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
+import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { unknownUtilityRule } from "./rules/unknown-utility";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
 import { cnHelperRule } from "./rules/cn-helper";
@@ -57,7 +58,6 @@ import { typeExtractionRule } from "./rules/type-extraction";
 import { localePlacementRule } from "./rules/locale-placement";
 import { soleStateOwnerRule } from "./rules/sole-state-owner";
 import { localeKeyShapeRule } from "./rules/locale-key-shape";
-import { sharedStyleDedupRule } from "./rules/shared-style-dedup";
 import { repeatedStructureRule } from "./rules/repeated-structure";
 import { zodSchemaValidationRule } from "./rules/zod-schema-validation";
 import { schemaCasingRule } from "./rules/schema-casing";
@@ -108,6 +108,7 @@ const pasikaNextjsAppRules = {
   "ui-state": uiStateRule,
   "no-mixed-concerns": noMixedConcernsRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
+  "no-literal-inline-style": noLiteralInlineStyleRule,
   "unknown-utility": unknownUtilityRule,
   "enforce-cn-merge": enforceCnMergeRule,
   "cn-helper": cnHelperRule,
@@ -130,7 +131,6 @@ const pasikaNextjsAppRules = {
   "locale-placement": localePlacementRule,
   "sole-state-owner": soleStateOwnerRule,
   "locale-key-shape": localeKeyShapeRule,
-  "shared-style-dedup": sharedStyleDedupRule,
   "repeated-structure": repeatedStructureRule,
 };
 
@@ -293,10 +293,6 @@ const zirkaConfig: Linter.Config = {
 /** Markdown/docs block: the documentation-guide rules, on the gfm language. */
 const documentationConfig: Linter.Config = {
   files: ["docs/**/*.md"],
-  // vulyk-generated agent files are not authored docs: with per-directory
-  // targets they can land under docs/ (e.g. docs/AGENTS.md) and must not be
-  // held to the documentation guide.
-  ignores: ["**/_*/**", "**/AGENTS.md", "**/CLAUDE.md"],
   plugins: {
     markdown,
     pasika: pasikaPlugin,

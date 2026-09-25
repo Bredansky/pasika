@@ -6,6 +6,10 @@ void describe("A Reference with a single lookup block MUST NOT add a section hea
     valid: [
       // A single unheaded lookup block
       { filename: "foo-reference.md", code: "# Foo Reference\n\nA lookup block without a heading." },
+      {
+        filename: "docs/documentation-guide/_templates/grouped-reference.md",
+        code: "# [Topic] Reference\n\n## [First Group]\n\n[Lookup content]",
+      },
     ],
     invalid: [
       {

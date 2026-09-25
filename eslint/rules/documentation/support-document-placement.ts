@@ -6,7 +6,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isDocumentationTemplate } from "./helpers";
 
 type SupportDocumentKind = "reference" | "rule";
 
@@ -44,7 +44,7 @@ export const supportDocumentPlacementRule: MarkdownRuleDefinition = {
     return {
       root(node: Root) {
         const filename = getFilename(context);
-        if (!filename.endsWith(".md")) return;
+        if (!filename.endsWith(".md") || isDocumentationTemplate(filename)) return;
 
         let kind: SupportDocumentKind | undefined;
         if (filename.endsWith("-rule.md")) kind = "rule";

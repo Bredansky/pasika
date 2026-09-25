@@ -3,7 +3,12 @@ import { titleMatchesFileNameRule } from "./title-matches-file-name";
 
 void describe("Policy file names MUST match the document title in kebab-case and use the -policy suffix (e.g., foo-policy.md).", () => {
   documentationRuleTester.run("title-matches-file-name", titleMatchesFileNameRule, {
-    valid: [{ filename: "foo-policy.md", code: "# Foo Policy" }],
+    valid: [
+      { filename: "foo-policy.md", code: "# Foo Policy" },
+      { filename: "docs/AGENTS.md", code: "# Documentation Guide" },
+      { filename: "docs/CLAUDE.md", code: "# Documentation Guide" },
+      { filename: "docs/documentation-guide/_templates/policy.md", code: "# [Topic] Policy" },
+    ],
     invalid: [
       {
         filename: "bar-policy.md",

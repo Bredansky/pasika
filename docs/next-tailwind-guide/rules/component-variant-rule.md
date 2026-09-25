@@ -36,8 +36,8 @@ const buttonVariants = cva("inline-flex items-center", {
       lg: "h-11 px-5",
     },
     tone: {
-      primary: "primary-skin",
-      danger: "danger-skin",
+      primary: "bg-primary-canvas text-primary-ink",
+      danger: "bg-danger-canvas text-danger-ink",
     },
   },
   defaultVariants: {

@@ -22,12 +22,18 @@ export const rulePairedExamplesRule: MarkdownRuleDefinition = {
         const exampleHeadings: { line: number; text: string }[] = [];
 
         for (const child of node.children) {
-          if (child.type === "heading" && child.depth === 2) {
-            const text = getTextContent(child).trim();
-            if (/^(?:Incorrect|Correct)\b/.test(text)) {
-              exampleHeadings.push({ line: getLine(child), text });
-            }
+          if (child.type !== "heading" || child.depth !== 2) continue;
+
+          const text = getTextContent(child).trim();
+          if (/^(?:Incorrect|Correct)\b/.test(text)) {
+            exampleHeadings.push({ line: getLine(child), text });
+            continue;
           }
+
+          context.report({
+            node: child,
+            message: `Rule level-2 heading must be an Incorrect/Correct example: ${text}`,
+          });
         }
 
         const incorrect = exampleHeadings.filter((h) => h.text.startsWith("Incorrect"));
