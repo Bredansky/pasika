@@ -3,7 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Root } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isAgentDocument, isDocumentationTemplate } from "./helpers";
 
 export const docKindSuffixRule: MarkdownRuleDefinition = {
   meta: {
@@ -17,7 +17,7 @@ export const docKindSuffixRule: MarkdownRuleDefinition = {
     return {
       root(node: Root) {
         const filename = getFilename(context);
-        if (!filename.endsWith(".md")) return;
+        if (!filename.endsWith(".md") || isAgentDocument(filename) || isDocumentationTemplate(filename)) return;
         if (
           filename.endsWith("-guide.md") ||
           filename.endsWith("-rule.md") ||

@@ -3,6 +3,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Text } from "mdast";
+import { getFilename, isDocumentationTemplate } from "./helpers";
 
 const TEMPLATE_PROMPT = /^\s*\[[A-Z0-9].*\]\s*$/;
 
@@ -15,6 +16,8 @@ export const noTemplatePromptRule: MarkdownRuleDefinition = {
     },
   },
   create(context) {
+    if (isDocumentationTemplate(getFilename(context))) return {};
+
     return {
       text(node: Text) {
         if (TEMPLATE_PROMPT.test(node.value)) {

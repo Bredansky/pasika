@@ -8,6 +8,9 @@ void describe("Guide file names MUST match the document title in kebab-case and 
       { filename: "foo-rule.md", code: "# Foo Rule" },
       { filename: "foo-reference.md", code: "# Foo Reference" },
       { filename: "foo-policy.md", code: "# Foo Policy" },
+      { filename: "docs/AGENTS.md", code: "# Documentation Guide" },
+      { filename: "docs/CLAUDE.md", code: "# Documentation Guide" },
+      { filename: "docs/documentation-guide/_templates/guide.md", code: "# [Topic] Guide" },
     ],
     invalid: [
       {

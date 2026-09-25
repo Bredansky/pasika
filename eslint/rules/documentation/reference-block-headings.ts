@@ -4,7 +4,7 @@
  */
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading, Root } from "mdast";
-import { getFilename } from "./helpers";
+import { getFilename, isDocumentationTemplate } from "./helpers";
 
 export const referenceBlockHeadingsRule: MarkdownRuleDefinition = {
   meta: {
@@ -18,7 +18,7 @@ export const referenceBlockHeadingsRule: MarkdownRuleDefinition = {
     return {
       root(node: Root) {
         const filename = getFilename(context);
-        if (!filename.endsWith("-reference.md")) return;
+        if (!filename.endsWith("-reference.md") || isDocumentationTemplate(filename)) return;
 
         const sectionHeadings: Heading[] = [];
         for (const child of node.children) {

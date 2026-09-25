@@ -4,7 +4,7 @@
 import path from "node:path";
 import type { MarkdownRuleDefinition } from "@eslint/markdown";
 import type { Heading } from "mdast";
-import { getFilename, getTextContent } from "./helpers";
+import { getFilename, getTextContent, isAgentDocument, isDocumentationTemplate } from "./helpers";
 
 function toExpectedFileName(title: string): string {
   return `${title
@@ -27,7 +27,7 @@ export const titleMatchesFileNameRule: MarkdownRuleDefinition = {
         if (node.depth !== 1) return;
 
         const filename = getFilename(context);
-        if (!filename.endsWith(".md")) return;
+        if (!filename.endsWith(".md") || isAgentDocument(filename) || isDocumentationTemplate(filename)) return;
 
         const title = getTextContent(node).trim();
         const expectedFileName = toExpectedFileName(title);

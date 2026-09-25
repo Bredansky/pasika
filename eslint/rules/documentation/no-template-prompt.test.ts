@@ -3,7 +3,13 @@ import { noTemplatePromptRule } from "./no-template-prompt";
 
 void describe("Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.", () => {
   documentationRuleTester.run("no-template-prompt", noTemplatePromptRule, {
-    valid: [{ filename: "foo-guide.md", code: "# Foo Guide\n\nFinal content here." }],
+    valid: [
+      { filename: "foo-guide.md", code: "# Foo Guide\n\nFinal content here." },
+      {
+        filename: "docs/documentation-guide/_templates/guide.md",
+        code: "# [Topic] Guide\n\n[Explain the guide's scope]",
+      },
+    ],
     invalid: [
       {
         filename: "foo-guide.md",

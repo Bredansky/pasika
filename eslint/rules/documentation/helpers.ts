@@ -1,6 +1,7 @@
 /**
  * Helpers for markdown ESLint rules operating on @eslint/markdown's AST.
  */
+import path from "node:path";
 import type { Nodes } from "mdast";
 import { RFC_2119_PATTERN } from "../../../constants/rfc2119";
 
@@ -20,6 +21,17 @@ export function containsRfcKeyword(text: string): string | null {
  */
 export function getFilename(context: { filename: string }): string {
   return context.filename;
+}
+
+/** Vulyk-generated agent routing files are documentation metadata, not authored guide documents. */
+export function isAgentDocument(filename: string): boolean {
+  const base = path.basename(filename);
+  return base === "AGENTS.md" || base === "CLAUDE.md";
+}
+
+/** Markdown source templates intentionally contain placeholders and template-shaped names. */
+export function isDocumentationTemplate(filename: string): boolean {
+  return path.basename(path.dirname(filename)) === "_templates";
 }
 
 /**

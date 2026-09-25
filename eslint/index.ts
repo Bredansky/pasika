@@ -293,10 +293,6 @@ const zirkaConfig: Linter.Config = {
 /** Markdown/docs block: the documentation-guide rules, on the gfm language. */
 const documentationConfig: Linter.Config = {
   files: ["docs/**/*.md"],
-  // vulyk-generated agent files are not authored docs: with per-directory
-  // targets they can land under docs/ (e.g. docs/AGENTS.md) and must not be
-  // held to the documentation guide.
-  ignores: ["**/_*/**", "**/AGENTS.md", "**/CLAUDE.md"],
   plugins: {
     markdown,
     pasika: pasikaPlugin,
