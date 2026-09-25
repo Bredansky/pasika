@@ -7,6 +7,10 @@ void describe("Components MUST use Tailwind for static styling; inline styles MA
   ruleTester.run("no-literal-inline-style", noLiteralInlineStyleRule, {
     valid: [
       {
+        code: `export function Card() { return <div className="text-sm" />; }`,
+        filename: componentFile,
+      },
+      {
         code: `export function Layer({ position }) { return <div style={{ zIndex: position.zIndex }} />; }`,
         filename: componentFile,
       },
@@ -15,11 +19,15 @@ void describe("Components MUST use Tailwind for static styling; inline styles MA
         filename: componentFile,
       },
       {
-        code: `export function BrandedButton({ buttonColor }) { return <button style={{ "--bg-color": buttonColor }} className="bg-(--bg-color)" />; }`,
+        code: `export function Layer({ style }) { return <div style={style} />; }`,
         filename: componentFile,
       },
       {
-        code: `export function Layer({ style }) { return <div style={style} />; }`,
+        code: `export function Layer({ compact, compactStyle, fullStyle }) { return <div style={compact ? compactStyle : fullStyle} />; }`,
+        filename: componentFile,
+      },
+      {
+        code: `export function Layer({ preferredStyle, fallbackStyle }) { return <div style={preferredStyle || fallbackStyle} />; }`,
         filename: componentFile,
       },
       {

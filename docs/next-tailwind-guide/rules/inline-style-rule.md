@@ -35,21 +35,3 @@ Why: runtime-generated class strings are not a reliable source for Tailwind's st
 ```
 
 Why: the values come from runtime data rather than static styling.
-
-## Incorrect — Runtime Value Interpolated Into an Arbitrary Utility
-
-```tsx
-<button className={`bg-[${buttonColor}]`}>Save</button>
-```
-
-Why: the runtime value is hidden inside a class string that Tailwind cannot statically discover.
-
-## Correct — Runtime CSS Variable Bridged Into a Utility
-
-```tsx
-<button style={{ "--bg-color": buttonColor }} className="bg-(--bg-color)">
-  Save
-</button>
-```
-
-Why: the runtime value stays dynamic while the browser-facing property is expressed through Tailwind.
