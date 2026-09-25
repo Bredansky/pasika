@@ -53,25 +53,3 @@ Why: the runtime value is hidden inside a class string that Tailwind cannot stat
 ```
 
 Why: the runtime value stays dynamic while the browser-facing property is expressed through Tailwind.
-
-## Incorrect — Static Complex Value Kept Inline
-
-```tsx
-<div style={{ gridTemplateColumns: "2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px)" }} />
-```
-
-Why: the value is static, so it belongs in Tailwind even though it is complex.
-
-## Correct — Static Complex Value Uses a Named Utility
-
-```css
-@utility content-grid {
-  grid-template-columns: 2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px);
-}
-```
-
-```tsx
-<div className="content-grid" />
-```
-
-Why: the static value stays in Tailwind and has a searchable project-specific name.

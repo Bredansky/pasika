@@ -97,7 +97,7 @@ export const noLiteralInlineStyleRule: Rule.RuleModule = {
         context.report({
           node,
           message:
-            `Static inline style "${name}" should use Tailwind utilities, theme tokens, or a named custom utility. ` +
+            `Static inline style "${name}" should use Tailwind. ` +
             "Keep inline styles for runtime-sourced values. " +
             "See docs/next-tailwind-guide/rules/inline-style-rule.md",
         });
