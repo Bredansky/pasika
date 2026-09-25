@@ -88,7 +88,7 @@ const message = (className: string): string =>
 const plainMessage = (className: string): string =>
   `Utility class "${className}" is defined as a plain CSS selector in a stylesheet, not as an @utility (or @theme variable). Define it with @utility so the framework can own and validate it.`;
 
-void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, a built-in Tailwind utility, or an arbitrary Tailwind utility.", () => {
+void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
     valid: [
       // Theme-generated utilities from the project's @theme.

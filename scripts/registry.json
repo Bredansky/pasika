@@ -890,9 +890,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
-      "text": "Components MAY use arbitrary-value classes for one-off static styling when no existing utility represents the value.",
-      "hash": "30a03e7c69",
-      "note": "whether a value is truly one-off and has no suitable existing utility is a styling judgment"
+      "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.",
+      "hash": "5a48f3915a",
+      "ref": "pasika/no-arbitrary-tailwind"
     },
     {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
@@ -986,8 +986,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Shared styling values declared in the global stylesheet MUST be defined as CSS variables in `:root`. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.",
-      "hash": "b27360f136",
+      "text": "Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.",
+      "hash": "d89d54996c",
       "ref": "pasika/root-variables"
     },
     {
@@ -1064,8 +1064,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, a built-in Tailwind utility, or an arbitrary Tailwind utility.",
-      "hash": "160b623915",
+      "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
+      "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
     },
     {

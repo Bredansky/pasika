@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Shared styling values declared in the global stylesheet MUST be defined as
- * CSS variables in :root, and a Tailwind theme variable MUST reference that
- * CSS variable through @theme inline.
+ * Every value used for the project's styling MUST be defined as a CSS variable
+ * in :root, and a Tailwind theme variable MUST reference that CSS variable
+ * through @theme inline.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */

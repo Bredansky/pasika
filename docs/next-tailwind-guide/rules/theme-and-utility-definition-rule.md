@@ -9,7 +9,7 @@ This rule decides when styling stays with one component or becomes a shared util
 - A combination of two or more styles that multiple consumers use together and should change together MUST become a `<role>-skin` custom utility.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
-- A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, a built-in Tailwind utility, or an arbitrary Tailwind utility.
+- A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Property-Specific Color Exposed Broadly
 
