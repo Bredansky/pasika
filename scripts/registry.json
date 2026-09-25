@@ -1009,6 +1009,12 @@
       "ref": "pasika/base-layer-pair"
     },
     {
+      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
+      "text": "Browser-rendered components MUST use Tailwind utilities, theme tokens, or named custom utilities for simple static project styling instead of JSX `style` attributes; inline styles MAY be used for runtime-sourced values, CSS custom properties set from runtime data, or complicated arbitrary values that are difficult to read as class names.",
+      "hash": "9385e62987",
+      "ref": "pasika/no-literal-inline-style"
+    },
+    {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Styling used by only one component MUST stay in that component file as static Tailwind utility classes and MUST NOT be moved to the global stylesheet.",
       "hash": "50f1692be2",

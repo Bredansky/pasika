@@ -17,6 +17,7 @@ import { importBoundariesRule } from "./rules/import-boundaries";
 import { importSpacingRule } from "./rules/import-spacing";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
+import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { unknownUtilityRule } from "./rules/unknown-utility";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
 import { cnHelperRule } from "./rules/cn-helper";
@@ -108,6 +109,7 @@ const pasikaNextjsAppRules = {
   "ui-state": uiStateRule,
   "no-mixed-concerns": noMixedConcernsRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
+  "no-literal-inline-style": noLiteralInlineStyleRule,
   "unknown-utility": unknownUtilityRule,
   "enforce-cn-merge": enforceCnMergeRule,
   "cn-helper": cnHelperRule,
