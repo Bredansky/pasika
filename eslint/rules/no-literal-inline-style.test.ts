@@ -3,7 +3,7 @@ import { noLiteralInlineStyleRule } from "./no-literal-inline-style";
 
 const componentFile = srcFile("features/credentials/credential-card.tsx");
 
-void describe("Browser-rendered components MUST use Tailwind utilities, theme tokens, or named custom utilities for simple static project styling instead of JSX `style` attributes; inline styles MAY be used for runtime-sourced values, CSS custom properties set from runtime data, or complicated arbitrary values that are difficult to read as class names.", () => {
+void describe("Browser-rendered components MUST use Tailwind for simple static styling; inline styles MAY be used for runtime or complex values.", () => {
   ruleTester.run("no-literal-inline-style", noLiteralInlineStyleRule, {
     valid: [
       {

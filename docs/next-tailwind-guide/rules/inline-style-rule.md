@@ -1,8 +1,8 @@
 # Inline Style Rule
 
-Simple static CSS in browser-rendered JSX bypasses Tailwind's utility and token system, while inline styles are still useful for values that are genuinely dynamic or too complex to read well as class names. Non-browser JSX renderers such as Next.js `ImageResponse` use CSS directly and are outside this browser-styling rule.
+Static browser styling belongs in Tailwind; inline styles still make sense for runtime data, complex CSS, and non-browser renderers.
 
-- Browser-rendered components MUST use Tailwind utilities, theme tokens, or named custom utilities for simple static project styling instead of JSX `style` attributes; inline styles MAY be used for runtime-sourced values, CSS custom properties set from runtime data, or complicated arbitrary values that are difficult to read as class names.
+- Browser-rendered components MUST use Tailwind for simple static styling; inline styles MAY be used for runtime or complex values.
 
 ## Incorrect — Simple Static Inline Typography
 
