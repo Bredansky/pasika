@@ -12,6 +12,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.
 - A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
 - A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.
+- Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.
 - An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
 - A Rule MUST NOT link to References, Guides, or other Rules.
 

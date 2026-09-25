@@ -20,15 +20,31 @@ Why: both values are simple static design choices that already have readable uti
 
 Why: the static typography stays in the project's utility API.
 
-## Inline Styles for Runtime Values
+## Incorrect — Runtime Values Forced Into Dynamic Classes
+
+```tsx
+<button className={`bg-[${buttonColor}] text-[${textColor}]`}>Save</button>
+```
+
+Why: runtime-generated class strings are not a reliable source for Tailwind's static class discovery.
+
+## Correct — Runtime Values Kept Inline
 
 ```tsx
 <button style={{ backgroundColor: buttonColor, color: textColor }}>Save</button>
 ```
 
-Values supplied at runtime can remain inline because no static class can encode data that is not known at build time.
+Why: the values come from runtime data, so keeping them inline preserves the data-driven styling decision.
 
-## Inline Styles for Dynamic CSS Variables
+## Incorrect — Runtime Value Interpolated Into an Arbitrary Utility
+
+```tsx
+<button className={`bg-[${buttonColor}]`}>Save</button>
+```
+
+Why: the runtime value is hidden inside a class string that Tailwind cannot statically discover.
+
+## Correct — Runtime CSS Variable Bridged Into a Utility
 
 ```tsx
 <button style={{ "--bg-color": buttonColor }} className="bg-(--bg-color)">
@@ -36,20 +52,36 @@ Values supplied at runtime can remain inline because no static class can encode 
 </button>
 ```
 
-A runtime value can be passed through a CSS custom property and consumed by a utility class.
+Why: the runtime value stays dynamic while the browser-facing property is still expressed through a utility.
 
-## Inline Styles for Complicated Values
+## Incorrect — Complicated Value Forced Into a Class
+
+```tsx
+<div className="grid-cols-[2fr_max(0,var(--gutter-width))_calc(var(--gutter-width)+10px)]" />
+```
+
+Why: the class is harder to read than the CSS value it is trying to encode.
+
+## Correct — Complicated Value Kept Inline
 
 ```tsx
 <div style={{ gridTemplateColumns: "2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px)" }} />
 ```
 
-A complicated value may stay inline when spelling it as a class would make the markup harder to read.
+Why: the complicated value stays readable as CSS instead of becoming an opaque class string.
 
-## Non-Browser Image Rendering
+## Incorrect — ImageResponse Styled With Browser Utility Assumptions
+
+```tsx
+return new ImageResponse(<div className="flex size-full">Preview</div>);
+```
+
+Why: `ImageResponse` renders through Satori/Resvg rather than the browser's Tailwind stylesheet.
+
+## Correct — ImageResponse Uses Its Inline CSS API
 
 ```tsx
 return new ImageResponse(<div style={{ display: "flex", width: "100%", height: "100%" }}>Preview</div>);
 ```
 
-`ImageResponse` renders JSX through Satori/Resvg instead of the browser, so its CSS stays inline and is not governed by this browser-styling rule.
+Why: the image renderer receives the CSS directly in the JSX tree it renders.

@@ -254,6 +254,12 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.",
+      "hash": "d5302643ce",
+      "ref": "pasika/rule-paired-examples"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.",
       "hash": "001ce1c18c",
       "ref": "pasika/example-heading-description"
