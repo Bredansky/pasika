@@ -3,7 +3,7 @@ import { noLiteralInlineStyleRule } from "./no-literal-inline-style";
 
 const componentFile = srcFile("features/credentials/credential-card.tsx");
 
-void describe("Browser-rendered components MUST use Tailwind for simple static styling; inline styles MAY be used for runtime or complex values.", () => {
+void describe("Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.", () => {
   ruleTester.run("no-literal-inline-style", noLiteralInlineStyleRule, {
     valid: [
       {
@@ -19,26 +19,6 @@ void describe("Browser-rendered components MUST use Tailwind for simple static s
         filename: componentFile,
       },
       {
-        code: `export function Grid() { return <div style={{ gridTemplateColumns: "2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px)" }} />; }`,
-        filename: componentFile,
-      },
-      {
-        code: `export function Glow() { return <div style={{ background: "radial-gradient(circle at center, white 0%, transparent 100%)" }} />; }`,
-        filename: componentFile,
-      },
-      {
-        code: `export function Pattern() { return <div style={{ backgroundSize: "25px 25px" }} />; }`,
-        filename: componentFile,
-      },
-      {
-        code: `export function Animated() { return <div style={{ willChange: "transform, filter" }} />; }`,
-        filename: componentFile,
-      },
-      {
-        code: `export function Menu({ active }) { return <button style={active ? { boxShadow: "0 0 0 2px var(--emphasis-edge)" } : undefined} />; }`,
-        filename: componentFile,
-      },
-      {
         code: `export function Layer({ style }) { return <div style={style} />; }`,
         filename: componentFile,
       },
@@ -51,19 +31,7 @@ void describe("Browser-rendered components MUST use Tailwind for simple static s
         filename: componentFile,
       },
       {
-        code: `export function Grid() { return <div style={{ gridTemplateColumns: "1fr\\n2fr" }} />; }`,
-        filename: componentFile,
-      },
-      {
         code: `export function Odd() { return <div style={{ 1: "block" }} />; }`,
-        filename: componentFile,
-      },
-      {
-        code: `import { ImageResponse } from "next/og"; export function Icon() { return new ImageResponse(<div style={{ display: "flex", width: "100%", height: "100%" }} />); }`,
-        filename: componentFile,
-      },
-      {
-        code: `import { ImageResponse as OgImageResponse } from "next/server"; export function Icon() { return new OgImageResponse(<div style={{ display: "flex" }} />); }`,
         filename: componentFile,
       },
     ],
@@ -79,7 +47,37 @@ void describe("Browser-rendered components MUST use Tailwind for simple static s
         errors: 1,
       },
       {
+        code: `export function Grid() { return <div style={{ gridTemplateColumns: "2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px)" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Glow() { return <div style={{ background: "radial-gradient(circle at center, white 0%, transparent 100%)" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Pattern() { return <div style={{ backgroundSize: "25px 25px" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Animated() { return <div style={{ willChange: "transform, filter" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Menu({ active }) { return <button style={active ? { boxShadow: "0 0 0 2px var(--emphasis-edge)" } : undefined} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
         code: `export function Menu({ hidden }) { return <div style={{ display: hidden ? "none" : "block" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Menu({ hidden, display }) { return <div style={{ display: hidden ? display : "block" }} />; }`,
         filename: componentFile,
         errors: 1,
       },
@@ -124,7 +122,27 @@ void describe("Browser-rendered components MUST use Tailwind for simple static s
         errors: 1,
       },
       {
-        code: `import { ImageResponse } from "next/og"; export function BrowserCard() { return <div style={{ display: "flex" }} />; }`,
+        code: `export function Marker() { return <div style={{ ["display"]: "block" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Marker({ active, dynamicStyle }) { return <div style={active ? dynamicStyle : { display: "block" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Marker({ dynamicStyle }) { return <div style={dynamicStyle || { display: "block" }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `export function Marker() { return <div style={{ top: +1 }} />; }`,
+        filename: componentFile,
+        errors: 1,
+      },
+      {
+        code: `import { ImageResponse } from "next/og"; export function Icon() { return new ImageResponse(<div style={{ display: "flex", width: "100%", height: "100%" }} />); }`,
         filename: componentFile,
         errors: 1,
       },

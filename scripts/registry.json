@@ -1016,8 +1016,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/inline-style-rule.md",
-      "text": "Browser-rendered components MUST use Tailwind for simple static styling; inline styles MAY be used for runtime or complex values.",
-      "hash": "1e318c68e9",
+      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
+      "hash": "86f83ca119",
       "ref": "pasika/no-literal-inline-style"
     },
     {
