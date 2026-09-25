@@ -16,12 +16,12 @@ const GLOBALS = `@utility primary-surface { @apply bg-(--primary-canvas); }
 `;
 
 const FIXTURE: Record<string, string> = {
-  "globals.css": GLOBALS,
+  "app/styles/globals.css": GLOBALS,
   // `primary-surface` is referenced; `primary` appears only as a substring of
   // it and must not count as used.
   "components/button.tsx": 'export function Button() { return <div className="primary-surface" />; }\n',
   // `secondary-surface` is referenced from another stylesheet via @apply.
-  "styles/overrides.css": "/* applied elsewhere */\n@apply secondary-surface;\n",
+  "app/styles/overrides.css": "/* applied elsewhere */\n@apply secondary-surface;\n",
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-unused-utility-")));
@@ -32,7 +32,7 @@ for (const [relativePath, contents] of Object.entries(FIXTURE)) {
 }
 process.chdir(root);
 
-const globalsPath = path.join(root, "src", "globals.css");
+const globalsPath = path.join(root, "src", "app", "styles", "globals.css");
 
 void describe("A custom utility MUST be statically referenced by at least one file in the repository's source.", () => {
   tailwindRuleTester.run("unused-utility", unusedUtilityRule, {

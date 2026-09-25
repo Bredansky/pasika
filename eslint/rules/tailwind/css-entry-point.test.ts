@@ -19,29 +19,75 @@ const srcPath = (root: string, relativePath: string): string => path.join(root, 
 
 const ENTRY = `@import "tailwindcss";\n`;
 
+void describe("Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.", () => {
+  // A Tailwind entry point outside src/app/styles is misplaced.
+  const misplacedEntry = buildFixture({
+    "app/globals.css": ENTRY,
+    "app/layout.tsx": `import "./globals.css";
+`,
+  });
+  process.chdir(misplacedEntry);
+  tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
+    valid: [],
+    invalid: [
+      {
+        code: ENTRY,
+        filename: srcPath(misplacedEntry, "app/globals.css"),
+        errors: [{ message: "The global stylesheet entry point must be src/app/styles/globals.css." }],
+      },
+    ],
+  });
+
+  // Project CSS belongs under src/app/styles even when globals imports it directly.
+  const misplacedStylesheet = buildFixture({
+    "app/styles/globals.css": `${ENTRY}@import "../legacy.css";
+`,
+    "app/layout.tsx": `import "./styles/globals.css";
+`,
+    "app/legacy.css": `:root {
+  --spacing: 0.25rem;
+}
+`,
+  });
+  process.chdir(misplacedStylesheet);
+  tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
+    valid: [],
+    invalid: [
+      {
+        code: `:root {
+  --spacing: 0.25rem;
+}
+`,
+        filename: srcPath(misplacedStylesheet, "app/legacy.css"),
+        errors: [{ message: "Project stylesheets must live under src/app/styles/." }],
+      },
+    ],
+  });
+});
+
 void describe("The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via @import, and any other stylesheet holding project CSS MUST be imported by the entry point directly.", () => {
   // One entry, imported once by the root layout, with a stylesheet it imports.
   const valid = buildFixture({
-    "globals.css": `${ENTRY}@import "./theme.css";\n`,
-    "theme.css": `@theme {\n  --*: initial;\n}\n`,
-    "app/layout.tsx": `import "./../globals.css";\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./theme.css";\n`,
+    "app/styles/theme.css": `@theme {\n  --*: initial;\n}\n`,
+    "app/layout.tsx": `import "./styles/globals.css";\n`,
   });
   process.chdir(valid);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
     valid: [
       // The entry point registered and imported exactly once, importing theme.css.
-      { code: `${ENTRY}@import "./theme.css";\n`, filename: srcPath(valid, "globals.css") },
+      { code: `${ENTRY}@import "./theme.css";\n`, filename: srcPath(valid, "app/styles/globals.css") },
       // A stylesheet the entry point imports directly may hold project CSS.
-      { code: `@theme {\n  --*: initial;\n}\n`, filename: srcPath(valid, "theme.css") },
+      { code: `@theme {\n  --*: initial;\n}\n`, filename: srcPath(valid, "app/styles/theme.css") },
     ],
     invalid: [],
   });
 
   // A stray stylesheet the entry point neither imports nor reaches.
   const stray = buildFixture({
-    "globals.css": ENTRY,
-    "app/layout.tsx": `import "./../globals.css";\n`,
-    "stray.css": `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
+    "app/styles/globals.css": ENTRY,
+    "app/layout.tsx": `import "./styles/globals.css";\n`,
+    "app/styles/stray.css": `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
   });
   process.chdir(stray);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
@@ -49,7 +95,7 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
     invalid: [
       {
         code: `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
-        filename: srcPath(stray, "stray.css"),
+        filename: srcPath(stray, "app/styles/stray.css"),
         errors: [
           {
             message:
@@ -63,21 +109,21 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
   // Project CSS two hops from the entry: the midpoint is a direct child, but
   // the deep stylesheet holding CSS is not reached directly by the entry.
   const transitive = buildFixture({
-    "globals.css": `${ENTRY}@import "./base.css";\n`,
-    "app/layout.tsx": `import "./../globals.css";\n`,
-    "base.css": `@import "./deep.css";\n`,
-    "deep.css": `:root {\n  --spacing: 0.25rem;\n}\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./base.css";\n`,
+    "app/layout.tsx": `import "./styles/globals.css";\n`,
+    "app/styles/base.css": `@import "./deep.css";\n`,
+    "app/styles/deep.css": `:root {\n  --spacing: 0.25rem;\n}\n`,
   });
   process.chdir(transitive);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
     valid: [
       // The direct child is import-only and reaches deep.css.
-      { code: `@import "./deep.css";\n`, filename: srcPath(transitive, "base.css") },
+      { code: `@import "./deep.css";\n`, filename: srcPath(transitive, "app/styles/base.css") },
     ],
     invalid: [
       {
         code: `:root {\n  --spacing: 0.25rem;\n}\n`,
-        filename: srcPath(transitive, "deep.css"),
+        filename: srcPath(transitive, "app/styles/deep.css"),
         errors: [
           {
             message:
@@ -90,8 +136,8 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
 
   // Two stylesheets register Tailwind — only one may be the entry point.
   const multiGlobal = buildFixture({
-    "globals.css": ENTRY,
-    "editor.css": ENTRY,
+    "app/styles/globals.css": ENTRY,
+    "app/styles/editor.css": ENTRY,
   });
   process.chdir(multiGlobal);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
@@ -99,7 +145,7 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
     invalid: [
       {
         code: ENTRY,
-        filename: srcPath(multiGlobal, "editor.css"),
+        filename: srcPath(multiGlobal, "app/styles/editor.css"),
         errors: [{ message: "Only one stylesheet may register Tailwind as the global entry point." }],
       },
     ],
@@ -107,7 +153,7 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
 
   // The entry point is never imported by a module.
   const noImport = buildFixture({
-    "globals.css": ENTRY,
+    "app/styles/globals.css": ENTRY,
   });
   process.chdir(noImport);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
@@ -115,7 +161,7 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
     invalid: [
       {
         code: ENTRY,
-        filename: srcPath(noImport, "globals.css"),
+        filename: srcPath(noImport, "app/styles/globals.css"),
         errors: [
           {
             message:
@@ -128,9 +174,9 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
 
   // Two modules import the entry point — it must be imported exactly once.
   const twoImports = buildFixture({
-    "globals.css": ENTRY,
-    "app/layout.tsx": `import "./../globals.css";\n`,
-    "app/other.tsx": `import "./../globals.css";\n`,
+    "app/styles/globals.css": ENTRY,
+    "app/layout.tsx": `import "./styles/globals.css";\n`,
+    "app/other.tsx": `import "./styles/globals.css";\n`,
   });
   process.chdir(twoImports);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
@@ -138,7 +184,7 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
     invalid: [
       {
         code: ENTRY,
-        filename: srcPath(twoImports, "globals.css"),
+        filename: srcPath(twoImports, "app/styles/globals.css"),
         errors: [
           {
             message:

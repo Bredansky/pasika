@@ -1,5 +1,5 @@
 /**
- * All Tailwind stylesheet rules (Tailwind v4 globals.css).
+ * All Tailwind stylesheet rules (Tailwind v4 src/app/styles/globals.css).
  */
 import { themeResetRule } from "./theme-reset";
 import { rootVariablesRule } from "./root-variables";

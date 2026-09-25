@@ -45,7 +45,7 @@ const GLOBALS = `@import "tailwindcss";
 `;
 
 const FIXTURE: Record<string, string> = {
-  "globals.css": GLOBALS,
+  "app/styles/globals.css": GLOBALS,
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-unknown-utility-")));

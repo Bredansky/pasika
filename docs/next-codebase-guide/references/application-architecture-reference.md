@@ -6,13 +6,13 @@ Use this reference to look up the repository's layer model, how the closest comm
 
 This section lists the five layers and the direction their dependencies run. Use it to see which layer an item belongs to and which layers it draws from.
 
-| Layer          | Path                      | Contents                                                                                                                                                                                                                                                                                                              | Depends on                           |
-| -------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `app`          | `src/app/`                | [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), [metadata assets](https://nextjs.org/docs/app/getting-started/project-structure#metadata-file-conventions), and [styles those routing files import](https://nextjs.org/docs/app/getting-started/css) | compositions, features, shared, root |
-| `compositions` | `src/compositions/`       | Components that combine two or more features, and their support folders                                                                                                                                                                                                                                               | compositions, features, shared, root |
-| `features`     | `src/features/<feature>/` | One folder per feature, holding that feature's components and support folders                                                                                                                                                                                                                                         | same feature, shared, root           |
-| `shared`       | `src/shared/`             | Components used across features, and their support folders                                                                                                                                                                                                                                                            | shared, root                         |
-| `root`         | `src/`                    | App-wide support folders — `hooks/`, `types/`, `schemas/`, `constants/`, `utils/` — plus `config/` and `locales/`                                                                                                                                                                                                     | root                                 |
+| Layer          | Path                      | Contents                                                                                                                                                                                                                                                                | Depends on                           |
+| -------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `app`          | `src/app/`                | [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), [metadata assets](https://nextjs.org/docs/app/getting-started/project-structure#metadata-file-conventions), and project styles under `src/app/styles/` | compositions, features, shared, root |
+| `compositions` | `src/compositions/`       | Components that combine two or more features, and their support folders                                                                                                                                                                                                 | compositions, features, shared, root |
+| `features`     | `src/features/<feature>/` | One folder per feature, holding that feature's components and support folders                                                                                                                                                                                           | same feature, shared, root           |
+| `shared`       | `src/shared/`             | Components used across features, and their support folders                                                                                                                                                                                                              | shared, root                         |
+| `root`         | `src/`                    | App-wide support folders — `hooks/`, `types/`, `schemas/`, `constants/`, `utils/` — plus `config/` and `locales/`                                                                                                                                                       | root                                 |
 
 ## Closest Common Folder Resolution
 
@@ -79,7 +79,10 @@ This tree shows the canonical directory layout and the naming conventions files 
 
 ```
 src/
-├── app/                                   # Next.js framework-convention files, assets, and route styles
+├── app/                                   # Next.js framework-convention files and assets
+│   └── styles/                            # Project stylesheets
+│       ├── globals.css                    # Single Tailwind entry point
+│       └── <style>.css                    # Optional project stylesheet imported directly by globals.css
 ├── compositions/                          # Components sit as flat siblings
 │   ├── <ComponentA>.tsx                   # Smart component (PascalCase-named)
 │   ├── <component-b>.tsx                  # Dumb component (kebab-case-named)

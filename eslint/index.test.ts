@@ -50,7 +50,7 @@ void describe("pasika presets", () => {
     assert.ok(next.has("pasika/filename-case"), "pasikaNextjsApp must keep the TypeScript app rules");
     assert.ok(next.has("pasika/cn-helper"), "pasikaNextjsApp must add the Next.js app rules");
     assert.ok(
-      fileGlobs(pasikaNextjsApp).some((file) => file.includes("globals.css")),
+      fileGlobs(pasikaNextjsApp).some((file) => file === "src/app/styles/globals.css"),
       "missing the Tailwind globals block",
     );
     assert.ok(
