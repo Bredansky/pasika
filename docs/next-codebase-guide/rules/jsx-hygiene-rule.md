@@ -61,7 +61,7 @@ return (
     </p>
     {statusView}
     {scorePercent}%
-    <div className={cn(isActive ? "primary-skin" : "base-skin")} />
+    <div className={cn(isActive ? "bg-primary-canvas" : "bg-base-canvas")} />
     {canShowAdmin && <AdminPanel />}
     <span>{publishDate}</span>
   </div>

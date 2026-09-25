@@ -8,12 +8,11 @@ import { baseLayerPairRule } from "./base-layer-pair";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
-import { skinUtilityRule } from "./skin-utility";
+import { utilityMappingRule } from "./utility-mapping";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { cssEntryPointRule } from "./css-entry-point";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { unusedUtilityRule } from "./unused-utility";
-import { singleUseUtilityRule } from "./single-use-utility";
 import { globalSelectorStylingRule } from "./global-selector-styling";
 
 export const tailwindRules = {
@@ -24,12 +23,11 @@ export const tailwindRules = {
   "stylesheet-ordering": stylesheetOrderingRule,
   "css-variable-naming": cssVariableNamingRule,
   "custom-utility-apply": customUtilityApplyRule,
-  "skin-utility": skinUtilityRule,
+  "utility-mapping": utilityMappingRule,
   "theme-variable-namespace": themeVariableNamespaceRule,
   "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
-  "single-use-utility": singleUseUtilityRule,
   "global-selector-styling": globalSelectorStylingRule,
 };
 
