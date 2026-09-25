@@ -23,21 +23,21 @@ describe("stylesheet graph helpers", () => {
 
   it("resolves project specifiers and ignores package specifiers", () => {
     const root = path.resolve("/repo/src");
-    const from = path.join(root, "styles/global.css");
+    const from = path.join(root, "app/styles/globals.css");
 
     expect(resolveSpecifier(from, "/theme.css", root)).toBe(path.resolve("/theme.css"));
-    expect(resolveSpecifier(from, "./theme.css", root)).toBe(path.join(root, "styles/theme.css"));
-    expect(resolveSpecifier(from, "../tokens.css", root)).toBe(path.join(root, "tokens.css"));
-    expect(resolveSpecifier(from, "@/styles/theme.css", root)).toBe(path.join(root, "styles/theme.css"));
+    expect(resolveSpecifier(from, "./theme.css", root)).toBe(path.join(root, "app/styles/theme.css"));
+    expect(resolveSpecifier(from, "./nested/tokens.css", root)).toBe(path.join(root, "app/styles/nested/tokens.css"));
+    expect(resolveSpecifier(from, "@/app/styles/theme.css", root)).toBe(path.join(root, "app/styles/theme.css"));
     expect(resolveSpecifier(from, "tailwindcss", root)).toBeUndefined();
   });
 
   it("tracks direct and transitive stylesheet imports without revisiting cycles", () => {
     const root = path.resolve("/repo/src");
-    const global = path.join(root, "global.css");
-    const theme = path.join(root, "theme.css");
-    const tokens = path.join(root, "tokens.css");
-    const orphan = path.join(root, "orphan.css");
+    const global = path.join(root, "app/styles/globals.css");
+    const theme = path.join(root, "app/styles/theme.css");
+    const tokens = path.join(root, "app/styles/tokens.css");
+    const orphan = path.join(root, "app/styles/orphan.css");
     const contents = new Map([
       [global, '@import "tailwindcss"; @import "./theme.css"; @import "package.css";'],
       [theme, '@import "./tokens.css";'],

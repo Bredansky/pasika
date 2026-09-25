@@ -1,8 +1,9 @@
 # Global Stylesheet Rule
 
-Use the global stylesheet to define Tailwind, the shared theme, and base styles. This rule keeps all of the project's global CSS in one entry point and ordered predictably.
+Use the global stylesheet to define Tailwind, the shared theme, and base styles; this keeps all of the project's global CSS in one entry point and ordered predictably. How project CSS is partitioned inside `src/app/styles/` is intentionally left to the project: custom utilities and other project styles can stay in `globals.css` or move into one or more directly imported stylesheets.
 
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
+- Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.
@@ -11,17 +12,17 @@ Use the global stylesheet to define Tailwind, the shared theme, and base styles.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
-## Incorrect — Global Styles Split Across Unrelated Files
+## Incorrect — Competing Global Stylesheet Entry Points
 
 ```css
-/* globals.css */
+/* src/app/styles/globals.css */
 @import "tailwindcss";
 
 @theme {
   --spacing: 0.25rem;
 }
 
-/* editor.css */
+/* src/app/styles/editor.css */
 @import "tailwindcss";
 
 @theme {
@@ -34,14 +35,14 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 ## Incorrect — Project CSS Reached Only Through a Midpoint
 
 ```css
-/* globals.css */
+/* src/app/styles/globals.css */
 @import "tailwindcss";
 @import "./base.css";
 
-/* base.css — import-only shim */
+/* src/app/styles/base.css — import-only shim */
 @import "./deep.css";
 
-/* deep.css */
+/* src/app/styles/deep.css */
 :root {
   --spacing: 0.25rem;
 }
@@ -52,17 +53,22 @@ Why: `deep.css` is reachable from the entry only through `base.css`, so its proj
 ## Correct — Project CSS Imported Directly by the Entry
 
 ```css
-/* globals.css */
+/* src/app/styles/globals.css */
 @import "tailwindcss";
 @import "./theme.css";
 
-/* theme.css */
+/* src/app/styles/theme.css */
 :root {
   --spacing: 0.25rem;
 }
 ```
 
-Why: `theme.css` is a direct import of the entry point, so the project CSS it defines clearly belongs to the one global stylesheet.
+```tsx
+// src/app/layout.tsx
+import "./styles/globals.css";
+```
+
+Why: the root layout imports the one global CSS entry point, and `theme.css` is a direct import of that entry point, so all project CSS arrives through one explicit door under `src/app/styles/`.
 
 ## Correct — One Global Stylesheet Owns the System
 

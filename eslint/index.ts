@@ -140,7 +140,7 @@ export { documentationRules, tailwindRules, repoPackageJsonRules, nextjsPackageJ
  * One plugin object every preset block references. ESLint only permits a
  * plugin name to be redefined across configs when the value is the same
  * object reference, and several blocks share file scopes (`src/**`, the
- * manifest, `globals.css`), so a per-block plugin object would collide when
+ * manifest, `src/app/styles/globals.css`), so a per-block plugin object would collide when
  * the blocks merge.
  */
 export const pasikaPlugin = {
@@ -217,12 +217,13 @@ const pasikaNextjsAppConfig: Linter.Config = {
 };
 
 /**
- * The `globals.css` entry under `src` — marked by `@import "tailwindcss"`.
- * The Tailwind structural rules run only here: each assumes this file IS the
- * entry point, so they'd misreport any other stylesheet.
+ * The canonical `src/app/styles/globals.css` entry — marked by
+ * `@import "tailwindcss"`. The Tailwind structural rules run only here:
+ * each assumes this file IS the entry point, so they'd misreport any other
+ * stylesheet.
  */
 const tailwindStructureRules: Linter.Config = {
-  files: ["src/**/globals.css"],
+  files: ["src/app/styles/globals.css"],
   plugins: {
     css,
     pasika: pasikaPlugin,

@@ -19,7 +19,7 @@ const GLOBALS = `@theme {
 `;
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-unknown-utility-defaults-")));
-const globalsPath = path.join(root, "src", "globals.css");
+const globalsPath = path.join(root, "src", "app", "styles", "globals.css");
 mkdirSync(path.dirname(globalsPath), { recursive: true });
 writeFileSync(globalsPath, GLOBALS);
 process.chdir(root);
