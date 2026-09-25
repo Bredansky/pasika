@@ -2,7 +2,7 @@
  * ESLint rule: pasika/unknown-utility
  *
  * A utility class a component references MUST be a custom @utility, a
- * theme-generated utility, or a built-in Tailwind utility. The rule reads the
+ * theme-generated utility, a built-in Tailwind utility, or an arbitrary Tailwind utility. The rule reads the
  * repository's stylesheets for @utility names and @theme variables, then
  * reports class names that match none of those — the typo class like
  * `bg-primay-canvas` that no other check catches.

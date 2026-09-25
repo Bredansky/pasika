@@ -23,7 +23,7 @@ interface JsxExpressionContainer {
 /**
  * JSX element/fragment shapes as @typescript-eslint/parser produces them.
  * ESTree carries no JSX types, so the shapes this rule reads are declared here
- * and reached through the widened `type` string, as in `no-arbitrary-tailwind`.
+ * and reached through the widened `type` string used by JSX-aware rules.
  */
 type JsxNode = Rule.Node & {
   openingElement?: {

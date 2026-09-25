@@ -5,7 +5,7 @@
  * Every extra field is optional so that any `Rule.Node` is assignable to these
  * types — the handler parameters of the rules must accept whatever the parser
  * hands them. Narrowing happens with `type`-discriminant checks inside each
- * rule, exactly as in `no-arbitrary-tailwind.ts`.
+ * rule, as in the JSX-aware source rules.
  */
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";

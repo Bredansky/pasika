@@ -88,6 +88,12 @@ void describe("An interactive HTML element MUST be extracted to a component with
         filename: srcFile("shared/error-fallback.tsx"),
         errors: 1,
       },
+      {
+        // Semantic content elements count as content even without text children.
+        code: 'export function EmptyMessageAction() { return <div><p /><button type="button" onClick={retry}>Retry</button></div>; }',
+        filename: srcFile("shared/empty-message-action.tsx"),
+        errors: 1,
+      },
     ],
   });
 });

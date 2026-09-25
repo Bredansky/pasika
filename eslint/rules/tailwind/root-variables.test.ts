@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { rootVariablesRule } from "./root-variables";
 
-void describe("Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.", () => {
+void describe("Shared styling values declared in the global stylesheet MUST be defined as CSS variables in `:root`. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       // CSS variables in :root, referenced through @theme inline

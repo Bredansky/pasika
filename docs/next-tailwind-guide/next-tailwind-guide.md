@@ -10,7 +10,7 @@ Use this workflow when implementing a component or changing its appearance.
 2. Follow the [Global Stylesheet Rule](rules/global-stylesheet-rule.md) so one stylesheet entry point owns all of the project's global CSS.
 3. Follow the [Theme and Utility Definition Rule](rules/theme-and-utility-definition-rule.md) so CSS variables, Tailwind namespaces, and custom utilities expose only the intended API.
 4. Follow the [Inline Style Rule](rules/inline-style-rule.md) so literal CSS declarations stay out of JSX and static project styling uses the project's named styling API.
-5. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so values used for the project's styling use named utilities or tokens instead of literal arbitrary classes.
+5. Follow the [Arbitrary Value Rule](rules/arbitrary-value-rule.md) so one-off static values stay local in Tailwind instead of becoming single-use global APIs.
 6. Follow the [Class Composition Rule](rules/class-composition-rule.md) so conditional and consumer-supplied classes merge predictably.
 7. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
 8. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.

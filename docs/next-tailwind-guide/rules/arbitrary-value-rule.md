@@ -1,31 +1,27 @@
 # Arbitrary Value Rule
 
-Literal arbitrary-value classes hide values used for the project's styling in component code. This rule requires every such value to have a named utility or token.
+Arbitrary values keep one-off static styling in Tailwind without creating a global token or utility for a single use.
 
-- Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.
+- Components MAY use arbitrary-value classes for one-off static styling when no existing utility represents the value.
 
-## Incorrect — Literal Arbitrary Radius
-
-```tsx
-<button className="rounded-[13px]">Save</button>
-```
-
-Why: the design value is hidden in markup and cannot be tracked as part of the project's explicit token set.
-
-## Correct — Named Radius Token
+## Incorrect — One-Off Value Extracted Globally
 
 ```css
-:root {
-  --radius-md: 0.375rem;
-}
-
-@theme inline {
-  --radius-md: var(--radius-md);
+@utility hero-offset {
+  @apply top-[117px];
 }
 ```
 
 ```tsx
-<button className="rounded-md">Save</button>
+<div className="hero-offset" />
 ```
 
-Why: the named value makes the radius searchable and exposes the matching Tailwind radius utility.
+Why: a single consumer does not need a project-wide utility name.
+
+## Correct — One-Off Arbitrary Value
+
+```tsx
+<div className="top-[117px]" />
+```
+
+Why: the one-off value stays local while still using Tailwind.
