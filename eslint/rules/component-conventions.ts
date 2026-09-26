@@ -291,7 +291,7 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
   // `return null` renders nothing, so it does not count as a rendered result:
   // a component that guards `if (condition) return null;` and otherwise renders
   // one element still has exactly one outer DOM element in every rendered
-  // result, and the element must carry the data-testid.
+  // result, and the element must carry the data-component.
   const rendered = returns.filter((statement) => statement.expression?.kind !== ts.SyntaxKind.NullKeyword);
   const roots = rendered
     .map((statement) =>
@@ -303,47 +303,49 @@ export function findSimpleRoot(component: ComponentInfo, _text: string, _filenam
   // Every rendered result must resolve to the same outer tag: a component that
   // branches (if/else or ternary) into different DOM trees still has one outer
   // element when every branch renders the same tag, and that tag carries the
-  // data-testid. If the branches differ, there is no single outer element.
+  // data-component. If the branches differ, there is no single outer element.
   if (roots.length !== rendered.length || roots.length === 0) return undefined;
   const firstTag = roots[0]?.tagName;
   if (roots.some((root) => root.tagName !== firstTag)) return undefined;
   return roots[0];
 }
 
-function literalTestIds(attributes: readonly ts.JsxAttributeLike[]): string[] {
+function componentMarkers(attributes: readonly ts.JsxAttributeLike[]): string[] {
   return attributes.flatMap((candidate) => {
-    if (!ts.isJsxAttribute(candidate) || !ts.isIdentifier(candidate.name) || candidate.name.text !== "data-testid") {
+    if (!ts.isJsxAttribute(candidate) || !ts.isIdentifier(candidate.name) || candidate.name.text !== "data-component") {
       return [];
     }
-    return candidate.initializer && ts.isStringLiteral(candidate.initializer) ? [candidate.initializer.text] : [];
+    return candidate.initializer && ts.isStringLiteral(candidate.initializer)
+      ? [candidate.initializer.text]
+      : ["<dynamic>"];
   });
 }
 
-function combineTestIdPaths(left: string[][], right: string[][]): string[][] {
+function combineComponentMarkerPaths(left: string[][], right: string[][]): string[][] {
   return left.flatMap((leftPath) => right.map((rightPath) => [...leftPath, ...rightPath]));
 }
 
-function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][] {
+function renderedComponentMarkerPathsFromExpression(expression: ts.Expression): string[][] {
   let unwrapped = expression;
   while (ts.isParenthesizedExpression(unwrapped)) unwrapped = unwrapped.expression;
 
   if (ts.isConditionalExpression(unwrapped)) {
     return [
-      ...renderedTestIdPathsFromExpression(unwrapped.whenTrue),
-      ...renderedTestIdPathsFromExpression(unwrapped.whenFalse),
+      ...renderedComponentMarkerPathsFromExpression(unwrapped.whenTrue),
+      ...renderedComponentMarkerPathsFromExpression(unwrapped.whenFalse),
     ];
   }
 
   if (ts.isJsxSelfClosingElement(unwrapped)) {
-    return [literalTestIds(unwrapped.attributes.properties)];
+    return [componentMarkers(unwrapped.attributes.properties)];
   }
 
   if (ts.isJsxElement(unwrapped)) {
-    let paths = [literalTestIds(unwrapped.openingElement.attributes.properties)];
+    let paths = [componentMarkers(unwrapped.openingElement.attributes.properties)];
 
     for (const child of unwrapped.children) {
       if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
-        paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(child));
+        paths = combineComponentMarkerPaths(paths, renderedComponentMarkerPathsFromExpression(child));
         continue;
       }
 
@@ -356,7 +358,7 @@ function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][
           ts.isJsxFragment(childExpression) ||
           ts.isParenthesizedExpression(childExpression)
         ) {
-          paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(childExpression));
+          paths = combineComponentMarkerPaths(paths, renderedComponentMarkerPathsFromExpression(childExpression));
         }
       }
     }
@@ -369,7 +371,7 @@ function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][
 
     for (const child of unwrapped.children) {
       if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child) || ts.isJsxFragment(child)) {
-        paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(child));
+        paths = combineComponentMarkerPaths(paths, renderedComponentMarkerPathsFromExpression(child));
         continue;
       }
 
@@ -382,7 +384,7 @@ function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][
           ts.isJsxFragment(childExpression) ||
           ts.isParenthesizedExpression(childExpression)
         ) {
-          paths = combineTestIdPaths(paths, renderedTestIdPathsFromExpression(childExpression));
+          paths = combineComponentMarkerPaths(paths, renderedComponentMarkerPathsFromExpression(childExpression));
         }
       }
     }
@@ -393,7 +395,7 @@ function renderedTestIdPathsFromExpression(expression: ts.Expression): string[][
   return [[]];
 }
 
-export function findRenderedTestIdPaths(component: ComponentInfo): string[][] {
+export function findRenderedComponentMarkerPaths(component: ComponentInfo): string[][] {
   const declaration = component.declaration;
   let body: ts.ConciseBody | undefined;
 
@@ -404,7 +406,7 @@ export function findRenderedTestIdPaths(component: ComponentInfo): string[][] {
   }
 
   if (!body) return [];
-  if (!ts.isBlock(body)) return renderedTestIdPathsFromExpression(body);
+  if (!ts.isBlock(body)) return renderedComponentMarkerPathsFromExpression(body);
 
   const returns: ts.ReturnStatement[] = [];
   const visit = (node: ts.Node): void => {
@@ -417,14 +419,14 @@ export function findRenderedTestIdPaths(component: ComponentInfo): string[][] {
   return returns.flatMap((statement) => {
     const expression = statement.expression;
     if (!expression || expression.kind === ts.SyntaxKind.NullKeyword) return [];
-    return renderedTestIdPathsFromExpression(expression);
+    return renderedComponentMarkerPathsFromExpression(expression);
   });
 }
 
-export function getTestId(root: SimpleRoot): { value?: string; attribute?: ts.JsxAttribute } {
+export function getComponentMarker(root: SimpleRoot): { value?: string; attribute?: ts.JsxAttribute } {
   const attribute = root.attributes.find(
     (candidate): candidate is ts.JsxAttribute =>
-      ts.isJsxAttribute(candidate) && ts.isIdentifier(candidate.name) && candidate.name.text === "data-testid",
+      ts.isJsxAttribute(candidate) && ts.isIdentifier(candidate.name) && candidate.name.text === "data-component",
   );
   if (!attribute) return {};
   const value = attribute.initializer;

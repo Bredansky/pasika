@@ -1,16 +1,17 @@
 # Smart vs Dumb Component Rule
 
-Without a file-name convention, a component's smart vs dumb ownership is invisible to reviewers from the tree alone. Without a `data-testid` matching the file's casing, tests hardcode DOM identities that break on rename or restructure.
+Without a file-name convention, a component's smart vs dumb ownership is invisible to reviewers from the tree alone. Without a stable component marker, meaningful React boundaries are harder to identify in the rendered DOM.
 
 - A component's name MUST be `PascalCase`.
 - A smart component file name MUST be `PascalCase.tsx`.
 - A dumb component file name MUST be `kebab-case.tsx`.
-- A smart component MUST expose exactly one stable `data-testid` anchor for itself in every rendered result, and its value MUST match the component name in `PascalCase`; `data-testid` anchors that belong to nested components do not count toward this requirement.
-- The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If that surface is owned by a child component, pass `data-testid` to that child and make it forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.
-- A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.
-- [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.
+- A smart component MUST expose exactly one stable `data-component` marker for itself in every rendered result, and its value MUST match the component name in `PascalCase`; markers that belong to nested components do not count toward this requirement.
+- A component's `data-component` marker MUST live only on its existing meaningful DOM surface, and the component MUST NOT add additional `data-component` markers to its descendants on its own behalf.
+- If a smart component's meaningful DOM surface is rendered by a child component, it MUST pass `data-component` to that child and the child MUST forward the prop; the smart component MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-component`.
+- A dumb component MAY expose one `data-component` marker on its meaningful DOM surface, and when present its value MUST be `kebab-case`.
+- [Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-component` requirements.
 
-## Incorrect — Smart Component Uses a Dumb Name
+## Incorrect — Smart Component Uses a Dumb File Name
 
 ```tsx
 // src/features/social/social-stats-panel.tsx
@@ -25,7 +26,7 @@ export async function SocialStatsPanel(): Promise<React.JSX.Element> {
   });
 
   return (
-    <div data-testid="social-stats-panel">
+    <div data-component="SocialStatsPanel">
       {stats.map((stat) => (
         <PlatformCard key={stat.platform} data={stat} />
       ))}
@@ -34,9 +35,9 @@ export async function SocialStatsPanel(): Promise<React.JSX.Element> {
 }
 ```
 
-Why: fetching data makes the component smart, but its file name and `data-testid` use dumb-component casing.
+Why: fetching data makes the component smart, but the file name uses dumb-component casing.
 
-## Correct — Smart Component Uses a Smart Name
+## Correct — Smart Component Uses a Smart File Name
 
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
@@ -51,7 +52,7 @@ export async function SocialStatsPanel(): Promise<React.JSX.Element> {
   });
 
   return (
-    <div data-testid="SocialStatsPanel">
+    <div data-component="SocialStatsPanel">
       {stats.map((stat) => (
         <PlatformCard key={stat.platform} data={stat} />
       ))}
@@ -60,9 +61,9 @@ export async function SocialStatsPanel(): Promise<React.JSX.Element> {
 }
 ```
 
-Why: fetching data makes the component smart, so its file name and `data-testid` use `PascalCase`.
+Why: fetching data makes the component smart, so the file name uses smart-component casing while the DOM marker keeps the React component name.
 
-## Incorrect — Dumb Component Uses a Smart Name
+## Incorrect — Dumb Component Uses a Smart File Name
 
 ```tsx
 // src/features/social/PlatformCard.tsx
@@ -75,7 +76,7 @@ export function PlatformCard({
   onFollowClick: () => void;
 }): React.JSX.Element {
   return (
-    <article data-testid="PlatformCard">
+    <article data-component="platform-card">
       <h3>{data.platform}</h3>
       <FollowButton onFollowClick={onFollowClick} />
     </article>
@@ -83,9 +84,9 @@ export function PlatformCard({
 }
 ```
 
-Why: the component fetches no data and only receives a child callback, so it is dumb. Its file name and `data-testid` use smart-component casing.
+Why: the component fetches no data and only receives a child callback, so it is dumb, but the file name uses smart-component casing.
 
-## Correct — Dumb Component Uses a Dumb Name
+## Correct — Dumb Component Uses a Dumb File Name
 
 ```tsx
 // src/features/social/platform-card.tsx
@@ -98,7 +99,7 @@ export function PlatformCard({
   onFollowClick: () => void;
 }): React.JSX.Element {
   return (
-    <article data-testid="platform-card">
+    <article data-component="platform-card">
       <h3>{data.platform}</h3>
       <FollowButton onFollowClick={onFollowClick} />
     </article>
@@ -106,9 +107,43 @@ export function PlatformCard({
 }
 ```
 
-Why: the component is dumb, so its file name and `data-testid` use `kebab-case`.
+Why: the component is dumb, so both its file name and optional DOM marker use kebab-case.
 
-## Incorrect — Artificial Wrapper Added Only for `data-testid`
+## Incorrect — Component Marks Internal Descendants
+
+```tsx
+// src/features/credentials/credential-form.tsx
+
+export function CredentialForm(): React.JSX.Element {
+  return (
+    <form data-component="credential-form">
+      <input data-component="credential-form-account-name" />
+      <button data-component="credential-form-submit">Create Credential</button>
+    </form>
+  );
+}
+```
+
+Why: one component is claiming several internal DOM nodes instead of identifying only its meaningful surface.
+
+## Correct — Component Marks Only Its Surface
+
+```tsx
+// src/features/credentials/credential-form.tsx
+
+export function CredentialForm(): React.JSX.Element {
+  return (
+    <form data-component="credential-form">
+      <input />
+      <button>Create Credential</button>
+    </form>
+  );
+}
+```
+
+Why: the marker identifies the component surface without turning internal controls into component identities.
+
+## Incorrect — Artificial Wrapper Added Only for `data-component`
 
 ```tsx
 // src/features/credentials/CredentialFormDialog.tsx
@@ -117,7 +152,7 @@ export function CredentialFormDialog(): React.JSX.Element {
   const handleSuccess = (): void => save();
 
   return (
-    <div data-testid="CredentialFormDialog" className="contents">
+    <div data-component="CredentialFormDialog" className="contents">
       <Dialog>
         <DialogTrigger />
         <DialogContent>
@@ -129,9 +164,9 @@ export function CredentialFormDialog(): React.JSX.Element {
 }
 ```
 
-Why: the extra `div` exists only to satisfy the test selector. It does not own the dialog surface, and portal-based content still renders elsewhere in the DOM.
+Why: the extra `div` exists only to carry the marker and does not own the dialog surface.
 
-## Correct — Anchor the Existing Meaningful Surface
+## Correct — Marker Uses the Existing Meaningful Surface
 
 ```tsx
 // src/features/credentials/CredentialFormDialog.tsx
@@ -142,7 +177,7 @@ export function CredentialFormDialog(): React.JSX.Element {
   return (
     <Dialog>
       <DialogTrigger />
-      <DialogContent data-testid="CredentialFormDialog">
+      <DialogContent data-component="CredentialFormDialog">
         <CredentialForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
@@ -150,7 +185,7 @@ export function CredentialFormDialog(): React.JSX.Element {
 }
 ```
 
-Why: `DialogContent` owns the meaningful dialog DOM surface. It must accept and forward `data-testid` to that surface; if it does not, fix `DialogContent` rather than adding a wrapper around `CredentialFormDialog`.
+Why: `DialogContent` renders the meaningful dialog DOM surface, so the component marker is forwarded there instead of creating another wrapper.
 
 ## Incorrect — Component Named in camelCase
 
@@ -167,7 +202,7 @@ Why: React only resolves a capitalized JSX tag as a custom component, so `<platf
 ## Correct — Component Named in PascalCase
 
 ```tsx
-// src/features/social/PlatformCard.tsx
+// src/features/social/platform-card.tsx
 
 export function PlatformCard({ data }: { data: PlatformStat }): React.JSX.Element {
   return <article>{data.platform}</article>;

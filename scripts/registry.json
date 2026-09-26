@@ -728,27 +728,33 @@
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A smart component MUST expose exactly one stable `data-testid` anchor for itself in every rendered result, and its value MUST match the component name in `PascalCase`; `data-testid` anchors that belong to nested components do not count toward this requirement.",
-      "hash": "d741702fc1",
-      "ref": "pasika/data-testid-case"
+      "text": "A smart component MUST expose exactly one stable `data-component` marker for itself in every rendered result, and its value MUST match the component name in `PascalCase`; markers that belong to nested components do not count toward this requirement.",
+      "hash": "3187ebd1af",
+      "ref": "pasika/data-component-case"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "The smart component's `data-testid` MUST live on an existing meaningful DOM surface. If that surface is owned by a child component, pass `data-testid` to that child and make it forward the prop; MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-testid`.",
-      "hash": "0f0c7e06af",
-      "ref": "pasika/data-testid-case"
+      "text": "A component's `data-component` marker MUST live only on its existing meaningful DOM surface, and the component MUST NOT add additional `data-component` markers to its descendants on its own behalf.",
+      "hash": "53510efa74",
+      "ref": "pasika/data-component-case"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "A dumb component MAY set `data-testid` on its root element, and the value MUST be `kebab-case`.",
-      "hash": "4c78863697",
-      "ref": "pasika/data-testid-case"
+      "text": "If a smart component's meaningful DOM surface is rendered by a child component, it MUST pass `data-component` to that child and the child MUST forward the prop; the smart component MUST NOT add an otherwise unnecessary DOM wrapper only to host `data-component`.",
+      "hash": "2f86b443b2",
+      "ref": "pasika/data-component-case"
     },
     {
       "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
-      "text": "[Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-testid` requirements.",
-      "hash": "fb2c9ab370",
-      "ref": "pasika/data-testid-case"
+      "text": "A dumb component MAY expose one `data-component` marker on its meaningful DOM surface, and when present its value MUST be `kebab-case`.",
+      "hash": "f87a995463",
+      "ref": "pasika/data-component-case"
+    },
+    {
+      "doc": "next-codebase-guide/rules/smart-vs-dumb-component-rule.md",
+      "text": "[Next.js App Router routing files](https://nextjs.org/docs/app/getting-started/project-structure#routing-files) MUST use their required kebab-case names and are exempt from smart/dumb file-name and `data-component` requirements.",
+      "hash": "0f02ecb740",
+      "ref": "pasika/data-component-case"
     },
     {
       "doc": "next-codebase-guide/rules/sole-state-owner-rule.md",
