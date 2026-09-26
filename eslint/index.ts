@@ -27,7 +27,7 @@ import { componentPlacementRule } from "./rules/component-placement";
 import { supportFilePlacementRule } from "./rules/support-file-placement";
 import { applicationStructureRule } from "./rules/application-structure";
 import { namedExportsRule } from "./rules/named-exports";
-import { dataTestIdCaseRule } from "./rules/data-testid-case";
+import { dataComponentCaseRule } from "./rules/data-component-case";
 import { supportFolderShapeRule } from "./rules/support-folder-shape";
 import { constantCasingRule } from "./rules/constant-casing";
 import { preferEnumRule } from "./rules/prefer-enum";
@@ -102,7 +102,7 @@ const pasikaNextjsAppRules = {
   "component-placement": componentPlacementRule,
   "component-casing": componentCasingRule,
   "application-structure": applicationStructureRule,
-  "data-testid-case": dataTestIdCaseRule,
+  "data-component-case": dataComponentCaseRule,
   "jsx-hygiene": jsxHygieneRule,
   "interactive-component": interactiveComponentRule,
   "ui-state": uiStateRule,

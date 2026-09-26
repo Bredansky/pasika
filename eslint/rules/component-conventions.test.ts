@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  findRenderedTestIdPaths,
+  findRenderedComponentMarkerPaths,
   findSimpleRoot,
-  getTestId,
+  getComponentMarker,
   parseComponentInfo,
   type ComponentInfo,
 } from "./component-conventions";
@@ -117,7 +117,7 @@ describe("component convention helpers", () => {
 
   it("finds equivalent simple roots and rejects component or divergent roots", () => {
     const expressionRoot = findSimpleRoot(
-      componentOf("const Card = () => <section data-testid='card' />;"),
+      componentOf("const Card = () => <section data-component='card' />;"),
       "",
       filename,
     );
@@ -134,60 +134,82 @@ describe("component convention helpers", () => {
     expect(
       findSimpleRoot(componentOf("function Card() { if (ready) return <section />; return <aside />; }"), "", filename),
     ).toBeUndefined();
+
+    expect(
+      findSimpleRoot(componentOf("const Card = () => (<section><span /></section>);"), "", filename)?.tagName,
+    ).toBe("section");
+    expect(
+      findSimpleRoot(componentOf("const Card = function () { return <section />; };"), "", filename)?.tagName,
+    ).toBe("section");
+    expect(
+      findSimpleRoot(componentOf("function Card() { const content = <section />; return content; }"), "", filename),
+    ).toBeUndefined();
   });
 
-  it("tracks stable test-id anchors across component composition and rendered branches", () => {
+  it("tracks stable component markers across component composition and rendered branches", () => {
     expect(
-      findRenderedTestIdPaths(componentOf("const Card = () => <Panel><Content data-testid='Card' /></Panel>;")),
+      findRenderedComponentMarkerPaths(
+        componentOf("const Card = () => <Panel><Content data-component='Card' /></Panel>;"),
+      ),
     ).toEqual([["Card"]]);
 
     expect(
-      findRenderedTestIdPaths(
-        componentOf("const Card = () => ready ? <section data-testid='Card' /> : <aside data-testid='Card' />;"),
+      findRenderedComponentMarkerPaths(
+        componentOf("const Card = () => ready ? <section data-component='Card' /> : <aside data-component='Card' />;"),
       ),
     ).toEqual([["Card"], ["Card"]]);
 
     expect(
-      findRenderedTestIdPaths(
+      findRenderedComponentMarkerPaths(
         componentOf(
-          "function Card() { if (!ready) return null; return <><Header />{wide ? <main data-testid='Card' /> : <section data-testid='Card' />}</>; }",
+          "function Card() { if (!ready) return null; return <><Header />{wide ? <main data-component='Card' /> : <section data-component='Card' />}</>; }",
         ),
       ),
     ).toEqual([["Card"], ["Card"]]);
 
     expect(
-      findRenderedTestIdPaths(
-        componentOf("const Card = function () { return (<section data-testid='Card'><span /></section>); };"),
+      findRenderedComponentMarkerPaths(
+        componentOf("const Card = function () { return (<section data-component='Card'><span /></section>); };"),
       ),
     ).toEqual([["Card"]]);
 
     expect(
-      findRenderedTestIdPaths(
-        componentOf("function Card() { const content = <section data-testid='Card' />; return content; }"),
+      findRenderedComponentMarkerPaths(
+        componentOf("function Card() { const content = <section data-component='Card' />; return content; }"),
       ),
     ).toEqual([[]]);
 
     expect(
-      findRenderedTestIdPaths(
-        componentOf("const Card = () => <><section data-testid /><aside data-testid={id} /></>;"),
+      findRenderedComponentMarkerPaths(
+        componentOf("const Card = () => <><section data-component /><aside data-component={id} /></>;"),
       ),
-    ).toEqual([[]]);
+    ).toEqual([["<dynamic>", "<dynamic>"]]);
+
+    expect(
+      findRenderedComponentMarkerPaths(
+        componentOf("const Card = () => <section data-component='Card'>{ready ? <span /> : <em />}</section>;"),
+      ),
+    ).toEqual([["Card"], ["Card"]]);
   });
 
-  it("reads literal, valueless, expression, and absent test IDs", () => {
-    const literalRoot = findSimpleRoot(componentOf("const Card = () => <section data-testid='Card' />;"), "", filename);
-    const valuelessRoot = findSimpleRoot(componentOf("const Card = () => <section data-testid />;"), "", filename);
+  it("reads literal, valueless, expression, and absent component markers", () => {
+    const literalRoot = findSimpleRoot(
+      componentOf("const Card = () => <section data-component='Card' />;"),
+      "",
+      filename,
+    );
+    const valuelessRoot = findSimpleRoot(componentOf("const Card = () => <section data-component />;"), "", filename);
     const expressionRoot = findSimpleRoot(
-      componentOf("const Card = () => <section data-testid={id} />;"),
+      componentOf("const Card = () => <section data-component={id} />;"),
       "",
       filename,
     );
     const absentRoot = findSimpleRoot(componentOf("const Card = () => <section />;"), "", filename);
     if (!literalRoot || !valuelessRoot || !expressionRoot || !absentRoot) throw new Error("Expected simple roots");
 
-    expect(getTestId(literalRoot).value).toBe("Card");
-    expect(getTestId(valuelessRoot).attribute).toBeDefined();
-    expect(getTestId(expressionRoot).value).toBeUndefined();
-    expect(getTestId(absentRoot)).toEqual({});
+    expect(getComponentMarker(literalRoot).value).toBe("Card");
+    expect(getComponentMarker(valuelessRoot).attribute).toBeDefined();
+    expect(getComponentMarker(expressionRoot).value).toBeUndefined();
+    expect(getComponentMarker(absentRoot)).toEqual({});
   });
 });
