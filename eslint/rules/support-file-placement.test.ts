@@ -86,6 +86,12 @@ const FIXTURE: Record<string, string> = {
   "features/billing/InvoiceCard/index.ts": 'export { InvoiceCard } from "./InvoiceCard";\n',
   "features/billing/hooks/use-card.ts": "export function useCard() {}\n",
 
+  // A case-mismatched owner must not turn the folder into a component scope.
+  "features/billing/poster/Poster.tsx":
+    'import { usePoster } from "../hooks/use-poster";\nexport function Poster() { usePoster(); return <span />; }\n',
+  "features/billing/poster/index.ts": 'export { Poster } from "./Poster";\n',
+  "features/billing/hooks/use-poster.ts": "export function usePoster() {}\n",
+
   // `components/` is not a component-folder scope; its component owns the
   // feature folder for support-file CCF calculation.
   "features/billing/components/credential-form.tsx":
@@ -395,7 +401,7 @@ void describe("A type MAY stay in src/config/<config-name>/ when its meaning is 
 
 void describe("A nested component's support files MUST live in its folder.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [],
+    valid: [ok("features/billing/hooks/use-poster.ts")],
     invalid: [
       {
         ...ok("features/billing/hooks/use-card.ts"),

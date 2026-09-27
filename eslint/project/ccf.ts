@@ -98,12 +98,26 @@ export function resolveComponentPlacement(componentFile: string, index: ProjectI
 
 export const formatFolder = (folder: string[]): string => `src/${folder.join("/")}/`;
 
+/** Whether a directory contains an entry with exactly this spelling and casing. */
+export function hasExactEntry(directory: string, entryName: string): boolean {
+  try {
+    return fs.readdirSync(directory).includes(entryName);
+  } catch {
+    return false;
+  }
+}
+
+/** Whether a folder contains its exactly same-named component owner. */
+export function hasComponentOwner(folderPath: string, folderName: string): boolean {
+  return hasExactEntry(folderPath, `${folderName}.tsx`);
+}
+
 /** Whether a folder is a structurally valid named component folder. */
 function isValidComponentFolder(folder: string[], sourceRoot: string): boolean {
   const name = folder[folder.length - 1];
   if (!name || SUPPORT_FOLDERS.has(name)) return false;
   const folderPath = path.join(sourceRoot, ...folder);
-  return fs.existsSync(path.join(folderPath, `${name}.tsx`)) && fs.existsSync(path.join(folderPath, "index.ts"));
+  return hasComponentOwner(folderPath, name) && hasExactEntry(folderPath, "index.ts");
 }
 
 /**

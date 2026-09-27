@@ -13,7 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import { parseModule, type ExportKind } from "../project/parse-module";
-import { segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { hasComponentOwner, hasExactEntry, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 import { sourceRootOf } from "./project-root";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -106,13 +106,14 @@ function componentFolderStart(segments: string[]): number {
 }
 
 function hasComponentBarrel(folderPath: string): boolean {
-  return fs.existsSync(path.join(folderPath, "index.ts"));
+  return hasExactEntry(folderPath, "index.ts");
 }
 
 /**
  * A folder inside a feature folder, compositions/, or shared/ that is not a
  * support folder must be a component folder: it must contain a `.tsx` file with
- * the same name, and an index.ts that named-re-exports it. Returns the first
+ * the exact same name and casing, plus an index.ts that named-re-exports it.
+ * Returns the first
  * violation walking from the file's own folder outward, so the most local
  * problem is reported first.
  */
@@ -125,7 +126,7 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
     if (!folder || SUPPORT_FOLDERS.has(folder)) continue;
     const folderPath = path.join(sourceRoot, ...segments.slice(0, depth + 1));
     const label = `src/${segments.slice(0, depth + 1).join("/")}/`;
-    if (!fs.existsSync(path.join(folderPath, `${folder}.tsx`))) {
+    if (!hasComponentOwner(folderPath, folder)) {
       return `A folder that is not a support folder must be a component folder; add "${folder}.tsx" to ${label} or move its files into a support folder.`;
     }
     if (!hasComponentBarrel(folderPath)) {
