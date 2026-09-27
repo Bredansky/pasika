@@ -21,6 +21,10 @@
       "types": "./dist/helpers/http-error.d.ts",
       "import": "./dist/helpers/http-error.js"
     },
+    "./http-method": {
+      "types": "./dist/helpers/http-method.d.ts",
+      "import": "./dist/helpers/http-method.js"
+    },
     "./response-envelope": {
       "types": "./dist/helpers/response-envelope.d.ts",
       "import": "./dist/helpers/response-envelope.js"

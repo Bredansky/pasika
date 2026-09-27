@@ -87,6 +87,7 @@ The handler is written where the route is, so a reader of `route.ts` sees the wo
 `zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against and the one module in a repository that calls `fetch`. It validates whatever response schema the call names and returns the parsed response without imposing an application envelope; repositories using the standard `{ success, data, message }` contract can compose the exported `responseEnvelope` schema.
 
 ```ts
+import { HttpMethod } from "pasika/http-method";
 import { zodFetch } from "pasika/zod-fetch";
 
 // The options a call may name, exported by pasika/zod-fetch
@@ -103,7 +104,7 @@ A call site names the schema the response body should match and receives the par
 ```ts
 const orders = await zodFetch({
   url: `${apiBase}/v1/orders`,
-  init: { method: "POST", body: JSON.stringify(order) },
+  init: { method: HttpMethod.Post, body: JSON.stringify(order) },
   requestSchema: createOrderRequestSchema,
   responseSchema: ordersResponseSchema,
 });
