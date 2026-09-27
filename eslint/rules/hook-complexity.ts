@@ -4,7 +4,8 @@
  * - A custom hook with exactly one consumer MUST be extracted when its
  *   extraction score reaches two.
  * - A custom hook with one consumer whose extraction score is below two MUST
- *   stay inline in its consumer file.
+ *   not remain as a custom-hook abstraction; its React primitives and handlers
+ *   belong directly in the consumer.
  *
  * Five imperative categories, each worth at most one point regardless of how
  * many times it occurs: calling two or more distinct built-in hooks, and each
@@ -23,6 +24,7 @@ import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
 import type { FunctionDeclarationNode } from "../ast-types";
+import { getProjectIndex, symbolKey } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 const REACT_HOOKS = new Set([
@@ -161,48 +163,79 @@ export const hookComplexityRule: Rule.RuleModule = {
 
     const segments = relative.split(path.sep);
     const sourceText = context.sourceCode.text;
+    const index = getProjectIndex(sourceRoot);
+    const localHookCalls = new Set<string>();
+    const hooks: {
+      node: Rule.Node;
+      name: string;
+      body: ESTree.BlockStatement;
+      exported: boolean;
+    }[] = [];
 
-    function checkHook(
+    function registerHook(
       node: Rule.Node,
       name: string | undefined,
       body: ESTree.BlockStatement | null | undefined,
       exported: boolean,
     ): void {
-      if (!exported) return;
-      if (!name || !isHookName(name)) return;
-      if (!body) return;
+      if (!name || !isHookName(name) || !body) return;
+      hooks.push({ node, name, body, exported });
+    }
 
-      const score = computeExtractionScore(body, sourceText);
+    function reportHooks(): void {
       const parentFolder = segments.length >= 2 ? segments[segments.length - 2] : undefined;
       const inSupportFolder = parentFolder === "hooks";
 
-      if (score >= 2 && !inSupportFolder) {
-        context.report({
-          node,
-          message:
-            `Hook "${name}" has an extraction score of ${String(score)} and must be extracted to a hooks/ folder. ` +
-            "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
-        });
-      } else if (score < 2 && inSupportFolder) {
-        context.report({
-          node,
-          message:
-            `Hook "${name}" has an extraction score below two and must stay inline in its consumer file. ` +
-            "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
-        });
+      for (const { node, name, body, exported } of hooks) {
+        const score = computeExtractionScore(body, sourceText);
+        const hasLocalConsumer = localHookCalls.has(name);
+        const externalConsumerCount = exported ? (index?.symbolConsumers.get(symbolKey(filename, name))?.size ?? 0) : 0;
+
+        if (score >= 2) {
+          if (!inSupportFolder && (exported || hasLocalConsumer)) {
+            context.report({
+              node,
+              message:
+                `Hook "${name}" has an extraction score of ${String(score)} and must be extracted to a hooks/ folder. ` +
+                "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
+            });
+          }
+          continue;
+        }
+
+        const consumerCount = externalConsumerCount + (hasLocalConsumer ? 1 : 0);
+        if (inSupportFolder && exported) {
+          if (consumerCount < 2) {
+            context.report({
+              node,
+              message:
+                `Hook "${name}" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. ` +
+                "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
+            });
+          }
+          continue;
+        }
+
+        const isSingleLocalConsumer = hasLocalConsumer && externalConsumerCount === 0;
+        if (isSingleLocalConsumer) {
+          context.report({
+            node,
+            message:
+              `Hook "${name}" has one local consumer and an extraction score below two; inline its React primitives and handlers directly into the consumer instead of keeping a custom hook. ` +
+              "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
+          });
+        }
       }
     }
 
     return {
       FunctionDeclaration(node: FunctionDeclarationNode) {
         const exported = node.parent?.type === "ExportNamedDeclaration";
-        checkHook(node, node.id?.name, node.body, exported);
+        registerHook(node, node.id?.name, node.body, exported);
       },
 
       VariableDeclarator(node) {
         if (node.id.type !== "Identifier") return;
-        const exported = node.parent.parent?.type === "ExportNamedDeclaration";
-        if (!exported) return;
 
         const init = node.init;
         if (!init || (init.type !== "ArrowFunctionExpression" && init.type !== "FunctionExpression")) {
@@ -210,7 +243,18 @@ export const hookComplexityRule: Rule.RuleModule = {
         }
         if (init.body.type !== "BlockStatement") return;
 
-        checkHook(node, node.id.name, init.body, true);
+        const exported = node.parent.parent?.type === "ExportNamedDeclaration";
+        registerHook(node, node.id.name, init.body, exported);
+      },
+
+      CallExpression(node) {
+        if (node.callee.type === "Identifier" && isHookName(node.callee.name)) {
+          localHookCalls.add(node.callee.name);
+        }
+      },
+
+      "Program:exit"() {
+        reportHooks();
       },
     };
   },
