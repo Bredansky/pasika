@@ -46,6 +46,12 @@ write(
 // A proper nested component folder: same-named component + index that re-exports it.
 write("features/billing/InvoicePanel/index.ts", 'export { InvoicePanel } from "./InvoicePanel";\n');
 write("features/billing/InvoicePanel/InvoicePanel.tsx", "export function InvoicePanel() { return <main />; }\n");
+// A case-mismatched smart owner must not count as the folder owner, even on case-insensitive filesystems.
+write("features/billing/poster/index.ts", 'export { Poster } from "./Poster";\n');
+write("features/billing/poster/Poster.tsx", "export function Poster() { return <main />; }\n");
+// The inverse case mismatch must also fail exact owner matching.
+write("features/billing/InvoiceSummary/index.ts", 'export { InvoiceSummary } from "./invoice-summary";\n');
+write("features/billing/InvoiceSummary/invoice-summary.tsx", "export function InvoiceSummary() { return <main />; }\n");
 // A generic grouping folder is not a component folder because it lacks the
 // same-named component and index barrel.
 write("features/billing/components/foo.tsx", "export function Foo() { return <main />; }\n");
@@ -226,6 +232,26 @@ void describe("A feature folder, src/compositions/, src/shared/, and a nested co
           {
             message:
               'A folder that is not a support folder must be a component folder; add "components.tsx" to src/features/billing/components/ or move its files into a support folder.',
+          },
+        ],
+      },
+      {
+        code: "export function Poster() { return <main />; }",
+        filename: file("features/billing/poster/Poster.tsx"),
+        errors: [
+          {
+            message:
+              'A folder that is not a support folder must be a component folder; add "poster.tsx" to src/features/billing/poster/ or move its files into a support folder.',
+          },
+        ],
+      },
+      {
+        code: "export function InvoiceSummary() { return <main />; }",
+        filename: file("features/billing/InvoiceSummary/invoice-summary.tsx"),
+        errors: [
+          {
+            message:
+              'A folder that is not a support folder must be a component folder; add "InvoiceSummary.tsx" to src/features/billing/InvoiceSummary/ or move its files into a support folder.',
           },
         ],
       },
