@@ -6,7 +6,7 @@ Keeping every hook inline makes components bloated, while extracting every hook 
 - A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.
 - An extracted custom hook MUST live in a `hooks/` folder at the CCF of its consumers.
 - When a custom hook's CCF is `src/features/`, it MUST move to `src/hooks/`.
-- A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.
+- A custom hook with one consumer whose extraction score is below two MUST NOT remain as a custom hook abstraction; its built-in hooks, state, effects, and handlers MUST be declared directly in the consumer.
 
 ## Incorrect — Two Imperative Categories Left Inline
 
@@ -116,15 +116,13 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook has one consumer and calls only `useMemo`, scoring zero, so its separate file adds indirection before an extraction trigger exists.
-
-## Correct — Simple Single-Use Hook Inline
+Moving the hook beside its only consumer does not fix the problem either:
 
 ```tsx
 // src/features/billing/invoice.tsx
-const useInvoiceSort = (invoices: Invoice[]): Invoice[] => {
+function useInvoiceSort(invoices: Invoice[]): Invoice[] {
   return useMemo(() => invoices.toSorted(byDate), [invoices]);
-};
+}
 
 export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
   const sortedInvoices = useInvoiceSort(invoices);
@@ -132,7 +130,19 @@ export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
 }
 ```
 
-Why: the hook stays beside its sole consumer until reuse or imperative complexity provides a mechanical extraction trigger.
+Why: the hook has one consumer and calls only `useMemo`, scoring zero. A separate file adds indirection, while moving the same abstraction beside its consumer only removes the file boundary; neither has an extraction trigger.
+
+## Correct — Simple Single-Use Logic Inlined
+
+```tsx
+// src/features/billing/invoice.tsx
+export function Invoice({ invoices }: InvoiceProps): React.JSX.Element {
+  const sortedInvoices = useMemo(() => invoices.toSorted(byDate), [invoices]);
+  return <InvoiceList invoices={sortedInvoices} />;
+}
+```
+
+Why: the React primitive and its derived state live directly in the sole consumer until reuse or imperative complexity provides a mechanical extraction trigger.
 
 ## Incorrect — Two Distinct Hooks Extracted Before They're Enough
 

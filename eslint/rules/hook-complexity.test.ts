@@ -24,7 +24,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         code: "export function helper() { useState(0); useEffect(() => {}); return 42; }",
         filename: srcFile("features/billing/invoice.tsx"),
       },
-      // Non-exported hooks are not checked
+      // An unused non-exported hook does not establish a consumer.
       {
         code: "function useHelper() { useState(0); useEffect(() => {}); }",
         filename: srcFile("features/billing/invoice.tsx"),
@@ -49,7 +49,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "useSort" has an extraction score below two and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "useSort" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -60,7 +60,7 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
         errors: [
           {
             message:
-              'Hook "usePlayerVolume" has an extraction score below two and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "usePlayerVolume" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },
@@ -68,12 +68,12 @@ void describe("A custom hook with exactly one consumer MUST be extracted when it
   });
 });
 
-void describe("A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.", () => {
+void describe("A custom hook with one consumer whose extraction score is below two MUST NOT remain as a custom hook abstraction; its built-in hooks, state, effects, and handlers MUST be declared directly in the consumer.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
-      // Simple hook not in hooks/ — fine (not extracted yet)
+      // Simple single-use logic belongs directly in the component; no custom-hook abstraction exists.
       {
-        code: "export function useSort(items) { return useMemo(() => items.toSorted(byDate), [items]); }",
+        code: "export function Invoice({ items }) { const sortedItems = useMemo(() => items.toSorted(byDate), [items]); return <List items={sortedItems} />; }",
         filename: srcFile("features/billing/invoice.tsx"),
       },
       // Two distinct built-in hooks, not in hooks/ — fine (scores 1, not enough to extract)
@@ -94,24 +94,50 @@ void describe("A custom hook with one consumer whose extraction score is below t
       },
     ],
     invalid: [
-      // Simple hook wrongly in hooks/ folder
+      // Simple local custom hook with one consumer should disappear as an abstraction.
+      {
+        code: "function useDeveloperSettings() { const [enabled, setEnabled] = useState(false); return { enabled, setEnabled }; } export function DeveloperSettingsSection() { const settings = useDeveloperSettings(); return <Switch checked={settings.enabled} />; }",
+        filename: srcFile("features/editor/developer-settings-section.tsx"),
+        errors: [
+          {
+            message:
+              'Hook "useDeveloperSettings" has one local consumer and an extraction score below two; inline its React primitives and handlers directly into the consumer instead of keeping a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+      // Simple hook wrongly in hooks/ folder.
       {
         code: "export function useSort(items) { return useMemo(() => items.toSorted(byDate), [items]); }",
         filename: srcFile("features/billing/hooks/use-sort.ts"),
-        errors: 1,
+        errors: [
+          {
+            message:
+              'Hook "useSort" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
       },
       // Two distinct built-in hooks (scoring 1) wrongly in hooks/ folder
       {
         code: "export function usePlayerVolume(src) { useEffect(() => { console.log(src); }, [src]); useRef(player); return {}; }",
         filename: srcFile("features/player/hooks/use-player-volume.ts"),
-        errors: 1,
+        errors: [
+          {
+            message:
+              'Hook "usePlayerVolume" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
       },
       // Three distinct built-in hooks and nothing else, wrongly in hooks/ folder — still scores
       // only 1, since hook diversity is capped at one point no matter how many hooks are called.
       {
         code: "export function useThing() { useState(0); useEffect(() => {}); useRef(null); return 1; }",
         filename: srcFile("features/player/hooks/use-thing.ts"),
-        errors: 1,
+        errors: [
+          {
+            message:
+              'Hook "useThing" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
       },
     ],
   });
@@ -150,7 +176,7 @@ void describe("Five imperative categories, each worth at most one point regardle
         errors: [
           {
             message:
-              'Hook "useCachedFlag" has an extraction score below two and must stay inline in its consumer file. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+              'Hook "useCachedFlag" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },

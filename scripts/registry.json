@@ -578,8 +578,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with one consumer whose extraction score is below two MUST stay inline in its consumer file.",
-      "hash": "5752841901",
+      "text": "A custom hook with one consumer whose extraction score is below two MUST NOT remain as a custom hook abstraction; its built-in hooks, state, effects, and handlers MUST be declared directly in the consumer.",
+      "hash": "caf88c5055",
       "ref": "pasika/hook-complexity"
     },
     {
