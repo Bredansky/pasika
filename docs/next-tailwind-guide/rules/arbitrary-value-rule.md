@@ -2,7 +2,7 @@
 
 Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values.
 
-- Components MUST NOT use arbitrary-value classes, arbitrary-property classes, or custom-property shorthand for project styling. They MUST use a named utility that maps the value instead.
+- Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.
 
 ## Incorrect — Literal Arbitrary Radius
 

@@ -5,7 +5,7 @@ const message = (className: string): string =>
   `Tailwind raw-value class "${className}" is not allowed. Define and use a named utility instead. ` +
   "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md";
 
-void describe("Components MUST NOT use arbitrary-value classes, arbitrary-property classes, or custom-property shorthand for project styling. They MUST use a named utility that maps the value instead.", () => {
+void describe("Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.", () => {
   ruleTester.run("no-arbitrary-tailwind", noArbitraryTailwindRule, {
     valid: [
       { code: '<button className="rounded-md">Save</button>', filename: srcFile("shared/save-button.tsx") },
