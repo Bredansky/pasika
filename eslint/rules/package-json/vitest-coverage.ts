@@ -3,14 +3,14 @@
  *
  * A repository MUST declare vitest and @vitest/coverage-v8 in devDependencies,
  * expose normal and coverage-gated unit-test scripts, and set a coverage
- * threshold above zero for lines, functions, branches, and statements. Normal
- * coverage validation must be read-only; threshold ratcheting belongs behind a
- * separate explicit script. A test:unit:staged script running `vitest related`
- * without coverage must be wired into lint-staged for staged JavaScript or
- * TypeScript files. Coverage remains the responsibility of the aggregate
- * test:unit:coverage script: Vitest's changed plus per-file mode measures whole
- * changed files, so a class-name-only edit otherwise requires behavioral
- * coverage for every presentational component it touches.
+ * threshold above zero for lines, functions, branches, and statements with
+ * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
+ * later regression back down still pass. A test:unit:staged script running
+ * `vitest related` without coverage must be wired into lint-staged for staged
+ * JavaScript or TypeScript files. Coverage remains the responsibility of the
+ * aggregate test:unit:coverage script: Vitest's changed plus per-file mode
+ * measures whole changed files, so a class-name-only edit otherwise requires
+ * behavioral coverage for every presentational component it touches.
  *
  * @see docs/pasika-adoption-guide/rules/vitest-coverage-rule.md
  */
@@ -49,16 +49,14 @@ const THRESHOLD_METRICS = ["lines", "functions", "branches", "statements"] as co
 const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
 const RELATED_PATTERN = /\brelated\b/;
-const CONFIG_AUTO_UPDATE_TRUE_PATTERN = /autoUpdate\s*:\s*true/;
-const AUTO_UPDATE_FALSE_FLAG_PATTERN = /--coverage\.thresholds\.autoUpdate(?:=|\s+)false(?:\s|$)/;
-const AUTO_UPDATE_TRUE_FLAG_PATTERN = /--coverage\.thresholds\.autoUpdate(?:=|\s+)true(?:\s|$)/;
+const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require Vitest unit-test scripts, the V8 provider, read-only aggregate coverage validation, explicit threshold ratcheting, and related tests via lint-staged.",
+        "Require Vitest unit-test scripts, the V8 provider, a rising aggregate coverage threshold, and related tests via lint-staged.",
     },
   },
   create(context) {
@@ -96,28 +94,11 @@ export const vitestCoverageRule: JSONRuleDefinition = {
         if (
           coverageCommand === undefined ||
           !/\bvitest\b/.test(coverageCommand) ||
-          !COVERAGE_FLAG_PATTERN.test(coverageCommand) ||
-          !AUTO_UPDATE_FALSE_FLAG_PATTERN.test(coverageCommand)
+          !COVERAGE_FLAG_PATTERN.test(coverageCommand)
         ) {
           context.report({
             node: coverage ?? node,
-            message:
-              'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage and --coverage.thresholds.autoUpdate=false.',
-          });
-        }
-
-        const coverageUpdate = scriptMembers.find((member) => memberName(member) === "test:unit:coverage:update");
-        const coverageUpdateCommand = memberValue(coverageUpdate);
-        if (
-          coverageUpdateCommand === undefined ||
-          !/\bvitest\b/.test(coverageUpdateCommand) ||
-          !COVERAGE_FLAG_PATTERN.test(coverageUpdateCommand) ||
-          !AUTO_UPDATE_TRUE_FLAG_PATTERN.test(coverageUpdateCommand)
-        ) {
-          context.report({
-            node: coverageUpdate ?? node,
-            message:
-              'package.json must declare a "test:unit:coverage:update" script that runs Vitest with coverage and --coverage.thresholds.autoUpdate=true.',
+            message: 'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage.',
           });
         }
 
@@ -137,10 +118,10 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           }
         }
 
-        if (CONFIG_AUTO_UPDATE_TRUE_PATTERN.test(content)) {
+        if (!AUTO_UPDATE_PATTERN.test(content)) {
           context.report({
             node,
-            message: `${configName} must not enable coverage.thresholds.autoUpdate; normal coverage validation must be read-only.`,
+            message: `${configName} must set coverage.thresholds.autoUpdate to true.`,
           });
         }
 

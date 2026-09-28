@@ -3,14 +3,12 @@
  *
  * A repository MUST configure .husky/pre-commit to run lint-staged and
  * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
- * script in package.json. Its typecheck and — once the repository tracks
- * eslint-suppressions.json — its suppression-file ratchet run through named
- * package.json scripts that the hook calls by name. Aggregate unit coverage is
- * intentionally not a pre-commit responsibility; it belongs in CI so ordinary
- * commits stay read-only and fast. The hook stages files changed by the
- * suppression ratchet after the command that updates them. What each named
- * script does internally is the repository's choice; this rule only checks
- * that the name exists in both places.
+ * script in package.json. Its typecheck, coverage suite, and — once the
+ * repository tracks eslint-suppressions.json — its suppression-file ratchet,
+ * run through named package.json scripts that the hook calls by name. The hook
+ * stages files changed by either ratchet after the command that updates them.
+ * What each named script does internally is the repository's choice; this
+ * rule only checks that the name exists in both places.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -19,6 +17,15 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import type { JSONRuleDefinition } from "@eslint/json";
 import type { DocumentNode, MemberNode } from "@humanwhocodes/momoa";
+
+const VITEST_CONFIG_NAMES = [
+  "vitest.config.ts",
+  "vitest.config.mts",
+  "vitest.config.cts",
+  "vitest.config.js",
+  "vitest.config.mjs",
+  "vitest.config.cjs",
+];
 
 function memberName(member: MemberNode): string {
   return member.name.type === "String" ? member.name.value : member.name.name;
@@ -30,7 +37,7 @@ export const huskyHookRule: JSONRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require a pre-commit hook that runs lint-staged, typecheck, suppression pruning with local staging, and the libyear drift check without mutating coverage thresholds.",
+        "Require a pre-commit hook that runs lint-staged, typecheck, coverage and suppression pruning with local staging, and the libyear drift check.",
     },
   },
   create(context) {
@@ -67,20 +74,20 @@ export const huskyHookRule: JSONRuleDefinition = {
           context.report({ node, message: ".husky/pre-commit must run lint-staged." });
         }
         requireNamedScript("typecheck");
+        requireNamedScript("test:unit:coverage");
 
-        if (/npm run test:unit:coverage(?:\s|$)/.test(content)) {
-          context.report({
-            node,
-            message: ".husky/pre-commit must not run aggregate unit coverage; keep that read-only gate in CI instead.",
-          });
-        }
-        if (/git add\s+vitest\.config\.[^\s]+/.test(content)) {
-          context.report({
-            node,
-            message: ".husky/pre-commit must not stage a Vitest config as a side effect of validation.",
-          });
-        }
+        const vitestConfigName = VITEST_CONFIG_NAMES.find((name) => existsSync(path.join(context.cwd, name)));
+        if (vitestConfigName !== undefined) {
+          const coverageIndex = content.indexOf("npm run test:unit:coverage");
+          const localAddIndex = content.indexOf(`git add ${vitestConfigName}`);
 
+          if (localAddIndex <= coverageIndex) {
+            context.report({
+              node,
+              message: `.husky/pre-commit must stage an auto-updated ${vitestConfigName} after coverage.`,
+            });
+          }
+        }
         if (!content.includes("libyear --limit-major-individual=1")) {
           context.report({ node, message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." });
         }

@@ -1,33 +1,45 @@
 # Husky Hook Rule
 
-Pre-commit hooks should protect the working tree without turning validation into a repository mutation.
+Checks that land before a commit only protect the repository if the hook runs them. This rule also keeps automatically pruned lint suppressions and raised coverage thresholds in the commit that earned them.
 
 - A repository MUST declare a `prepare` script in package.json that runs `husky`.
 - A repository MUST configure `.husky/pre-commit` to run `lint-staged`.
 - A repository MUST configure `.husky/pre-commit` to run `npx libyear --limit-major-individual=1`.
-- A repository MUST declare a `typecheck` script in package.json and invoke it from `.husky/pre-commit`.
-- A repository MUST NOT run `npm run test:unit:coverage` in `.husky/pre-commit`.
-- A repository MUST NOT stage a Vitest config as a side effect of `.husky/pre-commit`.
+- A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.
+- A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.
 
-## Incorrect — Typecheck Tool Called Directly
-
-```sh
-# .husky/pre-commit
-npx lint-staged
-tsc --noEmit
-npx libyear --limit-major-individual=1 --no-pre-releases
-```
-
-Why: the hook bypasses the repository's named typecheck command.
-
-## Correct — Typecheck Runs Through package.json
+## Incorrect — Hook Calls Tools Directly Instead of Named Scripts
 
 ```json
 {
   "scripts": {
     "prepare": "husky",
-    "typecheck": "tsc --noEmit"
+    "test:unit:coverage": "vitest run --coverage"
+  }
+}
+```
+
+```sh
+# .husky/pre-commit
+npx lint-staged
+tsc --noEmit
+eslint . --prune-suppressions
+vitest run --coverage
+npx libyear --limit-major-individual=1
+```
+
+Why: the checks bypass their stable package-script names, and coverage can rewrite `vitest.config.ts` without adding the raised thresholds to the local commit.
+
+## Correct — Hook Runs Named package.json Scripts
+
+```json
+{
+  "scripts": {
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "lint:prune": "eslint . --prune-suppressions",
+    "test:unit:coverage": "vitest run --coverage"
   }
 }
 ```
@@ -36,56 +48,12 @@ Why: the hook bypasses the repository's named typecheck command.
 # .husky/pre-commit
 npx lint-staged
 npm run typecheck
-npx libyear --limit-major-individual=1 --no-pre-releases
-```
-
-Why: the hook calls the stable package-script interface instead of duplicating the command.
-
-## Incorrect — Aggregate Coverage Runs During Pre-Commit
-
-```sh
-# .husky/pre-commit
-npx lint-staged
-npm run typecheck
-npm run test:unit:coverage
-npx libyear --limit-major-individual=1 --no-pre-releases
-```
-
-Why: aggregate coverage is expensive and unrelated to many commits, so every local commit pays the full-suite cost.
-
-## Correct — Aggregate Coverage Runs in CI
-
-```sh
-# .husky/pre-commit
-npx lint-staged
-npm run typecheck
+npm run lint:prune
+git add eslint-suppressions.json
 npm run test:requirements
-npx libyear --limit-major-individual=1 --no-pre-releases
-```
-
-```yaml
-# .github/workflows/checks.yml
-- name: Run checks
-  run: npm run lint && npm run typecheck && npm run test:unit:coverage && npm run test:requirements && npm run build
-```
-
-Why: commits keep deterministic lint, typecheck, and requirement checks, while pull requests get the full read-only aggregate coverage gate.
-
-## Incorrect — Pre-Commit Stages Vitest Config
-
-```sh
-# .husky/pre-commit
-npm run test:unit:coverage:update
+npm run test:unit:coverage
 git add vitest.config.ts
+npx libyear --limit-major-individual=1
 ```
 
-Why: validation mutates and stages coverage policy without an explicit coverage-maintenance change.
-
-## Correct — Coverage Ratchet Is Explicit
-
-```sh
-npm run test:unit:coverage:update
-git add vitest.config.ts
-```
-
-Why: raising thresholds is an intentional maintenance action rather than a hidden side effect of every commit.
+Why: each check's implementation lives behind one name, while the hook owns the Git-specific steps that add pruned suppressions and a threshold raised by Vitest to the commit.

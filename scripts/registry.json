@@ -1112,20 +1112,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST declare a `typecheck` script in package.json and invoke it from `.husky/pre-commit`.",
-      "hash": "2e55a69770",
+      "text": "A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.",
+      "hash": "05884fed81",
       "ref": "pasika/husky-hook"
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST NOT run `npm run test:unit:coverage` in `.husky/pre-commit`.",
-      "hash": "be1a65e675",
-      "ref": "pasika/husky-hook"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST NOT stage a Vitest config as a side effect of `.husky/pre-commit`.",
-      "hash": "2465dde342",
+      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.",
+      "hash": "1b0ac9feb5",
       "ref": "pasika/husky-hook"
     },
     {
@@ -1184,26 +1178,14 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST declare a `test:unit:coverage` script that runs Vitest with coverage and `--coverage.thresholds.autoUpdate=false`.",
-      "hash": "18788e7b2e",
+      "text": "A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.",
+      "hash": "ee75102da7",
       "ref": "pasika/vitest-coverage"
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST declare a separate `test:unit:coverage:update` script that runs Vitest with coverage and `--coverage.thresholds.autoUpdate=true`.",
-      "hash": "1888d3a59c",
-      "ref": "pasika/vitest-coverage"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST configure its Vitest config with a coverage threshold above zero for lines, functions, branches, and statements.",
-      "hash": "f9c1c08eea",
-      "ref": "pasika/vitest-coverage"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST NOT enable `coverage.thresholds.autoUpdate` in its Vitest config.",
-      "hash": "c7a3bd0d30",
+      "text": "A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.",
+      "hash": "72a89731a4",
       "ref": "pasika/vitest-coverage"
     },
     {
@@ -1214,7 +1196,13 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST declare a `test:unit:staged` script in package.json that runs `vitest related` without coverage and configure lint-staged to run it (`npm run test:unit:staged --`) for staged JavaScript or TypeScript files.",
+      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.",
+      "hash": "9d5f3d6450",
+      "ref": "pasika/vitest-coverage"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A repository MUST declare a `test:unit:staged` script in package.json that runs `vitest related` without coverage and configure `lint-staged` to run it (`npm run test:unit:staged --`) for staged JavaScript or TypeScript files.",
       "hash": "5e465d2997",
       "ref": "pasika/vitest-coverage"
     },

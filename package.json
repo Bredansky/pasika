@@ -53,8 +53,7 @@
     "prepare": "husky",
     "test:requirements": "tsx scripts/coverage.ts",
     "test:unit": "vitest run",
-    "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
-    "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
+    "test:unit:coverage": "vitest run --coverage",
     "test:unit:staged": "vitest related --run",
     "typecheck": "tsc --noEmit"
   },
