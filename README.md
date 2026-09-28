@@ -105,7 +105,7 @@ The guides ship in this repository and are adopted into a project through `vulyk
 npm run lint         # eslint, including the framework's own docs rules
 npm run typecheck
 npm run test:unit
-npm run coverage     # every requirement still has recorded enforcement
+npm run test:requirements # every requirement still has recorded enforcement
 npm run build
 npm run dogfood -- ../some/repo   # lint a sibling repo with the built presets
 ```

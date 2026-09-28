@@ -896,8 +896,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
-      "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.",
-      "hash": "5a48f3915a",
+      "text": "Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.",
+      "hash": "297cc4ce43",
       "ref": "pasika/no-arbitrary-tailwind"
     },
     {
@@ -1046,9 +1046,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A CSS variable intended only for a background MUST be named `--<role>-canvas`, one intended only for readable text MUST be named `--<role>-ink`, and one intended only for a visual boundary such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.",
-      "hash": "82fd569267",
+      "text": "Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.",
+      "hash": "78f5c13289",
       "ref": "pasika/css-variable-naming"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.",
+      "hash": "217f793752",
+      "note": "Whether a non-color custom value uses a descriptive domain name and avoids reserved color-role suffixes is a naming-review judgment."
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

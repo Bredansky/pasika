@@ -2,7 +2,7 @@
  * ESLint rule: pasika/css-variable-naming
  *
  * Property-specific color variables use semantic suffixes: -canvas for a
- * background, -ink for readable text, and -edge for a visual boundary.
+ * background color, -ink for readable text, and -edge for a visual boundary.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */

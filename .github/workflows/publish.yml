@@ -38,8 +38,17 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Run checks
-        run: npm run lint && npm run typecheck && npm run test:unit:coverage && npm run coverage
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Verify unit coverage
+        run: npm run test:unit:coverage
+
+      - name: Verify requirements
+        run: npm run test:requirements
 
       - name: Publish to npm
         env:
