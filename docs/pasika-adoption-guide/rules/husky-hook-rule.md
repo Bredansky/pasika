@@ -63,14 +63,14 @@ if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(cjs|cts|js|js
   npm run typecheck
 fi
 
-npm run coverage
+npm run test:requirements
 npx libyear --limit-major-individual=1 --no-pre-releases
 ```
 
 ```yaml
 # .github/workflows/checks.yml
 - name: Run checks
-  run: npm run lint && npm run typecheck && npm run test:unit:coverage && npm run coverage && npm run build
+  run: npm run lint && npm run typecheck && npm run test:unit:coverage && npm run test:requirements && npm run build
 ```
 
 Why: commits run only fast, change-relevant checks, while pull requests still get the full read-only aggregate coverage gate.

@@ -4,5 +4,5 @@ if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(cjs|cts|js|js
   npm run typecheck
 fi
 
-npm run coverage
+npm run test:requirements
 npx libyear --limit-major-individual=1 --no-pre-releases

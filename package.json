@@ -43,7 +43,6 @@
   ],
   "scripts": {
     "build": "tsup",
-    "coverage": "tsx scripts/coverage.ts",
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
     "format": "prettier --check . --ignore-unknown",
@@ -52,6 +51,7 @@
     "lint:staged": "eslint --fix",
     "prepack": "npm run build",
     "prepare": "husky",
+    "test:requirements": "tsx scripts/coverage.ts",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
     "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
