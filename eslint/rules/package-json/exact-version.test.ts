@@ -1,5 +1,5 @@
-import { describe, packageJsonRuleTester } from "./rule-tester";
 import { exactVersionRule } from "./exact-version";
+import { describe, packageJsonRuleTester } from "./rule-tester";
 
 void describe("A dependency or devDependency in package.json MUST pin an exact version, never a range.", () => {
   packageJsonRuleTester.run("exact-version", exactVersionRule, {

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { hashRequirement, normalizeRequirement } from "./normalize";
 import { RFC_2119_PATTERN as RFC_2119 } from "../../constants/rfc2119";
+import { hashRequirement, normalizeRequirement } from "./normalize";
 
 /** The four document kinds the documentation guide defines. */
 export type DocKind = "guide" | "rule" | "reference" | "policy";

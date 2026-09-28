@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { requirementPresentRule } from "./requirement-present";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Policy MUST state every requirement as a bullet that uses RFC 2119 vocabulary.", () => {
   documentationRuleTester.run("requirement-present", requirementPresentRule, {

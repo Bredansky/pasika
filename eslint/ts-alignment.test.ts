@@ -1,5 +1,5 @@
-import { describe, it } from "vitest";
 import assert from "node:assert/strict";
+import { describe, it } from "vitest";
 import { alignmentError, assertTypescriptAlignment } from "./ts-alignment";
 
 void describe("pasika TypeScript alignment diagnostic", () => {

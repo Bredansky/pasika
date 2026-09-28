@@ -2,30 +2,30 @@
  * @fileoverview All markdown ESLint rules for documentation checks.
  */
 import { docKindSuffixRule } from "./doc-kind-suffix";
-import { titleMatchesFileNameRule } from "./title-matches-file-name";
-import { overviewRule } from "./overview";
-import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
-import { guideStepSingleLinkRule } from "./guide-step-single-link";
-import { guideStatesNoRequirementRule } from "./guide-states-no-requirement";
-import { requirementPresentRule } from "./requirement-present";
-import { rulePairedExamplesRule } from "./rule-paired-examples";
 import { exampleHeadingDescriptionRule } from "./example-heading-description";
-import { policyNoExamplesRule } from "./policy-no-examples";
-import { noCrossDocumentLinkRule } from "./no-cross-document-link";
-import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
-import { referenceBlockHeadingsRule } from "./reference-block-headings";
-import { referenceMaxHeadingDepthRule } from "./reference-max-heading-depth";
-import { supportDocumentPlacementRule } from "./support-document-placement";
-import { noTemplatePromptRule } from "./no-template-prompt";
-import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
-import { rfcOnlyInBulletsRule } from "./rfc-only-in-bullets";
-import { rfcKeywordInEveryBulletRule } from "./rfc-keyword-in-every-bullet";
-import { policySubjectHeadingsRule } from "./policy-subject-headings";
-import { guideLinkAnchorsRule } from "./guide-link-anchors";
-import { noNestedHowToRule } from "./no-nested-how-to";
 import { glossaryTermLinkingRule } from "./glossary-term-linking";
+import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
+import { guideLinkAnchorsRule } from "./guide-link-anchors";
 import { guideMentionsDocumentsRule } from "./guide-mentions-documents";
 import { guideSectionShapeRule } from "./guide-section-shape";
+import { guideStatesNoRequirementRule } from "./guide-states-no-requirement";
+import { guideStepSingleLinkRule } from "./guide-step-single-link";
+import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
+import { noCrossDocumentLinkRule } from "./no-cross-document-link";
+import { noNestedHowToRule } from "./no-nested-how-to";
+import { noTemplatePromptRule } from "./no-template-prompt";
+import { overviewRule } from "./overview";
+import { policyNoExamplesRule } from "./policy-no-examples";
+import { policySubjectHeadingsRule } from "./policy-subject-headings";
+import { referenceBlockHeadingsRule } from "./reference-block-headings";
+import { referenceMaxHeadingDepthRule } from "./reference-max-heading-depth";
+import { referenceNoRfcVocabularyRule } from "./reference-no-rfc-vocabulary";
+import { requirementPresentRule } from "./requirement-present";
+import { rfcKeywordInEveryBulletRule } from "./rfc-keyword-in-every-bullet";
+import { rfcOnlyInBulletsRule } from "./rfc-only-in-bullets";
+import { rulePairedExamplesRule } from "./rule-paired-examples";
+import { supportDocumentPlacementRule } from "./support-document-placement";
+import { titleMatchesFileNameRule } from "./title-matches-file-name";
 
 export const documentationRules = {
   "doc-kind-suffix": docKindSuffixRule,

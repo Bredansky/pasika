@@ -11,7 +11,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -21,6 +20,7 @@ import {
   resolveComponentPlacement,
   segmentsOf,
 } from "../project/ccf";
+import { getProjectIndex } from "../project/index";
 import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
 

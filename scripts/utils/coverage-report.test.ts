@@ -3,9 +3,9 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, describe, it } from "vitest";
+import type { Requirement } from "../types";
 import { buildCoverageReport, type CoverageIssue } from "./coverage-report";
 import { hashRequirement, normalizeRequirement } from "./normalize";
-import type { Requirement } from "../types";
 
 /** A Rule whose bullets give every branch of the report one requirement to hang off. */
 const DOC = `# Example Rule

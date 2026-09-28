@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { rfcKeywordInEveryBulletRule } from "./rfc-keyword-in-every-bullet";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A bullet MUST contain at least one RFC 2119 keyword.", () => {
   documentationRuleTester.run("rfc-keyword-in-every-bullet", rfcKeywordInEveryBulletRule, {

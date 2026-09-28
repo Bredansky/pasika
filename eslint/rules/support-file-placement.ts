@@ -14,8 +14,6 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, symbolKey } from "../project/index";
-import type { ExportKind } from "../project/parse-module";
 import {
   describeConsumers,
   folderSegmentsOf,
@@ -25,6 +23,8 @@ import {
   segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf";
+import { getProjectIndex, symbolKey } from "../project/index";
+import type { ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
 /**

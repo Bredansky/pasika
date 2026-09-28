@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { noCrossDocumentLinkRule } from "./no-cross-document-link";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Policy MUST NOT link to Rules, References, Guides, or other Policies.", () => {
   documentationRuleTester.run("no-cross-document-link", noCrossDocumentLinkRule, {

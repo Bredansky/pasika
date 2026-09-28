@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, documentationRuleTester } from "./rule-tester";
 import { guideLinkAnchorsRule } from "./guide-link-anchors";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A step that links another Guide MUST link directly to the relevant How To section.", () => {
   documentationRuleTester.run("guide-link-anchors", guideLinkAnchorsRule, {

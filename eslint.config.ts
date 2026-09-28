@@ -1,7 +1,7 @@
+import jsonPlugin from "@eslint/json";
+import markdown from "@eslint/markdown";
 import type { Linter } from "eslint";
 import { RuleSeverity, styleguide } from "zirka";
-import markdown from "@eslint/markdown";
-import jsonPlugin from "@eslint/json";
 import { documentationRules, repoPackageJsonRules, huskyRules } from "./eslint/index";
 
 const documentationBlock: Linter.Config = {

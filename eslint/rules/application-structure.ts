@@ -12,8 +12,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import { parseModule, type ExportKind } from "../project/parse-module";
 import { hasComponentOwner, hasExactEntry, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { parseModule, type ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);

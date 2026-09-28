@@ -1,19 +1,19 @@
 /**
  * All Tailwind stylesheet rules (Tailwind v4 src/app/styles/globals.css).
  */
-import { themeResetRule } from "./theme-reset";
-import { rootVariablesRule } from "./root-variables";
 import { applyUsageRule } from "./apply-usage";
 import { baseLayerPairRule } from "./base-layer-pair";
-import { stylesheetOrderingRule } from "./stylesheet-ordering";
+import { cssEntryPointRule } from "./css-entry-point";
 import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
-import { utilityMappingRule } from "./utility-mapping";
-import { themeVariableNamespaceRule } from "./theme-variable-namespace";
-import { cssEntryPointRule } from "./css-entry-point";
-import { globalStylesheetRule } from "./global-stylesheet";
-import { unusedUtilityRule } from "./unused-utility";
 import { globalSelectorStylingRule } from "./global-selector-styling";
+import { globalStylesheetRule } from "./global-stylesheet";
+import { rootVariablesRule } from "./root-variables";
+import { stylesheetOrderingRule } from "./stylesheet-ordering";
+import { themeResetRule } from "./theme-reset";
+import { themeVariableNamespaceRule } from "./theme-variable-namespace";
+import { unusedUtilityRule } from "./unused-utility";
+import { utilityMappingRule } from "./utility-mapping";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,

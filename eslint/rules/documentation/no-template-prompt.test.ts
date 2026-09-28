@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { noTemplatePromptRule } from "./no-template-prompt";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("Authors MUST replace each bracketed prompt with the final title, explanation, step, or lookup content it asks for.", () => {
   documentationRuleTester.run("no-template-prompt", noTemplatePromptRule, {

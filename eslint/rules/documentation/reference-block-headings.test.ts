@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { referenceBlockHeadingsRule } from "./reference-block-headings";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Reference with a single lookup block MUST NOT add a section heading for it.", () => {
   documentationRuleTester.run("reference-block-headings", referenceBlockHeadingsRule, {

@@ -10,12 +10,12 @@
  * @see docs/next-codebase-guide/rules/locales-rule.md
  */
 
-import path from "node:path";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { Rule } from "eslint";
 import ts from "typescript";
-import { getProjectIndex, resolveSpecifier } from "../project/index";
 import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { getProjectIndex, resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 /** The first segment of a `locales.<key>` read. */

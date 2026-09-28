@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { referenceMaxHeadingDepthRule } from "./reference-max-heading-depth";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Reference MUST NOT use a heading deeper than level 2.", () => {
   documentationRuleTester.run("reference-max-heading-depth", referenceMaxHeadingDepthRule, {

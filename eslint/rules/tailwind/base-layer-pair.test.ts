@@ -1,5 +1,5 @@
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { baseLayerPairRule } from "./base-layer-pair";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 void describe("The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.", () => {
   tailwindRuleTester.run("base-layer-pair", baseLayerPairRule, {

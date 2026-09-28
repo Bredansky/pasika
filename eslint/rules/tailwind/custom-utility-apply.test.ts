@@ -1,5 +1,5 @@
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { customUtilityApplyRule } from "./custom-utility-apply";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 void describe("A custom utility MUST use @apply for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.", () => {
   tailwindRuleTester.run("custom-utility-apply", customUtilityApplyRule, {

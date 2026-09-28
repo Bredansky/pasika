@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { policyNoExamplesRule } from "./policy-no-examples";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Policy MUST NOT contain Incorrect/Correct examples, and a requirement that a reader cannot apply without one MUST live in a Rule instead.", () => {
   documentationRuleTester.run("policy-no-examples", policyNoExamplesRule, {

@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { guideStepSingleLinkRule } from "./guide-step-single-link";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("Each How To step MUST link at most one documentation file total, whatever kind that file is.", () => {
   documentationRuleTester.run("guide-step-single-link", guideStepSingleLinkRule, {

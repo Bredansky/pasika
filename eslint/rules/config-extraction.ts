@@ -13,8 +13,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, symbolKey } from "../project/index";
 import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { getProjectIndex, symbolKey } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 export const configExtractionRule: Rule.RuleModule = {

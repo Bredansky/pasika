@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, huskyRuleTester } from "./rule-tester";
 import { huskyHookRule } from "./husky-hook";
+import { describe, huskyRuleTester } from "./rule-tester";
 
 void describe("A repository MUST declare a prepare script in package.json that runs husky.", () => {
   huskyRuleTester.run("husky-hook", huskyHookRule, {
