@@ -9,17 +9,42 @@
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 
+const ARBITRARY_VALUE_RE = /^-?(?:[a-z0-9]+(?:-[a-z0-9]+)*)-\[[^\]]+\]!?$/;
+const CUSTOM_PROPERTY_VALUE_RE = /^-?(?:[a-z0-9]+(?:-[a-z0-9]+)*)-\(--[^)]+\)!?$/;
+const ARBITRARY_PROPERTY_RE = /^\[[^\]]+\]!?$/;
+
 /**
- * Matches Tailwind arbitrary-value utility classes like rounded-[13px], text-[#fff].
- *
- * Does NOT match variant prefixes like min-[400px]:flex-row or md:flex.
- * The negative lookahead (?![-\w]*:) excludes anything followed by a colon + more.
- *
- * Note: Tailwind breakpoint variants (sm:, md:, lg:, etc.) don't use brackets,
- * so they're never matched. Only bracket-based variants like min-[400px]: need
- * the lookahead exclusion.
+ * Returns the utility portion after Tailwind variants while ignoring colons
+ * nested inside arbitrary variants and values.
  */
-const ARBITRARY_VALUE_RE = /(?:^|(?<=\s))(?:[a-z]+(?:-[a-z]+)*)-\[[^\]]+\](?![-\w]*:)/g;
+function baseUtility(className: string): string {
+  let squareDepth = 0;
+  let roundDepth = 0;
+  let lastVariantSeparator = -1;
+
+  for (let index = 0; index < className.length; index += 1) {
+    const character = className[index];
+    if (character === "[") squareDepth += 1;
+    else if (character === "]") squareDepth = Math.max(0, squareDepth - 1);
+    else if (character === "(") roundDepth += 1;
+    else if (character === ")") roundDepth = Math.max(0, roundDepth - 1);
+    else if (character === ":" && squareDepth === 0 && roundDepth === 0) lastVariantSeparator = index;
+  }
+
+  return className.slice(lastVariantSeparator + 1);
+}
+
+function rawValueUtility(className: string): string | undefined {
+  const utility = baseUtility(className);
+  if (
+    ARBITRARY_VALUE_RE.test(utility) ||
+    CUSTOM_PROPERTY_VALUE_RE.test(utility) ||
+    ARBITRARY_PROPERTY_RE.test(utility)
+  ) {
+    return utility;
+  }
+  return undefined;
+}
 
 const CLASS_HELPERS = new Set(["cn", "clsx", "twMerge", "twJoin"]);
 
@@ -42,21 +67,25 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Disallow Tailwind arbitrary-value classes like rounded-[13px].",
+      description: "Disallow raw Tailwind arbitrary and custom-property value classes in components.",
     },
   },
   create(context) {
     function reportClassString(node: Rule.Node, value: string): void {
-      ARBITRARY_VALUE_RE.lastIndex = 0;
-      const match = ARBITRARY_VALUE_RE.exec(value);
-      if (!match) return;
-      context.report({
-        node,
-        message:
-          `Tailwind arbitrary-value class "${match[0]}" is not allowed. ` +
-          "Use a named token or custom utility. " +
-          "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
-      });
+      for (const className of value.split(/\s+/)) {
+        if (!className) continue;
+        const utility = rawValueUtility(className);
+        if (!utility) continue;
+
+        context.report({
+          node,
+          message:
+            `Tailwind raw-value class "${utility}" is not allowed. ` +
+            "Define and use a named utility instead. " +
+            "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
+        });
+        return;
+      }
     }
 
     /** Walks every expression a class name can hide in: conditionals, arrays, and object keys. */

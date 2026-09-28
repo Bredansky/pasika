@@ -896,8 +896,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
-      "text": "Components MUST NOT use arbitrary-value classes for project styling. They MUST use a utility that already exists, or define the token or custom utility that names the value first.",
-      "hash": "5a48f3915a",
+      "text": "Components MUST NOT use arbitrary-value classes, arbitrary-property classes, or custom-property shorthand for project styling. They MUST use a named utility that maps the value instead.",
+      "hash": "302163f63d",
       "ref": "pasika/no-arbitrary-tailwind"
     },
     {

@@ -162,7 +162,7 @@ void describe("A utility class a component statically references MUST be a custo
         code: 'cn("bg-primary-canvas", isActive && "text-primary-ink", { "border-2": active })',
         filename: srcFile("shared/card.tsx"),
       },
-      // Parenthesized CSS-variable utilities and arbitrary values are not validated here.
+      // Raw values are enforced by no-arbitrary-tailwind; unknown-utility does not duplicate that validation.
       { code: '<div className="bg-(--primary-canvas)" />', filename: srcFile("shared/card.tsx") },
       { code: "<div className=\"bg-[url('/hero.png')]\" />", filename: srcFile("shared/hero.tsx") },
       // Dynamically built class names can't be validated; the fragments must not false-positive.
