@@ -17,12 +17,6 @@ void describe("An interactive HTML element MUST be extracted to a component with
         filename: srcFile("features/navigation/empty.tsx"),
       },
       {
-        // A decorative element that only looks interactive (no handler) is not
-        // a component boundary.
-        code: "export function Showcase() { return <section><h1>Buttons</h1><button type='button' className='primary-surface'>Primary</button></section>; }",
-        filename: srcFile("features/showcase/showcase.tsx"),
-      },
-      {
         // Next.js framework files (error boundary, metadata) are exempt.
         code: `export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {\n  return <html><body><p>{String(error.message)}</p><button type="button" onClick={reset}>retry</button></body></html>;\n}`,
         filename: srcFile("app/global-error.tsx"),
@@ -64,6 +58,18 @@ void describe("An interactive HTML element MUST be extracted to a component with
       },
     ],
     invalid: [
+      {
+        // A native button remains interactive when a behavior wrapper such as Radix asChild supplies the handler.
+        code: `export function SidebarSection() { return <Collapsible><CollapsibleTrigger asChild><button type="button">Section</button></CollapsibleTrigger></Collapsible>; }`,
+        filename: srcFile("features/editor/sidebar-section.tsx"),
+        errors: 1,
+      },
+      {
+        // A button remains interactive without a JavaScript handler.
+        code: "export function Showcase() { return <section><h1>Buttons</h1><button type='button' className='primary-surface'>Primary</button></section>; }",
+        filename: srcFile("features/showcase/showcase.tsx"),
+        errors: 1,
+      },
       {
         code: "export function Header({ onMenuClick }) { return <header><h1>Dashboard</h1><button onClick={onMenuClick}>Menu</button></header>; }",
         filename: srcFile("features/navigation/header.tsx"),

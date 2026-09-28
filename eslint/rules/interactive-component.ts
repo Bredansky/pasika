@@ -68,9 +68,10 @@ function tagName(node: MaybeJsxElement): string | undefined {
 function isInteractive(node: MaybeJsxElement): boolean {
   const name = tagName(node);
   if (name === undefined || !INTERACTIVE_TAGS.has(name)) return false;
-  // A decorative element that merely looks interactive (a showcase button with
-  // no handler) is not a component boundary. Only elements that actually carry
-  // a handler or link target are interactive content.
+  if (name === "button") return true;
+
+  // Other tags in this rule are interactive only when the relevant behavior
+  // is present on the element itself.
   const attributes = node.openingElement?.attributes;
   if (!attributes) return false;
   return attributes.some(
@@ -242,7 +243,10 @@ export const interactiveComponentRule: Rule.RuleModule = {
       JSXElement(node: JsxElementNode) {
         if (!isInteractive(node)) return;
         if (isComponentElement(node.parent)) {
-          return;
+          const name = tagName(node);
+          if (name !== "button" || isComponentRoot(node.parent)) {
+            return;
+          }
         }
         if (isInteractive(node.parent)) {
           return;
