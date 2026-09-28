@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { cssVariableNamingRule } from "./css-variable-naming";
 
-void describe("A CSS variable intended only for a background color MUST be named --<role>-canvas, one intended only for a readable text color MUST be named --<role>-ink, and one intended only for a visual boundary color such as a border, outline, ring, or stroke MUST be named --<role>-edge. When a named custom utility exposes one of those values by itself, it MUST use bg-<role>-canvas, text-<role>-ink, or <property>-<role>-edge.", () => {
+void describe("Property-specific colors MUST use the reserved semantic suffixes canvas for backgrounds, ink for readable text, and edge for visual boundaries, with matching utilities such as bg-<role>-canvas, text-<role>-ink, and <property>-<role>-edge.", () => {
   tailwindRuleTester.run("css-variable-naming", cssVariableNamingRule, {
     valid: [
       // Properly named canvas and ink variables
