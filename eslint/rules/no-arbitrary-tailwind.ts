@@ -9,9 +9,8 @@
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 
-const ARBITRARY_VALUE_RE = /^-?(?:[a-z0-9]+(?:-[a-z0-9]+)*)-\[[^\]]+\]!?$/;
-const CUSTOM_PROPERTY_VALUE_RE = /^-?(?:[a-z0-9]+(?:-[a-z0-9]+)*)-\(--[^)]+\)!?$/;
-const ARBITRARY_PROPERTY_RE = /^\[[^\]]+\]!?$/;
+const ARBITRARY_VALUE_RE = /\[[^\]]+\]/;
+const CUSTOM_PROPERTY_VALUE_RE = /\((?:[a-z][a-z0-9-]*:)?--[^)]+\)/;
 
 /**
  * Returns the utility portion after Tailwind variants while ignoring colons
@@ -36,17 +35,20 @@ function baseUtility(className: string): string {
 
 function rawValueUtility(className: string): string | undefined {
   const utility = baseUtility(className);
-  if (
-    ARBITRARY_VALUE_RE.test(utility) ||
-    CUSTOM_PROPERTY_VALUE_RE.test(utility) ||
-    ARBITRARY_PROPERTY_RE.test(utility)
-  ) {
+  if (ARBITRARY_VALUE_RE.test(utility) || CUSTOM_PROPERTY_VALUE_RE.test(utility)) {
     return utility;
   }
   return undefined;
 }
 
 const CLASS_HELPERS = new Set(["cn", "clsx", "twMerge", "twJoin"]);
+
+function isClassProperty(property: ESTree.Property): boolean {
+  const { key } = property;
+  if (key.type === "Identifier") return key.name === "className" || key.name === "class";
+  if (key.type !== "Literal" || typeof key.value !== "string") return false;
+  return key.value === "className" || key.value === "class";
+}
 
 /**
  * ESTree carries no JSX types, so the two JSX shapes this rule reads are declared
@@ -84,7 +86,6 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
             "Define and use a named utility instead. " +
             "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
         });
-        return;
       }
     }
 
@@ -114,6 +115,11 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
         return;
       }
 
+      if (expression.type === "AssignmentPattern") {
+        checkExpression(node, expression.right);
+        return;
+      }
+
       if (expression.type === "ArrayExpression") {
         for (const element of expression.elements) checkExpression(node, element);
         return;
@@ -127,6 +133,41 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
       }
     }
 
+    /** Walks cva() arguments, where class strings live in object values rather than keys. */
+    function checkCvaExpression(node: Rule.Node, expression: ESTree.Node | null | undefined): void {
+      if (!expression) return;
+
+      if (expression.type === "ObjectExpression") {
+        for (const property of expression.properties) {
+          if (property.type === "Property") {
+            if (!isClassProperty(property)) checkCvaExpression(node, property.value);
+          } else {
+            checkCvaExpression(node, property.argument);
+          }
+        }
+        return;
+      }
+
+      if (expression.type === "ArrayExpression") {
+        for (const element of expression.elements) checkCvaExpression(node, element);
+        return;
+      }
+
+      if (expression.type === "LogicalExpression") {
+        checkCvaExpression(node, expression.left);
+        checkCvaExpression(node, expression.right);
+        return;
+      }
+
+      if (expression.type === "ConditionalExpression") {
+        checkCvaExpression(node, expression.consequent);
+        checkCvaExpression(node, expression.alternate);
+        return;
+      }
+
+      checkExpression(node, expression);
+    }
+
     return {
       JSXAttribute(node: JsxAttributeNode) {
         const attributeName = node.name?.name;
@@ -137,10 +178,25 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
         checkExpression(node, value.type === "JSXExpressionContainer" ? value.expression : value);
       },
 
+      Property(node: Rule.Node & ESTree.Property) {
+        if (!isClassProperty(node)) return;
+        checkExpression(node, node.value);
+      },
+
       CallExpression(node) {
-        if (node.callee.type !== "Identifier" || !CLASS_HELPERS.has(node.callee.name)) return;
-        for (const argument of node.arguments) {
-          checkExpression(node, argument);
+        if (node.callee.type !== "Identifier") return;
+
+        if (CLASS_HELPERS.has(node.callee.name)) {
+          for (const argument of node.arguments) {
+            checkExpression(node, argument);
+          }
+          return;
+        }
+
+        if (node.callee.name === "cva") {
+          for (const argument of node.arguments) {
+            checkCvaExpression(node, argument);
+          }
         }
       },
     };

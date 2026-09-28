@@ -38,6 +38,15 @@ Why: the named value makes the radius searchable and exposes the matching Tailwi
 
 Why: the component reaches through the project's styling API and binds itself directly to a CSS implementation detail.
 
+Tailwind's typed custom-property shorthand is the same kind of raw reference and is also forbidden:
+
+```tsx
+<p className="text-(color:--tweet-card-ink)" />
+<p className="text-(length:--tweet-card-name-text-size)" />
+```
+
+The type hint only disambiguates how Tailwind interprets the variable; it does not make the component-level reference a named project utility.
+
 ## Correct — CSS Variable Mapped Through a Utility
 
 ```css

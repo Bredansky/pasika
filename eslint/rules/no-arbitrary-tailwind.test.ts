@@ -45,7 +45,70 @@ void describe("Components MUST NOT use arbitrary-value classes, arbitrary-proper
       {
         code: '<div className="hover:bg-[#fff] data-[state=open]:text-(--active-ink)" />',
         filename: srcFile("shared/card.tsx"),
-        errors: 1,
+        errors: [{ message: message("bg-[#fff]") }, { message: message("text-(--active-ink)") }],
+      },
+      {
+        code: '<p className="text-(color:--tweet-card-ink) text-(length:--tweet-card-name-text-size)" />',
+        filename: srcFile("shared/tweet-card.tsx"),
+        errors: [
+          { message: message("text-(color:--tweet-card-ink)") },
+          { message: message("text-(length:--tweet-card-name-text-size)") },
+        ],
+      },
+      {
+        code: '<div className="bg-cyan-400/(--brand-alpha) bg-pink-500/[71.37%]" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: message("bg-cyan-400/(--brand-alpha)") }, { message: message("bg-pink-500/[71.37%]") }],
+      },
+      {
+        code: `cva("transition-[color,box-shadow]", {
+          variants: {
+            tone: {
+              primary: "bg-(--primary-canvas)",
+              danger: "text-(color:--danger-ink)",
+            },
+          },
+        })`,
+        filename: srcFile("shared/button.tsx"),
+        errors: [
+          { message: message("transition-[color,box-shadow]") },
+          { message: message("bg-(--primary-canvas)") },
+          { message: message("text-(color:--danger-ink)") },
+        ],
+      },
+      {
+        code: `cn(
+          0,
+          \`rounded-[13px]\`,
+          isActive && "bg-(--brand-canvas)",
+          isActive ? "text-(color:--brand-ink)" : "w-[3px]",
+          [, "h-[4px]"],
+          { "m-[5px]": isActive },
+        )`,
+        filename: srcFile("shared/card.tsx"),
+        errors: 6,
+      },
+      {
+        code: `cva(
+          [, "p-[1px]", active && "m-[2px]", active ? "w-[3px]" : "h-[4px]"],
+          {
+            variants: { tone: { primary: "bg-(--primary-canvas)" } },
+            compoundVariants: [{ tone: "primary", className: "text-(color:--ink)" }],
+            ...sharedVariants,
+          },
+        )`,
+        filename: srcFile("shared/button.tsx"),
+        errors: 6,
+      },
+      {
+        code: 'renderEditor({ className: "min-h-[200px]" })',
+        filename: srcFile("features/editor/editor-container.tsx"),
+        errors: [{ message: message("min-h-[200px]") }],
+      },
+      {
+        code: 'const { className = "min-h-[200px]" } = options;',
+        filename: srcFile("features/editor/rich-editor.tsx"),
+        errors: [{ message: message("min-h-[200px]") }],
       },
       {
         code: '<div className="[grid-template-columns:1fr_2fr]" />',
