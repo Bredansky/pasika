@@ -7,10 +7,10 @@
  * consumer": Next.js route handlers are a dead end for the project-wide import
  * graph the other placement rules read, so a pure helper declared beside a
  * handler never gets a second, cross-file consumer to trigger extraction any
- * other way. This rule therefore checks route.ts module-scope declarations
- * whether or not they are exported. Component files follow the same module-scope
- * rule: private pure helpers still belong in utils/, because the requirement is
- * about concern separation rather than cross-file visibility.
+ * other way. This rule therefore checks module-scope declarations across source
+ * files, including support modules such as hooks; private pure helpers still
+ * belong in utils/, because the requirement is about concern separation rather
+ * than cross-file visibility.
  *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  */
@@ -65,13 +65,14 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require pure functions declared in component files to be extracted to utils/.",
+      description: "Require module-scope pure functions to be extracted to utils/.",
     },
   },
   create(context) {
     const filename = context.filename;
     const isRouteFile = path.basename(filename) === "route.ts";
-    if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx") && !isRouteFile) return {};
+    const isSourceFile = /\.(?:[cm]?[jt]sx?)$/.test(filename);
+    if (!isSourceFile && !isRouteFile) return {};
 
     const sourceRoot = sourceRootOf(context);
     const relative = path.relative(sourceRoot, filename);
@@ -79,13 +80,11 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
 
     const segments = relative.split(path.sep);
 
-    // Already in utils/ or a support folder — fine
-    if (segments[0] === "utils") return {};
+    // Already in a utils/ folder — fine.
+    if (segments.slice(0, -1).includes("utils")) return {};
     // Every app/ file is exempt except route.ts, whose module-scope
     // declarations are otherwise invisible to the rest of the rule set.
     if (segments[0] === "app" && !isRouteFile) return {};
-    const supportFolders = new Set(["hooks", "types", "schemas", "constants", "utils"]);
-    if (segments.length >= 2 && supportFolders.has(segments[segments.length - 1] ?? "")) return {};
 
     function report(node: Rule.Node, name: string): void {
       context.report({

@@ -19,7 +19,7 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         code: "export function useTheme() { return useContext(ThemeContext); }",
         filename: srcFile("features/dashboard/dashboard.tsx"),
       },
-      // Functions in utils/ are fine
+      // Functions in nested utils/ are fine, including plain .ts files
       {
         code: 'export function formatPrice(n) { return "$" + n.toFixed(2); }',
         filename: srcFile("features/billing/utils/format-price.ts"),
@@ -73,6 +73,24 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
           {
             message:
               'Extract pure function "formatCredentialLabel" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Private pure helper in a hook support file
+      {
+        code: [
+          "function getVariantsForPlatform(platformType) {",
+          "  return platformType === 'telegram' ? ['message'] : [];",
+          "}",
+          "export function useUserPlatforms() {",
+          "  return getVariantsForPlatform('telegram');",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/Poster/hooks/use-user-platforms.ts"),
+        errors: [
+          {
+            message:
+              'Extract pure function "getVariantsForPlatform" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },
