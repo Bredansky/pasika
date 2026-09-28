@@ -89,13 +89,13 @@ Why: the component still depends directly on the CSS variable even though the ty
 ## Correct — Typed Length Mapped Through a Utility
 
 ```css
-@utility text-tweet-card-name {
+@utility text-tweet-card-name-size {
   @apply text-(length:--tweet-card-name-text-size);
 }
 ```
 
 ```tsx
-<p className="text-tweet-card-name" />
+<p className="text-tweet-card-name-size" />
 ```
 
-Why: the named utility keeps the raw typed value in the stylesheet instead of exposing it in component markup.
+Why: `size` disambiguates the Tailwind `text-` operation from a text-color utility, while the stylesheet keeps ownership of the raw typed value.

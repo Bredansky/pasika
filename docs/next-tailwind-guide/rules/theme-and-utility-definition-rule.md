@@ -4,7 +4,8 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.
-- A CSS variable intended only for a background MUST be named `--<role>-canvas`, one intended only for readable text MUST be named `--<role>-ink`, and one intended only for a visual boundary such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.
+- A CSS variable intended only for a background color MUST be named `--<role>-canvas`, one intended only for a readable text color MUST be named `--<role>-ink`, and one intended only for a visual boundary color such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.
+- The `canvas`, `ink`, and `edge` suffixes MUST be reserved for semantic color roles. Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` rather than extending the color-role vocabulary.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
@@ -72,6 +73,34 @@ Why: `border` is repeated as both the CSS property and the value role, while the
 ```
 
 Why: `edge` names the value's visual role, and `border` names the property through which the utility applies it.
+
+## Incorrect — Non-Color Value Reuses a Color Role
+
+```css
+:root {
+  --tweet-card-name-ink: 0.875rem;
+}
+
+@utility text-tweet-card-name-ink {
+  @apply text-(length:--tweet-card-name-ink);
+}
+```
+
+Why: `ink` is reserved for readable text colors, but this value is a font size.
+
+## Correct — Non-Color Value Uses a Descriptive Name
+
+```css
+:root {
+  --tweet-card-name-text-size: 0.875rem;
+}
+
+@utility text-tweet-card-name-size {
+  @apply text-(length:--tweet-card-name-text-size);
+}
+```
+
+Why: the variable describes the value it stores, while the utility name keeps the Tailwind `text-` operation and makes the size role explicit without extending the color-role vocabulary.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 

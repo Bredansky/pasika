@@ -1046,9 +1046,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A CSS variable intended only for a background MUST be named `--<role>-canvas`, one intended only for readable text MUST be named `--<role>-ink`, and one intended only for a visual boundary such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.",
-      "hash": "82fd569267",
+      "text": "A CSS variable intended only for a background color MUST be named `--<role>-canvas`, one intended only for a readable text color MUST be named `--<role>-ink`, and one intended only for a visual boundary color such as a border, outline, ring, or stroke MUST be named `--<role>-edge`. When a named custom utility exposes one of those values by itself, it MUST use `bg-<role>-canvas`, `text-<role>-ink`, or `<property>-<role>-edge`.",
+      "hash": "d455649b9b",
       "ref": "pasika/css-variable-naming"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "The `canvas`, `ink`, and `edge` suffixes MUST be reserved for semantic color roles. Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` rather than extending the color-role vocabulary.",
+      "hash": "91af13cdcb",
+      "note": "Whether a non-color custom value uses a descriptive domain name instead of extending the color-role vocabulary is a naming-review judgment."
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
