@@ -38,15 +38,6 @@ Why: the named value makes the radius searchable and exposes the matching Tailwi
 
 Why: the component reaches through the project's styling API and binds itself directly to a CSS implementation detail.
 
-Tailwind's typed custom-property shorthand is the same kind of raw reference and is also forbidden:
-
-```tsx
-<p className="text-(color:--tweet-card-ink)" />
-<p className="text-(length:--tweet-card-name-text-size)" />
-```
-
-The type hint only disambiguates how Tailwind interprets the variable; it does not make the component-level reference a named project utility.
-
 ## Correct — CSS Variable Mapped Through a Utility
 
 ```css
@@ -64,3 +55,47 @@ The type hint only disambiguates how Tailwind interprets the variable; it does n
 ```
 
 Why: the component consumes a stable named utility while the stylesheet owns the CSS-variable mapping.
+
+## Incorrect — Typed Color Custom Property
+
+```tsx
+<p className="text-(color:--tweet-card-ink)" />
+```
+
+Why: the type hint only disambiguates the custom property's meaning for Tailwind; the component still references the CSS variable directly.
+
+## Correct — Typed Color Mapped Through a Utility
+
+```css
+@utility text-tweet-card {
+  @apply text-(color:--tweet-card-ink);
+}
+```
+
+```tsx
+<p className="text-tweet-card" />
+```
+
+Why: the component uses a named project utility while the stylesheet owns the typed custom-property reference.
+
+## Incorrect — Typed Length Custom Property
+
+```tsx
+<p className="text-(length:--tweet-card-name-text-size)" />
+```
+
+Why: the component still depends directly on the CSS variable even though the type hint tells Tailwind to interpret it as a length.
+
+## Correct — Typed Length Mapped Through a Utility
+
+```css
+@utility text-tweet-card-name {
+  @apply text-(length:--tweet-card-name-text-size);
+}
+```
+
+```tsx
+<p className="text-tweet-card-name" />
+```
+
+Why: the named utility keeps the raw typed value in the stylesheet instead of exposing it in component markup.
