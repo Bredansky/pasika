@@ -91,3 +91,9 @@ Use this when adding or moving user-facing text.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Locales Rule](rules/locales-rule.md) so the string is registered under the right key in `src/locales/index.ts`.
 4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the locale module has predictable exports and import paths.
+
+## How To Rename a Symbol
+
+Use this when changing a symbol's name so the codebase keeps one canonical name instead of retaining compatibility aliases.
+
+1. Follow the [Symbol Aliases Rule](rules/symbol-aliases-rule.md) so the rename updates the original declaration and its consumers without introducing a redundant alias.
