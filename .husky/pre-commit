@@ -1,6 +1,8 @@
 npx lint-staged
-npm run typecheck
+
+if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(cjs|cts|js|jsx|mjs|mts|ts|tsx)$|(^|/)(package\.json|package-lock\.json|tsconfig[^/]*\.json)$'; then
+  npm run typecheck
+fi
+
 npm run coverage
-npm run test:unit:coverage
-git add vitest.config.ts
 npx libyear --limit-major-individual=1 --no-pre-releases

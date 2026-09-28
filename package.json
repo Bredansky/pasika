@@ -53,7 +53,8 @@
     "prepack": "npm run build",
     "prepare": "husky",
     "test:unit": "vitest run",
-    "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
+    "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
     "test:unit:staged": "vitest related --run",
     "typecheck": "tsc --noEmit"
   },

@@ -12,8 +12,8 @@ function buildFixture(vitestConfig?: string): string {
 }
 
 // Satisfies the config-side checks this rule makes: nonzero base thresholds
-// and autoUpdate. Staged related tests run without coverage.
-const RATCHETED_CONFIG = `import { defineConfig } from "vitest/config";
+// with read-only validation by default. Staged related tests run without coverage.
+const READ_ONLY_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     coverage: {
@@ -24,21 +24,20 @@ export default defineConfig({
         functions: 8,
         branches: 6,
         statements: 9,
-        autoUpdate: true,
+        autoUpdate: false,
       },
     },
   },
 });
 `;
 
-// Has nonzero base thresholds but no autoUpdate at all.
-const BARE_CONFIG = `import { defineConfig } from "vitest/config";
+const MUTATING_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      thresholds: { lines: 9, statements: 9, functions: 8, branches: 6 },
+      thresholds: { lines: 9, statements: 9, functions: 8, branches: 6, autoUpdate: true },
     },
   },
 });
@@ -59,7 +58,8 @@ const COMPLETE_DEV_DEPENDENCIES = { vitest: "4.1.5", "@vitest/coverage-v8": "4.1
 const STAGED_COMMAND = "vitest related --run";
 const COMPLETE_SCRIPTS = {
   "test:unit": "vitest run",
-  "test:unit:coverage": "vitest run --coverage",
+  "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
+  "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
   "test:unit:staged": STAGED_COMMAND,
   "lint:staged": "eslint --fix",
   "format:staged": "prettier --write",
@@ -77,21 +77,21 @@ const COMPLETE_MANIFEST = {
 // Every case in this file reads a vitest config from context.cwd, so each
 // fixture with distinct config content needs its own chdir before the Linter
 // (recreated once per `.run()` call) captures process.cwd().
-const ratcheted = buildFixture(RATCHETED_CONFIG);
-process.chdir(ratcheted);
+const readOnly = buildFixture(READ_ONLY_CONFIG);
+process.chdir(readOnly);
 
 void describe("A repository MUST declare vitest and @vitest/coverage-v8 in devDependencies.", () => {
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
       },
     ],
     invalid: [
       {
         code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, "lint-staged": COMPLETE_LINT_STAGED }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           { message: "vitest must be listed in package.json as a devDependency." },
           { message: "@vitest/coverage-v8 must be listed in package.json as a devDependency." },
@@ -104,7 +104,7 @@ void describe("A repository MUST declare vitest and @vitest/coverage-v8 in devDe
           devDependencies: { vitest: "4.1.5" },
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [{ message: "@vitest/coverage-v8 must be listed in package.json as a devDependency." }],
       },
     ],
@@ -113,18 +113,19 @@ void describe("A repository MUST declare vitest and @vitest/coverage-v8 in devDe
 
 void describe("A repository MUST declare a test:unit script in package.json that runs Vitest without coverage.", () => {
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
-    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(readOnly, "package.json") }],
     invalid: [
       {
         code: JSON.stringify({
           scripts: {
-            "test:unit:coverage": "vitest run --coverage",
+            "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
+            "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
             "test:unit:staged": STAGED_COMMAND,
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [{ message: 'package.json must declare a "test:unit" script that runs Vitest without coverage.' }],
       },
       {
@@ -133,29 +134,32 @@ void describe("A repository MUST declare a test:unit script in package.json that
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [{ message: 'package.json must declare a "test:unit" script that runs Vitest without coverage.' }],
       },
     ],
   });
 });
 
-void describe("A repository MUST declare a test:unit:coverage script in package.json that runs Vitest with coverage.", () => {
+void describe("A repository MUST declare a `test:unit:coverage` script that runs Vitest with coverage and `--coverage.thresholds.autoUpdate=false`.", () => {
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
-    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(readOnly, "package.json") }],
     invalid: [
       {
         code: JSON.stringify({
           scripts: {
-            "test:unit": "vitest run",
-            "test:unit:staged": STAGED_COMMAND,
+            ...COMPLETE_SCRIPTS,
+            "test:unit:coverage": "vitest run --coverage",
           },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
-          { message: 'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage.' },
+          {
+            message:
+              'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage and --coverage.thresholds.autoUpdate=false.',
+          },
         ],
       },
       {
@@ -164,22 +168,47 @@ void describe("A repository MUST declare a test:unit:coverage script in package.
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
-          { message: 'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage.' },
+          {
+            message:
+              'package.json must declare a "test:unit:coverage" script that runs Vitest with coverage and --coverage.thresholds.autoUpdate=false.',
+          },
         ],
       },
     ],
   });
 });
 
-void describe("A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.", () => {
-  // cwd is still `ratcheted` from the block above.
+void describe("A repository MUST declare a separate `test:unit:coverage:update` script that runs Vitest with coverage and `--coverage.thresholds.autoUpdate=true`.", () => {
+  packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(readOnly, "package.json") }],
+    invalid: [
+      {
+        code: JSON.stringify({
+          scripts: { ...COMPLETE_SCRIPTS, "test:unit:coverage:update": "vitest run --coverage" },
+          devDependencies: COMPLETE_DEV_DEPENDENCIES,
+          "lint-staged": COMPLETE_LINT_STAGED,
+        }),
+        filename: path.join(readOnly, "package.json"),
+        errors: [
+          {
+            message:
+              'package.json must declare a "test:unit:coverage:update" script that runs Vitest with coverage and --coverage.thresholds.autoUpdate=true.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A repository MUST configure its Vitest config with a coverage threshold above zero for lines, functions, branches, and statements.", () => {
+  // cwd is still `readOnly` from the block above.
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
       },
     ],
     invalid: [],
@@ -218,47 +247,55 @@ void describe("A repository MUST configure its vitest config with a coverage thr
           { message: "vitest.config.ts must set a coverage threshold above zero for functions." },
           { message: "vitest.config.ts must set a coverage threshold above zero for branches." },
           { message: "vitest.config.ts must set a coverage threshold above zero for statements." },
-          { message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." },
         ],
       },
     ],
   });
 });
 
-void describe("A repository MUST set coverage.thresholds.autoUpdate to true in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.", () => {
-  process.chdir(ratcheted);
+void describe("A repository MUST NOT enable `coverage.thresholds.autoUpdate` in its Vitest config.", () => {
+  process.chdir(readOnly);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
-    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(readOnly, "package.json") }],
     invalid: [],
   });
 
-  const bare = buildFixture(BARE_CONFIG);
-  process.chdir(bare);
+  const mutating = buildFixture(MUTATING_CONFIG);
+  process.chdir(mutating);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [],
     invalid: [
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
-        filename: path.join(bare, "package.json"),
-        errors: [{ message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." }],
+        filename: path.join(mutating, "package.json"),
+        errors: [
+          {
+            message:
+              "vitest.config.ts must not enable coverage.thresholds.autoUpdate; normal coverage validation must be read-only.",
+          },
+        ],
       },
     ],
   });
 });
 
 void describe("A repository MUST declare a test:unit:staged script in package.json that runs vitest related without coverage and configure lint-staged to run it (npm run test:unit:staged --) for staged JavaScript or TypeScript files.", () => {
-  process.chdir(ratcheted);
+  process.chdir(readOnly);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
-    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(readOnly, "package.json") }],
     invalid: [
       {
         // test:unit:staged script missing entirely
         code: JSON.stringify({
-          scripts: { "test:unit": "vitest run", "test:unit:coverage": "vitest run --coverage" },
+          scripts: {
+            "test:unit": "vitest run",
+            "test:unit:coverage": "vitest run --coverage --coverage.thresholds.autoUpdate=false",
+            "test:unit:coverage:update": "vitest run --coverage --coverage.thresholds.autoUpdate=true",
+          },
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           {
             message: 'package.json must declare a "test:unit:staged" script that runs vitest related without coverage.',
@@ -272,7 +309,7 @@ void describe("A repository MUST declare a test:unit:staged script in package.js
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           {
             message: 'package.json must declare a "test:unit:staged" script that runs vitest related without coverage.',
@@ -286,7 +323,7 @@ void describe("A repository MUST declare a test:unit:staged script in package.js
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": COMPLETE_LINT_STAGED,
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           {
             message: 'package.json must declare a "test:unit:staged" script that runs vitest related without coverage.',
@@ -296,7 +333,7 @@ void describe("A repository MUST declare a test:unit:staged script in package.js
       {
         // no lint-staged entry wires the script into staged files at all
         code: JSON.stringify({ scripts: COMPLETE_SCRIPTS, devDependencies: COMPLETE_DEV_DEPENDENCIES }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           {
             message:
@@ -311,7 +348,7 @@ void describe("A repository MUST declare a test:unit:staged script in package.js
           devDependencies: COMPLETE_DEV_DEPENDENCIES,
           "lint-staged": { "*.{js,jsx,ts,tsx}": ["npm run lint:staged --"] },
         }),
-        filename: path.join(ratcheted, "package.json"),
+        filename: path.join(readOnly, "package.json"),
         errors: [
           {
             message:
