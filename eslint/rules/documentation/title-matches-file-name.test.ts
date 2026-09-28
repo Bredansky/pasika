@@ -41,6 +41,11 @@ void describe("Rule file names MUST match the document title in kebab-case and u
         code: "# Foo Rule",
         errors: [{ message: 'title "Foo Rule" expects file name foo-rule.md' }],
       },
+      {
+        filename: "foo-rule.md",
+        code: "#",
+        errors: [{ message: "document has no `# Title` heading" }],
+      },
     ],
   });
 });

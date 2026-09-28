@@ -67,13 +67,13 @@ Why: the type hint only disambiguates the custom property's meaning for Tailwind
 ## Correct — Typed Color Mapped Through a Utility
 
 ```css
-@utility text-tweet-card {
+@utility text-tweet-card-ink {
   @apply text-(color:--tweet-card-ink);
 }
 ```
 
 ```tsx
-<p className="text-tweet-card" />
+<p className="text-tweet-card-ink" />
 ```
 
 Why: the component uses a named project utility while the stylesheet owns the typed custom-property reference.

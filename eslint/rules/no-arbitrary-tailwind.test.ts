@@ -15,6 +15,11 @@ void describe("Components MUST NOT use arbitrary-value classes, arbitrary-proper
         code: '<div className="min-[400px]:flex-row [&>*]:p-2" />',
         filename: srcFile("shared/card.tsx"),
       },
+      { code: '<div className="  rounded-md" />', filename: srcFile("shared/card.tsx") },
+      { code: '<div id="w-[3px]" />', filename: srcFile("shared/card.tsx") },
+      { code: "<div className />", filename: srcFile("shared/card.tsx") },
+      { code: 'styles.cn("w-[3px]")', filename: srcFile("shared/card.tsx") },
+      { code: 'renderEditor({ "style": "w-[3px]" })', filename: srcFile("shared/card.tsx") },
     ],
     invalid: [
       {
@@ -104,6 +109,11 @@ void describe("Components MUST NOT use arbitrary-value classes, arbitrary-proper
         code: 'renderEditor({ className: "min-h-[200px]" })',
         filename: srcFile("features/editor/editor-container.tsx"),
         errors: [{ message: message("min-h-[200px]") }],
+      },
+      {
+        code: 'renderEditor({ "class": "min-h-[201px]" })',
+        filename: srcFile("features/editor/editor-container.tsx"),
+        errors: [{ message: message("min-h-[201px]") }],
       },
       {
         code: 'const { className = "min-h-[200px]" } = options;',
