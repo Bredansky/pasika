@@ -133,4 +133,4 @@ coverage: {
 },
 ```
 
-Why: `lint-staged` passes staged paths to `vitest related`, so relevant tests fail quickly without interpreting presentation-only edits as uncovered behavior. The separate `test:unit:coverage` command remains the aggregate coverage authority and ratchets its thresholds upward with `autoUpdate`. CI can verify the committed floor without ratcheting by running `npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false`.
+Why: `lint-staged` passes staged paths to `vitest related`, so relevant tests fail quickly without interpreting presentation-only edits as uncovered behavior. The separate `test:unit:coverage` command remains the aggregate coverage authority and ratchets its thresholds upward with `autoUpdate`.

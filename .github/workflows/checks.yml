@@ -33,7 +33,7 @@ jobs:
         run: npm run typecheck
 
       - name: Verify unit coverage
-        run: npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false
+        run: npm run test:unit:coverage
 
       - name: Verify requirements
         run: npm run test:requirements
