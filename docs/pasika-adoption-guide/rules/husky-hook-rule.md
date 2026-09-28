@@ -58,11 +58,7 @@ Why: aggregate coverage is expensive and unrelated to many commits, so every loc
 ```sh
 # .husky/pre-commit
 npx lint-staged
-
-if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '\.(cjs|cts|js|jsx|mjs|mts|ts|tsx)$|(^|/)(package\.json|package-lock\.json|tsconfig[^/]*\.json)$'; then
-  npm run typecheck
-fi
-
+npm run typecheck
 npm run test:requirements
 npx libyear --limit-major-individual=1 --no-pre-releases
 ```
@@ -73,7 +69,7 @@ npx libyear --limit-major-individual=1 --no-pre-releases
   run: npm run lint && npm run typecheck && npm run test:unit:coverage && npm run test:requirements && npm run build
 ```
 
-Why: commits run only fast, change-relevant checks, while pull requests still get the full read-only aggregate coverage gate.
+Why: commits keep deterministic lint, typecheck, and requirement checks, while pull requests get the full read-only aggregate coverage gate.
 
 ## Incorrect — Pre-Commit Stages Vitest Config
 
