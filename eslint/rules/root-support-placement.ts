@@ -26,9 +26,9 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import type { ExportKind } from "../project/parse-module";
-import { getProjectIndex, symbolKey } from "../project/index";
 import { folderSegmentsOf, isPlacingConsumer, segmentsOf } from "../project/ccf";
+import { getProjectIndex, symbolKey } from "../project/index";
+import type { ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
 type SupportFolder = "utils" | "types" | "schemas" | "constants";

@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { cssEntryPointRule } from "./css-entry-point";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 /** <p>Builds a temp fixture project with the given files under `src/`.</p> */
 function buildFixture(files: Record<string, string>): string {

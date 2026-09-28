@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
-import { describe } from "./rule-tester";
 import { guideMentionsDocumentsRule } from "./guide-mentions-documents";
+import { describe } from "./rule-tester";
 
 // The rule reads the guide folder from disk (like glossary-term-linking), so its
 // enforcement happens over the real docs/ tree during self-lint, not fixture

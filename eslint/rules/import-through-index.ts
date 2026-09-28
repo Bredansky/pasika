@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
-import { resolveSpecifier } from "../project/index";
 import { segmentsOf } from "../project/ccf";
+import { resolveSpecifier } from "../project/index";
 
 export const importThroughIndexRule: Rule.RuleModule = {
   meta: {

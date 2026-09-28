@@ -6,8 +6,8 @@
  * @see docs/next-codebase-guide/rules/folder-nesting-rule.md
  */
 
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
 import type { Rule } from "eslint";
 import { parseModule } from "../project/parse-module";
 

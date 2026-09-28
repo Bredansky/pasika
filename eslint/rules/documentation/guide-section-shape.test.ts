@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { guideSectionShapeRule } from "./guide-section-shape";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Guide MUST contain one or more level-two sections whose headings start with `How To `.", () => {
   documentationRuleTester.run("guide-section-shape", guideSectionShapeRule, {

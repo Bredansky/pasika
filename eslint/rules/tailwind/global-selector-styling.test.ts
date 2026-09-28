@@ -1,5 +1,5 @@
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { globalSelectorStylingRule } from "./global-selector-styling";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 void describe("Outside `@layer base`, a global selector MUST only scope CSS variable overrides.", () => {
   tailwindRuleTester.run("global-selector-styling", globalSelectorStylingRule, {

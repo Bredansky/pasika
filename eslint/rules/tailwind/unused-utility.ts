@@ -12,8 +12,8 @@
 import { statSync } from "node:fs";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, preludeIdentifiers } from "./helpers";
 import { sourceRootOf } from "../project-root";
+import { atrulesNamed, preludeIdentifiers } from "./helpers";
 import { SOURCE_EXTENSIONS, cachedTextReader, escapeRegExp, findFiles } from "./source-files";
 
 /**

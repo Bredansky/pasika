@@ -5,10 +5,10 @@
  * case pins, which is how `pasika coverage` verifies that a requirement recorded
  * as lint-enforced has a test behind it.
  */
-import { describe, it } from "vitest";
 import jsonPlugin from "@eslint/json";
-import { CwdAwareRuleTester } from "../../rule-tester";
+import { describe, it } from "vitest";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "../../index";
+import { CwdAwareRuleTester } from "../../rule-tester";
 
 CwdAwareRuleTester.describe = describe;
 CwdAwareRuleTester.it = it;

@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { rfcOnlyInBulletsRule } from "./rfc-only-in-bullets";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("RFC 2119 vocabulary MUST appear only in bullet points, so the bullet list is the single place a requirement is stated.", () => {
   documentationRuleTester.run("rfc-only-in-bullets", rfcOnlyInBulletsRule, {

@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { guideStatesNoRequirementRule } from "./guide-states-no-requirement";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Guide MUST NOT state a requirement with RFC 2119 vocabulary, and a requirement MUST be stated in a Rule.", () => {
   documentationRuleTester.run("guide-states-no-requirement", guideStatesNoRequirementRule, {

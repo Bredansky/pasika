@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { noNestedHowToRule } from "./no-nested-how-to";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("How To sections MUST NOT nest inside other How To sections.", () => {
   documentationRuleTester.run("no-nested-how-to", noNestedHowToRule, {

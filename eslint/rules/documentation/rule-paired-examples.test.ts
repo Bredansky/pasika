@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { rulePairedExamplesRule } from "./rule-paired-examples";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.", () => {
   documentationRuleTester.run("rule-paired-examples", rulePairedExamplesRule, {

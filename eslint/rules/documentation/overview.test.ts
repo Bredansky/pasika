@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { overviewRule } from "./overview";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.", () => {
   documentationRuleTester.run("overview", overviewRule, {

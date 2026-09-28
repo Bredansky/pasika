@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, documentationRuleTester } from "./rule-tester";
 import { glossaryTermLinkingRule } from "./glossary-term-linking";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 /**
  * The rule reads the guide's `references/` folder from disk, so the fixture is a

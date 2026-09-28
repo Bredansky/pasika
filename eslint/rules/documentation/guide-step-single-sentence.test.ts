@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { guideStepSingleSentenceRule } from "./guide-step-single-sentence";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("Each How To step MUST use one sentence.", () => {
   documentationRuleTester.run("guide-step-single-sentence", guideStepSingleSentenceRule, {

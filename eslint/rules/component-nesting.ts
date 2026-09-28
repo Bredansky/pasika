@@ -11,8 +11,8 @@
 
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex } from "../project/index";
 import { segmentsOf } from "../project/ccf";
+import { getProjectIndex } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 export const componentNestingRule: Rule.RuleModule = {

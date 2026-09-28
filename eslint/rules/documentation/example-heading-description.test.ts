@@ -1,5 +1,5 @@
-import { describe, documentationRuleTester } from "./rule-tester";
 import { exampleHeadingDescriptionRule } from "./example-heading-description";
+import { describe, documentationRuleTester } from "./rule-tester";
 
 void describe("An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.", () => {
   documentationRuleTester.run("example-heading-description", exampleHeadingDescriptionRule, {

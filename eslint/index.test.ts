@@ -1,6 +1,6 @@
-import { describe, it } from "vitest";
 import assert from "node:assert/strict";
 import type { Linter } from "eslint";
+import { describe, it } from "vitest";
 import { pasikaNextjsApp, pasikaApp } from "./index";
 
 function fileGlobs(blocks: Linter.Config[]): string[] {

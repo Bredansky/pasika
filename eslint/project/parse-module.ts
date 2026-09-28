@@ -1,5 +1,5 @@
-import path from "node:path";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import ts from "typescript";
 
 /** What an exported name is, as far as the placement rules need to care. */

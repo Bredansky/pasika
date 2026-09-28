@@ -1,5 +1,5 @@
-import { describe, packageJsonRuleTester } from "./rule-tester";
 import { nextjsStackRule, NEXTJS_STACK_DEPENDENCIES, NEXTJS_STACK_DEV_DEPENDENCIES } from "./nextjs-stack";
+import { describe, packageJsonRuleTester } from "./rule-tester";
 
 function completePackage(): Record<string, Record<string, string>> {
   return {

@@ -1,5 +1,5 @@
-import { describe, packageJsonRuleTester } from "./rule-tester";
 import { lintSetupRule } from "./lint-setup";
+import { describe, packageJsonRuleTester } from "./rule-tester";
 
 const COMPLETE_SCRIPTS = {
   lint: "eslint .",

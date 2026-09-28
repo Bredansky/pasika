@@ -1,5 +1,5 @@
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { cssVariableNamingRule } from "./css-variable-naming";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 void describe("Property-specific colors MUST use the reserved semantic suffixes canvas for backgrounds, ink for readable text, and edge for visual boundaries, with matching utilities such as bg-<role>-canvas, text-<role>-ink, and <property>-<role>-edge.", () => {
   tailwindRuleTester.run("css-variable-naming", cssVariableNamingRule, {

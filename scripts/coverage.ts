@@ -10,10 +10,10 @@
  */
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { buildCoverageReport, type CoverageIssue } from "./utils/coverage-report";
 import { classifyRequirement } from "./utils/classify";
-import { readRegistry, writeRegistry } from "./utils/registry";
+import { buildCoverageReport, type CoverageIssue } from "./utils/coverage-report";
 import { log, logError } from "./utils/logger";
+import { readRegistry, writeRegistry } from "./utils/registry";
 
 const REGISTRY_RELATIVE_PATH = path.join("scripts", "registry.json");
 

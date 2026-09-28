@@ -1,5 +1,5 @@
-import { describe, tailwindRuleTester } from "./rule-tester";
 import { applyUsageRule } from "./apply-usage";
+import { describe, tailwindRuleTester } from "./rule-tester";
 
 void describe("Style declarations added by the project inside global selectors MUST use @apply.", () => {
   tailwindRuleTester.run("apply-usage", applyUsageRule, {

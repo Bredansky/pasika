@@ -1,6 +1,6 @@
 import { allPasikaRuleIds } from "../../eslint/index";
-import { parseDocs } from "./parse-docs";
 import type { Registry, Requirement } from "../types";
+import { parseDocs } from "./parse-docs";
 
 export interface ClassifyInput {
   /** Hash of the requirement, as `coverage` prints it. */
