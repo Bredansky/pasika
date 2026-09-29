@@ -44,6 +44,7 @@ import { namedExportsRule } from "./rules/named-exports";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
+import { noRedundantAliasRule } from "./rules/no-redundant-alias";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
@@ -88,6 +89,7 @@ const pasikaNextjsAppRules = {
   "import-through-index": importThroughIndexRule,
   "util-file-name": utilFileNameRule,
   "no-util-barrel": noUtilBarrelRule,
+  "no-redundant-alias": noRedundantAliasRule,
   "enforce-barrel-exports": enforceBarrelExportsRule,
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,

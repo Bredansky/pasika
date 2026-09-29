@@ -763,6 +763,24 @@
       "ref": "pasika/sole-state-owner"
     },
     {
+      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "text": "A variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol.",
+      "hash": "eaa7251919",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
+      "hash": "95c280a1ee",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "text": "An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.",
+      "hash": "b3d3dc15ba",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
