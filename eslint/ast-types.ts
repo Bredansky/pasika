@@ -147,3 +147,15 @@ export type TsAsExpressionNode = Rule.Node & {
   expression?: ESTree.Expression;
   typeAnnotation?: TsTypeNode;
 };
+
+/** VariableDeclarator — local shape used by rules that inspect initializer expressions. */
+export type VariableDeclaratorNode = Rule.Node & {
+  id?: ESTree.Pattern;
+  init?: ESTree.Expression | null;
+};
+
+/** CallExpression — local shape used by rules that inspect callee/arguments. */
+export type CallExpressionNode = Rule.Node & {
+  callee?: ESTree.Expression | ESTree.Super;
+  arguments?: (ESTree.Expression | ESTree.SpreadElement)[];
+};
