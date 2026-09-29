@@ -6,11 +6,12 @@
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
+import path from "node:path";
 import type { Rule } from "eslint";
-import type * as ESTree from "estree";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
+const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
 type TsEntityName =
   | { type?: "Identifier"; name?: string }
@@ -78,9 +79,16 @@ export const noRedundantAliasRule: Rule.RuleModule = {
   },
   create(context) {
     return {
-      VariableDeclarator(node: ESTree.VariableDeclarator) {
+      VariableDeclarator(node) {
         if (node.id.type !== "Identifier" || node.init?.type !== "Identifier") return;
-        if (VALUE_SENTINELS.has(node.init.name)) return;
+
+        const declaration = node.parent;
+        if (declaration.type !== "VariableDeclaration" || declaration.kind !== "const") return;
+
+        const exported = declaration.parent.type === "ExportNamedDeclaration";
+        const frameworkRouteAlias =
+          path.basename(context.filename) === "route.ts" && exported && HTTP_METHODS.has(node.id.name);
+        if (frameworkRouteAlias || VALUE_SENTINELS.has(node.init.name)) return;
 
         context.report({
           node,
