@@ -101,6 +101,7 @@ export type FunctionDeclarationNode = Rule.Node & {
 export type TsTypeAliasDeclarationNode = Rule.Node & {
   id?: { type?: string; name?: string };
   typeAnnotation?: TsTypeNode;
+  typeParameters?: Rule.Node;
 };
 
 /**

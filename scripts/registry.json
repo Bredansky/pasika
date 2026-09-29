@@ -464,8 +464,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`.",
-      "hash": "0dc977aa8f",
+      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const` or a named type alias made only of string/number literals.",
+      "hash": "03da58823a",
       "ref": "pasika/prefer-enum"
     },
     {
@@ -643,6 +643,24 @@
       "ref": "pasika/no-mixed-concerns"
     },
     {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.",
+      "hash": "1d40539bd3",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
+      "hash": "95c280a1ee",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.",
+      "hash": "b3d3dc15ba",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
       "doc": "next-codebase-guide/rules/repeated-structure-rule.md",
       "text": "A block of elements MUST be extracted as a named component when two or more places use the same arrangement of elements for the same purpose. Different data or labels do not prevent extraction.",
       "hash": "3c1b9c7807",
@@ -761,24 +779,6 @@
       "text": "A component MUST extract a named component when one part of its JSX contains every JSX expression, callback, and effect that reads one state hook's value or calls its updater.",
       "hash": "22a896ea5f",
       "ref": "pasika/sole-state-owner"
-    },
-    {
-      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol.",
-      "hash": "eaa7251919",
-      "ref": "pasika/no-redundant-alias"
-    },
-    {
-      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
-      "hash": "95c280a1ee",
-      "ref": "pasika/no-redundant-alias"
-    },
-    {
-      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.",
-      "hash": "b3d3dc15ba",
-      "ref": "pasika/no-redundant-alias"
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",

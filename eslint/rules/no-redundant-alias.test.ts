@@ -7,7 +7,7 @@ function aliasMessage(alias: string, source: string): string {
   return `"${alias}" only renames "${source}". Use "${source}" directly or rename the original symbol and its consumers. ${doc}`;
 }
 
-void describe("A variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol.", () => {
+void describe("A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.", () => {
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
       {
@@ -17,8 +17,14 @@ void describe("A variable declaration whose initializer is another symbol identi
           "const missing = undefined;",
           "const result = buildResult(source);",
           "const { value: localValue } = source;",
+          "let current = initial;",
+          "var legacyCurrent = initial;",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: "declare const handler: unknown; export const GET = handler; export const POST = handler;",
+        filename: srcFile("app/api/example/route.ts"),
       },
     ],
     invalid: [
