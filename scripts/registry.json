@@ -644,8 +644,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless a framework requires a specific exported name.",
-      "hash": "8b60cec966",
+      "text": "A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.",
+      "hash": "1d40539bd3",
       "ref": "pasika/no-redundant-alias"
     },
     {

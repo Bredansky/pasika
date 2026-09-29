@@ -7,7 +7,7 @@ function aliasMessage(alias: string, source: string): string {
   return `"${alias}" only renames "${source}". Use "${source}" directly or rename the original symbol and its consumers. ${doc}`;
 }
 
-void describe("A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless a framework requires a specific exported name.", () => {
+void describe("A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.", () => {
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
       {
