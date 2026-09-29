@@ -52,6 +52,23 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         code: "export const PI = 3.14;",
         filename: srcFile("features/dashboard/dashboard.tsx"),
       },
+      // Async I/O helpers in hook support files are not treated as pure
+      {
+        code: [
+          "async function fetchCredentials() {",
+          "  return zodFetch('/credentials');",
+          "}",
+          "export function useCredentials() {",
+          "  return fetchCredentials();",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/credentials/hooks/use-credentials.ts"),
+      },
+      // Plain .ts modules outside hooks keep their existing ownership rules
+      {
+        code: "export function middleware(request) { return NextResponse.next({ request }); }",
+        filename: srcFile("middleware.ts"),
+      },
     ],
     invalid: [
       // Pure function in a component file

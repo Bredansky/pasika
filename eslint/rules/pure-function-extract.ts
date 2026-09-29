@@ -7,10 +7,11 @@
  * consumer": Next.js route handlers are a dead end for the project-wide import
  * graph the other placement rules read, so a pure helper declared beside a
  * handler never gets a second, cross-file consumer to trigger extraction any
- * other way. This rule therefore checks module-scope declarations across source
- * files, including support modules such as hooks; private pure helpers still
- * belong in utils/, because the requirement is about concern separation rather
- * than cross-file visibility.
+ * other way. Component files follow the same module-scope rule. Hook support
+ * files also check synchronous module helpers so pure mapping/formatting logic
+ * cannot hide beside the hook, while async I/O helpers remain outside this rule.
+ * Private pure helpers still belong in utils/, because the requirement is about
+ * concern separation rather than cross-file visibility.
  *
  * @see docs/next-codebase-guide/rules/utilities-rule.md
  */
@@ -71,17 +72,20 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
   create(context) {
     const filename = context.filename;
     const isRouteFile = path.basename(filename) === "route.ts";
-    const isSourceFile = /\.(?:[cm]?[jt]sx?)$/.test(filename);
-    if (!isSourceFile && !isRouteFile) return {};
+    const isComponentFile = filename.endsWith(".tsx") || filename.endsWith(".jsx");
 
     const sourceRoot = sourceRootOf(context);
     const relative = path.relative(sourceRoot, filename);
     if (relative.startsWith("..")) return {};
 
     const segments = relative.split(path.sep);
+    const folders = segments.slice(0, -1);
+    const isHookSupportFile = folders.includes("hooks") && /\.(?:[cm]?[jt]s)$/.test(filename);
+
+    if (!isComponentFile && !isRouteFile && !isHookSupportFile) return {};
 
     // Already in a utils/ folder — fine.
-    if (segments.slice(0, -1).includes("utils")) return {};
+    if (folders.includes("utils")) return {};
     // Every app/ file is exempt except route.ts, whose module-scope
     // declarations are otherwise invisible to the rest of the rule set.
     if (segments[0] === "app" && !isRouteFile) return {};
@@ -103,6 +107,7 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         if (!name) return;
         if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
+        if (isHookSupportFile && node.async) return;
         if (!node.body || hasHookUsage(node.body)) return;
         report(node, name);
       },
@@ -124,6 +129,7 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         if (!init || (init.type !== "ArrowFunctionExpression" && init.type !== "FunctionExpression")) {
           return;
         }
+        if (isHookSupportFile && init.async) return;
         if (init.body.type === "BlockStatement" && hasHookUsage(init.body)) return;
         report(node, name);
       },
