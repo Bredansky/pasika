@@ -763,19 +763,19 @@
       "ref": "pasika/sole-state-owner"
     },
     {
-      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol.",
       "hash": "eaa7251919",
       "ref": "pasika/no-redundant-alias"
     },
     {
-      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
       "hash": "95c280a1ee",
       "ref": "pasika/no-redundant-alias"
     },
     {
-      "doc": "next-codebase-guide/rules/symbol-aliases-rule.md",
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.",
       "hash": "b3d3dc15ba",
       "ref": "pasika/no-redundant-alias"
