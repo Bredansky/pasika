@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.", () => {
+void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union; this includes raw discriminator literals in schemas passed to `z.discriminatedUnion`.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
@@ -95,6 +95,46 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         code: 'const guide = { axis: "vertical", kind: "center" };',
         filename: file("utils/alignment.ts"),
       },
+      // A standalone Zod literal is not a discriminated-union domain.
+      {
+        code: 'const textSchema = z.object({ type: z.literal("text") });',
+        filename: file("schemas/layers.ts"),
+      },
+      // A normal Zod union does not establish a discriminator contract.
+      {
+        code: 'const textSchema = z.object({ type: z.literal("text") }); const mediaSchema = z.object({ type: z.literal("media") }); z.union([textSchema, mediaSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // Only the selected discriminator property is governed.
+      {
+        code: 'enum LayerType { Text = "text", Media = "media" } const textSchema = z.object({ type: z.literal(LayerType.Text), mode: z.literal("compact") }); const mediaSchema = z.object({ type: z.literal(LayerType.Media), mode: z.literal("full") }); z.discriminatedUnion("type", [textSchema, mediaSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // A schema without the selected discriminator is not an enum candidate.
+      {
+        code: 'const textSchema = z.object({ kind: z.literal("text") }); z.discriminatedUnion("type", [textSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // An unresolved schema reference is outside this file-local analysis.
+      {
+        code: 'z.discriminatedUnion("type", [externalSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // Computed object keys are not treated as discriminator declarations.
+      {
+        code: 'const key = "type"; const textSchema = z.object({ [key]: z.literal("text") }); z.discriminatedUnion("type", [textSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // Non-string property keys are not discriminator names.
+      {
+        code: 'const textSchema = z.object({ 1: z.literal("text") }); z.discriminatedUnion("type", [textSchema]);',
+        filename: file("schemas/layers.ts"),
+      },
+      // Calls that do not have the z.discriminatedUnion discriminator/options shape are ignored.
+      {
+        code: "z.discriminatedUnion(1, []);",
+        filename: file("schemas/layers.ts"),
+      },
     ],
     invalid: [
       {
@@ -169,6 +209,66 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         errors: [
           {
             message: `A property whose type is a union made only of string or number literals must use a TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'const textSchema = z.object({ type: z.literal("text") }); const mediaSchema = z.object({ type: z.literal("media") }); z.discriminatedUnion("type", [textSchema, mediaSchema]);',
+        filename: file("schemas/layers.ts"),
+        errors: [
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'z.discriminatedUnion("type", [z.object({ type: z.literal("text") }), z.object({ type: z.literal("media") })]);',
+        filename: file("schemas/layers.ts"),
+        errors: [
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'const textSchema = z.object({ "type": z.literal("text") }); const mediaSchema = z.object({ "type": z.literal("media") }); z.discriminatedUnion("type", [textSchema, mediaSchema]);',
+        filename: file("schemas/layers.ts"),
+        errors: [
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'z.discriminatedUnion("code", [z.object({ code: z.literal(1) }), z.object({ code: z.literal(2) })]);',
+        filename: file("schemas/result.ts"),
+        errors: [
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'z.discriminatedUnion("type", [lateTextSchema, lateMediaSchema]); const lateTextSchema = z.object({ type: z.literal("text") }); const lateMediaSchema = z.object({ type: z.literal("media") });',
+        filename: file("schemas/layers.ts"),
+        errors: [
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
+          },
+          {
+            message: `A Zod discriminated-union discriminator literal must use a TypeScript enum member. ${DOC}`,
           },
         ],
       },

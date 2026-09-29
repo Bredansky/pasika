@@ -3,14 +3,21 @@
  *
  * A fixed set of named string or number values MUST be a TypeScript enum
  * instead of an object literal marked `as const`, a literal-union type alias,
- * or an inline literal-union property type.
+ * an inline literal-union property type, or raw Zod discriminated-union discriminator literals.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { TsAsExpressionNode, TsPropertySignatureNode, TsTypeAliasDeclarationNode, TsTypeNode } from "../ast-types";
+import type {
+  CallExpressionNode,
+  TsAsExpressionNode,
+  TsPropertySignatureNode,
+  TsTypeAliasDeclarationNode,
+  TsTypeNode,
+  VariableDeclaratorNode,
+} from "../ast-types";
 import { sourceRootOf } from "./project-root";
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
@@ -39,13 +46,56 @@ function isEnumLiteralUnion(node: TsTypeNode | undefined): boolean {
   return node?.type === "TSUnionType" && (node.types?.length ?? 0) >= 2 && (node.types ?? []).every(isEnumLiteralType);
 }
 
+function isZodCall(node: Pick<ESTree.CallExpression, "callee"> | CallExpressionNode, method: string): boolean {
+  const { callee } = node;
+  return (
+    callee?.type === "MemberExpression" &&
+    !callee.computed &&
+    callee.object.type === "Identifier" &&
+    callee.object.name === "z" &&
+    callee.property.type === "Identifier" &&
+    callee.property.name === method
+  );
+}
+
+function propertyName(property: ESTree.Property): string | undefined {
+  if (property.computed) return undefined;
+  if (property.key.type === "Identifier") return property.key.name;
+  if (property.key.type === "Literal" && typeof property.key.value === "string") return property.key.value;
+  return undefined;
+}
+
+function rawZodDiscriminantLiteral(
+  schemaCall: ESTree.CallExpression,
+  discriminator: string,
+): ESTree.Literal | undefined {
+  if (!isZodCall(schemaCall, "object")) return undefined;
+
+  const shape = schemaCall.arguments[0];
+  if (shape?.type !== "ObjectExpression") return undefined;
+
+  for (const property of shape.properties) {
+    if (property.type !== "Property" || propertyName(property) !== discriminator) continue;
+    if (property.value.type !== "CallExpression" || !isZodCall(property.value, "literal")) return undefined;
+
+    const literal = property.value.arguments[0];
+    if (literal?.type === "Literal" && (typeof literal.value === "string" || typeof literal.value === "number")) {
+      return literal;
+    }
+
+    return undefined;
+  }
+
+  return undefined;
+}
+
 export const preferEnumRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require fixed sets of named string/number values to be TypeScript enums instead of `as const` objects, literal-union aliases, or inline literal-union property types.",
+        "Require fixed sets of named string/number values to be TypeScript enums, including Zod discriminated-union discriminator values.",
     },
   },
   create(context) {
@@ -53,7 +103,56 @@ export const preferEnumRule: Rule.RuleModule = {
     const sourceRoot = sourceRootOf(context);
     if (!filename.startsWith(sourceRoot + path.sep)) return {};
 
+    const objectSchemas = new Map<string, ESTree.CallExpression>();
+    const discriminatedUnions: CallExpressionNode[] = [];
+    const reportedDiscriminants = new Set<ESTree.Literal>();
+
     return {
+      VariableDeclarator(node: VariableDeclaratorNode) {
+        const { id, init } = node;
+        if (id?.type !== "Identifier" || init?.type !== "CallExpression" || !isZodCall(init, "object")) return;
+
+        objectSchemas.set(id.name, init);
+      },
+      CallExpression(node: CallExpressionNode) {
+        if (isZodCall(node, "discriminatedUnion")) {
+          discriminatedUnions.push(node);
+        }
+      },
+      "Program:exit"() {
+        for (const unionCall of discriminatedUnions) {
+          const [discriminatorArg, optionsArg] = unionCall.arguments ?? [];
+          if (
+            discriminatorArg?.type !== "Literal" ||
+            typeof discriminatorArg.value !== "string" ||
+            optionsArg?.type !== "ArrayExpression"
+          ) {
+            continue;
+          }
+
+          for (const option of optionsArg.elements) {
+            if (!option || option.type === "SpreadElement") continue;
+
+            let schemaCall: ESTree.CallExpression | undefined;
+            if (option.type === "Identifier") {
+              schemaCall = objectSchemas.get(option.name);
+            } else if (option.type === "CallExpression" && isZodCall(option, "object")) {
+              schemaCall = option;
+            }
+            if (!schemaCall) continue;
+
+            const literal = rawZodDiscriminantLiteral(schemaCall, discriminatorArg.value);
+            if (!literal || reportedDiscriminants.has(literal)) continue;
+
+            reportedDiscriminants.add(literal);
+            context.report({
+              node: literal,
+              message:
+                "A Zod discriminated-union discriminator literal must use a TypeScript enum member. See docs/next-codebase-guide/rules/constants-rule.md",
+            });
+          }
+        }
+      },
       TSAsExpression(node: TsAsExpressionNode) {
         if (!isConstAssertion(node)) return;
 
