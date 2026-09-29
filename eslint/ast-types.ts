@@ -89,6 +89,7 @@ export type JsxOpeningElementNode = Rule.Node & {
 export type FunctionDeclarationNode = Rule.Node & {
   id?: { name?: string } | null;
   body?: ESTree.BlockStatement | null;
+  async?: boolean;
 };
 
 /**
