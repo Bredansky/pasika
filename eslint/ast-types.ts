@@ -116,6 +116,12 @@ export type TsTypeElementNode = Omit<Rule.Node, "type"> & {
   typeAnnotation?: TsTypeAnnotationNode;
 };
 
+/** TSPropertySignature — a named property declared inside an interface or type literal. */
+export type TsPropertySignatureNode = Rule.Node & {
+  key?: { type?: string; name?: string };
+  typeAnnotation?: TsTypeAnnotationNode;
+};
+
 /** TSTypeAnnotation — the `: T` wrapper around a type node. */
 export type TsTypeAnnotationNode = Omit<Rule.Node, "type"> & {
   type: string;
