@@ -2,8 +2,8 @@
  * ESLint rule: pasika/import-boundaries
  *
  * Enforces the import conventions from the "Exports and Imports Rule":
- *  - Whichever of the relative path and the @/* alias has fewer segments, with
- *    a tie going to the relative path.
+ *  - Imports within the current directory or its direct parent use relative paths.
+ *  - Imports that require two or more parent traversals use the @/* alias.
  *  - Layer boundary enforcement (app → compositions → features → shared → root).
  *
  * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
@@ -49,28 +49,13 @@ function aliasSpecifier(sourceRoot: string, resolvedPath: string): string {
   return `@/${(sourceSegments(sourceRoot, resolvedPath) ?? []).join("/")}`;
 }
 
-/** Segments in a specifier: one per `../` step and one per name, ignoring a leading `./`. */
-function segmentCount(specifier: string): number {
-  return specifier
-    .replace(/^@\//, "")
-    .split("/")
-    .filter((segment) => segment !== "." && segment !== "").length;
+function parentTraversalCount(specifier: string): number {
+  return specifier.split("/").filter((segment) => segment === "..").length;
 }
 
-function describeSegments(count: number): string {
-  return `${String(count)} segment${count === 1 ? "" : "s"}`;
-}
-
-/**
- * Whether the relative form is the one to use. Shorter wins, and a tie goes to
- * the relative form. Because crossing a layer always costs at least one `../`
- * while the alias spells the same tail, the alias always wins for a
- * cross-layer import without this needing to know what a layer is.
- */
-function prefersRelative(sourceRoot: string, filename: string, resolvedPath: string): boolean {
-  return (
-    segmentCount(relativeSpecifier(filename, resolvedPath)) <= segmentCount(aliasSpecifier(sourceRoot, resolvedPath))
-  );
+/** Whether the target is close enough to use ./ or a single ../ relative path. */
+function prefersRelative(filename: string, resolvedPath: string): boolean {
+  return parentTraversalCount(relativeSpecifier(filename, resolvedPath)) <= 1;
 }
 
 export const importBoundariesRule: Rule.RuleModule = {
@@ -150,34 +135,19 @@ export const importBoundariesRule: Rule.RuleModule = {
 
       const relativeForm = relativeSpecifier(filename, resolvedPath);
       const aliasForm = aliasSpecifier(sourceRoot, resolvedPath);
-      const relativeSegments = segmentCount(relativeForm);
-      const aliasSegments = segmentCount(aliasForm);
 
-      function describeChoice(
-        preferred: string,
-        preferredSegments: number,
-        other: string,
-        otherSegments: number,
-      ): string {
-        const tie = preferredSegments === otherSegments ? ", and a tie goes to the relative path" : "";
-        return (
-          `Use "${preferred}" (${describeSegments(preferredSegments)}) ` +
-          `instead of "${other}" (${describeSegments(otherSegments)})${tie}.`
-        );
-      }
-
-      if (prefersRelative(sourceRoot, filename, resolvedPath) && importPath.startsWith("@/")) {
+      if (prefersRelative(filename, resolvedPath) && importPath.startsWith("@/")) {
         context.report({
           node: source,
-          message: describeChoice(relativeForm, relativeSegments, aliasForm, aliasSegments),
+          message: `Use "${relativeForm}" instead of "${aliasForm}".`,
         });
         return;
       }
 
-      if (!prefersRelative(sourceRoot, filename, resolvedPath) && importPath.startsWith(".")) {
+      if (!prefersRelative(filename, resolvedPath) && importPath.startsWith(".")) {
         context.report({
           node: source,
-          message: describeChoice(aliasForm, aliasSegments, relativeForm, relativeSegments),
+          message: `Use "${aliasForm}" instead of "${relativeForm}".`,
         });
       }
     }

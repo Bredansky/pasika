@@ -3,30 +3,17 @@ import { importBoundariesRule } from "./import-boundaries";
 
 const BOUNDARY_MESSAGE = "This import violates the src layer boundary.";
 
-const choice = (preferred: string, preferredCount: number, other: string, otherCount: number): string =>
-  `Use "${preferred}" (${String(preferredCount)} segment${preferredCount === 1 ? "" : "s"}) ` +
-  `instead of "${other}" (${String(otherCount)} segment${otherCount === 1 ? "" : "s"})` +
-  `${preferredCount === otherCount ? ", and a tie goes to the relative path" : ""}.`;
+const choice = (preferred: string, other: string): string => `Use "${preferred}" instead of "${other}".`;
 
-void describe("Imports MUST use whichever of the relative path and the @/* alias has fewer segments, counting each ../ step and each name in the path as one segment.", () => {
+void describe("An import whose target is in the current directory or its direct parent directory MUST use a relative path with ./ or ../.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
-      // Relative wins: the alias would have to re-spell the shared feature path.
       {
         code: 'import { InvoiceRow } from "./invoice-row";',
         filename: srcFile("features/billing/invoice.tsx"),
       },
       {
-        code: 'import { maxRetries } from "../constants";',
-        filename: srcFile("features/billing/hooks/use-retry-payment.ts"),
-      },
-      // Alias wins: crossing out of a layer always costs at least one `../`.
-      {
-        code: 'import { debounce } from "@/utils/debounce";',
-        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
-      },
-      {
-        code: 'import { locales } from "@/locales";',
+        code: 'import { locales } from "../locales";',
         filename: srcFile("compositions/dashboard-view.tsx"),
       },
     ],
@@ -34,35 +21,57 @@ void describe("Imports MUST use whichever of the relative path and the @/* alias
       {
         code: 'import { InvoiceRow } from "@/features/billing/invoice-row";',
         filename: srcFile("features/billing/invoice.tsx"),
-        errors: [{ message: choice("./invoice-row", 1, "@/features/billing/invoice-row", 3) }],
+        errors: [{ message: choice("./invoice-row", "@/features/billing/invoice-row") }],
       },
       {
-        code: 'import { locales } from "../locales";',
+        code: 'import { locales } from "@/locales";',
         filename: srcFile("compositions/dashboard-view.tsx"),
-        errors: [{ message: choice("@/locales", 1, "../locales", 2) }],
-      },
-      {
-        code: 'import { debounce } from "../../../utils/debounce";',
-        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
-        errors: [{ message: choice("@/utils/debounce", 2, "../../../utils/debounce", 5) }],
+        errors: [{ message: choice("../locales", "@/locales") }],
       },
     ],
   });
 });
 
-void describe("Imports MUST use the relative path when the relative path and the @/* alias have the same number of segments.", () => {
+void describe("A relative import MUST NOT traverse more than one parent directory; use the @/* alias instead of ../../ or deeper paths.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
-        code: 'import { format } from "../../utils/format";',
+        code: 'import { format } from "@/features/billing/utils/format";',
         filename: srcFile("features/billing/InvoiceCard/rows/row.tsx"),
+      },
+      {
+        code: 'import { format } from "@/features/billing/InvoiceCard/format";',
+        filename: srcFile("features/billing/InvoiceCard/rows/cells/cell.tsx"),
+      },
+      {
+        code: 'import { debounce } from "@/utils/debounce";',
+        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
       },
     ],
     invalid: [
       {
-        code: 'import { format } from "@/features/billing/utils/format";',
+        code: 'import { format } from "../../utils/format";',
         filename: srcFile("features/billing/InvoiceCard/rows/row.tsx"),
-        errors: [{ message: choice("../../utils/format", 4, "@/features/billing/utils/format", 4) }],
+        errors: [{ message: choice("@/features/billing/utils/format", "../../utils/format") }],
+      },
+      {
+        code: 'import { format } from "../../format";',
+        filename: srcFile("features/billing/InvoiceCard/rows/cells/cell.tsx"),
+        errors: [{ message: choice("@/features/billing/InvoiceCard/format", "../../format") }],
+      },
+      {
+        code: 'import { debounce } from "../../../utils/debounce";',
+        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
+        errors: [{ message: choice("@/utils/debounce", "../../../utils/debounce") }],
+      },
+      {
+        code: 'import { getTextLayerBoxStyle } from "../../../utils/text-layer-styles";',
+        filename: srcFile("features/editor/Poster/preview-card/instagram-editor/utils/text-layer-styles.test.ts"),
+        errors: [
+          {
+            message: choice("@/features/editor/Poster/utils/text-layer-styles", "../../../utils/text-layer-styles"),
+          },
+        ],
       },
     ],
   });
@@ -72,7 +81,7 @@ void describe("A file under src/compositions/ MUST NOT import from src/app/.", (
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
-        code: 'import { Invoice } from "@/features/billing/invoice";',
+        code: 'import { Invoice } from "../features/billing/invoice";',
         filename: srcFile("compositions/checkout.tsx"),
       },
     ],
@@ -122,7 +131,7 @@ void describe("A file under src/shared/ MUST NOT import from src/app/, src/compo
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
-        code: 'import { formatDate } from "@/utils/format-date";',
+        code: 'import { formatDate } from "../utils/format-date";',
         filename: srcFile("shared/status-badge.tsx"),
       },
     ],
