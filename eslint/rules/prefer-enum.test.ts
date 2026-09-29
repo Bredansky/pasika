@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const` or a named type alias made only of string/number literals.", () => {
+void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
@@ -75,6 +75,26 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         code: 'type Result<T> = "ok" | T;',
         filename: file("types/result.ts"),
       },
+      // Literal unions used as utility-type arguments select structure rather than declare a domain set.
+      {
+        code: 'type LayerBox = Pick<Position, "x" | "y" | "width" | "height">;',
+        filename: file("types/layer.ts"),
+      },
+      // Nullable property unions model absence as part of the type.
+      {
+        code: 'interface Job { status: "ready" | "failed" | null }',
+        filename: file("types/job.ts"),
+      },
+      // A property union containing a reference is not a closed literal set.
+      {
+        code: 'interface Job { status: "ready" | ExistingStatus }',
+        filename: file("types/job.ts"),
+      },
+      // Runtime literals are values, not declarations of a reusable domain set.
+      {
+        code: 'const guide = { axis: "vertical", kind: "center" };',
+        filename: file("utils/alignment.ts"),
+      },
     ],
     invalid: [
       {
@@ -119,6 +139,36 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         errors: [
           {
             message: `A named union made only of string or number literals must be a TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'interface AlignmentGuide { axis: "horizontal" | "vertical"; kind: "center" | "edge" }',
+        filename: file("types/alignment-guide.ts"),
+        errors: [
+          {
+            message: `A property whose type is a union made only of string or number literals must use a TypeScript enum. ${DOC}`,
+          },
+          {
+            message: `A property whose type is a union made only of string or number literals must use a TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'type AlignmentGuide = { axis: "horizontal" | "vertical" };',
+        filename: file("types/alignment-guide.ts"),
+        errors: [
+          {
+            message: `A property whose type is a union made only of string or number literals must use a TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: "interface RetryPolicy { retries: 1 | 2 | 3 }",
+        filename: file("types/retry.ts"),
+        errors: [
+          {
+            message: `A property whose type is a union made only of string or number literals must use a TypeScript enum. ${DOC}`,
           },
         ],
       },

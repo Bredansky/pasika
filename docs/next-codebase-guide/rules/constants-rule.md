@@ -11,7 +11,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.
 - A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
 - A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.
-- A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const` or a named type alias made only of string/number literals.
+- A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
@@ -74,6 +74,61 @@ export enum AlignmentGuideId {
 ```
 
 Why: the enum gives the closed set one canonical runtime and type-level representation.
+
+## Incorrect — Inline Literal Union for a Property
+
+```ts
+interface AlignmentGuide {
+  axis: "horizontal" | "vertical";
+  kind: "center" | "edge";
+}
+```
+
+Why: each property declares a reusable closed domain with raw literals instead of giving that domain canonical enum members.
+
+## Correct — Enum Types for Closed Property Domains
+
+```ts
+enum AlignmentGuideAxis {
+  Horizontal = "horizontal",
+  Vertical = "vertical",
+}
+
+enum AlignmentGuideKind {
+  Center = "center",
+  Edge = "edge",
+}
+
+interface AlignmentGuide {
+  axis: AlignmentGuideAxis;
+  kind: AlignmentGuideKind;
+}
+```
+
+Why: callers use canonical enum members instead of repeating domain literals.
+
+## Incorrect — Enum for Structural Key Selection
+
+```ts
+enum PositionKey {
+  X = "x",
+  Y = "y",
+  Width = "width",
+  Height = "height",
+}
+
+type LayerBox = Pick<Position, PositionKey>;
+```
+
+Why: the enum invents a runtime domain only to select keys from an existing type.
+
+## Correct — Literal Union as Structural Key Selection
+
+```ts
+type LayerBox = Pick<Position, "x" | "y" | "width" | "height">;
+```
+
+Why: these literals select keys from an existing type; they do not declare a new domain of runtime values.
 
 ## Incorrect — Renaming a Framework-Required Export
 

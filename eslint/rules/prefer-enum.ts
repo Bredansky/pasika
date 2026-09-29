@@ -2,14 +2,15 @@
  * ESLint rule: pasika/prefer-enum
  *
  * A fixed set of named string or number values MUST be a TypeScript enum
- * instead of an object literal marked `as const` or a literal-union type alias.
+ * instead of an object literal marked `as const`, a literal-union type alias,
+ * or an inline literal-union property type.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import type { TsAsExpressionNode, TsTypeAliasDeclarationNode, TsTypeNode } from "../ast-types";
+import type { TsAsExpressionNode, TsPropertySignatureNode, TsTypeAliasDeclarationNode, TsTypeNode } from "../ast-types";
 import { sourceRootOf } from "./project-root";
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
@@ -44,7 +45,7 @@ export const preferEnumRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require fixed sets of named string/number values to be TypeScript enums instead of `as const` objects or literal-union type aliases.",
+        "Require fixed sets of named string/number values to be TypeScript enums instead of `as const` objects, literal-union aliases, or inline literal-union property types.",
     },
   },
   create(context) {
@@ -74,6 +75,16 @@ export const preferEnumRule: Rule.RuleModule = {
           node,
           message:
             "A named union made only of string or number literals must be a TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+        });
+      },
+      TSPropertySignature(node: TsPropertySignatureNode) {
+        const typeAnnotation = node.typeAnnotation?.typeAnnotation;
+        if (!isEnumLiteralUnion(typeAnnotation)) return;
+
+        context.report({
+          node,
+          message:
+            "A property whose type is a union made only of string or number literals must use a TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
         });
       },
     };

@@ -464,8 +464,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const` or a named type alias made only of string/number literals.",
-      "hash": "03da58823a",
+      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.",
+      "hash": "32864b3bf9",
       "ref": "pasika/prefer-enum"
     },
     {
