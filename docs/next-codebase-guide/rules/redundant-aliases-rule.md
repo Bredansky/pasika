@@ -1,4 +1,4 @@
-# Symbol Aliases Rule
+# Redundant Aliases Rule
 
 Aliases that only give an existing symbol a second name hide incomplete renames and increase cognitive load. This rule keeps one canonical name unless a declaration changes or composes the underlying value or type.
 

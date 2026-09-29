@@ -30,7 +30,8 @@ Use this when adding or moving a type or schema.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Types and Schemas Rule](rules/types-and-schemas-rule.md) so the type or schema is extracted only once a consumer needs it independently.
-5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the type or schema module has predictable exports and import paths.
+5. Follow the [Redundant Aliases Rule](rules/redundant-aliases-rule.md) so an extracted type keeps one canonical name instead of introducing a redundant alias.
+6. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the type or schema module has predictable exports and import paths.
 
 ## How To Organize a Constant
 
@@ -91,9 +92,3 @@ Use this when adding or moving user-facing text.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Locales Rule](rules/locales-rule.md) so the string is registered under the right key in `src/locales/index.ts`.
 4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the locale module has predictable exports and import paths.
-
-## How To Rename a Symbol
-
-Use this when changing a symbol's name so the codebase keeps one canonical name instead of retaining compatibility aliases.
-
-1. Follow the [Symbol Aliases Rule](rules/symbol-aliases-rule.md) so the rename updates the original declaration and its consumers without introducing a redundant alias.

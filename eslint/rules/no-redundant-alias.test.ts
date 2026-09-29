@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noRedundantAliasRule } from "./no-redundant-alias";
 
-const doc = "See docs/next-codebase-guide/rules/symbol-aliases-rule.md";
+const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
 function aliasMessage(alias: string, source: string): string {
   return `"${alias}" only renames "${source}". Use "${source}" directly or rename the original symbol and its consumers. ${doc}`;

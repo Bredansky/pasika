@@ -4,12 +4,12 @@
  * Prevents variable, type, and empty-interface declarations from creating a
  * second name for an existing symbol without adding behavior or type structure.
  *
- * @see docs/next-codebase-guide/rules/symbol-aliases-rule.md
+ * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 
-const DOC = "See docs/next-codebase-guide/rules/symbol-aliases-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 
 type TsEntityName =
