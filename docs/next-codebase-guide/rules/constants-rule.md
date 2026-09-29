@@ -107,43 +107,6 @@ interface AlignmentGuide {
 
 Why: callers use canonical enum members instead of repeating domain literals.
 
-## Incorrect — Raw Zod Discriminator Literals
-
-```ts
-const textLayerSchema = z.object({
-  type: z.literal("text"),
-});
-
-const mediaLayerSchema = z.object({
-  type: z.literal("media"),
-});
-
-const layerSchema = z.discriminatedUnion("type", [textLayerSchema, mediaLayerSchema]);
-```
-
-Why: the discriminated union establishes `text` and `media` as one closed runtime domain, but consumers have no canonical members to reference.
-
-## Correct — Enum Members for Zod Discriminators
-
-```ts
-enum LayerType {
-  Text = "text",
-  Media = "media",
-}
-
-const textLayerSchema = z.object({
-  type: z.literal(LayerType.Text),
-});
-
-const mediaLayerSchema = z.object({
-  type: z.literal(LayerType.Media),
-});
-
-const layerSchema = z.discriminatedUnion("type", [textLayerSchema, mediaLayerSchema]);
-```
-
-Why: the schema and its consumers share the same canonical enum representation for the discriminator domain.
-
 ## Incorrect — Enum for Structural Key Selection
 
 ```ts
