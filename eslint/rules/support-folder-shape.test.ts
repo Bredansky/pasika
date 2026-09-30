@@ -13,7 +13,15 @@ function fixture(folder: string, index: string, sibling: string): string {
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.", () => {
+function emptyFixture(folder: string, index: string): string {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-support-shape-"));
+  const directory = path.join(root, "src", "features", "billing", folder);
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, "index.ts"), index);
+  return path.join(directory, "index.ts");
+}
+
+void describe("A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const grouped = fixture(
     "constants",
@@ -24,6 +32,8 @@ void describe("A `constants/` folder with exactly one sibling file MUST define t
   const singleReExport = fixture("constants", 'export { value } from "./retry";\n', "retry.ts");
   const singleWildcardReExport = fixture("constants", 'export * from "./retry";\n', "retry.ts");
   const invalid = fixture("constants", "\n", "retry.ts");
+  const emptyDirect = emptyFixture("constants", "export const value = 1;\n");
+  const externalProxy = emptyFixture("constants", 'export * from "@/shared/constants";\n');
   const mixedAndNamed = fixture(
     "constants",
     'export const value = 1;\nexport { retryDelayMs } from "./retry";\n',
@@ -34,11 +44,13 @@ void describe("A `constants/` folder with exactly one sibling file MUST define t
     valid: [
       { code: "export const value = 1;", filename: valid },
       { code: 'export { value } from "./retry";\nexport { timeout } from "./timeout";', filename: grouped },
+      { code: "export const value = 1;", filename: emptyDirect },
     ],
     invalid: [
       { code: 'export { value } from "./retry";', filename: singleReExport, errors: 1 },
       { code: 'export * from "./retry";', filename: singleWildcardReExport, errors: 1 },
       { code: "", filename: invalid, errors: 1 },
+      { code: 'export * from "@/shared/constants";', filename: externalProxy, errors: 1 },
       {
         code: 'export const value = 1;\nexport { retryDelayMs } from "./retry";',
         filename: mixedAndNamed,
@@ -53,11 +65,14 @@ void describe("A `constants/` folder with exactly one sibling file MUST define t
   });
 });
 
-void describe("A `types/` or `schemas/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
+void describe("A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.", () => {
   const direct = fixture("types", "export interface Invoice { id: string; }\n", "invoice.ts");
   const singleReExport = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
   const singleWildcardReExport = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");
   const invalid = fixture("schemas", "\n", "invoice-schema.ts");
+  const emptyDirect = emptyFixture("types", "export type Value = string;\n");
+  const externalTypeProxy = emptyFixture("types", 'export * from "@/features/editor/Poster/types";\n');
+  const externalSchemaProxy = emptyFixture("schemas", 'export * from "@/schemas";\n');
   const mixedAndNamed = fixture(
     "types",
     'export type Value = number;\nexport { Invoice } from "./invoice";\n',
@@ -69,11 +84,24 @@ void describe("A `types/` or `schemas/` folder with exactly one sibling file MUS
     "invoice-schema.ts",
   );
   ruleTester.run("support-folder-shape", supportFolderShapeRule, {
-    valid: [{ code: "export interface Invoice { id: string; }", filename: direct }],
+    valid: [
+      { code: "export interface Invoice { id: string; }", filename: direct },
+      { code: "export type Value = string;", filename: emptyDirect },
+    ],
     invalid: [
       { code: 'export { Invoice } from "./invoice";', filename: singleReExport, errors: 1 },
       { code: 'export * from "./invoice-schema";', filename: singleWildcardReExport, errors: 1 },
       { code: "", filename: invalid, errors: 1 },
+      {
+        code: 'export * from "@/features/editor/Poster/types";',
+        filename: externalTypeProxy,
+        errors: 1,
+      },
+      {
+        code: 'export * from "@/schemas";',
+        filename: externalSchemaProxy,
+        errors: 1,
+      },
       {
         code: 'export type Value = number;\nexport { Invoice } from "./invoice";',
         filename: mixedAndNamed,

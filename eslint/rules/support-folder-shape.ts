@@ -11,7 +11,7 @@ export const supportFolderShapeRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a support folder to either define its exports directly in index.ts or re-export every sibling from it, never both.",
+        "Require a support folder to either define its exports directly in index.ts or re-export its local sibling modules, never proxy an external module from an otherwise empty support folder or mix both.",
     },
   },
   create(context) {
@@ -31,7 +31,6 @@ export const supportFolderShapeRule: Rule.RuleModule = {
     }
 
     const siblingModules = entries.filter((entry) => entry !== baseName && /\.(?:[cm]?tsx?|jsx?)$/.test(entry));
-    if (siblingModules.length === 0) return {};
 
     return {
       Program(node) {
@@ -39,14 +38,28 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         const hasDirectExport = /export\s+(?:const|let|var|function|class|type|interface|enum)\b/.test(source);
 
         const exportedFiles = new Set<string>();
-        const exportPattern = /export\s+(?:\{[^}]*\}|\*[^;]*)\s+from\s+["'](?<specifier>\.[^"']+)["']/g;
+        let hasAnyReExport = false;
+        const exportPattern = /export\s+(?:type\s+)?(?:\{[^}]*\}|\*)\s+from\s+["'](?<specifier>[^"']+)["']/g;
         for (const match of source.matchAll(exportPattern)) {
+          hasAnyReExport = true;
           const specifier = match.groups?.specifier;
-          if (specifier) exportedFiles.add(path.basename(specifier));
+          if (specifier?.startsWith(".")) exportedFiles.add(path.basename(specifier));
         }
-        const hasAnyReExport = exportedFiles.size > 0;
 
         const guide = `docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`;
+
+        // Pick one strategy for the whole folder: define directly, or group
+        // into re-exported sibling files. A support index without siblings
+        // cannot act as a proxy for another support folder.
+        if (siblingModules.length === 0) {
+          if (hasDirectExport || !hasAnyReExport) return;
+
+          context.report({
+            node,
+            message: `${folder}/index.ts re-exports from an external module without local support files; define the exports directly in index.ts. See ${guide}`,
+          });
+          return;
+        }
 
         // Pick one strategy for the whole folder: define directly, or group
         // into re-exported sibling files. Mixing both in the same index.ts is

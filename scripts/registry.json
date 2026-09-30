@@ -434,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.",
-      "hash": "066735c9c0",
+      "text": "A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.",
+      "hash": "b218051d1b",
       "ref": "pasika/support-folder-shape"
     },
     {
@@ -824,8 +824,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A `types/` or `schemas/` folder with exactly one sibling file MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
-      "hash": "2edfd6312e",
+      "text": "A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
+      "hash": "989e2ec044",
       "ref": "pasika/support-folder-shape"
     },
     {
