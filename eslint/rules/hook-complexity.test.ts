@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { hookComplexityRule } from "./hook-complexity";
 
-void describe("A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.", () => {
+void describe("Single-consumer hook logic MUST be extracted when its extraction score reaches two.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
       // One built-in hook, no side effect: scores 0 — should stay.
@@ -136,6 +136,84 @@ void describe("A custom hook with one consumer whose extraction score is below t
           {
             message:
               'Hook "useThing" has an extraction score below two and must be inlined directly into its sole consumer instead of remaining a custom hook. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Inline component coverage for the single-consumer hook extraction requirement.", () => {
+  ruleTester.run("hook-complexity:inline-component", hookComplexityRule, {
+    valid: [
+      {
+        code: [
+          "export function InstagramEditor() {",
+          "  const [layers, setLayers] = useState([]);",
+          "  useEffect(() => { updateCanvasLayers(layers); }, [layers]);",
+          "  return <Canvas layers={layers} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+      },
+      {
+        code: "export function Player() { useEffect(() => { localStorage.getItem('volume'); }, []); return <PlayerView />; }",
+        filename: srcFile("features/player/player.tsx"),
+      },
+      {
+        code: "export const StaticPanel = () => <Panel />;",
+        filename: srcFile("features/panel/static-panel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: [
+          "export function Player({ src }) {",
+          "  useEffect(() => {",
+          "    player.on('play', handlePlay);",
+          "    player.load(src);",
+          "    return () => { player.off('play', handlePlay); player.destroy(); };",
+          "  }, [src]);",
+          "  return <PlayerView />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/player/player.tsx"),
+        errors: [
+          {
+            message:
+              'Component "Player" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+      {
+        code: [
+          "export const AccountPanel = () => {",
+          "  const [account, setAccount] = useState(null);",
+          "  useEffect(() => { void fetch('/api/account').then(setAccount); }, []);",
+          "  return <Panel account={account} />;",
+          "};",
+        ].join("\n"),
+        filename: srcFile("features/account/account-panel.tsx"),
+        errors: [
+          {
+            message:
+              'Component "AccountPanel" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+      {
+        code: [
+          "export function AccountPanel() {",
+          "  const [account, setAccount] = useState(null);",
+          "  useEffect(() => { void fetch('/api/account').then(setAccount); }, []);",
+          "  return <Panel account={account} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/account/account-panel.tsx"),
+        errors: [
+          {
+            message:
+              'Component "AccountPanel" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
           },
         ],
       },

@@ -103,6 +103,23 @@ void describe("A block of elements MUST be extracted as a named component when t
         `,
         filename: componentFile,
       },
+      // Conditional assignments with different top-level arrangements are not repeated.
+      {
+        code: `
+          export function Editor({ editing, active }) {
+            let railContent;
+            if (editing) {
+              railContent = <><Button /><div /></>;
+            } else if (active) {
+              railContent = <><TextToolbar /><div /></>;
+            } else {
+              railContent = <><Button /></>;
+            }
+            return <aside>{railContent}</aside>;
+          }
+        `,
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+      },
       // Small element/expression pairs with different element structure are not repeated.
       {
         code: `
@@ -121,6 +138,66 @@ void describe("A block of elements MUST be extracted as a named component when t
       },
     ],
     invalid: [
+      {
+        // Repeated toolbar skeletons in separate conditional assignments still form one repeated structure.
+        code: `
+          export function InstagramEditor({ editing, media }) {
+            let railContent;
+            if (editing) {
+              railContent = (
+                <>
+                  <Button aria-label="Done"><Check /></Button>
+                  <div className="flex-1" />
+                </>
+              );
+            } else if (media) {
+              railContent = (
+                <>
+                  <Button aria-label="Delete"><Trash2 /></Button>
+                  <div className="flex-1" />
+                </>
+              );
+            } else {
+              railContent = (
+                <>
+                  <Button aria-label="Add"><CaseSensitive /></Button>
+                  <div className="flex-1" />
+                </>
+              );
+            }
+            return <aside>{railContent}</aside>;
+          }
+        `,
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+        errors: [
+          {
+            message:
+              "The same arrangement of elements appears 3 times here; extract it as a named component. " +
+              "Different data or labels do not prevent extraction. " +
+              "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
+          },
+        ],
+      },
+      {
+        // Repeated structural branches in a conditional expression are also extracted.
+        code: `
+          export function Editor({ editing }) {
+            const railContent = editing
+              ? <><Button /><div /><span /></>
+              : <><Button /><div /><span /></>;
+            return <aside>{railContent}</aside>;
+          }
+        `,
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+        errors: [
+          {
+            message:
+              "The same arrangement of elements appears 2 times here; extract it as a named component. " +
+              "Different data or labels do not prevent extraction. " +
+              "See docs/next-codebase-guide/rules/repeated-structure-rule.md",
+          },
+        ],
+      },
       {
         // Small repeated heading + options groups are still one repeated structure.
         code: `

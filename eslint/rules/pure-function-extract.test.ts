@@ -52,6 +52,27 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
         code: "export const PI = 3.14;",
         filename: srcFile("features/dashboard/dashboard.tsx"),
       },
+      // A nested handler that captures component-local state stays in the component.
+      {
+        code: [
+          "export function Editor() {",
+          "  const [layers, setLayers] = useState([]);",
+          "  const removeLayer = (id) => setLayers((prev) => prev.filter((layer) => layer.id !== id));",
+          "  return <Canvas layers={layers} onRemove={removeLayer} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/editor.tsx"),
+      },
+      // A nested helper that reads props is component logic rather than a standalone utility.
+      {
+        code: [
+          "export function Editor({ selectedId }) {",
+          "  function isSelected(id) { return id === selectedId; }",
+          "  return <Canvas selected={isSelected('one')} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/editor.tsx"),
+      },
       // Async I/O helpers in hook support files are not treated as pure
       {
         code: [
@@ -140,6 +161,72 @@ void describe("A pure function MUST be extracted to utils/, even when it has one
           {
             message:
               'Extract pure function "formatCurrency" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Pure helper nested inside a component body.
+      {
+        code: [
+          "export function InstagramEditor() {",
+          "  const shouldKeepEditingOnBlur = (nextFocusTarget) =>",
+          "    nextFocusTarget instanceof HTMLElement &&",
+          "    nextFocusTarget.closest(\"[data-editor-controls='true']\") !== null;",
+          "  return <Canvas shouldKeepEditingOnBlur={shouldKeepEditingOnBlur} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "shouldKeepEditingOnBlur" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Nested function declaration with no component-local captures is also a utility.
+      {
+        code: [
+          "export function Invoice() {",
+          '  function formatPrice(value) { return "$" + value.toFixed(2); }',
+          "  return <span>{formatPrice(10)}</span>;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/billing/invoice.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatPrice" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Pure helper nested in an arrow-function component is also extracted.
+      {
+        code: [
+          "export const Invoice = () => {",
+          '  function formatPrice(value) { return "$" + value.toFixed(2); }',
+          "  return <span>{formatPrice(10)}</span>;",
+          "};",
+        ].join("\n"),
+        filename: srcFile("features/billing/invoice.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatPrice" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
+          },
+        ],
+      },
+      // Pure arrow helper nested in a function-expression component is extracted.
+      {
+        code: [
+          "export const Invoice = function () {",
+          '  const formatPrice = (value) => "$" + value.toFixed(2);',
+          "  return <span>{formatPrice(10)}</span>;",
+          "};",
+        ].join("\n"),
+        filename: srcFile("features/billing/invoice.tsx"),
+        errors: [
+          {
+            message:
+              'Extract pure function "formatPrice" to utils/. See docs/next-codebase-guide/rules/utilities-rule.md',
           },
         ],
       },

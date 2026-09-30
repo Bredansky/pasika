@@ -25,6 +25,7 @@ import type * as ESTree from "estree";
 import ts from "typescript";
 import type { FunctionDeclarationNode } from "../ast-types";
 import { getProjectIndex, symbolKey } from "../project/index";
+import { parseComponentInfo, type ComponentInfo } from "./component-conventions";
 import { sourceRootOf } from "./project-root";
 
 const REACT_HOOKS = new Set([
@@ -119,6 +120,11 @@ function sideEffectCategoryOf(
  * body's source slice with the TypeScript compiler so the walk stays fully
  * typed instead of unrolling ESTree unions by hand.
  */
+function score(hookNames: Set<string>, sideEffectCategories: Set<string>): number {
+  const hookDiversityPoint = hookNames.size >= 2 ? 1 : 0;
+  return hookDiversityPoint + sideEffectCategories.size;
+}
+
 function computeExtractionScore(body: ESTree.BlockStatement, sourceText: string): number {
   const start = body.range?.[0] ?? 0;
   const end = body.range?.[1] ?? sourceText.length;
@@ -143,8 +149,46 @@ function computeExtractionScore(body: ESTree.BlockStatement, sourceText: string)
   };
   visit(sourceFile);
 
-  const hookDiversityPoint = hookNames.size >= 2 ? 1 : 0;
-  return hookDiversityPoint + sideEffectCategories.size;
+  return score(hookNames, sideEffectCategories);
+}
+
+function componentBody(component: ComponentInfo): ts.Block | undefined {
+  const { declaration } = component;
+  if (ts.isFunctionDeclaration(declaration)) return declaration.body;
+
+  const initializer = declaration.initializer;
+  if (!initializer || (!ts.isArrowFunction(initializer) && !ts.isFunctionExpression(initializer))) return undefined;
+  return ts.isBlock(initializer.body) ? initializer.body : undefined;
+}
+
+function computeInlineComponentExtractionScore(component: ComponentInfo): number {
+  const body = componentBody(component);
+  if (!body) return 0;
+
+  const hookNames = new Set<string>();
+  const sideEffectCategories = new Set<string>();
+
+  const collectSideEffects = (node: ts.Node): void => {
+    const sideEffect = sideEffectCategoryOf(node);
+    if (sideEffect) sideEffectCategories.add(sideEffect);
+    ts.forEachChild(node, collectSideEffects);
+  };
+
+  const visit = (node: ts.Node): void => {
+    if (node !== body && ts.isFunctionLike(node)) return;
+
+    const hookName = calledHookName(node);
+    if (hookName && ts.isCallExpression(node)) {
+      hookNames.add(hookName);
+      for (const argument of node.arguments) collectSideEffects(argument);
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  };
+
+  visit(body);
+  return score(hookNames, sideEffectCategories);
 }
 
 export const hookComplexityRule: Rule.RuleModule = {
@@ -152,7 +196,7 @@ export const hookComplexityRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require extraction of complex single-consumer hooks and inline of simple ones.",
+      description: "Require extraction of complex inline or single-consumer hook logic and inline of simple hooks.",
     },
   },
   create(context) {
@@ -182,21 +226,41 @@ export const hookComplexityRule: Rule.RuleModule = {
       hooks.push({ node, name, body, exported });
     }
 
+    function reportInlineComponentHooks(): void {
+      if (!filename.endsWith(".tsx") && !filename.endsWith(".jsx")) return;
+
+      const components = parseComponentInfo(sourceText, filename, { includeNonExported: true });
+      for (const component of components) {
+        const extractionScore = computeInlineComponentExtractionScore(component);
+        if (extractionScore < 2) continue;
+
+        const sourceFile = component.declaration.getSourceFile();
+        const { line } = sourceFile.getLineAndCharacterOfPosition(component.declaration.getStart(sourceFile));
+        context.report({
+          loc: { line: line + 1, column: 0 },
+          message:
+            `Component "${component.name}" has inline hook logic with an extraction score of ${String(extractionScore)}; ` +
+            "extract that logic to a custom hook in a hooks/ folder. " +
+            "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
+        });
+      }
+    }
+
     function reportHooks(): void {
       const parentFolder = segments.length >= 2 ? segments[segments.length - 2] : undefined;
       const inSupportFolder = parentFolder === "hooks";
 
       for (const { node, name, body, exported } of hooks) {
-        const score = computeExtractionScore(body, sourceText);
+        const extractionScore = computeExtractionScore(body, sourceText);
         const hasLocalConsumer = localHookCalls.has(name);
         const externalConsumerCount = exported ? (index?.symbolConsumers.get(symbolKey(filename, name))?.size ?? 0) : 0;
 
-        if (score >= 2) {
+        if (extractionScore >= 2) {
           if (!inSupportFolder && (exported || hasLocalConsumer)) {
             context.report({
               node,
               message:
-                `Hook "${name}" has an extraction score of ${String(score)} and must be extracted to a hooks/ folder. ` +
+                `Hook "${name}" has an extraction score of ${String(extractionScore)} and must be extracted to a hooks/ folder. ` +
                 "See docs/next-codebase-guide/rules/hook-extraction-rule.md",
             });
           }
@@ -255,6 +319,7 @@ export const hookComplexityRule: Rule.RuleModule = {
 
       "Program:exit"() {
         reportHooks();
+        reportInlineComponentHooks();
       },
     };
   },

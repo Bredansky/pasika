@@ -61,6 +61,34 @@ function hasHookUsage(body: ESTree.BlockStatement): boolean {
   return false;
 }
 
+function enclosingComponentFunction(node: Rule.Node): Rule.Node | undefined {
+  let current = node.parent;
+
+  while (current) {
+    if (current.type === "FunctionDeclaration") {
+      const name = current.id.name;
+      return name && isComponentLikeName(name) ? current : undefined;
+    }
+
+    if (current.type === "ArrowFunctionExpression" || current.type === "FunctionExpression") {
+      const declarator = current.parent;
+      if (declarator.type !== "VariableDeclarator" || declarator.id.type !== "Identifier") return undefined;
+      return isComponentLikeName(declarator.id.name) ? current : undefined;
+    }
+
+    current = current.parent;
+  }
+
+  return undefined;
+}
+
+function capturesComponentLocal(context: Rule.RuleContext, helper: ESTree.Node, component: Rule.Node): boolean {
+  const helperScope = context.sourceCode.getScope(helper);
+  const componentScope = context.sourceCode.getScope(component);
+
+  return helperScope.through.some((reference) => reference.resolved?.scope === componentScope);
+}
+
 export const pureFunctionExtractRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -99,16 +127,23 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
 
     return {
       FunctionDeclaration(node: FunctionDeclarationNode) {
-        const exported = node.parent?.type === "ExportNamedDeclaration";
-        const moduleLevel = exported || node.parent?.type === "Program";
-        if (!moduleLevel) return;
-
         const name = node.id?.name;
         if (!name) return;
         if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
         if (isHookSupportFile && node.async) return;
         if (!node.body || hasHookUsage(node.body)) return;
+
+        const exported = node.parent?.type === "ExportNamedDeclaration";
+        const moduleLevel = exported || node.parent?.type === "Program";
+        if (moduleLevel) {
+          report(node, name);
+          return;
+        }
+
+        if (!isComponentFile) return;
+        const component = enclosingComponentFunction(node);
+        if (!component || capturesComponentLocal(context, node, component)) return;
         report(node, name);
       },
 
@@ -116,12 +151,6 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         if (node.id.type !== "Identifier") return;
         const name = node.id.name;
         if (!name) return;
-
-        const container = node.parent.parent;
-        const exported = container?.type === "ExportNamedDeclaration";
-        const moduleLevel = exported || container?.type === "Program";
-        if (!moduleLevel) return;
-
         if (isRouteFile && ROUTE_HANDLER_EXPORT_NAMES.has(name)) return;
         if (isComponentLikeName(name) || isHookName(name)) return;
 
@@ -131,6 +160,18 @@ export const pureFunctionExtractRule: Rule.RuleModule = {
         }
         if (isHookSupportFile && init.async) return;
         if (init.body.type === "BlockStatement" && hasHookUsage(init.body)) return;
+
+        const container = node.parent.parent;
+        const exported = container?.type === "ExportNamedDeclaration";
+        const moduleLevel = exported || container?.type === "Program";
+        if (moduleLevel) {
+          report(node, name);
+          return;
+        }
+
+        if (!isComponentFile) return;
+        const component = enclosingComponentFunction(node);
+        if (!component || capturesComponentLocal(context, init, component)) return;
         report(node, name);
       },
     };
