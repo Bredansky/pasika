@@ -650,6 +650,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.",
+      "hash": "c5cac7c419",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
       "hash": "95c280a1ee",
       "ref": "pasika/no-redundant-alias"

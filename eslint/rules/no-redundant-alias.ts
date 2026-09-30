@@ -109,6 +109,24 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         });
       },
 
+      ExportNamedDeclaration(node) {
+        for (const specifier of node.specifiers) {
+          if (specifier.local.type !== "Identifier" || specifier.exported.type !== "Identifier") continue;
+
+          const source = specifier.local.name;
+          const alias = specifier.exported.name;
+          if (source === alias) continue;
+
+          const frameworkRouteAlias = path.basename(context.filename) === "route.ts" && HTTP_METHODS.has(alias);
+          if (frameworkRouteAlias) continue;
+
+          context.report({
+            node: specifier,
+            message: aliasMessage(alias, source),
+          });
+        }
+      },
+
       TSInterfaceDeclaration(node: TsInterfaceDeclarationNode) {
         if (node.typeParameters || node.body?.body?.length !== 0 || node.extends?.length !== 1) return;
 

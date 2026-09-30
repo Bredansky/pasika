@@ -50,6 +50,45 @@ void describe("A `const` variable declaration whose initializer is another symbo
   });
 });
 
+void describe("An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.", () => {
+  ruleTester.run("no-redundant-alias:exports", noRedundantAliasRule, {
+    valid: [
+      {
+        code: "const defaultSliderMin = 6; export { defaultSliderMin };",
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: 'export { defaultSliderMin } from "./slider";',
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: 'export { handler as GET, handler as POST } from "./handler";',
+        filename: srcFile("app/api/example/route.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: "const defaultSliderMin = 6; export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: aliasMessage("TEXT_SIZE_SLIDER_MIN", "defaultSliderMin"),
+          },
+        ],
+      },
+      {
+        code: 'export { defaultSliderMax as TEXT_SIZE_SLIDER_MAX } from "./slider";',
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: aliasMessage("TEXT_SIZE_SLIDER_MAX", "defaultSliderMax"),
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.", () => {
   ruleTester.run("no-redundant-alias:types", noRedundantAliasRule, {
     valid: [
