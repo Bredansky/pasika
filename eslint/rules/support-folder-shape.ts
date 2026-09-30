@@ -35,7 +35,9 @@ export const supportFolderShapeRule: Rule.RuleModule = {
     return {
       Program(node) {
         const source = context.sourceCode.text;
-        const hasDirectExport = /export\s+(?:const|let|var|function|class|type|interface|enum)\b/.test(source);
+        const hasDirectExport =
+          /export\s+(?:const|let|var|function|class|interface|enum)\b/.test(source) ||
+          /export\s+type\s+[A-Za-z_$][\w$]*(?:\s*<[^;=]*>)?\s*=/.test(source);
 
         const exportedFiles = new Set<string>();
         let hasAnyReExport = false;
