@@ -69,9 +69,17 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
   const direct = fixture("types", "export interface Invoice { id: string; }\n", "invoice.ts");
   const singleReExport = fixture("types", 'export { Invoice } from "./invoice";\n', "invoice.ts");
   const singleWildcardReExport = fixture("schemas", 'export * from "./invoice-schema";\n', "invoice-schema.ts");
+  const singleTypeWildcardReExport = fixture("types", 'export type * from "./invoice";\n', "invoice.ts");
+  const groupedTypeWildcardReExports = fixture(
+    "types",
+    'export type * from "./invoice";\nexport type * from "./payment";\n',
+    "invoice.ts",
+  );
+  writeFileSync(path.join(path.dirname(groupedTypeWildcardReExports), "payment.ts"), "export type Payment = string;\n");
   const invalid = fixture("schemas", "\n", "invoice-schema.ts");
   const emptyDirect = emptyFixture("types", "export type Value = string;\n");
   const externalTypeProxy = emptyFixture("types", 'export * from "@/features/editor/Poster/types";\n');
+  const externalTypeOnlyProxy = emptyFixture("types", 'export type * from "@/features/editor/Poster/types";\n');
   const externalSchemaProxy = emptyFixture("schemas", 'export * from "@/schemas";\n');
   const mixedAndNamed = fixture(
     "types",
@@ -87,14 +95,24 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
     valid: [
       { code: "export interface Invoice { id: string; }", filename: direct },
       { code: "export type Value = string;", filename: emptyDirect },
+      {
+        code: 'export type * from "./invoice";\nexport type * from "./payment";',
+        filename: groupedTypeWildcardReExports,
+      },
     ],
     invalid: [
       { code: 'export { Invoice } from "./invoice";', filename: singleReExport, errors: 1 },
       { code: 'export * from "./invoice-schema";', filename: singleWildcardReExport, errors: 1 },
+      { code: 'export type * from "./invoice";', filename: singleTypeWildcardReExport, errors: 1 },
       { code: "", filename: invalid, errors: 1 },
       {
         code: 'export * from "@/features/editor/Poster/types";',
         filename: externalTypeProxy,
+        errors: 1,
+      },
+      {
+        code: 'export type * from "@/features/editor/Poster/types";',
+        filename: externalTypeOnlyProxy,
         errors: 1,
       },
       {
