@@ -3,6 +3,7 @@
 Without a fixed set of folders, every contributor invents a new place for code and the layer model stops describing the repository. This rule fixes which folders exist and what each one holds.
 
 - Application source MUST live under `src/`.
+- A source file MUST NOT exceed 300 lines.
 - `src/` MUST contain only the `app/`, `compositions/`, `features/`, and `shared/` folders, the root support folders, `config/`, `locales/`, and the files a framework requires at the `src` root.
 - `src/features/` MUST contain only feature folders.
 - A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds.

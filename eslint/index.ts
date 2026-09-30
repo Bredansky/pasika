@@ -26,6 +26,7 @@ import { documentationRules } from "./rules/documentation/index";
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
 import { enforceCvaVariantPropsRule } from "./rules/enforce-cva-variant-props";
+import { fileLengthRule } from "./rules/file-length";
 import { filenameCaseRule } from "./rules/filename-case";
 import { hookComplexityRule } from "./rules/hook-complexity";
 import { hookExtractionRule } from "./rules/hook-extraction";
@@ -80,6 +81,7 @@ import { assertTypescriptAlignment } from "./ts-alignment";
  */
 const pasikaNextjsAppRules = {
   // Framework-agnostic TypeScript rules.
+  "file-length": fileLengthRule,
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
   "import-spacing": importSpacingRule,
