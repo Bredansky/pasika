@@ -141,6 +141,37 @@ function structuralChildren(node: JsxNode): (JsxNode | JsxExpressionContainer)[]
   );
 }
 
+function branchRootSignature(node: JsxNode): string | undefined {
+  const children = blockChildren(node);
+  if (children.length < 2) return undefined;
+
+  return children
+    .map((child) => {
+      const opening = nodeKind(child) === "JSXFragment" ? "<>" : (child.openingElement?.name.name ?? "<>");
+      const attributes = (child.openingElement?.attributes ?? [])
+        .filter((attribute) => attribute.type === "JSXAttribute")
+        .map((attribute) => attribute.name?.name ?? "")
+        .sort()
+        .join(",");
+      return `${opening}[${attributes}]`;
+    })
+    .join("/");
+}
+
+function isConditionalAssignmentRoot(node: JsxNode): boolean {
+  let current: Rule.Node = node;
+  let parent = current.parent;
+
+  while (parent) {
+    const parentType: string = parent.type;
+    if (parentType !== "ParenthesizedExpression") break;
+    current = parent;
+    parent = current.parent;
+  }
+
+  return parent?.type === "AssignmentExpression" || parent?.type === "ConditionalExpression";
+}
+
 export const repeatedStructureRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -152,18 +183,40 @@ export const repeatedStructureRule: Rule.RuleModule = {
   create(context) {
     if (!context.filename.endsWith(".tsx") && !context.filename.endsWith(".jsx")) return {};
 
+    const conditionalAssignmentBlocks = new Map<string, JsxNode[]>();
+
     return {
       JSXElement(node: JsxNode) {
         checkChildren(node);
+        collectConditionalAssignmentBlock(node);
       },
       JSXFragment(node: JsxNode) {
         checkChildren(node);
+        collectConditionalAssignmentBlock(node);
+      },
+      "Program:exit"() {
+        for (const group of conditionalAssignmentBlocks.values()) {
+          if (group.length < 2) continue;
+          const first = group[0];
+          if (!first) continue;
+          reportRepeatedStructure(first, group.length);
+        }
       },
     };
 
     function checkChildren(node: JsxNode): void {
       checkSubstantialBlocks(node);
       checkSmallElementExpressionPairs(node);
+    }
+
+    function collectConditionalAssignmentBlock(node: JsxNode): void {
+      if (!isConditionalAssignmentRoot(node) || !isSubstantial(node)) return;
+      const sig = branchRootSignature(node);
+      if (!sig) return;
+
+      const group = conditionalAssignmentBlocks.get(sig) ?? [];
+      group.push(node);
+      conditionalAssignmentBlocks.set(sig, group);
     }
 
     function checkSubstantialBlocks(node: JsxNode): void {

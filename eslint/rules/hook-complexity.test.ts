@@ -143,6 +143,84 @@ void describe("A custom hook with one consumer whose extraction score is below t
   });
 });
 
+void describe("A component's inline built-in hook logic MUST be extracted to a custom hook when its extraction score reaches two.", () => {
+  ruleTester.run("hook-complexity:inline-component", hookComplexityRule, {
+    valid: [
+      {
+        code: [
+          "export function InstagramEditor() {",
+          "  const [layers, setLayers] = useState([]);",
+          "  useEffect(() => { updateCanvasLayers(layers); }, [layers]);",
+          "  return <Canvas layers={layers} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/editor/instagram-editor.tsx"),
+      },
+      {
+        code: "export function Player() { useEffect(() => { localStorage.getItem('volume'); }, []); return <PlayerView />; }",
+        filename: srcFile("features/player/player.tsx"),
+      },
+      {
+        code: "export const StaticPanel = () => <Panel />;",
+        filename: srcFile("features/panel/static-panel.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: [
+          "export function Player({ src }) {",
+          "  useEffect(() => {",
+          "    player.on('play', handlePlay);",
+          "    player.load(src);",
+          "    return () => { player.off('play', handlePlay); player.destroy(); };",
+          "  }, [src]);",
+          "  return <PlayerView />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/player/player.tsx"),
+        errors: [
+          {
+            message:
+              'Component "Player" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+      {
+        code: [
+          "export const AccountPanel = () => {",
+          "  const [account, setAccount] = useState(null);",
+          "  useEffect(() => { void fetch('/api/account').then(setAccount); }, []);",
+          "  return <Panel account={account} />;",
+          "};",
+        ].join("\n"),
+        filename: srcFile("features/account/account-panel.tsx"),
+        errors: [
+          {
+            message:
+              'Component "AccountPanel" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+      {
+        code: [
+          "export function AccountPanel() {",
+          "  const [account, setAccount] = useState(null);",
+          "  useEffect(() => { void fetch('/api/account').then(setAccount); }, []);",
+          "  return <Panel account={account} />;",
+          "}",
+        ].join("\n"),
+        filename: srcFile("features/account/account-panel.tsx"),
+        errors: [
+          {
+            message:
+              'Component "AccountPanel" has inline hook logic with an extraction score of 2; extract that logic to a custom hook in a hooks/ folder. See docs/next-codebase-guide/rules/hook-extraction-rule.md',
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("Five imperative categories, each worth at most one point regardless of how many times it occurs: calling two or more distinct built-in hooks, and each of four kinds of imperative work a hook body's other calls can perform — subscriptions, external I/O and persistence, DOM manipulation, or resource lifecycle.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [],
