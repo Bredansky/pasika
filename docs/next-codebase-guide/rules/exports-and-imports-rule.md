@@ -4,8 +4,8 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - Consecutive import declarations MUST NOT be separated by a blank line.
-- Imports MUST use whichever of the relative path and the `@/*` alias has fewer segments, counting each `../` step and each name in the path as one segment.
-- Imports MUST use the relative path when the relative path and the `@/*` alias have the same number of segments.
+- An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
+- A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
 - A file under `src/compositions/` MUST NOT import from `src/app/`.
 - A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.
 - A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
@@ -38,16 +38,16 @@ export function formatDuration(seconds: number): string {
 
 Why: the utility uses the same named-export form as every other file that does not have a package-required export contract.
 
-## Incorrect — Relative Path Longer Than the Alias
+## Incorrect — Relative Path Traverses Multiple Parents
 
 ```ts
-// src/features/stream/StreamBoard/schedule.ts
-import { debounce } from "../../../utils/debounce";
+// src/features/billing/InvoiceCard/rows/row.tsx
+import { format } from "../../utils/format";
 ```
 
-Why: the relative path spends five segments — three `../` steps plus two names — where `@/utils/debounce` spends two, so this is the longer of the two forms.
+Why: relative imports may traverse at most one parent directory. A `../../` path must use the `@/*` alias instead.
 
-## Correct — Shortest Form for Each Import
+## Correct — Relative Nearby, Alias When Deep
 
 ```ts
 // src/features/stream/StreamBoard/schedule.ts
@@ -57,25 +57,25 @@ import { type StreamSlot } from "./types";
 import { buildSchedule } from "../schedule-builder";
 ```
 
-Why: the alias is shorter for the distant utility, while every import inside the component folder or its parent is shorter written relatively.
+Why: imports in the current directory or direct parent use relative paths; the distant utility requires multiple parent traversals, so it uses the alias.
 
-## Incorrect — Relative Path Where the Alias Is Shorter
-
-```ts
-// src/compositions/dashboard-view.tsx
-import { locales } from "../locales";
-```
-
-Why: the relative path spends two segments against the alias's one, and stepping out of `src/compositions/` reads as though `locales` were a neighbouring file.
-
-## Correct — Alias Where It Is Shorter
+## Incorrect — Alias For A Direct Parent Import
 
 ```ts
 // src/compositions/dashboard-view.tsx
 import { locales } from "@/locales";
 ```
 
-Why: one segment against two makes the alias the shorter form, and it names the root folder the import actually comes from.
+Why: the target is in the importer's direct parent directory, so the import must use `../`.
+
+## Correct — Relative Path To The Direct Parent
+
+```ts
+// src/compositions/dashboard-view.tsx
+import { locales } from "../locales";
+```
+
+Why: one parent traversal is allowed and must remain relative.
 
 ## Incorrect — Next.js Page Uses a Named Export
 
