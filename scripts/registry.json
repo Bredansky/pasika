@@ -566,14 +566,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.",
-      "hash": "aa6d353adf",
-      "ref": "pasika/hook-complexity"
-    },
-    {
-      "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
-      "text": "A component's inline built-in hook logic MUST be extracted to a custom hook when its extraction score reaches two.",
-      "hash": "72c3a02df5",
+      "text": "Single-consumer hook logic MUST be extracted when its extraction score reaches two.",
+      "hash": "dc3ec51981",
       "ref": "pasika/hook-complexity"
     },
     {

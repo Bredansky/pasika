@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { hookComplexityRule } from "./hook-complexity";
 
-void describe("A custom hook with exactly one consumer MUST be extracted when its extraction score reaches two.", () => {
+void describe("Single-consumer hook logic MUST be extracted when its extraction score reaches two.", () => {
   ruleTester.run("hook-complexity", hookComplexityRule, {
     valid: [
       // One built-in hook, no side effect: scores 0 — should stay.
@@ -143,7 +143,7 @@ void describe("A custom hook with one consumer whose extraction score is below t
   });
 });
 
-void describe("A component's inline built-in hook logic MUST be extracted to a custom hook when its extraction score reaches two.", () => {
+void describe("Inline component coverage for the single-consumer hook extraction requirement.", () => {
   ruleTester.run("hook-complexity:inline-component", hookComplexityRule, {
     valid: [
       {
