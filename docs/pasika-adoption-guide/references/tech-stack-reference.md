@@ -165,7 +165,6 @@ npm run typecheck
 npm run lint:prune
 git add eslint-suppressions.json
 npm run test:unit:coverage
-git add vitest.config.ts
 npx libyear --limit-major-individual=1
 ```
 

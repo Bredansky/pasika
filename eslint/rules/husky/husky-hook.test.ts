@@ -32,13 +32,12 @@ function buildFixture(preCommit: string, suppressions?: string): string {
   return path.join(root, "package.json");
 }
 
-const COVERAGE_RATCHET = `npm run test:unit:coverage
-git add vitest.config.ts`;
+const COVERAGE_CHECK = "npm run test:unit:coverage";
 
 // Has lint-staged, typecheck, coverage, and libyear — everything but lint:prune.
 const BASE_HOOK = `npx lint-staged
 npm run typecheck
-${COVERAGE_RATCHET}
+${COVERAGE_CHECK}
 npx libyear --limit-major-individual=1
 `;
 // Every named script the rule can require.
@@ -46,12 +45,12 @@ const FULL_HOOK = `npx lint-staged
 npm run typecheck
 npm run lint:prune
 git add eslint-suppressions.json
-${COVERAGE_RATCHET}
+${COVERAGE_CHECK}
 npx libyear --limit-major-individual=1
 `;
-// Missing typecheck while retaining the coverage ratchet.
+// Missing typecheck while retaining the coverage check.
 const NO_TYPECHECK_HOOK = `npx lint-staged
-${COVERAGE_RATCHET}
+${COVERAGE_CHECK}
 npx libyear --limit-major-individual=1
 `;
 
@@ -77,7 +76,7 @@ void describe("A repository MUST configure .husky/pre-commit to run lint-staged.
 
   // lint-staged is absent from the hook entirely
   const withoutLintStaged = buildFixture(
-    `npm run typecheck\n${COVERAGE_RATCHET}\nnpx libyear --limit-major-individual=1\n`,
+    `npm run typecheck\n${COVERAGE_CHECK}\nnpx libyear --limit-major-individual=1\n`,
   );
   process.chdir(path.dirname(withoutLintStaged));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
@@ -101,7 +100,7 @@ void describe("A repository MUST configure .husky/pre-commit to run npx libyear 
   });
 
   // libyear is absent from the hook entirely
-  const withoutLibyear = buildFixture(`npx lint-staged\nnpm run typecheck\n${COVERAGE_RATCHET}\n`);
+  const withoutLibyear = buildFixture(`npx lint-staged\nnpm run typecheck\n${COVERAGE_CHECK}\n`);
   process.chdir(path.dirname(withoutLibyear));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
     valid: [],
@@ -115,11 +114,11 @@ void describe("A repository MUST configure .husky/pre-commit to run npx libyear 
   });
 });
 
-void describe("A repository MUST run npm run test:unit:coverage in .husky/pre-commit, then stage its auto-updated Vitest config.", () => {
-  const withRatchet = buildFixture(BASE_HOOK);
-  process.chdir(path.dirname(withRatchet));
+void describe("A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.", () => {
+  const withCoverage = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(withCoverage));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: withRatchet }],
+    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: withCoverage }],
     invalid: [],
   });
 
@@ -134,28 +133,6 @@ void describe("A repository MUST run npm run test:unit:coverage in .husky/pre-co
         errors: [
           { message: 'package.json must declare a "test:unit:coverage" script.' },
           { message: ".husky/pre-commit must run npm run test:unit:coverage." },
-          {
-            message: ".husky/pre-commit must stage an auto-updated vitest.config.ts after coverage.",
-          },
-        ],
-      },
-    ],
-  });
-
-  const withoutRatchet = buildFixture(
-    `npx lint-staged\nnpm run typecheck\nnpm run test:unit:coverage\nnpx libyear --limit-major-individual=1\n`,
-  );
-  process.chdir(path.dirname(withoutRatchet));
-  huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [],
-    invalid: [
-      {
-        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
-        filename: withoutRatchet,
-        errors: [
-          {
-            message: ".husky/pre-commit must stage an auto-updated vitest.config.ts after coverage.",
-          },
         ],
       },
     ],
@@ -224,7 +201,7 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
   });
 
   const withoutSuppressionRatchet = buildFixture(
-    `npx lint-staged\nnpm run typecheck\nnpm run lint:prune\n${COVERAGE_RATCHET}\nnpx libyear --limit-major-individual=1\n`,
+    `npx lint-staged\nnpm run typecheck\nnpm run lint:prune\n${COVERAGE_CHECK}\nnpx libyear --limit-major-individual=1\n`,
     "{}",
   );
   process.chdir(path.dirname(withoutSuppressionRatchet));

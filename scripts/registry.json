@@ -650,6 +650,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.",
+      "hash": "c5cac7c419",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.",
       "hash": "95c280a1ee",
       "ref": "pasika/no-redundant-alias"
@@ -1142,8 +1148,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.",
-      "hash": "1b0ac9feb5",
+      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.",
+      "hash": "2638d579e3",
       "ref": "pasika/husky-hook"
     },
     {
