@@ -1148,8 +1148,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`, then stage its auto-updated Vitest config.",
-      "hash": "1b0ac9feb5",
+      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.",
+      "hash": "2638d579e3",
       "ref": "pasika/husky-hook"
     },
     {

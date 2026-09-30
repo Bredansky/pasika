@@ -14,18 +14,17 @@ const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
 type TsEntityName =
-  | { type?: "Identifier"; name?: string }
-  | { type?: "TSQualifiedName"; left?: TsEntityName; right?: { type?: "Identifier"; name?: string } }
+  | { type: "Identifier"; name: string }
+  | { type: "TSQualifiedName"; left: TsEntityName; right: { type: "Identifier"; name: string } }
   | {
-      type?: "MemberExpression";
-      computed?: boolean;
-      object?: TsEntityName;
-      property?: { type?: "Identifier"; name?: string };
+      type: "MemberExpression";
+      object: TsEntityName;
+      property: { type: "Identifier"; name: string };
     };
 
 type TsTypeReferenceNode = Omit<Rule.Node, "type"> & {
   type: string;
-  typeName?: TsEntityName;
+  typeName: TsEntityName;
   typeArguments?: Rule.Node;
 };
 type TsTypeAliasDeclarationNode = Rule.Node & {
@@ -35,7 +34,7 @@ type TsTypeAliasDeclarationNode = Rule.Node & {
 };
 
 interface TsInterfaceHeritageNode {
-  expression?: TsEntityName;
+  expression: TsEntityName;
   typeArguments?: Rule.Node;
 }
 
@@ -46,22 +45,17 @@ type TsInterfaceDeclarationNode = Rule.Node & {
   typeParameters?: Rule.Node;
 };
 
-function entityNameText(name: TsEntityName | undefined): string | undefined {
-  if (!name) return undefined;
+function entityNameText(name: TsEntityName): string | undefined {
   if (name.type === "Identifier") return name.name;
   if (name.type === "TSQualifiedName") {
     const left = entityNameText(name.left);
-    const right = name.right?.name;
+    const right = name.right.name;
     return left && right ? `${left}.${right}` : undefined;
   }
 
-  if (name.type === "MemberExpression" && !name.computed) {
-    const object = entityNameText(name.object);
-    const property = name.property?.name;
-    return object && property ? `${object}.${property}` : undefined;
-  }
-
-  return undefined;
+  const object = entityNameText(name.object);
+  const property = name.property.name;
+  return object && property ? `${object}.${property}` : undefined;
 }
 function aliasMessage(alias: string | undefined, source: string | undefined): string {
   const aliasName = alias ?? "This declaration";
@@ -130,16 +124,17 @@ export const noRedundantAliasRule: Rule.RuleModule = {
       TSInterfaceDeclaration(node: TsInterfaceDeclarationNode) {
         if (node.typeParameters || node.body?.body?.length !== 0 || node.extends?.length !== 1) return;
 
-        const heritage = node.extends[0];
-        if (heritage?.typeArguments) return;
+        for (const heritage of node.extends) {
+          if (heritage.typeArguments) return;
 
-        const source = entityNameText(heritage?.expression);
-        if (!source) return;
+          const source = entityNameText(heritage.expression);
+          if (!source) return;
 
-        context.report({
-          node,
-          message: aliasMessage(node.id?.name, source),
-        });
+          context.report({
+            node,
+            message: aliasMessage(node.id?.name, source),
+          });
+        }
       },
     };
   },

@@ -62,6 +62,10 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
         filename: srcFile("utils/example.ts"),
       },
       {
+        code: 'export { defaultSliderMin as "text-size-slider-min" };',
+        filename: srcFile("utils/example.ts"),
+      },
+      {
         code: 'export { handler as GET, handler as POST } from "./handler";',
         filename: srcFile("app/api/example/route.ts"),
       },
