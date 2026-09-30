@@ -1,19 +1,20 @@
 # Redundant Aliases Rule
 
-Aliases that only give an existing symbol a second name hide incomplete renames and increase cognitive load. This rule keeps one canonical name unless a declaration changes or composes the underlying value or type.
+Aliases that only give an existing symbol or primitive type a second name hide incomplete renames and increase cognitive load. This rule keeps one canonical name unless a declaration changes or composes the underlying value or type.
 
 - A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.
+- A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
-## Incorrect — Declarations Only Rename Existing Symbols
+## Incorrect — Declarations Only Rename Existing Symbols or Primitive Types
 
 ```ts
 const ApiClient = PlatformClient;
 export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };
 
 type ApiCredential = PlatformCredentialApi;
+type FlagKeys = string;
 
 interface ApiResponse extends PlatformResponse {}
 ```

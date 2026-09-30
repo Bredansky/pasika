@@ -2,7 +2,7 @@
  * ESLint rule: pasika/no-redundant-alias
  *
  * Prevents variable, type, and empty-interface declarations from creating a
- * second name for an existing symbol without adding behavior or type structure.
+ * second name for an existing symbol or primitive type without adding behavior or type structure.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
@@ -12,6 +12,15 @@ import type { Rule } from "eslint";
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
+  TSBigIntKeyword: "bigint",
+  TSBooleanKeyword: "boolean",
+  TSNullKeyword: "null",
+  TSNumberKeyword: "number",
+  TSStringKeyword: "string",
+  TSSymbolKeyword: "symbol",
+  TSUndefinedKeyword: "undefined",
+};
 
 type TsEntityName =
   | { type: "Identifier"; name: string }
@@ -22,14 +31,14 @@ type TsEntityName =
       property: { type: "Identifier"; name: string };
     };
 
-type TsTypeReferenceNode = Omit<Rule.Node, "type"> & {
+type TsTypeAnnotationNode = Omit<Rule.Node, "type"> & {
   type: string;
-  typeName: TsEntityName;
+  typeName?: TsEntityName;
   typeArguments?: Rule.Node;
 };
 type TsTypeAliasDeclarationNode = Rule.Node & {
   id?: { name?: string };
-  typeAnnotation?: TsTypeReferenceNode;
+  typeAnnotation?: TsTypeAnnotationNode;
   typeParameters?: Rule.Node;
 };
 
@@ -57,6 +66,14 @@ function entityNameText(name: TsEntityName): string | undefined {
   const property = name.property.name;
   return object && property ? `${object}.${property}` : undefined;
 }
+function aliasedTypeName(annotation: TsTypeAnnotationNode): string | undefined {
+  const primitiveTypeName = PRIMITIVE_TYPE_NAMES[annotation.type];
+  if (primitiveTypeName) return primitiveTypeName;
+  if (annotation.type !== "TSTypeReference" || annotation.typeArguments || !annotation.typeName) return undefined;
+
+  return entityNameText(annotation.typeName);
+}
+
 function aliasMessage(alias: string | undefined, source: string | undefined): string {
   const aliasName = alias ?? "This declaration";
   const sourceName = source ?? "the original symbol";
@@ -92,9 +109,9 @@ export const noRedundantAliasRule: Rule.RuleModule = {
       TSTypeAliasDeclaration(node: TsTypeAliasDeclarationNode) {
         if (node.typeParameters) return;
         const annotation = node.typeAnnotation;
-        if (annotation?.type !== "TSTypeReference" || annotation.typeArguments) return;
+        if (!annotation) return;
 
-        const source = entityNameText(annotation.typeName);
+        const source = aliasedTypeName(annotation);
         if (!source) return;
 
         context.report({

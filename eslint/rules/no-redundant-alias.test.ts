@@ -93,12 +93,13 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("A type alias that directly names one non-generic type MUST NOT introduce a second name for that type.", () => {
+void describe("A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.", () => {
   ruleTester.run("no-redundant-alias:types", noRedundantAliasRule, {
     valid: [
       {
         code: [
-          "type Identifier = string;",
+          "type BrandedIdentifier = string & { readonly __brand: unique symbol };",
+          "type OptionalIdentifier = string | undefined;",
           'type ApiCredential = PlatformCredentialApi & { source: "api" };',
           "type Generic<T> = Box<T>;",
           "type Specialized = Box<string>;",
@@ -108,6 +109,27 @@ void describe("A type alias that directly names one non-generic type MUST NOT in
       },
     ],
     invalid: [
+      {
+        code: [
+          "type FlagKeys = string;",
+          "type Count = number;",
+          "type Enabled = boolean;",
+          "type Token = symbol;",
+          "type Size = bigint;",
+          "type Empty = null;",
+          "type Missing = undefined;",
+        ].join("\n"),
+        filename: srcFile("types/example.ts"),
+        errors: [
+          { message: aliasMessage("FlagKeys", "string") },
+          { message: aliasMessage("Count", "number") },
+          { message: aliasMessage("Enabled", "boolean") },
+          { message: aliasMessage("Token", "symbol") },
+          { message: aliasMessage("Size", "bigint") },
+          { message: aliasMessage("Empty", "null") },
+          { message: aliasMessage("Missing", "undefined") },
+        ],
+      },
       {
         code: "type ApiCredential = PlatformCredentialApi;",
         filename: srcFile("types/example.ts"),
