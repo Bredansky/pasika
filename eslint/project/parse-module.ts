@@ -24,6 +24,7 @@ export interface ParsedModule {
   imports: ModuleImport[];
   reexports: ModuleImport[];
   exports: ModuleExport[];
+  hasEnumDeclaration: boolean;
 }
 
 const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
@@ -88,6 +89,7 @@ export function parseModule(file: string): ParsedModule {
   const imports: ModuleImport[] = [];
   const reexports: ModuleImport[] = [];
   const exports: ModuleExport[] = [];
+  let hasEnumDeclaration = false;
 
   const addImport = (specifierNode: ts.Expression, names: string[], node: ts.Node): void => {
     if (!ts.isStringLiteral(specifierNode)) return;
@@ -95,6 +97,10 @@ export function parseModule(file: string): ParsedModule {
   };
 
   for (const statement of sourceFile.statements) {
+    if (ts.isEnumDeclaration(statement)) {
+      hasEnumDeclaration = true;
+    }
+
     if (ts.isImportDeclaration(statement)) {
       const names: string[] = [];
       const bindings = statement.importClause?.namedBindings;
@@ -163,6 +169,15 @@ export function parseModule(file: string): ParsedModule {
       continue;
     }
 
+    if (ts.isEnumDeclaration(statement)) {
+      exports.push({
+        name: statement.name.text,
+        kind: "constant",
+        line: lineOf(sourceFile, statement),
+      });
+      continue;
+    }
+
     if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) {
       exports.push({
         name: statement.name.text,
@@ -172,5 +187,5 @@ export function parseModule(file: string): ParsedModule {
     }
   }
 
-  return { file: path.resolve(file), imports, reexports, exports };
+  return { file: path.resolve(file), imports, reexports, exports, hasEnumDeclaration };
 }

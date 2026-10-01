@@ -416,9 +416,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
-      "hash": "e779f5ec6f",
+      "text": "A value other than a TypeScript `enum` MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
+      "hash": "37ef498c56",
       "ref": "pasika/value-extraction"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.",
+      "hash": "4871d858a2",
+      "ref": "pasika/application-structure"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",

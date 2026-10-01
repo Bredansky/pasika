@@ -27,6 +27,8 @@ const FIXTURE: Record<string, string> = {
   // One feature owns these, and the same feature's misplaced siblings live in another feature.
   "features/billing/invoice.tsx": [
     'import { maxRetries } from "./constants";',
+    'import { InvoiceStatus } from "./constants/invoice-status";',
+    'import { MisplacedStatus } from "@/features/orders/constants/misplaced-status";',
     'import { crossValue } from "./constants/cross";',
     'import { billingConstant, sharedConstant } from "./constants/mixed";',
     'import { DateRange } from "./types";',
@@ -49,6 +51,7 @@ const FIXTURE: Record<string, string> = {
     "",
   ].join("\n"),
   "features/billing/constants/index.ts": "export const maxRetries = 3;\n",
+  "features/billing/constants/invoice-status.ts": 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n',
   "features/billing/types/index.ts": "export type DateRange = { from: Date };\n",
   "features/billing/utils/calc-total.ts": "export function calcTotal() { return 0; }\n",
   "features/billing/hooks/use-retry.ts": 'import { maxRetries } from "../constants";\nexport function useRetry() {}\n',
@@ -76,6 +79,7 @@ const FIXTURE: Record<string, string> = {
 
   // Sitting in the wrong feature.
   "features/orders/constants/misplaced.ts": "export const misplacedConstant = 1;\n",
+  "features/orders/constants/misplaced-status.ts": 'export enum MisplacedStatus { Draft = "draft", Ready = "ready" }\n',
   "features/orders/types/misplaced.ts": "export type MisplacedType = string;\n",
   "features/orders/utils/misplaced.ts": "export function misplacedUtil() { return 0; }\n",
   "features/orders/hooks/use-misplaced.ts": "export function useMisplaced() {}\n",
@@ -161,10 +165,14 @@ const ok = (relativePath: string): { code: string; filename: string } => ({
 
 void describe("Extracted constants MUST live in a constants/ folder at the CCF of their consumers.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [ok("features/billing/constants/index.ts")],
+    valid: [ok("features/billing/constants/index.ts"), ok("features/billing/constants/invoice-status.ts")],
     invalid: [
       {
         ...ok("features/orders/constants/misplaced.ts"),
+        errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/invoice.tsx"])],
+      },
+      {
+        ...ok("features/orders/constants/misplaced-status.ts"),
         errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/invoice.tsx"])],
       },
       {
