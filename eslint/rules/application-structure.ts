@@ -153,19 +153,6 @@ export const applicationStructureRule: Rule.RuleModule = {
     const [topLevel, secondLevel] = segments;
     if (topLevel === undefined) return {};
 
-    if (isCodeFile(filename) && path.basename(path.dirname(filename)) !== "constants") {
-      try {
-        if (parseModule(filename).hasEnumDeclaration) {
-          return report(
-            context,
-            "A TypeScript enum is a runtime constant and must live in a constants/ folder at its CCF.",
-          );
-        }
-      } catch {
-        // Let the remaining structure checks handle unreadable or malformed files.
-      }
-    }
-
     if (
       segments.length > 1 &&
       topLevel !== "app" &&

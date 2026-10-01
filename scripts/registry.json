@@ -424,7 +424,7 @@
       "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.",
       "hash": "4871d858a2",
-      "ref": "pasika/application-structure"
+      "ref": "pasika/enum-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",

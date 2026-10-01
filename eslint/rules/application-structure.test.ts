@@ -38,15 +38,6 @@ write(
 );
 write("features/billing/types/invoice.ts", "export interface InvoiceRow { id: string; }\n");
 write("features/billing/types/mixed-constant.ts", "export type Mixed = string;\nexport const mixed = 1;\n");
-write(
-  "features/billing/constants/invoice-status.ts",
-  'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n',
-);
-write("features/billing/types/invoice-status.ts", 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n');
-write(
-  "features/billing/utils/status-label.ts",
-  'enum InternalStatus { Draft = "draft", Ready = "ready" }\nexport function statusLabel() { return InternalStatus.Draft; }\n',
-);
 // A schema-plus-type file parked in utils/ must still be sent to schemas/.
 write(
   "features/billing/utils/misplaced-schema.ts",
@@ -167,37 +158,6 @@ void describe("A `types/`, `schemas/`, or `constants/` folder MUST NOT mix unrel
           {
             message:
               "A types/ folder must not mix unrelated support kinds; keep types, schemas, and constants in their matching folders.",
-          },
-        ],
-      },
-    ],
-  });
-});
-
-void describe("A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.", () => {
-  ruleTester.run("application-structure", applicationStructureRule, {
-    valid: [
-      {
-        code: 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }',
-        filename: file("features/billing/constants/invoice-status.ts"),
-      },
-    ],
-    invalid: [
-      {
-        code: 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }',
-        filename: file("features/billing/types/invoice-status.ts"),
-        errors: [
-          {
-            message: "A TypeScript enum is a runtime constant and must live in a constants/ folder at its CCF.",
-          },
-        ],
-      },
-      {
-        code: 'enum InternalStatus { Draft = "draft", Ready = "ready" } export function statusLabel() { return InternalStatus.Draft; }',
-        filename: file("features/billing/utils/status-label.ts"),
-        errors: [
-          {
-            message: "A TypeScript enum is a runtime constant and must live in a constants/ folder at its CCF.",
           },
         ],
       },

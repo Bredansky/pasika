@@ -26,6 +26,7 @@ import { documentationRules } from "./rules/documentation/index";
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
 import { enforceCvaVariantPropsRule } from "./rules/enforce-cva-variant-props";
+import { enumPlacementRule } from "./rules/enum-placement";
 import { fileLengthRule } from "./rules/file-length";
 import { filenameCaseRule } from "./rules/filename-case";
 import { hookComplexityRule } from "./rules/hook-complexity";
@@ -97,6 +98,7 @@ const pasikaNextjsAppRules = {
   "value-extraction": valueExtractionRule,
   "constant-casing": constantCasingRule,
   "prefer-enum": preferEnumRule,
+  "enum-placement": enumPlacementRule,
   "type-extraction": typeExtractionRule,
   "zod-schema-validation": zodSchemaValidationRule,
   "schema-casing": schemaCasingRule,
