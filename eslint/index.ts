@@ -52,6 +52,7 @@ import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-js
 import { preferEnumRule } from "./rules/prefer-enum";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { repeatedStructureRule } from "./rules/repeated-structure";
+import { requireBarrelStarExportsRule } from "./rules/require-barrel-star-exports";
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { routeHandlerShapeRule } from "./rules/route-handler-shape";
 import { schemaCasingRule } from "./rules/schema-casing";
@@ -94,6 +95,7 @@ const pasikaNextjsAppRules = {
   "no-util-barrel": noUtilBarrelRule,
   "no-redundant-alias": noRedundantAliasRule,
   "enforce-barrel-exports": enforceBarrelExportsRule,
+  "require-barrel-star-exports": requireBarrelStarExportsRule,
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,
   "constant-casing": constantCasingRule,

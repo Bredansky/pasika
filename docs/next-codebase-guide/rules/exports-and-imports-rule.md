@@ -3,6 +3,7 @@
 Without consistent exports, import paths, and layer boundaries, it is harder to tell what a file contains and which files may depend on it. This rule gives each file a predictable export style and keeps imports consistent with the application structure.
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
+- A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
 - Consecutive import declarations MUST NOT be separated by a blank line.
 - An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
@@ -11,6 +12,24 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
 - A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
 - A configuration module MUST import only from root support folders and its own files.
+
+## Incorrect — Support Barrel Filters A Local Module
+
+```ts
+// src/features/editor/Poster/types/index.ts
+export type { CanvasPayload, Layer } from "./canvas";
+```
+
+Why: the barrel chooses a subset of the local module's exports, creating a second place that controls the module's public surface.
+
+## Correct — Support Barrel Mirrors The Local Module
+
+```ts
+// src/features/editor/Poster/types/index.ts
+export type * from "./canvas";
+```
+
+Why: the barrel mirrors the local module exactly. If a declaration should not be public, remove its `export` in `canvas.ts`; if its name is wrong, rename the declaration at its source rather than in the barrel.
 
 ## Incorrect — Single-Export Utility Uses a Default Export
 
