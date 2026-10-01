@@ -32,7 +32,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A value other than a TypeScript `enum` MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.", () => {
+void describe("A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.", () => {
   ruleTester.run("value-extraction", valueExtractionRule, {
     valid: [
       {

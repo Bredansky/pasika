@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A value other than a TypeScript `enum` MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
-      "hash": "37ef498c56",
+      "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
+      "hash": "e779f5ec6f",
       "ref": "pasika/value-extraction"
     },
     {
