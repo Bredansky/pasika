@@ -163,6 +163,15 @@ export function parseModule(file: string): ParsedModule {
       continue;
     }
 
+    if (ts.isEnumDeclaration(statement)) {
+      exports.push({
+        name: statement.name.text,
+        kind: "constant",
+        line: lineOf(sourceFile, statement),
+      });
+      continue;
+    }
+
     if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) {
       exports.push({
         name: statement.name.text,
