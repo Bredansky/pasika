@@ -7,7 +7,7 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
-- A repository MUST set `coverage.thresholds.autoUpdate` to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.
+- A repository MUST enable `coverage.thresholds.autoUpdate` with `true` or the monotonic 0.1-point buffered formatter; the formatter SHOULD be used when the installed Vitest version supports the two-argument callback so cross-platform V8 noise does not over-tighten thresholds.
 - A repository MUST declare a `test:unit:staged` script in package.json that runs `vitest related` without coverage and configure `lint-staged` to run it (`npm run test:unit:staged --`) for staged JavaScript or TypeScript files.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero

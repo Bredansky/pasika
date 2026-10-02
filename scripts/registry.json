@@ -1244,8 +1244,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.",
-      "hash": "6252a64556",
+      "text": "A repository MUST enable `coverage.thresholds.autoUpdate` with `true` or the monotonic 0.1-point buffered formatter; the formatter SHOULD be used when the installed Vitest version supports the two-argument callback so cross-platform V8 noise does not over-tighten thresholds.",
+      "hash": "08306cc8ad",
       "ref": "pasika/vitest-coverage"
     },
     {

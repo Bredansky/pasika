@@ -49,7 +49,8 @@ const THRESHOLD_METRICS = ["lines", "functions", "branches", "statements"] as co
 const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
 const RELATED_PATTERN = /\brelated\b/;
-const AUTO_UPDATE_PATTERN =
+const AUTO_UPDATE_TRUE_PATTERN = /autoUpdate\s*:\s*true\b/;
+const BUFFERED_AUTO_UPDATE_PATTERN =
   /autoUpdate\s*:\s*\(\s*newThreshold\s*,\s*previousThreshold\s*\)\s*=>\s*Math\.max\(\s*Number\(\s*String\(\s*previousThreshold\s*\)\s*\)\s*,\s*Math\.floor\(\s*\(\s*newThreshold\s*-\s*0\.1\s*\)\s*\*\s*10\s*\)\s*\/\s*10\s*\)/;
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
@@ -119,10 +120,10 @@ export const vitestCoverageRule: JSONRuleDefinition = {
           }
         }
 
-        if (!AUTO_UPDATE_PATTERN.test(content)) {
+        if (!AUTO_UPDATE_TRUE_PATTERN.test(content) && !BUFFERED_AUTO_UPDATE_PATTERN.test(content)) {
           context.report({
             node,
-            message: `${configName} must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.`,
+            message: `${configName} must enable coverage.thresholds.autoUpdate with true or the monotonic 0.1-point buffered formatter.`,
           });
         }
 

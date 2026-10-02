@@ -32,6 +32,24 @@ export default defineConfig({
 });
 `;
 
+const AUTO_UPDATE_TRUE_CONFIG = `import { defineConfig } from "vitest/config";
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      thresholds: {
+        lines: 9,
+        functions: 8,
+        branches: 6,
+        statements: 9,
+        autoUpdate: true,
+      },
+    },
+  },
+});
+`;
+
 // Has nonzero base thresholds but no autoUpdate at all.
 const BARE_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
@@ -221,7 +239,7 @@ void describe("A repository MUST configure its vitest config with a coverage thr
           { message: "vitest.config.ts must set a coverage threshold above zero for statements." },
           {
             message:
-              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+              "vitest.config.ts must enable coverage.thresholds.autoUpdate with true or the monotonic 0.1-point buffered formatter.",
           },
         ],
       },
@@ -229,10 +247,17 @@ void describe("A repository MUST configure its vitest config with a coverage thr
   });
 });
 
-void describe("A repository MUST set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.", () => {
+void describe("A repository MUST enable `coverage.thresholds.autoUpdate` with `true` or the monotonic 0.1-point buffered formatter; the formatter SHOULD be used when the installed Vitest version supports the two-argument callback so cross-platform V8 noise does not over-tighten thresholds.", () => {
   process.chdir(ratcheted);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
+    invalid: [],
+  });
+
+  const autoUpdateTrue = buildFixture(AUTO_UPDATE_TRUE_CONFIG);
+  process.chdir(autoUpdateTrue);
+  packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
+    valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(autoUpdateTrue, "package.json") }],
     invalid: [],
   });
 
@@ -247,7 +272,7 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to the monot
         errors: [
           {
             message:
-              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+              "vitest.config.ts must enable coverage.thresholds.autoUpdate with true or the monotonic 0.1-point buffered formatter.",
           },
         ],
       },
@@ -267,7 +292,7 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to the monot
         errors: [
           {
             message:
-              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+              "vitest.config.ts must enable coverage.thresholds.autoUpdate with true or the monotonic 0.1-point buffered formatter.",
           },
         ],
       },
