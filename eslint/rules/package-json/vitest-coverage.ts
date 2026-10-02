@@ -3,9 +3,9 @@
  *
  * A repository MUST declare vitest and @vitest/coverage-v8 in devDependencies,
  * expose normal and coverage-gated unit-test scripts, and set a coverage
- * threshold above zero for lines, functions, branches, and statements with
- * autoUpdate enabled — a zero threshold gates nothing, and a fixed one lets a
- * later regression back down still pass. A test:unit:staged script running
+ * threshold above zero for lines, functions, branches, and statements with a
+ * monotonic buffered autoUpdate formatter — a zero threshold gates nothing,
+ * and a platform-sensitive exact ratchet can fail on harmless V8 differences. A test:unit:staged script running
  * `vitest related` without coverage must be wired into lint-staged for staged
  * JavaScript or TypeScript files. Coverage remains the responsibility of the
  * aggregate test:unit:coverage script: Vitest's changed plus per-file mode
@@ -49,14 +49,15 @@ const THRESHOLD_METRICS = ["lines", "functions", "branches", "statements"] as co
 const SOURCE_GLOB_PATTERN = /(?:^|[^a-z])(?:[cm]?[jt]sx?)(?:[^a-z]|$)/i;
 const COVERAGE_FLAG_PATTERN = /(?:^|\s)--coverage(?:[=\s]|$)/;
 const RELATED_PATTERN = /\brelated\b/;
-const AUTO_UPDATE_PATTERN = /autoUpdate\s*:\s*true/;
+const AUTO_UPDATE_PATTERN =
+  /autoUpdate\s*:\s*\(\s*newThreshold\s*,\s*previousThreshold\s*\)\s*=>\s*Math\.max\(\s*previousThreshold\s*,\s*Math\.floor\(\s*\(\s*newThreshold\s*-\s*0\.1\s*\)\s*\*\s*10\s*\)\s*\/\s*10\s*\)/;
 export const vitestCoverageRule: JSONRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require Vitest unit-test scripts, the V8 provider, a rising aggregate coverage threshold, and related tests via lint-staged.",
+        "Require Vitest unit-test scripts, the V8 provider, a platform-stable rising aggregate coverage threshold, and related tests via lint-staged.",
     },
   },
   create(context) {
@@ -121,7 +122,7 @@ export const vitestCoverageRule: JSONRuleDefinition = {
         if (!AUTO_UPDATE_PATTERN.test(content)) {
           context.report({
             node,
-            message: `${configName} must set coverage.thresholds.autoUpdate to true.`,
+            message: `${configName} must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.`,
           });
         }
 

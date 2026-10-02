@@ -12,7 +12,7 @@ function buildFixture(vitestConfig?: string): string {
 }
 
 // Satisfies the config-side checks this rule makes: nonzero base thresholds
-// and autoUpdate. Staged related tests run without coverage.
+// and the monotonic buffered autoUpdate formatter. Staged related tests run without coverage.
 const RATCHETED_CONFIG = `import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
@@ -24,7 +24,8 @@ export default defineConfig({
         functions: 8,
         branches: 6,
         statements: 9,
-        autoUpdate: true,
+        autoUpdate: (newThreshold, previousThreshold) =>
+          Math.max(previousThreshold, Math.floor((newThreshold - 0.1) * 10) / 10),
       },
     },
   },
@@ -218,14 +219,17 @@ void describe("A repository MUST configure its vitest config with a coverage thr
           { message: "vitest.config.ts must set a coverage threshold above zero for functions." },
           { message: "vitest.config.ts must set a coverage threshold above zero for branches." },
           { message: "vitest.config.ts must set a coverage threshold above zero for statements." },
-          { message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." },
+          {
+            message:
+              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+          },
         ],
       },
     ],
   });
 });
 
-void describe("A repository MUST set coverage.thresholds.autoUpdate to true in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.", () => {
+void describe("A repository MUST set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.", () => {
   process.chdir(ratcheted);
   packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
     valid: [{ code: JSON.stringify(COMPLETE_MANIFEST), filename: path.join(ratcheted, "package.json") }],
@@ -240,7 +244,12 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to true in i
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
         filename: path.join(bare, "package.json"),
-        errors: [{ message: "vitest.config.ts must set coverage.thresholds.autoUpdate to true." }],
+        errors: [
+          {
+            message:
+              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+          },
+        ],
       },
     ],
   });

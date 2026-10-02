@@ -1244,8 +1244,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.",
-      "hash": "9d5f3d6450",
+      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.",
+      "hash": "6252a64556",
       "ref": "pasika/vitest-coverage"
     },
     {
