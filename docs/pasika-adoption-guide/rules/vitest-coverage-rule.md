@@ -7,7 +7,7 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST declare a `test:unit:coverage` script in package.json that runs Vitest with coverage.
 - A repository MUST configure its vitest config with a coverage threshold above zero for lines, functions, branches, and statements.
 - A repository MUST measure coverage of its source files, not its test files.
-- A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.
+- A repository MUST set `coverage.thresholds.autoUpdate` to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.
 - A repository MUST declare a `test:unit:staged` script in package.json that runs `vitest related` without coverage and configure `lint-staged` to run it (`npm run test:unit:staged --`) for staged JavaScript or TypeScript files.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
@@ -129,8 +129,15 @@ Why: Vitest's changed per-file coverage measures each entire changed file, not o
 ```ts
 // vitest.config.ts
 coverage: {
-  thresholds: { lines: 9, functions: 8, branches: 6, statements: 9, autoUpdate: true },
+  thresholds: {
+    lines: 9,
+    functions: 8,
+    branches: 6,
+    statements: 9,
+    autoUpdate: (newThreshold, previousThreshold) =>
+      Math.max(previousThreshold, Math.floor((newThreshold - 0.1) * 10) / 10),
+  },
 },
 ```
 
-Why: `lint-staged` passes staged paths to `vitest related`, so relevant tests fail quickly without interpreting presentation-only edits as uncovered behavior. The separate `test:unit:coverage` command remains the aggregate coverage authority and ratchets its thresholds upward with `autoUpdate`.
+Why: `lint-staged` passes staged paths to `vitest related`, so relevant tests fail quickly without interpreting presentation-only edits as uncovered behavior. The separate `test:unit:coverage` command remains the aggregate coverage authority, while the buffered formatter ratchets thresholds upward without promoting platform-specific V8 differences in the hundredths of a percentage point.

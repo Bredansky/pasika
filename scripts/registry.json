@@ -440,8 +440,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` named-re-exports.",
-      "hash": "b218051d1b",
+      "text": "A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` re-exports.",
+      "hash": "330e5ab838",
       "ref": "pasika/support-folder-shape"
     },
     {
@@ -491,6 +491,12 @@
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
       "ref": "pasika/named-exports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.",
+      "hash": "4d510b2f82",
+      "ref": "pasika/require-barrel-star-exports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
@@ -830,8 +836,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` named-re-exports.",
-      "hash": "989e2ec044",
+      "text": "A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` re-exports.",
+      "hash": "af2d542a45",
       "ref": "pasika/support-folder-shape"
     },
     {
@@ -1238,8 +1244,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
-      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to `true` in its vitest config, so a threshold only ever rises with measured coverage and a regression fails the run instead of silently lowering it.",
-      "hash": "9d5f3d6450",
+      "text": "A repository MUST set `coverage.thresholds.autoUpdate` to the monotonic 0.1-point buffered formatter so thresholds only rise after measured coverage clears a portability margin and a regression cannot silently lower them.",
+      "hash": "6252a64556",
       "ref": "pasika/vitest-coverage"
     },
     {
