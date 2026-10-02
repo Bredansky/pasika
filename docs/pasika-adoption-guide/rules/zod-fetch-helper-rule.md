@@ -26,12 +26,12 @@ Why: the call decides the status a failure leaves with and drops the body the up
 import { zodFetch } from "pasika/zod-fetch";
 
 const orders = await zodFetch({
+  contract: ordersApiContract,
   url: `${apiBase}/orders`,
-  responseSchema: ordersResponseSchema,
 });
 ```
 
-Why: the body is validated through the schema the call site named, and a failure leaves with the status the upstream reported and what it answered with.
+Why: the body is validated through the response schema owned by the shared contract, while the URL override supplies the concrete upstream address; a failure leaves with the status the upstream reported and what it answered with.
 
 ## Incorrect — A Local Copy Of The Helper
 
@@ -51,7 +51,7 @@ Why: the repository keeps a copy that makes its own call and decides its own fai
 import { zodFetch } from "pasika/zod-fetch";
 
 export async function fetchOrder(orderId: string) {
-  return zodFetch({ url: `${apiBase}/orders/${orderId}`, responseSchema: orderResponseSchema });
+  return zodFetch({ contract: orderApiContract, url: `${apiBase}/orders/${orderId}` });
 }
 ```
 

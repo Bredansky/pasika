@@ -68,14 +68,16 @@ Some rules are cross-file: where a component, hook, value, type, or style belong
 
 ## 🧱 Runtime helpers
 
-Four helpers ship with the package, so a repository imports them instead of writing its own copy to the shape the rules expect:
+Six runtime helpers ship with the package, so a repository imports them instead of writing its own copy to the shape the rules expect:
 
-| Import                 | Exports                                            | Resolves against (optional peer) |
-| ---------------------- | -------------------------------------------------- | -------------------------------- |
-| `pasika/cn`            | `cn`                                               | `clsx`, `tailwind-merge`         |
-| `pasika/http-error`    | `HttpError`                                        | —                                |
-| `pasika/zod-fetch`     | `zodFetch`                                         | `zod`                            |
-| `pasika/with-response` | `withResponse`, `HandlerResult`, `ResponseHeaders` | `next`, `zod`                    |
+| Import                 | Exports                                                      | Resolves against (optional peer) |
+| ---------------------- | ------------------------------------------------------------ | -------------------------------- |
+| `pasika/api-contract`  | `defineApiContract`, `apiErrorResponseSchema`, `ApiContract` | `zod`                            |
+| `pasika/cn`            | `cn`                                                         | `clsx`, `tailwind-merge`         |
+| `pasika/http-error`    | `HttpError`                                                  | —                                |
+| `pasika/http-method`   | `HttpMethod`                                                 | —                                |
+| `pasika/zod-fetch`     | `zodFetch`                                                   | `zod`                            |
+| `pasika/with-response` | `withResponse`, `HandlerResult`, `ResponseHeaders`           | `next`, `zod`                    |
 
 The entries share one `HttpError`, so a failure `zodFetch` throws satisfies the `instanceof` check `withResponse` makes. The TS/TSX rules call the TypeScript compiler API at lint time, so `typescript` is a pinned runtime dependency rather than a peer.
 

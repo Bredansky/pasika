@@ -1117,6 +1117,42 @@
       "ref": "pasika/unknown-utility"
     },
     {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "A schema-validated JSON API contract MUST be created with `defineApiContract` imported from `pasika/api-contract`.",
+      "hash": "de50676315",
+      "ref": "pasika/api-contract"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "A call to `defineApiContract` MUST initialize an exported named value.",
+      "hash": "883cbc0ead",
+      "ref": "pasika/api-contract"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "A JSON route wrapped in `withResponse` MUST receive an imported API contract rather than a bare response schema or an inline contract.",
+      "hash": "f003889b55",
+      "ref": "pasika/api-contract"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option.",
+      "hash": "32d953f002",
+      "ref": "pasika/api-contract"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "A mock that exports `apiRoutePath` MUST derive it from an imported API contract through `contract.path`.",
+      "hash": "1b082afa74",
+      "ref": "pasika/api-contract"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
+      "text": "That mock MUST validate successful JSON with the same contract's `responseSchema`.",
+      "hash": "561e662c80",
+      "ref": "pasika/api-contract"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
       "text": "A file that merges class names MUST import `cn` from `pasika/cn`.",
       "hash": "18d2dba9f3",

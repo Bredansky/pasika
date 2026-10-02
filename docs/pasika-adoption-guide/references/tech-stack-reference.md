@@ -6,16 +6,16 @@ Use this reference to look up the packages the framework's documentation depends
 
 Runtime packages a Next.js application ships in `dependencies` — what `pasikaNextjsApp` adds beyond the `pasikaApp` baseline. A plain TypeScript repository lists none of them, so `pasikaApp` presumes no `dependencies` at all.
 
-| Package                    | Responsibility                                                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `next`                     | App Router framework whose routing-file conventions define the `app` layer                                                           |
-| `pasika`                   | Ships the helpers a repository imports — `cn`, `HttpError`, `withResponse`, and `zodFetch` — and the ESLint presets `zirka` composes |
-| `react`                    | Component runtime the component Rules are written against                                                                            |
-| `react-dom`                | Browser renderer for React components                                                                                                |
-| `zod`                      | Runtime validation schemas the data-contract conventions require                                                                     |
-| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants                                                                       |
-| `clsx`                     | Conditional class-name building block the packaged `cn` resolves against                                                             |
-| `tailwind-merge`           | Conflicting-utility resolution building block the packaged `cn` resolves against                                                     |
+| Package                    | Responsibility                                                                                                    |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `next`                     | App Router framework whose routing-file conventions define the `app` layer                                        |
+| `pasika`                   | Ships API contracts, HTTP helpers, `withResponse`, `zodFetch`, and `cn`, plus the ESLint presets `zirka` composes |
+| `react`                    | Component runtime the component Rules are written against                                                         |
+| `react-dom`                | Browser renderer for React components                                                                             |
+| `zod`                      | Runtime validation schemas the data-contract conventions require                                                  |
+| `class-variance-authority` | Provides `cva` and `VariantProps` for typed component variants                                                    |
+| `clsx`                     | Conditional class-name building block the packaged `cn` resolves against                                          |
+| `tailwind-merge`           | Conflicting-utility resolution building block the packaged `cn` resolves against                                  |
 
 ## `cn` — Class Merging
 
@@ -26,6 +26,24 @@ import { cn } from "pasika/cn";
 
 cn("px-2 py-1", isActive && "bg-slate-900", "bg-slate-700"); // "px-2 py-1 bg-slate-700"
 ```
+
+## API Contracts
+
+`defineApiContract`, imported from `pasika/api-contract`, binds one endpoint's method, path, optional request schema, and response schema into one exported value. JSON routes pass that value to `withResponse`, clients pass it to `zodFetch`, and mocks can validate their response data through the same `responseSchema`, so the endpoint does not accumulate parallel contract definitions.
+
+```ts
+import { defineApiContract } from "pasika/api-contract";
+import { HttpMethod } from "pasika/http-method";
+
+export const createOrderApiContract = defineApiContract({
+  method: HttpMethod.Post,
+  path: "/api/orders",
+  requestSchema: createOrderRequestSchema,
+  responseSchema: orderResponseSchema,
+});
+```
+
+`apiErrorResponseSchema`, exported from the same entry, describes the standard JSON error body `{ message: string }`. HTTP status carries success or failure; successful JSON is the response data itself rather than a second success envelope.
 
 ## Route Error Handling Helpers
 
@@ -43,13 +61,13 @@ import { withResponse } from "pasika/with-response";
 
 // The two forms a handler may return, exported by pasika/with-response
 type HandlerResult<TData> =
-  // The envelope a JSON route answers with
+  // The JSON body a route answers with
   | { data: TData; status?: number; headers?: ResponseHeaders }
-  // The response a JSON envelope cannot hold
+  // The response a JSON body cannot hold
   | { body: ReadableStream<Uint8Array>; status: number; headers?: ResponseHeaders };
 ```
 
-A handler returns `{ data }`, plus optional `status` and `headers` when the response needs them. A successful JSON response is `{ success: true, data }`. A failure is `{ success: false, data: null, message }`, built from the caught `HttpError` and answered at its status with `Cache-Control: no-store`, so an error is never cached as data. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
+A handler returns `{ data }`, plus optional `status` and `headers` when the response needs them. The response schema validates `data`, and that parsed value is the successful JSON body directly. A failure is `{ message }`, built from the caught `HttpError` and answered at its status with `Cache-Control: no-store`, so HTTP status carries success or failure instead of duplicating that state in the body. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
 
 ```ts
 export const GET = withResponse(async (request: NextRequest) => {
@@ -63,7 +81,7 @@ A thrown `HttpError` is already the response, so the handler needs no `try`, bra
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
@@ -72,49 +90,29 @@ export const POST = withResponse(renderApiResponseDataSchema, async (request: Ne
 });
 ```
 
-For clients of JSON routes, `responseEnvelope` from `pasika/response-envelope` describes the standard success and failure body without coupling `zodFetch` to that application contract:
-
-```ts
-import { responseEnvelope } from "pasika/response-envelope";
-
-const responseSchema = responseEnvelope(orderResponseSchema);
-```
-
 The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.
 
 ## Outbound Request Helper
 
-`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against and the one module in a repository that calls `fetch`. It validates whatever response schema the call names and returns the parsed response without imposing an application envelope; repositories using the standard `{ success, data, message }` contract can compose the exported `responseEnvelope` schema.
+`zodFetch`, imported from `pasika/zod-fetch`, is the helper the Zod Fetch Helper Rule is written against and the one module in a repository that calls `fetch`. A schema-validated call passes an API contract so method, request validation, and response validation come from that shared value; a failure status throws an `HttpError`, using a `{ message }` body as its message when present.
 
 ```ts
-import { HttpMethod } from "pasika/http-method";
 import { zodFetch } from "pasika/zod-fetch";
 
-// The options a call may name, exported by pasika/zod-fetch
-interface ZodFetchOptions<TSchema extends ZodType = never> {
-  url: string | URL;
-  init?: RequestInit;
-  requestSchema?: ZodType;
-  responseSchema?: TSchema;
-}
-```
-
-A call site names the schema the response body should match and receives the parsed response:
-
-```ts
-const orders = await zodFetch({
-  url: `${apiBase}/v1/orders`,
-  init: { method: HttpMethod.Post, body: JSON.stringify(order) },
-  requestSchema: createOrderRequestSchema,
-  responseSchema: ordersResponseSchema,
+const order = await zodFetch({
+  contract: createOrderApiContract,
+  init: { body: JSON.stringify(input) },
 });
 ```
 
-A `requestSchema` validates the JSON value already serialized in `init.body` before `fetch` runs; it does not construct or modify the request. Leave it out for `FormData`, streams, and other bodies whose schema is not JSON.
+A contract call may override `url` when the concrete address is dynamic, such as an upstream API base URL; method and schemas still come from the contract. A response schema that accepts `undefined` also permits an empty successful body such as `204`.
 
-A call reading an endpoint that answers `204` passes `z.undefined()` as its `responseSchema`.
+A call without a contract is the relay form. It does not decode JSON or accept request/response schemas; it returns `{ body, status, headers }` so another handler can pass an unread stream through.
 
-A call that names no schema receives the response itself — `{ body, status, headers }` — for a handler whose own response relays a body nothing has read.
+```ts
+const upstream = await zodFetch({ url: fileUrl });
+return { body: upstream.body, status: upstream.status, headers: upstream.headers };
+```
 
 ## DevDependencies
 

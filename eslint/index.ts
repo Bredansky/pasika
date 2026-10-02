@@ -11,6 +11,7 @@ import jsonPlugin from "@eslint/json";
 import markdown from "@eslint/markdown";
 import tsParser from "@typescript-eslint/parser";
 import type { Linter } from "eslint";
+import { apiContractRule } from "./rules/api-contract";
 import { applicationStructureRule } from "./rules/application-structure";
 import { cnHelperRule } from "./rules/cn-helper";
 import { componentCasingRule } from "./rules/component-casing";
@@ -83,6 +84,7 @@ import { assertTypescriptAlignment } from "./ts-alignment";
  */
 const pasikaNextjsAppRules = {
   // Framework-agnostic TypeScript rules.
+  "api-contract": apiContractRule,
   "file-length": fileLengthRule,
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
