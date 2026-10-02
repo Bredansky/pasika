@@ -1,31 +1,30 @@
 import { z, type ZodType } from "zod";
+import { apiErrorResponseSchema, type ApiContract } from "./api-contract";
 import { HttpError } from "./http-error";
 
-/** A body this helper hands on is one a caller relays, so it is held to a contract like any other. */
 const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanceof ReadableStream);
+const BAD_GATEWAY = 502;
 
-export interface ZodFetchOptions<TSchema extends ZodType = never, TRequestSchema extends ZodType = ZodType> {
-  url: string | URL;
-  init?: RequestInit;
-  requestSchema?: TRequestSchema;
-  responseSchema?: TSchema;
+export interface ApiContractFetchOptions<
+  TResponseSchema extends ZodType,
+  TRequestSchema extends ZodType | undefined = undefined,
+> {
+  contract: ApiContract<TResponseSchema, TRequestSchema>;
+  url?: string | URL;
+  init?: Omit<RequestInit, "method">;
 }
 
-/** The response itself, for a caller whose own response relays a body nothing has read. */
+export interface ZodFetchRelayedOptions {
+  url: string | URL;
+  init?: RequestInit;
+}
+
 export interface ZodFetchRelayedResponse {
   body: ReadableStream<Uint8Array>;
   status: number;
   headers: Headers;
 }
 
-/**
- * The status a body the helper cannot hand on leaves with. The upstream answered at
- * a success status, so the failure is this gateway's: it could not relay what it got,
- * and a 2xx carrying `{ data: null, message }` would read as a success to its caller.
- */
-const BAD_GATEWAY = 502;
-
-/** A body that is not JSON stays the text the upstream sent it as. */
 function decodeFailureBody(body: string): unknown {
   try {
     const parsed: unknown = JSON.parse(body);
@@ -35,61 +34,61 @@ function decodeFailureBody(body: string): unknown {
   }
 }
 
-/**
- * The only module in a repository that calls `fetch`. It hands a JSON body back as
- * data the response schema accepted, and a failure back as an `HttpError` carrying
- * the status the upstream reported, the message for a client, and what the upstream
- * answered with. A call that names no response schema gets the response itself.
- *
- * A success that carries no body is the schema's call: one that allows its data to
- * be absent, such as `z.undefined()` for an endpoint answering `204`, accepts it, and
- * one that does not makes it a failure of this gateway's own, a 502.
- */
-export function zodFetch<TSchema extends ZodType>(
-  options: ZodFetchOptions<TSchema> & { responseSchema: TSchema },
-): Promise<z.output<TSchema>>;
-export function zodFetch(options: ZodFetchOptions): Promise<ZodFetchRelayedResponse>;
-export async function zodFetch(options: ZodFetchOptions<ZodType>): Promise<unknown> {
-  if (options.requestSchema !== undefined) {
-    const rawBody = options.init?.body;
-    const body: unknown = typeof rawBody === "string" ? JSON.parse(rawBody) : rawBody;
-    options.requestSchema.parse(body);
-  }
+function failureMessage(status: number, statusText: string, body: unknown): string {
+  const parsed = apiErrorResponseSchema.safeParse(body);
+  if (parsed.success) return parsed.data.message;
 
-  const response = await fetch(options.url, options.init);
+  const suffix = statusText === "" ? "" : ` ${statusText}`;
+  return `Request failed with status ${String(status)}${suffix}`;
+}
+
+function parseRequestBody(schema: ZodType | undefined, body: RequestInit["body"]): void {
+  if (schema === undefined) return;
+  const decoded: unknown = typeof body === "string" ? JSON.parse(body) : body;
+  schema.parse(decoded);
+}
+
+/**
+ * Makes one schema-validated JSON request through an API contract, or relays a
+ * response body when no contract is supplied. Contract calls reuse the endpoint's
+ * method, request schema, and response schema; url only overrides the concrete
+ * address for dynamic or external endpoints.
+ */
+export function zodFetch<TResponseSchema extends ZodType, TRequestSchema extends ZodType | undefined>(
+  options: ApiContractFetchOptions<TResponseSchema, TRequestSchema>,
+): Promise<z.output<TResponseSchema>>;
+export function zodFetch(options: ZodFetchRelayedOptions): Promise<ZodFetchRelayedResponse>;
+export async function zodFetch(
+  options: ApiContractFetchOptions<ZodType, ZodType | undefined> | ZodFetchRelayedOptions,
+): Promise<unknown> {
+  const contract = "contract" in options ? options.contract : undefined;
+  const url: string | URL = "contract" in options ? (options.url ?? options.contract.path) : options.url;
+  const init = contract ? { ...options.init, method: contract.method } : options.init;
+
+  if (contract) parseRequestBody(contract.requestSchema, init?.body);
+
+  const response = await fetch(url, init);
 
   if (!response.ok) {
-    const body = await response.text();
-    const statusText = response.statusText === "" ? "" : ` ${response.statusText}`;
-
-    throw new HttpError(
-      `Request failed with status ${String(response.status)}${statusText}`,
-      response.status,
-      decodeFailureBody(body),
-    );
+    const body = decodeFailureBody(await response.text());
+    throw new HttpError(failureMessage(response.status, response.statusText, body), response.status, body);
   }
 
-  if (options.responseSchema === undefined) {
+  if (!contract) {
     const streamed = streamBody.safeParse(response.body);
-
     if (!streamed.success) {
       throw new HttpError("The upstream answered without a body to relay.", BAD_GATEWAY);
     }
-
     return { body: streamed.data, status: response.status, headers: response.headers };
   }
 
   const body = await response.text();
-
   if (body === "") {
-    const absent = options.responseSchema.safeParse(undefined);
-
+    const absent = contract.responseSchema.safeParse(undefined);
     if (absent.success) return absent.data;
-
     throw new HttpError("The upstream answered without a body to decode.", BAD_GATEWAY);
   }
 
   const decoded: unknown = JSON.parse(body);
-
-  return options.responseSchema.parse(decoded);
+  return contract.responseSchema.parse(decoded);
 }

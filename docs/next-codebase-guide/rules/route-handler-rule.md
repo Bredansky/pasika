@@ -31,16 +31,16 @@ Why: `getUserId` throws an `HttpError` on a missing session, and a handler not w
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
-Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `getUserId` on a missing session — and maps it to a response; the handler itself never needs a `catch` of its own. Its body is nothing but a sequence of `await`ed calls to imported functions, each one's result threaded into the next, ending in the `{ message, data }` that `withResponse` turns into a response.
+Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped function — including one thrown by `getUserId` on a missing session — and maps it to a response; the handler itself never needs a `catch` of its own. Its body is nothing but a sequence of `await`ed calls to imported functions, each one's result threaded into the next, ending in the `{ data }` that `withResponse` validates and returns as the response body.
 
 ## Incorrect — Handler Passed To `withResponse` As A Reference
 
@@ -48,7 +48,7 @@ Why: `withResponse` catches any `HttpError` thrown anywhere inside its wrapped f
 // src/app/api/render-instagram-content/route.ts
 import { dispatchInstagramRenderWorkflow } from "@/features/publishing/utils/instagram";
 
-export const POST = withResponse(renderApiResponseDataSchema, dispatchInstagramRenderWorkflow);
+export const POST = withResponse(renderInstagramApiContract, dispatchInstagramRenderWorkflow);
 ```
 
 Why: the second argument is a reference to a function declared in another file, so `route.ts` holds no handler at all — nothing in it says what the route does, and the `try`, loop, and branch this rule bans can sit in `dispatchInstagramRenderWorkflow` unread, because the body they would have to be read out of was never written here.
@@ -57,12 +57,12 @@ Why: the second argument is a reference to a function declared in another file, 
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-  return { message: "GitHub Action workflow dispatched successfully.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -72,10 +72,10 @@ Why: the function `withResponse` wraps is written at the call it is passed to, s
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const { jobIds } = await dispatchInstagramRenderWorkflow(userId, request);
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -85,12 +85,12 @@ Why: `dispatchInstagramRenderWorkflow` performs the whole workflow — reading t
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -144,7 +144,7 @@ export async function publishMediaContainer(
 }
 ```
 
-Why: `/api/instagram-worker`'s handler awaits this call, so `withResponse` is the only thing that can turn the failure into a response — and it recognizes nothing but an `HttpError`. This one it rethrows, and the client gets a bare 500 with none of the `{ data, message }` shape the other failures arrive in.
+Why: `/api/instagram-worker`'s handler awaits this call, so `withResponse` is the only thing that can turn the failure into a response — and it recognizes nothing but an `HttpError`. This one it rethrows, and the client gets a bare 500 with none of the `{ message }` body the other failures arrive in.
 
 ## Correct — A Delegated Module Throws An `HttpError`
 
@@ -164,13 +164,13 @@ export async function publishMediaContainer(
 }
 ```
 
-Why: `withResponse` maps the thrown `HttpError` to `{ data: null, message }` at the status the upstream API reported, so the failure reaches the client as a response like any other.
+Why: `withResponse` maps the thrown `HttpError` to `{ message }` at the status the upstream API reported, so the failure reaches the client as an HTTP error response instead of data.
 
 ## Incorrect — Handler Catches An API Call's Failure Inline
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   try {
@@ -178,7 +178,7 @@ export const POST = withResponse(schema, async (request: NextRequest) => {
   } catch (error) {
     throw new HttpError("Failed to dispatch GitHub Action workflow.", 500);
   }
-  return { message: "Dispatched.", data: orders.map((order) => order.jobId) };
+  return { data: orders.map((order) => order.jobId) };
 });
 ```
 
@@ -188,11 +188,11 @@ Why: the handler converts a caught failure into an `HttpError` itself, instead o
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const { jobIds } = await dispatchRenderJobs(userId, orders); // throws HttpError on failure
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -206,11 +206,11 @@ async function dispatchWithRetry(orders) {
   return await dispatchGithubWorkflowRequest(orders);
 }
 
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, orderSchema);
   const result = await dispatchWithRetry(orders);
-  return { message: "Dispatched.", data: result };
+  return { data: result };
 });
 ```
 
@@ -222,11 +222,11 @@ Why: `dispatchWithRetry` is declared in `route.ts` itself, so the same logic thi
 // src/app/api/render-instagram-content/route.ts
 import { dispatchRenderJobs } from "@/features/publishing/utils/instagram";
 
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, orderSchema);
   const { jobIds } = await dispatchRenderJobs(userId, orders);
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -236,7 +236,7 @@ Why: `dispatchRenderJobs` is imported from `@/features/publishing/utils/instagra
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const body = await request.json();
   const jobIds: string[] = [];
@@ -245,7 +245,7 @@ export const POST = withResponse(schema, async (request: NextRequest) => {
     jobIds.push(await createLegacyPublication(order));
   }
 
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -255,12 +255,12 @@ Why: the handler fans the publication call out over every order itself, instead 
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-export const POST = withResponse(schema, async (request: NextRequest) => {
+export const POST = withResponse(apiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, orderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const jobIds = await getJobIds(ordersWithJobIds);
-  return { message: "Dispatched.", data: jobIds };
+  return { data: jobIds };
 });
 ```
 
@@ -270,7 +270,7 @@ Why: `createPublicationsForOrders` owns the loop over orders and `getJobIds` own
 
 ```ts
 // src/app/api/post-status/route.ts
-export const GET = withResponse(schema, async (request: NextRequest) => {
+export const GET = withResponse(apiContract, async (request: NextRequest) => {
   const account = await getUserAccount();
   const id = request.nextUrl.searchParams.get("id");
 
@@ -279,7 +279,7 @@ export const GET = withResponse(schema, async (request: NextRequest) => {
   }
 
   const publication = await getPublicationById(id);
-  return { message: "Found.", data: publication.status };
+  return { data: publication.status };
 });
 ```
 
@@ -289,10 +289,10 @@ Why: the handler branches on the request itself, instead of a delegated module r
 
 ```ts
 // src/app/api/post-status/route.ts
-export const GET = withResponse(schema, async (request: NextRequest) => {
+export const GET = withResponse(apiContract, async (request: NextRequest) => {
   await getUserAccount();
   const publication = await getPublicationStatus(request.nextUrl.searchParams.get("id"));
-  return { message: "Found.", data: publication.status };
+  return { data: publication.status };
 });
 ```
 

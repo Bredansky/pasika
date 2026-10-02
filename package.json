@@ -13,6 +13,10 @@
       "types": "./dist/eslint/pasika/index.d.ts",
       "import": "./dist/eslint/pasika/index.js"
     },
+    "./api-contract": {
+      "types": "./dist/helpers/api-contract.d.ts",
+      "import": "./dist/helpers/api-contract.js"
+    },
     "./cn": {
       "types": "./dist/helpers/cn.d.ts",
       "import": "./dist/helpers/cn.js"
@@ -24,10 +28,6 @@
     "./http-method": {
       "types": "./dist/helpers/http-method.d.ts",
       "import": "./dist/helpers/http-method.js"
-    },
-    "./response-envelope": {
-      "types": "./dist/helpers/response-envelope.d.ts",
-      "import": "./dist/helpers/response-envelope.js"
     },
     "./zod-fetch": {
       "types": "./dist/helpers/zod-fetch.d.ts",

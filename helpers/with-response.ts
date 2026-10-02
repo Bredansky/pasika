@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { apiErrorResponseSchema, type ApiContract } from "./api-contract";
 import { HttpError } from "./http-error";
 
-/** A body handed to the response is one the JSON envelope cannot hold. */
 const streamBody = z.custom<ReadableStream<Uint8Array>>((value) => value instanceof ReadableStream);
 
-/** Whatever a handler's own response needs to carry; a failure never inherits it. */
 export type ResponseHeaders = Headers | Record<string, string>;
 
 export type HandlerResult<TData> =
@@ -14,28 +13,25 @@ export type HandlerResult<TData> =
 
 type AnyHandler = (...args: unknown[]) => Promise<HandlerResult<unknown>>;
 
-/** The answer to a call that names a response schema and no handler beside it. */
 function missingHandler(): never {
-  throw new HttpError("withResponse requires a response schema and a handler.", 500);
+  throw new HttpError("withResponse requires an API contract and a handler.", 500);
 }
 
 /**
- * Turns a handler's result, or a failure thrown under it, into a response: the data
- * goes through the response schema, an `HttpError` becomes `{ success: false, data: null, message }`
- * at its own status and is never cached, and anything else stays an error.
- *
- * A handler whose own response is not JSON calls it with the handler alone and returns
- * `{ body, status, headers }`, so a relayed body passes through unread.
+ * Turns a handler result into the raw HTTP response described by one API contract.
+ * Successful JSON data is validated and returned as the body directly. An HttpError
+ * becomes the standard { message } error body at its own status and is never cached.
+ * Anything else remains an error.
  */
 export function withResponse<TSchema extends z.ZodType, Args extends unknown[]>(
-  responseSchema: TSchema,
+  contract: ApiContract<TSchema, z.ZodType | undefined>,
   handler?: (...args: Args) => Promise<HandlerResult<z.input<TSchema>>>,
 ): (...args: Args) => Promise<NextResponse>;
 export function withResponse<Args extends unknown[]>(
   handler: (...args: Args) => Promise<HandlerResult<ReadableStream<Uint8Array>>>,
 ): (...args: Args) => Promise<NextResponse>;
 export function withResponse(
-  responseSchemaOrHandler: z.ZodType | AnyHandler,
+  contractOrHandler: ApiContract<z.ZodType, z.ZodType | undefined> | AnyHandler,
   handler?: AnyHandler,
 ): (...args: unknown[]) => Promise<NextResponse> {
   const respond =
@@ -50,22 +46,20 @@ export function withResponse(
         }
 
         const { data, status, headers } = result;
-        return NextResponse.json({ success: true, data: schema.parse(data) }, { status, headers });
+        return NextResponse.json(schema.parse(data), { status, headers });
       } catch (error) {
         if (error instanceof HttpError) {
-          return NextResponse.json(
-            { success: false, data: null, message: error.message },
-            { status: error.status, headers: { "Cache-Control": "no-store" } },
-          );
+          return NextResponse.json(apiErrorResponseSchema.parse({ message: error.message }), {
+            status: error.status,
+            headers: { "Cache-Control": "no-store" },
+          });
         }
 
         throw error;
       }
     };
 
-  // A function in the schema slot is the handler-only call, whose result carries
-  // the body JSON cannot.
-  return typeof responseSchemaOrHandler === "function"
-    ? respond(streamBody, responseSchemaOrHandler)
-    : respond(responseSchemaOrHandler, handler);
+  return typeof contractOrHandler === "function"
+    ? respond(streamBody, contractOrHandler)
+    : respond(contractOrHandler.responseSchema, handler);
 }

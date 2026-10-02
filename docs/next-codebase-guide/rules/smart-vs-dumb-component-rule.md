@@ -16,14 +16,11 @@ Without a file-name convention, a component's smart vs dumb ownership is invisib
 ```tsx
 // src/features/social/social-stats-panel.tsx
 import { zodFetch } from "pasika/zod-fetch";
-import { socialStatsResponseSchema } from "./schemas";
+import { socialStatsApiContract } from "./schemas";
 import { PlatformCard } from "./platform-card";
 
 export async function SocialStatsPanel(): Promise<React.JSX.Element> {
-  const stats = await zodFetch({
-    url: "/api/social-stats",
-    responseSchema: socialStatsResponseSchema,
-  });
+  const stats = await zodFetch({ contract: socialStatsApiContract });
 
   return (
     <div data-component="SocialStatsPanel">
@@ -42,14 +39,11 @@ Why: fetching data makes the component smart, but the file name uses dumb-compon
 ```tsx
 // src/features/social/SocialStatsPanel.tsx
 import { zodFetch } from "pasika/zod-fetch";
-import { socialStatsResponseSchema } from "./schemas";
+import { socialStatsApiContract } from "./schemas";
 import { PlatformCard } from "./platform-card";
 
 export async function SocialStatsPanel(): Promise<React.JSX.Element> {
-  const stats = await zodFetch({
-    url: "/api/social-stats",
-    responseSchema: socialStatsResponseSchema,
-  });
+  const stats = await zodFetch({ contract: socialStatsApiContract });
 
   return (
     <div data-component="SocialStatsPanel">

@@ -14,9 +14,9 @@ export function withResponse(responseSchema, handler) {
   return async (...args) => {
     try {
       const { data } = await handler(...args);
-      return NextResponse.json({ success: true, data: responseSchema.parse(data) });
+      return NextResponse.json(responseSchema.parse(data));
     } catch (error) {
-      return NextResponse.json({ success: false, data: null, message: "Request failed." }, { status: 500 });
+      return NextResponse.json({ message: "Request failed." }, { status: 500 });
     }
   };
 }
@@ -29,11 +29,11 @@ Why: every failure leaves at the same status, so the status a delegated module r
 ```ts
 import { withResponse } from "pasika/with-response";
 
-export const POST = withResponse(createOrderResponseSchema, async (request: NextRequest) => {
+export const POST = withResponse(createOrderApiContract, async (request: NextRequest) => {
   const order = await createOrder(request);
 
   return { data: order, status: 201 };
 });
 ```
 
-Why: the response body, the failure envelope, and the status a failure carries are the framework's, and the route names no wrapper of its own.
+Why: the validated response body, the failure body, and the status a failure carries are the framework's, and the route names no wrapper of its own.
