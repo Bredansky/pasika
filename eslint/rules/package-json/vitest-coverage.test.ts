@@ -25,7 +25,7 @@ export default defineConfig({
         branches: 6,
         statements: 9,
         autoUpdate: (newThreshold, previousThreshold) =>
-          Math.max(previousThreshold, Math.floor((newThreshold - 0.1) * 10) / 10),
+          Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),
       },
     },
   },
@@ -244,6 +244,26 @@ void describe("A repository MUST set coverage.thresholds.autoUpdate to the monot
       {
         code: JSON.stringify(COMPLETE_MANIFEST),
         filename: path.join(bare, "package.json"),
+        errors: [
+          {
+            message:
+              "vitest.config.ts must set coverage.thresholds.autoUpdate to the monotonic 0.1-point buffered formatter.",
+          },
+        ],
+      },
+    ],
+  });
+
+  const unsafeRatchet = buildFixture(
+    RATCHETED_CONFIG.replace("Number(String(previousThreshold))", "previousThreshold"),
+  );
+  process.chdir(unsafeRatchet);
+  packageJsonRuleTester.run("vitest-coverage", vitestCoverageRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify(COMPLETE_MANIFEST),
+        filename: path.join(unsafeRatchet, "package.json"),
         errors: [
           {
             message:

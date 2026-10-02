@@ -135,7 +135,7 @@ coverage: {
     branches: 6,
     statements: 9,
     autoUpdate: (newThreshold, previousThreshold) =>
-      Math.max(previousThreshold, Math.floor((newThreshold - 0.1) * 10) / 10),
+      Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),
   },
 },
 ```
