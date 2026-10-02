@@ -1,6 +1,6 @@
 # API Contract Rule
 
-Schema-validated JSON endpoints drift when routes and clients restate paths, methods, or schemas independently. This rule keeps one exported API contract as the shared source for those values.
+Schema-validated JSON endpoints drift when routes and clients restate paths, methods, or schemas independently. This rule keeps one exported API contract as the shared source for those values and treats that contract as schema support for the existing placement rules.
 
 - A schema-validated JSON API contract MUST be created with `defineApiContract` imported from `pasika/api-contract`.
 - A call to `defineApiContract` MUST initialize an exported named value.
