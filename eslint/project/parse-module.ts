@@ -28,7 +28,7 @@ export interface ParsedModule {
 
 const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
 const isHookName = (name: string): boolean => /^use[A-Z]/.test(name);
-const isSchemaName = (name: string): boolean => /[Ss]chema$/.test(name);
+const isSchemaName = (name: string): boolean => /(?:[Ss]chema|ApiContract)$/.test(name);
 
 function lineOf(sourceFile: ts.SourceFile, node: ts.Node): number {
   return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;

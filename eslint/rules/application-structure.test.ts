@@ -29,6 +29,14 @@ write(
   'import { z } from "zod";\nexport const invoiceSchema = z.object({});\nexport type Invoice = z.infer<typeof invoiceSchema>;\n',
 );
 write(
+  "features/billing/schemas/orders-api-contract.ts",
+  'import { defineApiContract } from "pasika/api-contract";\nexport const ordersApiContract = defineApiContract({ method, path, responseSchema });\n',
+);
+write(
+  "features/billing/constants/orders-api-contract.ts",
+  'import { defineApiContract } from "pasika/api-contract";\nexport const ordersApiContract = defineApiContract({ method, path, responseSchema });\n',
+);
+write(
   "features/billing/utils/format-invoice.ts",
   "export interface FormattedInvoice { total: number; }\nexport function formatInvoice(input: FormattedInvoice) { return input; }\n",
 );
@@ -105,6 +113,7 @@ void describe("A folder holding support files MUST be named hooks/, types/, sche
       valid("features/billing/utils/format-date.ts"),
       valid("features/billing/utils/format-invoice.ts"),
       valid("features/billing/constants/status-colors.ts"),
+      valid("features/billing/schemas/orders-api-contract.ts"),
       valid("features/billing/types/invoice.ts"),
     ],
     invalid: [
@@ -125,6 +134,11 @@ void describe("A folder holding support files MUST be named hooks/, types/, sche
               "A schemas/ folder must not mix unrelated support kinds; keep types, schemas, and constants in their matching folders.",
           },
         ],
+      },
+      {
+        code: 'import { defineApiContract } from "pasika/api-contract"; export const ordersApiContract = defineApiContract({ method, path, responseSchema });',
+        filename: file("features/billing/constants/orders-api-contract.ts"),
+        errors: [{ message: "Move this file to a schemas/ folder; constants/ is reserved for schemas." }],
       },
     ],
   });
