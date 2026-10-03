@@ -680,6 +680,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "An object property MUST NOT rename or derive a value inline when the property can use a named local instead.",
+      "hash": "bb0110e841",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.",
       "hash": "44049b17c1",
       "ref": "pasika/no-redundant-alias"

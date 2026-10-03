@@ -46,6 +46,15 @@ void describe("A `const` variable declaration whose initializer is another symbo
           },
         ],
       },
+      {
+        code: "function run() { const results = getResults(); const data = results; return { data }; }",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: aliasMessage("data", "results"),
+          },
+        ],
+      },
     ],
   });
 });
@@ -86,6 +95,57 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
         errors: [
           {
             message: aliasMessage("TEXT_SIZE_SLIDER_MAX", "defaultSliderMax"),
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("An object property MUST NOT rename or derive a value inline when the property can use a named local instead.", () => {
+  ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
+    valid: [
+      {
+        code: [
+          "const data = loadData(); const response = { data };",
+          "const appKey = credentials.apiKey; const client = { appKey };",
+          "const method = HttpMethod.Post; const contract = { method };",
+          'const wirePayload = { "access-token": accessToken };',
+          "const computedPayload = { [fieldName]: value };",
+          'const literalPayload = { status: "ready", retries: 3 };',
+          "const computedValue = { data: loadData() };",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: "const results = loadData(); const response = { data: results };",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"data" maps the local "results" inline. Rename the producer to "data" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const config = { appKey: credentials.apiKey, method: HttpMethod.Post };",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"appKey" maps "credentials.apiKey" inline. Bind it as "appKey" before this object and use property shorthand. ${doc}`,
+          },
+          {
+            message: `"method" maps "HttpMethod.Post" inline. Bind it as "method" before this object and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const data = loadData(); const response = { data: data };",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `Use property shorthand for "data". ${doc}`,
           },
         ],
       },

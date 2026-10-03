@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/no-redundant-alias
  *
- * Prevents variable, type, and empty-interface declarations from creating a
- * second name for an existing symbol or primitive type without adding behavior or type structure.
+ * Prevents declarations and object properties from introducing redundant
+ * local names or inline identifier/member-expression mappings.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
@@ -36,6 +36,7 @@ type TsTypeAnnotationNode = Omit<Rule.Node, "type"> & {
   typeName?: TsEntityName;
   typeArguments?: Rule.Node;
 };
+
 type TsTypeAliasDeclarationNode = Rule.Node & {
   id?: { name?: string };
   typeAnnotation?: TsTypeAnnotationNode;
@@ -80,12 +81,20 @@ function aliasMessage(alias: string | undefined, source: string | undefined): st
   return `"${aliasName}" only renames "${sourceName}". Use "${sourceName}" directly or rename the original symbol and its consumers. ${DOC}`;
 }
 
+function objectPropertyMessage(propertyName: string, source: string, identifierValue: boolean): string {
+  if (!identifierValue) {
+    return `"${propertyName}" maps "${source}" inline. Bind it as "${propertyName}" before this object and use property shorthand. ${DOC}`;
+  }
+  if (source === propertyName) return `Use property shorthand for "${propertyName}". ${DOC}`;
+  return `"${propertyName}" maps the local "${source}" inline. Rename the producer to "${propertyName}" and use property shorthand. ${DOC}`;
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Disallow declarations that only give an existing symbol a second name.",
+      description: "Disallow redundant aliases and inline identifier/member-expression object mappings.",
     },
   },
   create(context) {
@@ -106,6 +115,21 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           message: aliasMessage(node.id.name, node.init.name),
         });
       },
+      Property(node) {
+        if (node.parent.type !== "ObjectExpression" || node.computed || node.key.type !== "Identifier") return;
+        if (node.value.type !== "Identifier" && node.value.type !== "MemberExpression") return;
+
+        const propertyName = node.key.name;
+        const source = context.sourceCode.getText(node.value);
+
+        if (node.value.type === "Identifier" && node.shorthand) return;
+
+        context.report({
+          node,
+          message: objectPropertyMessage(propertyName, source, node.value.type === "Identifier"),
+        });
+      },
+
       TSTypeAliasDeclaration(node: TsTypeAliasDeclarationNode) {
         if (node.typeParameters) return;
         const annotation = node.typeAnnotation;
