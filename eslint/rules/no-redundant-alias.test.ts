@@ -114,6 +114,9 @@ void describe("An object property MUST NOT rename or derive a value inline when 
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
           "const computedValue = { data: loadData() };",
+          "const positionSchema = createSchema(); const textLayer = { position: positionSchema }; const mediaLayer = { position: positionSchema };",
+          'import { HttpMethod } from "pasika/http-method"; const contract = { method: HttpMethod.Post };',
+          "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
@@ -129,14 +132,11 @@ void describe("An object property MUST NOT rename or derive a value inline when 
         ],
       },
       {
-        code: "const config = { appKey: credentials.apiKey, method: HttpMethod.Post };",
+        code: "const config = { appKey: credentials.apiKey };",
         filename: srcFile("utils/example.ts"),
         errors: [
           {
             message: `"appKey" maps "credentials.apiKey" inline. Bind it as "appKey" before this object and use property shorthand. ${doc}`,
-          },
-          {
-            message: `"method" maps "HttpMethod.Post" inline. Bind it as "method" before this object and use property shorthand. ${doc}`,
           },
         ],
       },

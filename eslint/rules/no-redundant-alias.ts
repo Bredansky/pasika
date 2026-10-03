@@ -7,7 +7,8 @@
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
 import path from "node:path";
-import type { Rule } from "eslint";
+import type { Rule, Scope } from "eslint";
+import type { Identifier, MemberExpression, Node } from "estree";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
@@ -89,6 +90,52 @@ function objectPropertyMessage(propertyName: string, source: string, identifierV
   return `"${propertyName}" maps the local "${source}" inline. Rename the producer to "${propertyName}" and use property shorthand. ${DOC}`;
 }
 
+function findVariable(context: Rule.RuleContext, node: Identifier): Scope.Variable | undefined {
+  let scope: Scope.Scope | null = context.sourceCode.getScope(node);
+  while (scope) {
+    const variable = scope.set.get(node.name);
+    if (variable) return variable;
+    scope = scope.upper;
+  }
+  return undefined;
+}
+
+function isExportedVariable(context: Rule.RuleContext, variable: Scope.Variable): boolean {
+  return variable.defs.some(
+    (definition) =>
+      definition.type === "Variable" &&
+      context.sourceCode.getAncestors(definition.parent).at(-1)?.type === "ExportNamedDeclaration",
+  );
+}
+
+function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier): boolean {
+  const variable = findVariable(context, node);
+  if (!variable || isExportedVariable(context, variable)) return false;
+
+  const definition = variable.defs[0];
+  if (!definition || variable.defs.length !== 1) return false;
+  if (definition.type === "ImportBinding") return false;
+  if (definition.type === "Variable" && definition.parent.kind !== "const") return false;
+  if (definition.type !== "Variable" && definition.type !== "Parameter") return false;
+
+  return variable.references.filter((reference) => reference.isRead()).length === 1;
+}
+
+function memberRootIdentifier(node: MemberExpression): Identifier | undefined {
+  let current: Node = node;
+  while (current.type === "MemberExpression") current = current.object;
+  return current.type === "Identifier" ? current : undefined;
+}
+
+function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpression): boolean {
+  const root = memberRootIdentifier(node);
+  if (!root) return true;
+  if (/^[A-Z]/u.test(root.name)) return false;
+
+  const variable = findVariable(context, root);
+  return !variable?.defs.some((definition) => definition.type === "ImportBinding");
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -122,7 +169,12 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         const propertyName = node.key.name;
         const source = context.sourceCode.getText(node.value);
 
-        if (node.value.type === "Identifier" && node.shorthand) return;
+        if (node.value.type === "Identifier") {
+          if (node.shorthand) return;
+          if (source !== propertyName && !canRenameIdentifierProducer(context, node.value)) return;
+        } else if (!canBindMemberExpression(context, node.value)) {
+          return;
+        }
 
         context.report({
           node,
