@@ -52,6 +52,7 @@ import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
+import { repeatedNumericValueRule } from "./rules/repeated-numeric-value";
 import { repeatedStructureRule } from "./rules/repeated-structure";
 import { requireBarrelStarExportsRule } from "./rules/require-barrel-star-exports";
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
@@ -141,6 +142,7 @@ const pasikaNextjsAppRules = {
   "locale-placement": localePlacementRule,
   "sole-state-owner": soleStateOwnerRule,
   "locale-key-shape": localeKeyShapeRule,
+  "repeated-numeric-value": repeatedNumericValueRule,
   "repeated-structure": repeatedStructureRule,
 };
 

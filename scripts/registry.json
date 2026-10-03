@@ -476,6 +476,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.",
+      "hash": "ab7e6bc445",
+      "ref": "pasika/repeated-numeric-value"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.",
       "hash": "32864b3bf9",
       "ref": "pasika/prefer-enum"

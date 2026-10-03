@@ -19,11 +19,19 @@ export interface ModuleImport {
   line: number;
 }
 
+export interface NamedNumericLiteral {
+  name: string;
+  semanticName: string;
+  value: number;
+  line: number;
+}
+
 export interface ParsedModule {
   file: string;
   imports: ModuleImport[];
   reexports: ModuleImport[];
   exports: ModuleExport[];
+  namedNumericLiterals: NamedNumericLiteral[];
 }
 
 const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
@@ -32,6 +40,37 @@ const isSchemaName = (name: string): boolean => /(?:[Ss]chema|ApiContract)$/.tes
 
 function lineOf(sourceFile: ts.SourceFile, node: ts.Node): number {
   return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+}
+
+function numericLiteralValue(node: ts.Expression | undefined): number | undefined {
+  if (!node) return undefined;
+  if (ts.isNumericLiteral(node)) return Number(node.text.replaceAll("_", ""));
+  if (
+    ts.isPrefixUnaryExpression(node) &&
+    node.operator === ts.SyntaxKind.MinusToken &&
+    ts.isNumericLiteral(node.operand)
+  ) {
+    return -Number(node.operand.text.replaceAll("_", ""));
+  }
+  return undefined;
+}
+
+function semanticName(name: string): string {
+  const parts = name
+    .replace(/(?<lower>[a-z0-9])(?<upper>[A-Z])/g, "$<lower> $<upper>")
+    .replace(/[_-]+/g, " ")
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  const last = parts.at(-1);
+  if (last === "width" || last === "height" || last === "fps") return last;
+  if (parts.includes("duration")) return "duration";
+  return parts.join(" ");
+}
+
+function propertyName(node: ts.PropertyName): string | undefined {
+  if (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNumericLiteral(node)) return node.text;
+  return undefined;
 }
 
 function returnsJsx(node: ts.Node): boolean {
@@ -88,6 +127,40 @@ export function parseModule(file: string): ParsedModule {
   const imports: ModuleImport[] = [];
   const reexports: ModuleImport[] = [];
   const exports: ModuleExport[] = [];
+  const namedNumericLiterals: NamedNumericLiteral[] = [];
+
+  const addNamedNumericLiteral = (name: string, value: number, node: ts.Node): void => {
+    namedNumericLiterals.push({
+      name,
+      semanticName: semanticName(name),
+      value,
+      line: lineOf(sourceFile, node),
+    });
+  };
+
+  const collectNamedNumericLiterals = (node: ts.Node): void => {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
+      const value = numericLiteralValue(node.initializer);
+      if (value !== undefined) addNamedNumericLiteral(node.name.text, value, node.initializer ?? node);
+    } else if (ts.isPropertyAssignment(node)) {
+      const name = propertyName(node.name);
+      const value = numericLiteralValue(node.initializer);
+      if (name && value !== undefined) addNamedNumericLiteral(name, value, node.initializer);
+    } else if (
+      ts.isJsxAttribute(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      ts.isJsxExpression(node.initializer)
+    ) {
+      const expression = node.initializer.expression;
+      const value = expression ? numericLiteralValue(expression) : undefined;
+      if (value !== undefined && expression) addNamedNumericLiteral(node.name.text, value, expression);
+    }
+
+    ts.forEachChild(node, collectNamedNumericLiterals);
+  };
+
+  collectNamedNumericLiterals(sourceFile);
 
   const addImport = (specifierNode: ts.Expression, names: string[], node: ts.Node): void => {
     if (!ts.isStringLiteral(specifierNode)) return;
@@ -181,5 +254,5 @@ export function parseModule(file: string): ParsedModule {
     }
   }
 
-  return { file: path.resolve(file), imports, reexports, exports };
+  return { file: path.resolve(file), imports, reexports, exports, namedNumericLiterals };
 }

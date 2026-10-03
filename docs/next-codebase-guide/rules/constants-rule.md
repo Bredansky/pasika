@@ -12,6 +12,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.
 - A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
 - A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.
+- A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.
 - A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 
@@ -30,6 +31,43 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 // src/constants/index.ts
 export const maxFileSize = 20 * 1024 * 1024;
 ```
+
+## Incorrect — Repeated Named Numeric Value Across Files
+
+```ts
+// src/features/editor/preview.ts
+const compositionWidth = 360;
+```
+
+```ts
+// src/features/editor/generate.ts
+generatePreview({ width: 360 });
+```
+
+Why: `compositionWidth` and `width` share the semantic slot `width`, so repeating the same numeric value across production files creates two sources of truth.
+
+## Correct — Shared Numeric Constant
+
+```ts
+// src/features/editor/constants/index.ts
+export const previewWidth = 360;
+```
+
+```ts
+// src/features/editor/preview.ts
+import { previewWidth } from "./constants";
+
+const compositionWidth = previewWidth;
+```
+
+```ts
+// src/features/editor/generate.ts
+import { previewWidth } from "./constants";
+
+generatePreview({ width: previewWidth });
+```
+
+Why: the numeric value has one definition at the consumers' CCF, while each consumer can still use a locally meaningful name or property.
 
 ## Incorrect — `as const` Object for a Fixed Set of Values
 
