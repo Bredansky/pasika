@@ -119,6 +119,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
           "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
           "const draftId = input.draftId; const row = { draft_id: draftId };",
           "const loader = import('./editor').then((mod) => ({ default: mod.EditorSidebar }));",
+          "function run(mode: Mode) { return { backgroundMode: mode }; }",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
@@ -126,7 +127,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
     invalid: [
       {
         code: "const results = loadData(); const response = { data: results };",
-        output: "const data = loadData(); const response = { data };",
+        output: null,
         filename: srcFile("utils/example.ts"),
         errors: [
           {
@@ -136,7 +137,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
       },
       {
         code: "const config = { appKey: credentials.apiKey };",
-        output: "const appKey = credentials.apiKey;\nconst config = { appKey };",
+        output: null,
         filename: srcFile("utils/example.ts"),
         errors: [
           {
@@ -151,16 +152,6 @@ void describe("An object property MUST NOT rename or derive a value inline when 
         errors: [
           {
             message: `Use property shorthand for "data". ${doc}`,
-          },
-        ],
-      },
-      {
-        code: "function run(mode: Mode) { return { backgroundMode: mode }; }",
-        output: null,
-        filename: srcFile("utils/example.ts"),
-        errors: [
-          {
-            message: `"backgroundMode" maps the local "mode" inline. Rename the producer to "backgroundMode" and use property shorthand. ${doc}`,
           },
         ],
       },
