@@ -37,6 +37,12 @@ return { data };
 const appKey = credentials.apiKey;
 new TwitterApi({ appKey });
 
+const positionSchema = createPositionSchema();
+z.object({ position: positionSchema });
+z.object({ position: positionSchema });
+
+defineApiContract({ method: HttpMethod.Post });
+
 type ApiCredential = PlatformCredentialApi & {
   source: "api";
 };
@@ -46,4 +52,4 @@ interface ApiResponse extends PlatformResponse {
 }
 ```
 
-Why: values that need a property name are named before object construction, so the object only assembles already-named values. Mutable variables may diverge from their initial value, and the type and interface declarations add structure instead of merely renaming an existing symbol. Next.js-required exported names are also allowed.
+Why: values that need a property name are named before object construction when a local producer can safely adopt that name. Reusable or exported symbols keep their canonical names, and imported/static members may be mapped directly because there is no local producer to rename. Mutable variables may diverge from their initial value, and the type and interface declarations add structure instead of merely renaming an existing symbol. Next.js-required exported names are also allowed.
