@@ -108,9 +108,21 @@ function isExportedVariable(context: Rule.RuleContext, variable: Scope.Variable)
   );
 }
 
-function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier): boolean {
+function visibleVariable(context: Rule.RuleContext, node: Node, name: string): Scope.Variable | undefined {
+  let scope: Scope.Scope | null = context.sourceCode.getScope(node);
+  while (scope) {
+    const variable = scope.set.get(name);
+    if (variable) return variable;
+    scope = scope.upper;
+  }
+  return undefined;
+}
+
+function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier, targetName: string): boolean {
   const variable = findVariable(context, node);
   if (!variable || isExportedVariable(context, variable)) return false;
+  const targetVariable = visibleVariable(context, node, targetName);
+  if (targetVariable && targetVariable !== variable) return false;
 
   const definition = variable.defs[0];
   if (!definition || variable.defs.length !== 1) return false;
@@ -127,7 +139,9 @@ function memberRootIdentifier(node: MemberExpression): Identifier | undefined {
   return current.type === "Identifier" ? current : undefined;
 }
 
-function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpression): boolean {
+function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpression, targetName: string): boolean {
+  if (visibleVariable(context, node, targetName)) return false;
+
   const root = memberRootIdentifier(node);
   if (!root) return true;
   if (/^[A-Z]/u.test(root.name)) return false;
@@ -136,10 +150,66 @@ function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpressi
   return !variable?.defs.some((definition) => definition.type === "ImportBinding");
 }
 
+function listStatement(node: Rule.Node): Rule.Node | undefined {
+  let current: Rule.Node = node;
+  while (current.parent && current.parent.type !== "Program" && current.parent.type !== "BlockStatement") {
+    current = current.parent;
+  }
+  return current.parent ? current : undefined;
+}
+
+function identifierPropertyFixes(
+  context: Rule.RuleContext,
+  node: Rule.Node,
+  value: Identifier,
+  propertyName: string,
+  fixer: Rule.RuleFixer,
+): Rule.Fix[] {
+  if (value.name === propertyName) return [fixer.replaceText(node, propertyName)];
+
+  const variable = findVariable(context, value);
+  if (!variable) return [];
+
+  return [
+    ...variable.identifiers.map((identifier) => fixer.replaceText(identifier, propertyName)),
+    fixer.replaceText(node, propertyName),
+  ];
+}
+
+function memberPropertyFixes(
+  context: Rule.RuleContext,
+  node: Rule.Node,
+  value: MemberExpression,
+  propertyName: string,
+  source: string,
+  fixer: Rule.RuleFixer,
+): Rule.Fix[] {
+  const statement = listStatement(node);
+  if (!statement) return [];
+
+  const root = memberRootIdentifier(value);
+  const rootVariable = root ? findVariable(context, root) : undefined;
+  if (
+    rootVariable?.defs.some((definition) => {
+      const [statementStart, statementEnd] = context.sourceCode.getRange(statement);
+      const [definitionStart, definitionEnd] = context.sourceCode.getRange(definition.node);
+      return definitionStart >= statementStart && definitionEnd <= statementEnd;
+    })
+  ) {
+    return [];
+  }
+
+  return [
+    fixer.insertTextBefore(statement, `const ${propertyName} = ${source};\n`),
+    fixer.replaceText(node, propertyName),
+  ];
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
+    fixable: "code",
     docs: {
       description: "Disallow redundant aliases and inline identifier/member-expression object mappings.",
     },
@@ -167,18 +237,24 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (node.value.type !== "Identifier" && node.value.type !== "MemberExpression") return;
 
         const propertyName = node.key.name;
-        const source = context.sourceCode.getText(node.value);
+        const propertyValue = node.value;
+        const source = context.sourceCode.getText(propertyValue);
 
-        if (node.value.type === "Identifier") {
+        if (propertyValue.type === "Identifier") {
           if (node.shorthand) return;
-          if (source !== propertyName && !canRenameIdentifierProducer(context, node.value)) return;
-        } else if (!canBindMemberExpression(context, node.value)) {
+          if (source !== propertyName && !canRenameIdentifierProducer(context, propertyValue, propertyName)) return;
+        } else if (!canBindMemberExpression(context, propertyValue, propertyName)) {
           return;
         }
 
         context.report({
           node,
-          message: objectPropertyMessage(propertyName, source, node.value.type === "Identifier"),
+          message: objectPropertyMessage(propertyName, source, propertyValue.type === "Identifier"),
+          fix(fixer) {
+            return propertyValue.type === "Identifier"
+              ? identifierPropertyFixes(context, node, propertyValue, propertyName, fixer)
+              : memberPropertyFixes(context, node, propertyValue, propertyName, source, fixer);
+          },
         });
       },
 
