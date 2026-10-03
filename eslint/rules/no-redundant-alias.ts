@@ -12,6 +12,54 @@ import type { Identifier, MemberExpression, Node } from "estree";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
+const RESERVED_LOCAL_NAMES = new Set([
+  "await",
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "implements",
+  "import",
+  "in",
+  "instanceof",
+  "interface",
+  "let",
+  "new",
+  "null",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "return",
+  "static",
+  "super",
+  "switch",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  "yield",
+]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
   TSBigIntKeyword: "bigint",
@@ -106,6 +154,10 @@ function isExportedVariable(context: Rule.RuleContext, variable: Scope.Variable)
       definition.type === "Variable" &&
       context.sourceCode.getAncestors(definition.parent).at(-1)?.type === "ExportNamedDeclaration",
   );
+}
+
+function canUsePropertyNameAsLocal(name: string): boolean {
+  return /^[a-z][A-Za-z0-9]*$/u.test(name) && !RESERVED_LOCAL_NAMES.has(name);
 }
 
 function visibleVariable(context: Rule.RuleContext, node: Node, name: string): Scope.Variable | undefined {
@@ -237,6 +289,8 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (node.value.type !== "Identifier" && node.value.type !== "MemberExpression") return;
 
         const propertyName = node.key.name;
+        if (!canUsePropertyNameAsLocal(propertyName)) return;
+
         const propertyValue = node.value;
         const source = context.sourceCode.getText(propertyValue);
 

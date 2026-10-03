@@ -117,6 +117,8 @@ void describe("An object property MUST NOT rename or derive a value inline when 
           "const positionSchema = createSchema(); const textLayer = { position: positionSchema }; const mediaLayer = { position: positionSchema };",
           'import { HttpMethod } from "pasika/http-method"; const contract = { method: HttpMethod.Post };',
           "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
+          "const draftId = input.draftId; const row = { draft_id: draftId };",
+          "const loader = import('./editor').then((mod) => ({ default: mod.EditorSidebar }));",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
