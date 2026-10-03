@@ -124,6 +124,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
     invalid: [
       {
         code: "const results = loadData(); const response = { data: results };",
+        output: "const data = loadData(); const response = { data };",
         filename: srcFile("utils/example.ts"),
         errors: [
           {
@@ -133,6 +134,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
       },
       {
         code: "const config = { appKey: credentials.apiKey };",
+        output: "const appKey = credentials.apiKey;\nconst config = { appKey };",
         filename: srcFile("utils/example.ts"),
         errors: [
           {
@@ -142,6 +144,7 @@ void describe("An object property MUST NOT rename or derive a value inline when 
       },
       {
         code: "const data = loadData(); const response = { data: data };",
+        output: "const data = loadData(); const response = { data };",
         filename: srcFile("utils/example.ts"),
         errors: [
           {
