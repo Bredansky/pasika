@@ -668,6 +668,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A local variable derived directly from an object property MUST use object destructuring.",
+      "hash": "cfd7e81c61",
+      "ref": "pasika/prefer-object-destructuring"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.",
       "hash": "1d40539bd3",
       "ref": "pasika/no-redundant-alias"

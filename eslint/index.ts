@@ -51,6 +51,7 @@ import { noRedundantAliasRule } from "./rules/no-redundant-alias";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
+import { preferObjectDestructuringRule } from "./rules/prefer-object-destructuring";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { repeatedNumericValueRule } from "./rules/repeated-numeric-value";
 import { repeatedStructureRule } from "./rules/repeated-structure";
@@ -103,6 +104,7 @@ const pasikaNextjsAppRules = {
   "value-extraction": valueExtractionRule,
   "constant-casing": constantCasingRule,
   "prefer-enum": preferEnumRule,
+  "prefer-object-destructuring": preferObjectDestructuringRule,
   "enum-placement": enumPlacementRule,
   "type-extraction": typeExtractionRule,
   "zod-schema-validation": zodSchemaValidationRule,
