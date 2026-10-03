@@ -31,9 +31,8 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
   if (declarator.init?.type !== "MemberExpression") return undefined;
 
   const member = declarator.init;
-  if (member.computed || member.optional || member.property.type !== "Identifier" || member.object.type === "Super") {
-    return undefined;
-  }
+  if (member.computed || member.optional || member.property.type !== "Identifier") return undefined;
+  if (!canGroupSource(member.object)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const propertyName = member.property.name;

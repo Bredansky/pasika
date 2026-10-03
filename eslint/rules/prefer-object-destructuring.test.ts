@@ -12,6 +12,8 @@ void describe("A local variable derived directly from an object property MUST us
       'const value = file["value"];',
       "const value: string = file.value;",
       "const value = file?.value;",
+      "const errorMessage = locales.editor.missingRenderJobIds;",
+      "const first = config.current.first; const second = config.current.second;",
     ],
     invalid: [
       {
@@ -57,11 +59,6 @@ void describe("A local variable derived directly from an object property MUST us
             message: `"second" is derived directly from "file.second". Use object destructuring. ${doc}`,
           },
         ],
-      },
-      {
-        code: "const first = config.current.first;\nconst second = config.current.second;",
-        output: "const { first } = config.current;\nconst { second } = config.current;",
-        errors: 2,
       },
       {
         code: "const first = file.first, otherValue = other.value;",
