@@ -178,9 +178,7 @@ function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier
 
   const definition = variable.defs[0];
   if (!definition || variable.defs.length !== 1) return false;
-  if (definition.type === "ImportBinding") return false;
-  if (definition.type === "Variable" && definition.parent.kind !== "const") return false;
-  if (definition.type !== "Variable" && definition.type !== "Parameter") return false;
+  if (definition.type !== "Variable" || definition.parent.kind !== "const") return false;
 
   return variable.references.filter((reference) => reference.isRead()).length === 1;
 }
@@ -200,66 +198,6 @@ function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpressi
 
   const variable = findVariable(context, root);
   return !variable?.defs.some((definition) => definition.type === "ImportBinding");
-}
-
-function listStatement(node: Rule.Node): Rule.Node | undefined {
-  let current: Rule.Node = node;
-  while (current.parent && current.parent.type !== "Program" && current.parent.type !== "BlockStatement") {
-    current = current.parent;
-  }
-  return current.parent ? current : undefined;
-}
-
-function identifierPropertyFixes(
-  context: Rule.RuleContext,
-  node: Rule.Node,
-  value: Identifier,
-  propertyName: string,
-  fixer: Rule.RuleFixer,
-): Rule.Fix[] {
-  if (value.name === propertyName) return [fixer.replaceText(node, propertyName)];
-
-  const variable = findVariable(context, value);
-  const definition = variable?.defs[0];
-  if (
-    variable?.defs.length !== 1 ||
-    definition?.type !== "Variable" ||
-    definition.parent.kind !== "const" ||
-    definition.node.id.type !== "Identifier"
-  ) {
-    return [];
-  }
-
-  return [fixer.replaceText(definition.node.id, propertyName), fixer.replaceText(node, propertyName)];
-}
-
-function memberPropertyFixes(
-  context: Rule.RuleContext,
-  node: Rule.Node,
-  value: MemberExpression,
-  propertyName: string,
-  source: string,
-  fixer: Rule.RuleFixer,
-): Rule.Fix[] {
-  const statement = listStatement(node);
-  if (!statement) return [];
-
-  const root = memberRootIdentifier(value);
-  const rootVariable = root ? findVariable(context, root) : undefined;
-  if (
-    rootVariable?.defs.some((definition) => {
-      const [statementStart, statementEnd] = context.sourceCode.getRange(statement);
-      const [definitionStart, definitionEnd] = context.sourceCode.getRange(definition.node);
-      return definitionStart >= statementStart && definitionEnd <= statementEnd;
-    })
-  ) {
-    return [];
-  }
-
-  return [
-    fixer.insertTextBefore(statement, `const ${propertyName} = ${source};\n`),
-    fixer.replaceText(node, propertyName),
-  ];
 }
 
 export const noRedundantAliasRule: Rule.RuleModule = {
@@ -310,9 +248,9 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           node,
           message: objectPropertyMessage(propertyName, source, propertyValue.type === "Identifier"),
           fix(fixer) {
-            return propertyValue.type === "Identifier"
-              ? identifierPropertyFixes(context, node, propertyValue, propertyName, fixer)
-              : memberPropertyFixes(context, node, propertyValue, propertyName, source, fixer);
+            return propertyValue.type === "Identifier" && propertyValue.name === propertyName
+              ? fixer.replaceText(node, propertyName)
+              : null;
           },
         });
       },
