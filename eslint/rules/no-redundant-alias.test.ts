@@ -154,6 +154,26 @@ void describe("An object property MUST NOT rename or derive a value inline when 
           },
         ],
       },
+      {
+        code: "function run(mode: Mode) { return { backgroundMode: mode }; }",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"backgroundMode" maps the local "mode" inline. Rename the producer to "backgroundMode" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { id } = params; const input = { credentialId: id };",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"credentialId" maps the local "id" inline. Rename the producer to "credentialId" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
     ],
   });
 });

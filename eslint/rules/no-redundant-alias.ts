@@ -220,12 +220,17 @@ function identifierPropertyFixes(
   if (value.name === propertyName) return [fixer.replaceText(node, propertyName)];
 
   const variable = findVariable(context, value);
-  if (!variable) return [];
+  const definition = variable?.defs[0];
+  if (
+    variable?.defs.length !== 1 ||
+    definition?.type !== "Variable" ||
+    definition.parent.kind !== "const" ||
+    definition.node.id.type !== "Identifier"
+  ) {
+    return [];
+  }
 
-  return [
-    ...variable.identifiers.map((identifier) => fixer.replaceText(identifier, propertyName)),
-    fixer.replaceText(node, propertyName),
-  ];
+  return [fixer.replaceText(definition.node.id, propertyName), fixer.replaceText(node, propertyName)];
 }
 
 function memberPropertyFixes(
