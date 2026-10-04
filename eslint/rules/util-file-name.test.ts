@@ -10,11 +10,27 @@ void describe("A utility file that exports one function MUST have a name in that
   const utils = path.join(root, "src", "utils");
   mkdirSync(utils, { recursive: true });
   const valid = path.join(utils, "format-date.ts");
+  const destructuredExport = path.join(utils, "ai-text-edit-mock.ts");
   const invalid = path.join(utils, "formatDate.ts");
   writeFileSync(valid, "export function formatDate() { return ''; }\n");
+  writeFileSync(
+    destructuredExport,
+    [
+      'const textEditApiContract = { path: "/api/text-edit" };',
+      "export const { path: apiRoutePath } = textEditApiContract;",
+      "export function handlePost() { return new Response(); }",
+      "",
+    ].join("\n"),
+  );
   writeFileSync(invalid, "export function formatDate() { return ''; }\n");
   ruleTester.run("util-file-name", utilFileNameRule, {
-    valid: [{ code: "export function formatDate() { return ''; }", filename: valid }],
+    valid: [
+      { code: "export function formatDate() { return ''; }", filename: valid },
+      {
+        code: "export const { path: apiRoutePath } = textEditApiContract; export function handlePost() {}",
+        filename: destructuredExport,
+      },
+    ],
     invalid: [
       {
         code: "export function formatDate() { return ''; }",

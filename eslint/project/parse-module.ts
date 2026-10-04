@@ -73,6 +73,17 @@ function propertyName(node: ts.PropertyName): string | undefined {
   return undefined;
 }
 
+function bindingIdentifiers(name: ts.BindingName): ts.Identifier[] {
+  if (ts.isIdentifier(name)) return [name];
+
+  const identifiers: ts.Identifier[] = [];
+  for (const element of name.elements) {
+    if (ts.isOmittedExpression(element)) continue;
+    identifiers.push(...bindingIdentifiers(element.name));
+  }
+  return identifiers;
+}
+
 function returnsJsx(node: ts.Node): boolean {
   let found = false;
   const visit = (child: ts.Node): void => {
@@ -226,12 +237,22 @@ export function parseModule(file: string): ParsedModule {
 
     if (ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
-        if (!ts.isIdentifier(declaration.name)) continue;
-        exports.push({
-          name: declaration.name.text,
-          kind: classifyValue(declaration.name.text, declaration.initializer, isTsx),
-          line: lineOf(sourceFile, declaration),
-        });
+        if (ts.isIdentifier(declaration.name)) {
+          exports.push({
+            name: declaration.name.text,
+            kind: classifyValue(declaration.name.text, declaration.initializer, isTsx),
+            line: lineOf(sourceFile, declaration),
+          });
+          continue;
+        }
+
+        for (const identifier of bindingIdentifiers(declaration.name)) {
+          exports.push({
+            name: identifier.text,
+            kind: classifyValue(identifier.text, undefined, isTsx),
+            line: lineOf(sourceFile, identifier),
+          });
+        }
       }
       continue;
     }
