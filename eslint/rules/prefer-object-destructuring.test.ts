@@ -3,7 +3,7 @@ import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
-void describe("A local variable derived directly from an object property MUST use object destructuring.", () => {
+void describe("A local variable derived directly from an object property MUST use object destructuring. Adjacent selections from the same source MUST use one object destructuring declaration rather than repeated declarations.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "const { previewUrl } = file;",
@@ -13,7 +13,7 @@ void describe("A local variable derived directly from an object property MUST us
       "const value: string = file.value;",
       "const value = file?.value;",
       "const errorMessage = locales.editor.missingRenderJobIds;",
-      "const first = config.current.first; const second = config.current.second;",
+      "const first = config.current.first; use(first); const second = config.current.second;",
     ],
     invalid: [
       {
@@ -53,7 +53,7 @@ void describe("A local variable derived directly from an object property MUST us
         output: "const { previewUrl, type: fileType, id: fileId, duration } = file;",
         errors: [
           {
-            message: `"previewUrl", "fileType", "fileId", "duration" are derived directly from properties of "file". Use object destructuring. ${doc}`,
+            message: `"previewUrl", "fileType", "fileId", "duration" are derived directly from properties of "file". Use one object destructuring declaration. ${doc}`,
           },
         ],
       },
@@ -66,6 +66,43 @@ void describe("A local variable derived directly from an object property MUST us
           },
           {
             message: `"second" is derived directly from "file.second". Use object destructuring. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "const left = layer.position.x;",
+          "const width = layer.position.width;",
+          "const height = layer.position.height;",
+          "const zIndex = layer.position.zIndex;",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"left", "width", "height", "zIndex" are derived directly from properties of "layer.position". Use one object destructuring declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "const { x: left } = layer.position;",
+          "const { width } = layer.position;",
+          "const { height } = layer.position;",
+          "const { zIndex } = layer.position;",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"left", "width", "height", "zIndex" destructure the same source "layer.position" repeatedly. Combine them into one object destructuring declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: ["const { first } = file;", "const { second } = file;"].join("\n"),
+        output: "const { first, second } = file;",
+        errors: [
+          {
+            message: `"first", "second" destructure the same source "file" repeatedly. Combine them into one object destructuring declaration. ${doc}`,
           },
         ],
       },

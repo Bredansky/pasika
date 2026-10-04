@@ -170,6 +170,13 @@ function visibleVariable(context: Rule.RuleContext, node: Node, name: string): S
   return undefined;
 }
 
+function isObjectPropertyValueReference(context: Rule.RuleContext, node: Identifier): boolean {
+  const ancestors = context.sourceCode.getAncestors(node);
+  const parent = ancestors.at(-1);
+  const grandparent = ancestors.at(-2);
+  return parent?.type === "Property" && parent.value === node && grandparent?.type === "ObjectExpression";
+}
+
 function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier, targetName: string): boolean {
   const variable = findVariable(context, node);
   if (!variable || isExportedVariable(context, variable)) return false;
@@ -180,7 +187,15 @@ function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier
   if (!definition || variable.defs.length !== 1) return false;
   if (definition.type !== "Variable" || definition.parent.kind !== "const") return false;
 
-  return variable.references.filter((reference) => reference.isRead()).length === 1;
+  const reads = variable.references.filter((reference) => reference.isRead());
+  if (reads.length === 1) return true;
+
+  return (
+    reads.filter(
+      (reference) =>
+        reference.identifier.type === "Identifier" && isObjectPropertyValueReference(context, reference.identifier),
+    ).length === 1
+  );
 }
 
 function memberRootIdentifier(node: MemberExpression): Identifier | undefined {

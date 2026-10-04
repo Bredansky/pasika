@@ -102,7 +102,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("An object property MUST NOT rename or derive a value inline when the property can use a named local instead.", () => {
+void describe("An object property MUST NOT rename or derive a value inline when the property can use a named local instead. A local producer with one object-mapping use MUST adopt the final property name even when that producer has other ordinary reads; a producer reused as an object-mapping source in multiple places MAY keep its canonical name.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
@@ -162,6 +162,22 @@ void describe("An object property MUST NOT rename or derive a value inline when 
         errors: [
           {
             message: `"credentialId" maps the local "id" inline. Rename the producer to "credentialId" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "function credentialsOf(rawCredentials: { accessTokenSecret: string }) {",
+          "  const { accessTokenSecret } = rawCredentials;",
+          "  if (!accessTokenSecret) throw new Error();",
+          "  return { accessSecret: accessTokenSecret };",
+          "}",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [
+          {
+            message: `"accessSecret" maps the local "accessTokenSecret" inline. Rename the producer to "accessSecret" and use property shorthand. ${doc}`,
           },
         ],
       },
