@@ -122,8 +122,10 @@ const PIPELINE: Record<string, string> = {
   ].join("\n"),
 };
 
+const originalCwd = process.cwd();
 const temps: string[] = [];
 afterAll(() => {
+  process.chdir(originalCwd);
   for (const temp of temps) rmSync(temp, { recursive: true, force: true });
 });
 

@@ -35,6 +35,15 @@ void describe("A local variable derived directly from an object property MUST us
         ],
       },
       {
+        code: "export const apiRoutePath = textEditApiContract.path;",
+        output: "export const { path: apiRoutePath } = textEditApiContract;",
+        errors: [
+          {
+            message: `"apiRoutePath" is derived directly from "textEditApiContract.path". Use object destructuring. ${doc}`,
+          },
+        ],
+      },
+      {
         code: [
           "const previewUrl = file.previewUrl;",
           "const fileType = file.type;",

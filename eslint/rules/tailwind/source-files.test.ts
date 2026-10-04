@@ -16,7 +16,13 @@ describe("Tailwind source-file helpers", () => {
     writeFileSync(path.join(root, "notes.txt"), "ignore\n");
     writeFileSync(path.join(root, ".hidden", "hidden.ts"), "ignore\n");
     writeFileSync(path.join(root, "node_modules", "dependency.ts"), "ignore\n");
-    symlinkSync(path.join(root, "missing-target"), path.join(root, "broken.ts"));
+    try {
+      symlinkSync(path.join(root, "missing-target"), path.join(root, "broken.ts"));
+    } catch (error) {
+      if (process.platform !== "win32" || !(error instanceof Error && "code" in error && error.code === "EPERM")) {
+        throw error;
+      }
+    }
 
     const files = findFiles(root, SOURCE_EXTENSIONS)
       .map((file) => path.relative(root, file))
