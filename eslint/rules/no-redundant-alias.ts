@@ -13,6 +13,55 @@ import type { Identifier, MemberExpression, Node } from "estree";
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+const LOCAL_NAME_PATTERN = /^[a-z][A-Za-z0-9]*$/u;
+const RESERVED_LOCAL_NAMES = new Set([
+  "await",
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "implements",
+  "import",
+  "in",
+  "instanceof",
+  "interface",
+  "let",
+  "new",
+  "null",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "return",
+  "static",
+  "super",
+  "switch",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  "yield",
+]);
 const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
   TSBigIntKeyword: "bigint",
   TSBooleanKeyword: "boolean",
@@ -88,6 +137,10 @@ function objectPropertyMessage(propertyName: string, source: string, identifierV
   }
   if (source === propertyName) return `Use property shorthand for "${propertyName}". ${DOC}`;
   return `"${propertyName}" maps the local "${source}" inline. Rename the producer to "${propertyName}" and use property shorthand. ${DOC}`;
+}
+
+function canUseAsLocalName(name: string): boolean {
+  return LOCAL_NAME_PATTERN.test(name) && !RESERVED_LOCAL_NAMES.has(name);
 }
 
 function findVariable(context: Rule.RuleContext, node: Identifier): Scope.Variable | undefined {
@@ -237,6 +290,8 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (node.value.type !== "Identifier" && node.value.type !== "MemberExpression") return;
 
         const propertyName = node.key.name;
+        if (!canUseAsLocalName(propertyName)) return;
+
         const propertyValue = node.value;
         const source = context.sourceCode.getText(propertyValue);
 

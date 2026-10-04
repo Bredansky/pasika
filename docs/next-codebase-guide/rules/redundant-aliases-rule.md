@@ -43,6 +43,10 @@ z.object({ position: positionSchema });
 
 defineApiContract({ method: HttpMethod.Post });
 
+const platformType = input.platformType;
+const row = { platform_type: platformType };
+const wirePayload = { creation_id: response.id };
+
 type ApiCredential = PlatformCredentialApi & {
   source: "api";
 };
@@ -52,4 +56,4 @@ interface ApiResponse extends PlatformResponse {
 }
 ```
 
-Why: values that need a property name are named before object construction when a local producer can safely adopt that name. Reusable or exported symbols keep their canonical names, and imported/static members may be mapped directly because there is no local producer to rename. Mutable variables may diverge from their initial value, and the type and interface declarations add structure instead of merely renaming an existing symbol. Next.js-required exported names are also allowed.
+Why: values that need a property name are named before object construction when a local producer can safely adopt that name. Reusable or exported symbols keep their canonical names, imported/static members may be mapped directly because there is no local producer to rename, and external wire keys such as `platform_type` or `creation_id` stay mapped because those names are not valid project-local names. A mapping also stays inline when its target name is already bound in scope. Mutable variables may diverge from their initial value, and the type and interface declarations add structure instead of merely renaming an existing symbol. Next.js-required exported names are also allowed.
