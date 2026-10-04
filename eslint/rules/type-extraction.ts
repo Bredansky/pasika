@@ -4,8 +4,10 @@
  * A type or schema declared in a component MUST stay in that component file
  * until another file imports it without the component where it is defined, and
  * a type or schema declared outside a component MUST stay in its file until
- * another file needs it without using the code in that file. Importing the
- * type alongside the component that defines it never requires extraction.
+ * another file needs it without using the code in that file. A type or schema
+ * with no external consumer MUST stay local rather than being exported.
+ * Importing the type alongside the component that defines it never requires
+ * extraction.
  *
  * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
  */
@@ -21,7 +23,8 @@ export const typeExtractionRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require a type or schema imported without its defining code to be extracted.",
+      description:
+        "Require unused type and schema exports to stay local, and independently consumed ones to be extracted.",
     },
   },
   create(context) {
@@ -47,7 +50,15 @@ export const typeExtractionRule: Rule.RuleModule = {
       if (exp.kind !== "type" && exp.kind !== "schema") continue;
 
       const consumers = [...(index.symbolConsumers.get(symbolKey(file, exp.name)) ?? [])];
-      if (consumers.length === 0) continue;
+      if (consumers.length === 0) {
+        findings.push({
+          line: exp.line,
+          message:
+            `${exp.kind} "${exp.name}" has no external consumers; remove its export and keep it local. ` +
+            "See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
+        });
+        continue;
+      }
 
       if (componentExport) {
         // A consumer that also imports the component uses the code alongside
