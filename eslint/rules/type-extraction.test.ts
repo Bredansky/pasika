@@ -38,6 +38,12 @@ const FIXTURE: Record<string, string> = {
   "features/billing/types/index.ts": 'export type InvoiceStatus = "draft" | "paid";\n',
   "features/billing/invoice-status.tsx":
     'import type { InvoiceStatus } from "./types";\nexport function InvoiceStatus({ status }: { status: InvoiceStatus }) { return <span>{status}</span>; }\n',
+
+  // A type used only inside its defining module must stay local.
+  "features/publishing/utils/publications.ts":
+    "export interface PublicationFilter { draftId?: string }\nexport function listPublications(filter: PublicationFilter = {}) { return filter; }\n",
+  "features/publishing/utils/local-publications.ts":
+    "interface PublicationFilter { draftId?: string }\nexport function listLocalPublications(filter: PublicationFilter = {}) { return filter; }\n",
 };
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-type-extraction-")));
@@ -52,6 +58,28 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
+
+void describe("A type or schema with no external consumer MUST NOT be exported.", () => {
+  ruleTester.run("type-extraction", typeExtractionRule, {
+    valid: [
+      {
+        code: read("features/publishing/utils/local-publications.ts"),
+        filename: file("features/publishing/utils/local-publications.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("features/publishing/utils/publications.ts"),
+        filename: file("features/publishing/utils/publications.ts"),
+        errors: [
+          {
+            message: `type "PublicationFilter" has no external consumers; remove its export and keep it local. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});
 
 void describe("A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.", () => {
   ruleTester.run("type-extraction", typeExtractionRule, {

@@ -2,6 +2,7 @@
 
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
+- A type or schema with no external consumer MUST NOT be exported.
 - A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.
 - Importing a type or schema alongside the component that defines it MUST NOT require extraction.
 - A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.

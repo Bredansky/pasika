@@ -824,6 +824,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A type or schema with no external consumer MUST NOT be exported.",
+      "hash": "3f453eef44",
+      "ref": "pasika/type-extraction"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
       "ref": "pasika/type-extraction"
