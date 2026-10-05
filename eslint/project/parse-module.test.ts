@@ -11,6 +11,30 @@ afterEach(() => {
 });
 
 describe("parseModule", () => {
+  it("collects namespace member imports as symbol consumers", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
+    tempDirs.push(root);
+    const file = path.join(root, "client.ts");
+
+    writeFileSync(
+      file,
+      [
+        'import * as apiContracts from "./schemas";',
+        "void apiContracts.ordersApiContract;",
+        'void apiContracts["usersApiContract"];',
+        "",
+      ].join("\n"),
+    );
+
+    expect(parseModule(file).imports).toEqual([
+      {
+        specifier: "./schemas",
+        names: ["ordersApiContract", "usersApiContract"],
+        line: 1,
+      },
+    ]);
+  });
+
   it("collects names exported through object destructuring", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);

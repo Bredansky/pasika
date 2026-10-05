@@ -12,6 +12,22 @@ afterEach(() => {
 });
 
 describe("project index cache", () => {
+  it("tracks symbols consumed through namespace imports", () => {
+    const sourceRoot = mkdtempSync(path.join(tmpdir(), "pasika-project-index-"));
+    tempDirs.push(sourceRoot);
+    const schemaFile = path.join(sourceRoot, "schemas.ts");
+    const clientFile = path.join(sourceRoot, "client.ts");
+
+    writeFileSync(schemaFile, "export const ordersApiContract = {};\n");
+    writeFileSync(
+      clientFile,
+      ['import * as apiContracts from "./schemas";', "void apiContracts.ordersApiContract;", ""].join("\n"),
+    );
+
+    const index = getProjectIndex(sourceRoot);
+    expect(index?.symbolConsumers.get(`${schemaFile}\u0000ordersApiContract`)).toEqual(new Set([clientFile]));
+  });
+
   it("rebuilds the index after the cache is cleared", () => {
     const sourceRoot = mkdtempSync(path.join(tmpdir(), "pasika-project-index-"));
     tempDirs.push(sourceRoot);
