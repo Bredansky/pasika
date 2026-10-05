@@ -16,7 +16,6 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
     valid: [
       {
         code: [
-          "const defaultStatus = ResponseStatus.Pending;",
           "const config = app.config;",
           "const missing = undefined;",
           "const result = buildResult(source);",
@@ -55,6 +54,15 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
         errors: [
           {
             message: aliasMessage("data", "results"),
+          },
+        ],
+      },
+      {
+        code: "const defaultStatus = ResponseStatus.Pending;",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("defaultStatus", "ResponseStatus.Pending"),
           },
         ],
       },
@@ -151,7 +159,7 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
       {
         code: [
           "const data = loadData(); const response = { data };",
-          "const method = HttpMethod.Post; const contract = { method };",
+          "const contract = { method: HttpMethod.Post };",
           "const config = { appKey: credentials.apiKey };",
           "const row = { userAccountId: dbRow.user_account_id };",
           'const wirePayload = { "access-token": accessToken };',

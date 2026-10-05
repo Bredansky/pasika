@@ -129,10 +129,6 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           return;
         }
 
-        let root = node.init.object;
-        while (root.type === "MemberExpression") root = root.object;
-        if (root.type === "Identifier" && /^[A-Z]/u.test(root.name)) return;
-
         context.report({
           node,
           message: bindingAliasMessage(node.id.name, context.sourceCode.getText(node.init)),

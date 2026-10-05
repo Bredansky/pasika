@@ -1,6 +1,6 @@
 # Redundant Aliases Rule
 
-Aliases hide naming inconsistencies by giving the same value different local names. Keep a value's original name when creating a binding, make name changes visible only where one object or contract is mapped into another, and treat enum/static members as constants rather than runtime-model fields.
+Aliases hide naming inconsistencies by giving the same value different local names. Keep a value's original name when creating a binding, and make name changes visible only where one object or contract is mapped into another.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
@@ -18,6 +18,7 @@ import { Toaster as Sonner } from "sonner";
 export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };
 
 const appKey = credentials.apiKey;
+const method = HttpMethod.Post;
 const { apiSecret: appSecret } = credentials;
 const { x: left } = layer.position;
 
@@ -39,7 +40,6 @@ Why: these forms create another local name for an existing value or hide a name 
 ## Correct — Same-Name Bindings and Explicit Mappings
 
 ```ts
-const defaultStatus = ResponseStatus.Pending;
 const config = app.config;
 let currentSize = initialSize;
 export { defaultSliderMin };
@@ -67,6 +67,7 @@ z.object({ position });
 z.object({ position });
 
 defineApiContract({ method: HttpMethod.Post });
+const response = { status: ResponseStatus.Pending };
 
 type ApiCredential = PlatformCredentialApi & {
   source: "api";
