@@ -44,7 +44,7 @@ export { defaultSliderMin };
 const data = await loadResults();
 return { data };
 
-const appKey = credentials.apiKey;
+const { apiKey: appKey } = credentials;
 new TwitterApi({ appKey });
 
 const { previewUrl, type: fileType } = file;
