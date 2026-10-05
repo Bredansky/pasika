@@ -686,8 +686,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An object property MUST NOT rename or derive a value inline when the property can use a named local instead. A local producer with one object-mapping use MUST adopt the final property name even when that producer has other ordinary reads; a producer reused as an object-mapping source in multiple places MAY keep its canonical name.",
-      "hash": "7ccf60503a",
+      "text": "An object property MUST NOT rename a local value, and a member expression MUST NOT be mapped inline when it can be bound to the property name first.",
+      "hash": "71735e3fe9",
       "ref": "pasika/no-redundant-alias"
     },
     {
