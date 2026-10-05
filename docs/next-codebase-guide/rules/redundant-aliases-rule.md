@@ -1,23 +1,33 @@
 # Redundant Aliases Rule
 
-Aliases that only give an existing symbol or primitive type a second name hide incomplete renames and increase cognitive load. This rule keeps one canonical name unless a declaration changes or composes the underlying value or type.
+Aliases make one value appear under multiple names and can hide naming mismatches between models. Keep source names when creating bindings, and show genuine name differences only where one object or contract is mapped into another.
 
-- A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.
+- A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
+- An import MUST NOT rename an imported symbol.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- An object property MUST NOT rename or derive a value inline when the property can use a named local instead.
-- A local variable derived directly from an object property MUST use object destructuring.
+- Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.
+- Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
-## Incorrect — Declarations Only Rename Existing Symbols or Primitive Types
+## Incorrect — Hidden Aliases and Scattered Reads
 
 ```ts
 const ApiClient = PlatformClient;
+import { Toaster as Sonner } from "sonner";
 export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };
-return { data: results };
-new TwitterApi({ appKey: credentials.apiKey });
+
+const appKey = credentials.apiKey;
+const method = HttpMethod.Post;
+const { apiSecret: appSecret } = credentials;
+const { x: left } = layer.position;
+
+const { accessTokenSecret } = credentials;
+const twitterCredentials = { accessSecret: accessTokenSecret };
+
 const previewUrl = file.previewUrl;
-const fileType = file.type;
+const width = layer.position.width;
+const height = layer.position.height;
 
 type ApiCredential = PlatformCredentialApi;
 type FlagKeys = string;
@@ -25,28 +35,41 @@ type FlagKeys = string;
 interface ApiResponse extends PlatformResponse {}
 ```
 
-Why: declarations create unnecessary synonyms, inline object mappings make one expression carry both value selection and naming, and direct property reads repeat their source instead of expressing selection in the binding. Rename the producer when possible, bind member expressions before object assembly, and destructure direct property reads.
+Why: aliases such as `appKey`, `appSecret`, and `left` give an existing value another name. Mapping `accessTokenSecret` only after it has been detached from `credentials` hides which model the value came from. Same-name property reads such as `file.previewUrl` should use destructuring, and properties read from the same object should be destructured together.
 
-## Correct — Declarations Add Meaning Instead of a Synonym
+## Correct — Preserve Names and Map at Boundaries
 
 ```ts
-const defaultStatus = ResponseStatus.Pending;
-const config = app.config;
-let currentSize = initialSize;
+import { Toaster } from "sonner";
 export { defaultSliderMin };
+
+// app/api/example/route.ts
+export { handler as GET, handler as POST } from "./handler";
+
+const { previewUrl, type } = file;
+const { x, width, height, zIndex } = layer.position;
+
 const data = await loadResults();
-return { data };
+const resultPayload = { data };
 
-const appKey = credentials.apiKey;
-new TwitterApi({ appKey });
+new TwitterApi({
+  appKey: credentials.apiKey,
+  appSecret: credentials.apiSecret,
+  accessToken: credentials.accessToken,
+  accessSecret: credentials.accessTokenSecret,
+});
 
-const { previewUrl, type: fileType } = file;
-
-const positionSchema = createPositionSchema();
-z.object({ position: positionSchema });
-z.object({ position: positionSchema });
+const apiCredential = {
+  userAccountId: row.user_account_id,
+  createdAt: row.created_at,
+};
 
 defineApiContract({ method: HttpMethod.Post });
+const pendingResponse = { status: ResponseStatus.Pending };
+
+type BrandedIdentifier = string & {
+  readonly __brand: unique symbol;
+};
 
 type ApiCredential = PlatformCredentialApi & {
   source: "api";
@@ -57,4 +80,4 @@ interface ApiResponse extends PlatformResponse {
 }
 ```
 
-Why: values that need a property name are named before object construction when a local producer can safely adopt that name, while direct property reads use destructuring at the binding site. Reusable or exported symbols keep their canonical names, and imported/static members may be mapped directly because there is no local producer to rename. Mutable variables may diverge from their initial value, and the type and interface declarations add structure instead of merely renaming an existing symbol. Next.js-required exported names are also allowed.
+Why: bindings keep the names provided by their source. When the target model genuinely uses another name, the object mapping shows both names and keeps the source qualified, such as `appKey: credentials.apiKey` or `userAccountId: row.user_account_id`. Same-name properties are destructured once and reused without aliases, object properties use shorthand for existing locals, and type or interface declarations add structure instead of only renaming an existing type. Framework-required export names remain allowed.

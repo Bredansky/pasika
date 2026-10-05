@@ -22,6 +22,15 @@ interface PropertyBinding {
   bindingText: string;
 }
 
+interface DestructuringSelection {
+  declaration: VariableDeclaration;
+  source: Node;
+  sourceText: string;
+  bindingTexts: string[];
+  localNames: string[];
+  propertyNames: string[];
+}
+
 function hasTypeAnnotation(identifier: Identifier): boolean {
   return "typeAnnotation" in identifier && identifier.typeAnnotation !== undefined;
 }
@@ -32,11 +41,12 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
 
   const member = declarator.init;
   if (member.computed || member.optional || member.property.type !== "Identifier") return undefined;
-  if (!canGroupSource(member.object)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const propertyName = member.property.name;
   const localName = declarator.id.name;
+  if (propertyName !== localName) return undefined;
+
   const source = member.object;
   const sourceText = context.sourceCode.getText(source);
 
@@ -47,7 +57,7 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
     localName,
     source,
     sourceText,
-    bindingText: propertyName === localName ? propertyName : `${propertyName}: ${localName}`,
+    bindingText: propertyName,
   };
 }
 
@@ -65,7 +75,7 @@ function groupedDeclarations(
   declaration: VariableDeclaration,
   firstBinding: PropertyBinding,
 ): { declaration: VariableDeclaration; binding: PropertyBinding }[] {
-  if (declaration.declarations.length !== 1 || !canGroupSource(firstBinding.source)) {
+  if (declaration.declarations.length !== 1) {
     return [{ declaration, binding: firstBinding }];
   }
 
@@ -92,7 +102,7 @@ function groupedDeclarations(
 
     const nextBinding = directPropertyBinding(context, nextDeclarator);
     if (nextBinding?.sourceText !== firstBinding.sourceText) break;
-    if (!canGroupSource(nextBinding.source) || seenProperties.has(nextBinding.propertyName)) break;
+    if (seenProperties.has(nextBinding.propertyName)) break;
 
     const [, previousEnd] = context.sourceCode.getRange(previous);
     const [nextStart] = context.sourceCode.getRange(nextNode);
@@ -101,6 +111,83 @@ function groupedDeclarations(
 
     group.push({ declaration: nextNode, binding: nextBinding });
     seenProperties.add(nextBinding.propertyName);
+  }
+
+  return group;
+}
+
+function destructuringSelection(
+  context: Rule.RuleContext,
+  declaration: VariableDeclaration,
+): DestructuringSelection | undefined {
+  if (declaration.declarations.length !== 1) return undefined;
+
+  const declarator = declaration.declarations[0];
+  if (declarator?.id.type !== "ObjectPattern" || !declarator.init) return undefined;
+  if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
+
+  const bindingTexts: string[] = [];
+  const localNames: string[] = [];
+  const propertyNames: string[] = [];
+
+  for (const property of declarator.id.properties) {
+    if (
+      property.type !== "Property" ||
+      property.computed ||
+      property.key.type !== "Identifier" ||
+      property.value.type !== "Identifier" ||
+      property.key.name !== property.value.name
+    ) {
+      return undefined;
+    }
+
+    bindingTexts.push(context.sourceCode.getText(property));
+    localNames.push(property.value.name);
+    propertyNames.push(property.key.name);
+  }
+
+  if (bindingTexts.length === 0) return undefined;
+
+  return {
+    declaration,
+    source: declarator.init,
+    sourceText: context.sourceCode.getText(declarator.init),
+    bindingTexts,
+    localNames,
+    propertyNames,
+  };
+}
+
+function groupedDestructuringSelections(
+  context: Rule.RuleContext,
+  first: DestructuringSelection,
+): DestructuringSelection[] {
+  const parent = context.sourceCode.getAncestors(first.declaration).at(-1);
+  if (parent?.type !== "Program" && parent?.type !== "BlockStatement") return [first];
+
+  const body = parent.body;
+  const startIndex = body.indexOf(first.declaration);
+  if (startIndex < 0) return [first];
+
+  const group = [first];
+  const seenProperties = new Set(first.propertyNames);
+
+  for (let index = startIndex + 1; index < body.length; index += 1) {
+    const nextNode = body[index];
+    const previous = group.at(-1)?.declaration;
+    if (!previous || nextNode?.type !== "VariableDeclaration" || nextNode.kind !== first.declaration.kind) break;
+
+    const next = destructuringSelection(context, nextNode);
+    if (next?.sourceText !== first.sourceText) break;
+    if (next.propertyNames.some((propertyName) => seenProperties.has(propertyName))) break;
+
+    const [, previousEnd] = context.sourceCode.getRange(previous);
+    const [nextStart] = context.sourceCode.getRange(nextNode);
+    const gap = context.sourceCode.text.slice(previousEnd, nextStart);
+    if (!whitespaceKeepsStatementsAdjacent(gap)) break;
+
+    group.push(next);
+    for (const propertyName of next.propertyNames) seenProperties.add(propertyName);
   }
 
   return group;
@@ -116,10 +203,21 @@ function singleMessage(binding: PropertyBinding): string {
 
 function groupMessage(bindings: PropertyBinding[]): string {
   const firstBinding = bindings[0];
-  if (!firstBinding) return `Use object destructuring. ${DOC}`;
+  if (!firstBinding) return `Use one object destructuring declaration. ${DOC}`;
 
   const names = bindings.map(({ localName }) => `"${localName}"`).join(", ");
-  return `${names} are derived directly from properties of "${firstBinding.sourceText}". Use object destructuring. ${DOC}`;
+  return `${names} are derived directly from properties of "${firstBinding.sourceText}". Use one object destructuring declaration. ${DOC}`;
+}
+
+function repeatedDestructuringMessage(group: DestructuringSelection[]): string {
+  const first = group[0];
+  if (!first) return `Combine repeated destructuring into one declaration. ${DOC}`;
+
+  const names = group
+    .flatMap(({ localNames }) => localNames)
+    .map((name) => `"${name}"`)
+    .join(", ");
+  return `${names} destructure the same source "${first.sourceText}" repeatedly. Combine them into one object destructuring declaration. ${DOC}`;
 }
 
 export const preferObjectDestructuringRule: Rule.RuleModule = {
@@ -138,6 +236,36 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       VariableDeclaration(node) {
         if (grouped.has(node)) return;
 
+        const selection = destructuringSelection(context, node);
+        if (selection) {
+          const group = groupedDestructuringSelections(context, selection);
+          if (group.length <= 1) return;
+
+          for (const item of group.slice(1)) grouped.add(item.declaration);
+
+          const lastDeclaration = group.at(-1)?.declaration;
+          if (!lastDeclaration) return;
+
+          context.report({
+            node,
+            message: repeatedDestructuringMessage(group),
+            fix(fixer) {
+              if (!canGroupSource(selection.source)) return null;
+
+              const [start] = context.sourceCode.getRange(node);
+              const [, end] = context.sourceCode.getRange(lastDeclaration);
+              const terminator = declarationTerminator(context, lastDeclaration);
+              const pattern = group.flatMap(({ bindingTexts }) => bindingTexts).join(", ");
+
+              return fixer.replaceTextRange(
+                [start, end],
+                `${node.kind} { ${pattern} } = ${selection.sourceText}${terminator}`,
+              );
+            },
+          });
+          return;
+        }
+
         const bindings = node.declarations
           .map((declarator) => directPropertyBinding(context, declarator))
           .filter((binding): binding is PropertyBinding => binding !== undefined);
@@ -145,6 +273,29 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
 
         const firstBinding = bindings[0];
         if (!firstBinding) return;
+
+        const sameSourceBindings =
+          bindings.length > 1 &&
+          bindings.length === node.declarations.length &&
+          bindings.every(({ sourceText }) => sourceText === firstBinding.sourceText) &&
+          new Set(bindings.map(({ propertyName }) => propertyName)).size === bindings.length;
+
+        if (sameSourceBindings) {
+          context.report({
+            node,
+            message: groupMessage(bindings),
+            fix(fixer) {
+              if (!canGroupSource(firstBinding.source) || context.sourceCode.getCommentsInside(node).length > 0) {
+                return null;
+              }
+
+              const terminator = declarationTerminator(context, node);
+              const pattern = bindings.map(({ bindingText }) => bindingText).join(", ");
+              return fixer.replaceText(node, `${node.kind} { ${pattern} } = ${firstBinding.sourceText}${terminator}`);
+            },
+          });
+          return;
+        }
 
         if (node.declarations.length === 1 && bindings.length === 1) {
           const group = groupedDeclarations(context, node, firstBinding);
@@ -160,6 +311,8 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
               node,
               message: groupMessage(groupBindings),
               fix(fixer) {
+                if (!canGroupSource(firstBinding.source)) return null;
+
                 const [start] = context.sourceCode.getRange(node);
                 const [, end] = context.sourceCode.getRange(lastDeclaration);
                 const terminator = declarationTerminator(context, lastDeclaration);
@@ -176,6 +329,8 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         }
 
         for (const binding of bindings) {
+          if (!canGroupSource(binding.source)) continue;
+
           context.report({
             node: binding.declarator,
             message: singleMessage(binding),

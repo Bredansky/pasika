@@ -668,14 +668,20 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A local variable derived directly from an object property MUST use object destructuring.",
-      "hash": "cfd7e81c61",
+      "text": "Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.",
+      "hash": "6dddb14a52",
       "ref": "pasika/prefer-object-destructuring"
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.",
-      "hash": "1d40539bd3",
+      "text": "A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.",
+      "hash": "74f4efb1d9",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "An import MUST NOT rename an imported symbol.",
+      "hash": "0b5a5b5b2b",
       "ref": "pasika/no-redundant-alias"
     },
     {
@@ -686,8 +692,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An object property MUST NOT rename or derive a value inline when the property can use a named local instead.",
-      "hash": "bb0110e841",
+      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.",
+      "hash": "3a9a586e84",
       "ref": "pasika/no-redundant-alias"
     },
     {
