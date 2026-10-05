@@ -148,14 +148,6 @@ function findVariable(context: Rule.RuleContext, node: Identifier): Scope.Variab
   return undefined;
 }
 
-function isExportedVariable(context: Rule.RuleContext, variable: Scope.Variable): boolean {
-  return variable.defs.some(
-    (definition) =>
-      definition.type === "Variable" &&
-      context.sourceCode.getAncestors(definition.parent).at(-1)?.type === "ExportNamedDeclaration",
-  );
-}
-
 function canUsePropertyNameAsLocal(name: string): boolean {
   return /^[a-z][A-Za-z0-9]*$/u.test(name) && !RESERVED_LOCAL_NAMES.has(name);
 }
@@ -168,34 +160,6 @@ function visibleVariable(context: Rule.RuleContext, node: Node, name: string): S
     scope = scope.upper;
   }
   return undefined;
-}
-
-function isObjectPropertyValueReference(context: Rule.RuleContext, node: Identifier): boolean {
-  const ancestors = context.sourceCode.getAncestors(node);
-  const parent = ancestors.at(-1);
-  const grandparent = ancestors.at(-2);
-  return parent?.type === "Property" && parent.value === node && grandparent?.type === "ObjectExpression";
-}
-
-function canRenameIdentifierProducer(context: Rule.RuleContext, node: Identifier, targetName: string): boolean {
-  const variable = findVariable(context, node);
-  if (!variable || isExportedVariable(context, variable)) return false;
-  const targetVariable = visibleVariable(context, node, targetName);
-  if (targetVariable && targetVariable !== variable) return false;
-
-  const definition = variable.defs[0];
-  if (!definition || variable.defs.length !== 1) return false;
-  if (definition.type !== "Variable" || definition.parent.kind !== "const") return false;
-
-  const reads = variable.references.filter((reference) => reference.isRead());
-  if (reads.length === 1) return true;
-
-  return (
-    reads.filter(
-      (reference) =>
-        reference.identifier.type === "Identifier" && isObjectPropertyValueReference(context, reference.identifier),
-    ).length === 1
-  );
 }
 
 function memberRootIdentifier(node: MemberExpression): Identifier | undefined {
@@ -254,7 +218,6 @@ export const noRedundantAliasRule: Rule.RuleModule = {
 
         if (propertyValue.type === "Identifier") {
           if (node.shorthand) return;
-          if (source !== propertyName && !canRenameIdentifierProducer(context, propertyValue, propertyName)) return;
         } else if (!canBindMemberExpression(context, propertyValue, propertyName)) {
           return;
         }
