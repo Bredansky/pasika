@@ -102,7 +102,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("An object property MUST NOT rename a local value, and a member expression MUST NOT be mapped inline when it can be bound to the property name first.", () => {
+void describe("An object property MUST NOT give an existing variable a different name. A value read from another object MUST be assigned to the final property name before it is used in an object.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
