@@ -120,14 +120,20 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           return;
         }
 
-        if (
-          node.init.type !== "MemberExpression" ||
-          node.init.computed ||
-          node.init.property.type !== "Identifier" ||
-          node.init.property.name === node.id.name
-        ) {
-          return;
+        if (node.init.type !== "MemberExpression") return;
+
+        let propertyName: string | undefined;
+        if (!node.init.computed && node.init.property.type === "Identifier") {
+          propertyName = node.init.property.name;
         }
+        if (
+          node.init.computed &&
+          node.init.property.type === "Literal" &&
+          typeof node.init.property.value === "string"
+        ) {
+          propertyName = node.init.property.value;
+        }
+        if (propertyName === undefined || propertyName === node.id.name) return;
 
         context.report({
           node,
@@ -135,7 +141,14 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         });
       },
       Property(node) {
-        if (node.computed || node.key.type !== "Identifier") return;
+        if (node.computed) return;
+
+        let propertyName: string | undefined;
+        if (node.key.type === "Identifier") propertyName = node.key.name;
+        if (node.key.type === "Literal" && typeof node.key.value === "string") {
+          propertyName = node.key.value;
+        }
+        if (propertyName === undefined) return;
 
         if (node.parent.type === "ObjectPattern") {
           let binding;
@@ -143,11 +156,11 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           if (node.value.type === "AssignmentPattern" && node.value.left.type === "Identifier") {
             binding = node.value.left;
           }
-          if (!binding || binding.name === node.key.name) return;
+          if (!binding || binding.name === propertyName) return;
 
           context.report({
             node,
-            message: bindingAliasMessage(binding.name, node.key.name),
+            message: bindingAliasMessage(binding.name, propertyName),
           });
           return;
         }
@@ -155,7 +168,6 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (node.parent.type !== "ObjectExpression" || node.value.type !== "Identifier") return;
         if (node.shorthand) return;
 
-        const propertyName = node.key.name;
         const source = node.value.name;
 
         context.report({

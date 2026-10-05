@@ -16,7 +16,6 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
     valid: [
       {
         code: [
-          "const config = app.config;",
           "const missing = undefined;",
           "const result = buildResult(source);",
           "let current = initial;",
@@ -58,11 +57,20 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
         ],
       },
       {
-        code: "const defaultStatus = ResponseStatus.Pending;",
+        code: "const method = HttpMethod.Post;",
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: bindingAliasMessage("defaultStatus", "ResponseStatus.Pending"),
+            message: bindingAliasMessage("method", "HttpMethod.Post"),
+          },
+        ],
+      },
+      {
+        code: 'const appKey = credentials["apiKey"];',
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("appKey", 'credentials["apiKey"]'),
           },
         ],
       },
@@ -161,8 +169,9 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
           "const data = loadData(); const response = { data };",
           "const contract = { method: HttpMethod.Post };",
           "const config = { appKey: credentials.apiKey };",
-          "const row = { userAccountId: dbRow.user_account_id };",
-          'const wirePayload = { "access-token": accessToken };',
+          "const twitterCredentials = { accessSecret: credentials.accessTokenSecret };",
+          "const apiCredential = { userAccountId: row.user_account_id };",
+          'const wirePayload = { "access-token": credentials.accessToken };',
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
           "const computedValue = { data: loadData() };",
@@ -200,6 +209,16 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         errors: [
           {
             message: bindingAliasMessage("left", "x"),
+          },
+        ],
+      },
+      {
+        code: 'const wirePayload = { "access-token": accessToken };',
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"access-token" maps the local "accessToken". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },

@@ -90,6 +90,15 @@ void describe("Properties stored in variables MUST use object destructuring. Pro
         ],
       },
       {
+        code: "const first = file.first, second = file.second;",
+        output: "const { first, second } = file;",
+        errors: [
+          {
+            message: `"first", "second" are derived directly from properties of "file". Use one object destructuring declaration. ${doc}`,
+          },
+        ],
+      },
+      {
         code: "const first = file.first, value = other.value;",
         output: "const { first } = file, { value } = other;",
         errors: 2,

@@ -274,6 +274,29 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         const firstBinding = bindings[0];
         if (!firstBinding) return;
 
+        const sameSourceBindings =
+          bindings.length > 1 &&
+          bindings.length === node.declarations.length &&
+          bindings.every(({ sourceText }) => sourceText === firstBinding.sourceText) &&
+          new Set(bindings.map(({ propertyName }) => propertyName)).size === bindings.length;
+
+        if (sameSourceBindings) {
+          context.report({
+            node,
+            message: groupMessage(bindings),
+            fix(fixer) {
+              if (!canGroupSource(firstBinding.source) || context.sourceCode.getCommentsInside(node).length > 0) {
+                return null;
+              }
+
+              const terminator = declarationTerminator(context, node);
+              const pattern = bindings.map(({ bindingText }) => bindingText).join(", ");
+              return fixer.replaceText(node, `${node.kind} { ${pattern} } = ${firstBinding.sourceText}${terminator}`);
+            },
+          });
+          return;
+        }
+
         if (node.declarations.length === 1 && bindings.length === 1) {
           const group = groupedDeclarations(context, node, firstBinding);
 
