@@ -102,7 +102,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("An object property MUST NOT rename or derive a value inline when the property can use a named local instead. A local producer with one object-mapping use MUST adopt the final property name even when that producer has other ordinary reads; a producer reused as an object-mapping source in multiple places MAY keep its canonical name.", () => {
+void describe("An object property MUST NOT rename a local value, and a member expression MUST NOT be mapped inline when it can be bound to the property name first.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
@@ -114,12 +114,9 @@ void describe("An object property MUST NOT rename or derive a value inline when 
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
           "const computedValue = { data: loadData() };",
-          "const positionSchema = createSchema(); const textLayer = { position: positionSchema }; const mediaLayer = { position: positionSchema };",
           'import { HttpMethod } from "pasika/http-method"; const contract = { method: HttpMethod.Post };',
-          "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
           "const draftId = input.draftId; const row = { draft_id: draftId };",
           "const loader = import('./editor').then((mod) => ({ default: mod.EditorSidebar }));",
-          "function run(mode: Mode) { return { backgroundMode: mode }; }",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
@@ -178,6 +175,39 @@ void describe("An object property MUST NOT rename or derive a value inline when 
         errors: [
           {
             message: `"accessSecret" maps the local "accessTokenSecret" inline. Rename the producer to "accessSecret" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const positionSchema = createSchema(); const textLayer = { position: positionSchema }; const mediaLayer = { position: positionSchema };",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"position" maps the local "positionSchema" inline. Rename the producer to "position" and use property shorthand. ${doc}`,
+          },
+          {
+            message: `"position" maps the local "positionSchema" inline. Rename the producer to "position" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"responseSchema" maps the local "routePostResultsSchema" inline. Rename the producer to "responseSchema" and use property shorthand. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "function run(mode: Mode) { return { backgroundMode: mode }; }",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: `"backgroundMode" maps the local "mode" inline. Rename the producer to "backgroundMode" and use property shorthand. ${doc}`,
           },
         ],
       },
