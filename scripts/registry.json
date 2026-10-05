@@ -668,8 +668,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A local variable derived directly from an object property MUST use object destructuring. Adjacent selections from the same source MUST use one object destructuring declaration rather than repeated declarations.",
-      "hash": "8dcbacfa06",
+      "text": "Properties read from the same object MUST be destructured together in one declaration.",
+      "hash": "8fa87d982c",
       "ref": "pasika/prefer-object-destructuring"
     },
     {
@@ -686,8 +686,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An object property MUST NOT rename a local value, and a member expression MUST NOT be mapped inline when it can be bound to the property name first.",
-      "hash": "71735e3fe9",
+      "text": "An object property MUST NOT give an existing variable a different name. A value read from another object MUST be assigned to the final property name before it is used in an object.",
+      "hash": "ace539bfba",
       "ref": "pasika/no-redundant-alias"
     },
     {
