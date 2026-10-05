@@ -1,65 +1,16 @@
 /**
  * ESLint rule: pasika/no-redundant-alias
  *
- * Prevents declarations and object properties from introducing redundant
- * local names or inline identifier/member-expression mappings.
+ * Prevents declarations and bindings from introducing redundant local
+ * names while keeping cross-object mappings explicit at object boundaries.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
 import path from "node:path";
-import type { Rule, Scope } from "eslint";
-import type { Identifier, MemberExpression, Node } from "estree";
+import type { Rule } from "eslint";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
-const RESERVED_LOCAL_NAMES = new Set([
-  "await",
-  "break",
-  "case",
-  "catch",
-  "class",
-  "const",
-  "continue",
-  "debugger",
-  "default",
-  "delete",
-  "do",
-  "else",
-  "enum",
-  "export",
-  "extends",
-  "false",
-  "finally",
-  "for",
-  "function",
-  "if",
-  "implements",
-  "import",
-  "in",
-  "instanceof",
-  "interface",
-  "let",
-  "new",
-  "null",
-  "package",
-  "private",
-  "protected",
-  "public",
-  "return",
-  "static",
-  "super",
-  "switch",
-  "this",
-  "throw",
-  "true",
-  "try",
-  "typeof",
-  "var",
-  "void",
-  "while",
-  "with",
-  "yield",
-]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
   TSBigIntKeyword: "bigint",
@@ -130,53 +81,13 @@ function aliasMessage(alias: string | undefined, source: string | undefined): st
   return `"${aliasName}" only renames "${sourceName}". Use "${sourceName}" directly or rename the original symbol and its consumers. ${DOC}`;
 }
 
-function objectPropertyMessage(propertyName: string, source: string, identifierValue: boolean): string {
-  if (!identifierValue) {
-    return `"${propertyName}" maps "${source}" inline. Bind it as "${propertyName}" before this object and use property shorthand. ${DOC}`;
-  }
+function bindingAliasMessage(alias: string, source: string): string {
+  return `"${alias}" renames "${source}" while creating a binding. Keep the original name and map it only at the object boundary. ${DOC}`;
+}
+
+function objectPropertyMessage(propertyName: string, source: string): string {
   if (source === propertyName) return `Use property shorthand for "${propertyName}". ${DOC}`;
-  return `"${propertyName}" maps the local "${source}" inline. Rename the producer to "${propertyName}" and use property shorthand. ${DOC}`;
-}
-
-function findVariable(context: Rule.RuleContext, node: Identifier): Scope.Variable | undefined {
-  let scope: Scope.Scope | null = context.sourceCode.getScope(node);
-  while (scope) {
-    const variable = scope.set.get(node.name);
-    if (variable) return variable;
-    scope = scope.upper;
-  }
-  return undefined;
-}
-
-function canUsePropertyNameAsLocal(name: string): boolean {
-  return /^[a-z][A-Za-z0-9]*$/u.test(name) && !RESERVED_LOCAL_NAMES.has(name);
-}
-
-function visibleVariable(context: Rule.RuleContext, node: Node, name: string): Scope.Variable | undefined {
-  let scope: Scope.Scope | null = context.sourceCode.getScope(node);
-  while (scope) {
-    const variable = scope.set.get(name);
-    if (variable) return variable;
-    scope = scope.upper;
-  }
-  return undefined;
-}
-
-function memberRootIdentifier(node: MemberExpression): Identifier | undefined {
-  let current: Node = node;
-  while (current.type === "MemberExpression") current = current.object;
-  return current.type === "Identifier" ? current : undefined;
-}
-
-function canBindMemberExpression(context: Rule.RuleContext, node: MemberExpression, targetName: string): boolean {
-  if (visibleVariable(context, node, targetName)) return false;
-
-  const root = memberRootIdentifier(node);
-  if (!root) return true;
-  if (/^[A-Z]/u.test(root.name)) return false;
-
-  const variable = findVariable(context, root);
-  return !variable?.defs.some((definition) => definition.type === "ImportBinding");
+  return `"${propertyName}" maps the local "${source}". Keep the local name or map directly from its source object instead. ${DOC}`;
 }
 
 export const noRedundantAliasRule: Rule.RuleModule = {
@@ -185,50 +96,77 @@ export const noRedundantAliasRule: Rule.RuleModule = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Disallow redundant aliases and inline identifier/member-expression object mappings.",
+      description: "Disallow renamed bindings while allowing explicit cross-object property mappings.",
     },
   },
   create(context) {
     return {
       VariableDeclarator(node) {
-        if (node.id.type !== "Identifier" || node.init?.type !== "Identifier") return;
+        if (node.id.type !== "Identifier" || !node.init) return;
 
         const declaration = node.parent;
         if (declaration.type !== "VariableDeclaration" || declaration.kind !== "const") return;
 
-        const exported = declaration.parent.type === "ExportNamedDeclaration";
-        const frameworkRouteAlias =
-          path.basename(context.filename) === "route.ts" && exported && HTTP_METHODS.has(node.id.name);
-        if (frameworkRouteAlias || VALUE_SENTINELS.has(node.init.name)) return;
+        if (node.init.type === "Identifier") {
+          const exported = declaration.parent.type === "ExportNamedDeclaration";
+          const frameworkRouteAlias =
+            path.basename(context.filename) === "route.ts" && exported && HTTP_METHODS.has(node.id.name);
+          if (frameworkRouteAlias || VALUE_SENTINELS.has(node.init.name)) return;
 
-        context.report({
-          node,
-          message: aliasMessage(node.id.name, node.init.name),
-        });
-      },
-      Property(node) {
-        if (node.parent.type !== "ObjectExpression" || node.computed || node.key.type !== "Identifier") return;
-        if (node.value.type !== "Identifier" && node.value.type !== "MemberExpression") return;
-
-        const propertyName = node.key.name;
-        if (!canUsePropertyNameAsLocal(propertyName)) return;
-
-        const propertyValue = node.value;
-        const source = context.sourceCode.getText(propertyValue);
-
-        if (propertyValue.type === "Identifier") {
-          if (node.shorthand) return;
-        } else if (!canBindMemberExpression(context, propertyValue, propertyName)) {
+          context.report({
+            node,
+            message: aliasMessage(node.id.name, node.init.name),
+          });
           return;
         }
 
+        if (
+          node.init.type !== "MemberExpression" ||
+          node.init.computed ||
+          node.init.property.type !== "Identifier" ||
+          node.init.property.name === node.id.name
+        ) {
+          return;
+        }
+
+        let root = node.init.object;
+        while (root.type === "MemberExpression") root = root.object;
+        if (root.type === "Identifier" && /^[A-Z]/u.test(root.name)) return;
+
         context.report({
           node,
-          message: objectPropertyMessage(propertyName, source, propertyValue.type === "Identifier"),
+          message: bindingAliasMessage(node.id.name, context.sourceCode.getText(node.init)),
+        });
+      },
+      Property(node) {
+        if (node.computed || node.key.type !== "Identifier") return;
+
+        if (node.parent.type === "ObjectPattern") {
+          let binding;
+          if (node.value.type === "Identifier") binding = node.value;
+          if (node.value.type === "AssignmentPattern" && node.value.left.type === "Identifier") {
+            binding = node.value.left;
+          }
+          if (!binding || binding.name === node.key.name) return;
+
+          context.report({
+            node,
+            message: bindingAliasMessage(binding.name, node.key.name),
+          });
+          return;
+        }
+
+        if (node.parent.type !== "ObjectExpression" || node.value.type !== "Identifier") return;
+        if (node.shorthand) return;
+
+        const propertyName = node.key.name;
+        const source = node.value.name;
+
+        context.report({
+          node,
+          message: objectPropertyMessage(propertyName, source),
           fix(fixer) {
-            return propertyValue.type === "Identifier" && propertyValue.name === propertyName
-              ? fixer.replaceText(node, propertyName)
-              : null;
+            return propertyName === source ? fixer.replaceText(node, propertyName) : null;
           },
         });
       },
@@ -244,6 +182,15 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         context.report({
           node,
           message: aliasMessage(node.id?.name, source),
+        });
+      },
+
+      ImportSpecifier(node) {
+        if (node.imported.type !== "Identifier" || node.imported.name === node.local.name) return;
+
+        context.report({
+          node,
+          message: bindingAliasMessage(node.local.name, node.imported.name),
         });
       },
 

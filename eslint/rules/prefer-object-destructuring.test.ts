@@ -3,11 +3,12 @@ import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
-void describe("Properties read from the same object MUST be destructured together in one declaration.", () => {
+void describe("Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "const { previewUrl } = file;",
-      "const { type: fileType } = file;",
+      "const fileType = file.type;",
+      "export const apiRoutePath = textEditApiContract.path;",
       "const value = getValue();",
       'const value = file["value"];',
       "const value: string = file.value;",
@@ -26,34 +27,16 @@ void describe("Properties read from the same object MUST be destructured togethe
         ],
       },
       {
-        code: "const fileType = file.type;",
-        output: "const { type: fileType } = file;",
-        errors: [
-          {
-            message: `"fileType" is derived directly from "file.type". Use object destructuring. ${doc}`,
-          },
-        ],
-      },
-      {
-        code: "export const apiRoutePath = textEditApiContract.path;",
-        output: "export const { path: apiRoutePath } = textEditApiContract;",
-        errors: [
-          {
-            message: `"apiRoutePath" is derived directly from "textEditApiContract.path". Use object destructuring. ${doc}`,
-          },
-        ],
-      },
-      {
         code: [
           "const previewUrl = file.previewUrl;",
-          "const fileType = file.type;",
-          "const fileId = file.id;",
+          "const type = file.type;",
+          "const id = file.id;",
           "const duration = file.duration;",
         ].join("\n"),
-        output: "const { previewUrl, type: fileType, id: fileId, duration } = file;",
+        output: "const { previewUrl, type, id, duration } = file;",
         errors: [
           {
-            message: `"previewUrl", "fileType", "fileId", "duration" are derived directly from properties of "file". Use one object destructuring declaration. ${doc}`,
+            message: `"previewUrl", "type", "id", "duration" are derived directly from properties of "file". Use one object destructuring declaration. ${doc}`,
           },
         ],
       },
@@ -71,7 +54,7 @@ void describe("Properties read from the same object MUST be destructured togethe
       },
       {
         code: [
-          "const left = layer.position.x;",
+          "const x = layer.position.x;",
           "const width = layer.position.width;",
           "const height = layer.position.height;",
           "const zIndex = layer.position.zIndex;",
@@ -79,13 +62,13 @@ void describe("Properties read from the same object MUST be destructured togethe
         output: null,
         errors: [
           {
-            message: `"left", "width", "height", "zIndex" are derived directly from properties of "layer.position". Use one object destructuring declaration. ${doc}`,
+            message: `"x", "width", "height", "zIndex" are derived directly from properties of "layer.position". Use one object destructuring declaration. ${doc}`,
           },
         ],
       },
       {
         code: [
-          "const { x: left } = layer.position;",
+          "const { x } = layer.position;",
           "const { width } = layer.position;",
           "const { height } = layer.position;",
           "const { zIndex } = layer.position;",
@@ -93,7 +76,7 @@ void describe("Properties read from the same object MUST be destructured togethe
         output: null,
         errors: [
           {
-            message: `"left", "width", "height", "zIndex" destructure the same source "layer.position" repeatedly. Combine them into one object destructuring declaration. ${doc}`,
+            message: `"x", "width", "height", "zIndex" destructure the same source "layer.position" repeatedly. Combine them into one object destructuring declaration. ${doc}`,
           },
         ],
       },
@@ -107,8 +90,8 @@ void describe("Properties read from the same object MUST be destructured togethe
         ],
       },
       {
-        code: "const first = file.first, otherValue = other.value;",
-        output: "const { first } = file, { value: otherValue } = other;",
+        code: "const first = file.first, value = other.value;",
+        output: "const { first } = file, { value } = other;",
         errors: 2,
       },
     ],

@@ -7,7 +7,11 @@ function aliasMessage(alias: string, source: string): string {
   return `"${alias}" only renames "${source}". Use "${source}" directly or rename the original symbol and its consumers. ${doc}`;
 }
 
-void describe("A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.", () => {
+function bindingAliasMessage(alias: string, source: string): string {
+  return `"${alias}" renames "${source}" while creating a binding. Keep the original name and map it only at the object boundary. ${doc}`;
+}
+
+void describe("A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.", () => {
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
       {
@@ -16,7 +20,6 @@ void describe("A `const` variable declaration whose initializer is another symbo
           "const config = app.config;",
           "const missing = undefined;",
           "const result = buildResult(source);",
-          "const { value: localValue } = source;",
           "let current = initial;",
           "var legacyCurrent = initial;",
         ].join("\n"),
@@ -52,6 +55,46 @@ void describe("A `const` variable declaration whose initializer is another symbo
         errors: [
           {
             message: aliasMessage("data", "results"),
+          },
+        ],
+      },
+      {
+        code: "const appKey = credentials.apiKey;",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("appKey", "credentials.apiKey"),
+          },
+        ],
+      },
+      {
+        code: "const errorMessage = locales.editor.missingRenderJobIds;",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("errorMessage", "locales.editor.missingRenderJobIds"),
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("An import MUST NOT rename an imported symbol.", () => {
+  ruleTester.run("no-redundant-alias:imports", noRedundantAliasRule, {
+    valid: [
+      {
+        code: 'import { Toaster } from "sonner";',
+        filename: srcFile("utils/example.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { Toaster as Sonner } from "sonner";',
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("Sonner", "Toaster"),
           },
         ],
       },
@@ -102,20 +145,20 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("An object property MUST NOT give an existing variable a different name. A value read from another object MUST be assigned to the final property name before it is used in an object.", () => {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A property MAY use a different name when it reads directly from another object.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
         code: [
           "const data = loadData(); const response = { data };",
-          "const appKey = credentials.apiKey; const client = { appKey };",
           "const method = HttpMethod.Post; const contract = { method };",
+          "const config = { appKey: credentials.apiKey };",
+          "const row = { userAccountId: dbRow.user_account_id };",
           'const wirePayload = { "access-token": accessToken };',
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
           "const computedValue = { data: loadData() };",
           'import { HttpMethod } from "pasika/http-method"; const contract = { method: HttpMethod.Post };',
-          "const draftId = input.draftId; const row = { draft_id: draftId };",
           "const loader = import('./editor').then((mod) => ({ default: mod.EditorSidebar }));",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
@@ -128,17 +171,27 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"data" maps the local "results" inline. Rename the producer to "data" and use property shorthand. ${doc}`,
+            message: `"data" maps the local "results". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },
       {
-        code: "const config = { appKey: credentials.apiKey };",
+        code: "const { apiKey: appKey } = credentials;",
         output: null,
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"appKey" maps "credentials.apiKey" inline. Bind it as "appKey" before this object and use property shorthand. ${doc}`,
+            message: bindingAliasMessage("appKey", "apiKey"),
+          },
+        ],
+      },
+      {
+        code: "function render({ x: left }: { x: number }) { return left; }",
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("left", "x"),
           },
         ],
       },
@@ -158,7 +211,7 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"credentialId" maps the local "id" inline. Rename the producer to "credentialId" and use property shorthand. ${doc}`,
+            message: `"credentialId" maps the local "id". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },
@@ -174,7 +227,7 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/twitter.ts"),
         errors: [
           {
-            message: `"accessSecret" maps the local "accessTokenSecret" inline. Rename the producer to "accessSecret" and use property shorthand. ${doc}`,
+            message: `"accessSecret" maps the local "accessTokenSecret". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },
@@ -184,10 +237,10 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"position" maps the local "positionSchema" inline. Rename the producer to "position" and use property shorthand. ${doc}`,
+            message: `"position" maps the local "positionSchema". Keep the local name or map directly from its source object instead. ${doc}`,
           },
           {
-            message: `"position" maps the local "positionSchema" inline. Rename the producer to "position" and use property shorthand. ${doc}`,
+            message: `"position" maps the local "positionSchema". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },
@@ -197,7 +250,7 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"responseSchema" maps the local "routePostResultsSchema" inline. Rename the producer to "responseSchema" and use property shorthand. ${doc}`,
+            message: `"responseSchema" maps the local "routePostResultsSchema". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },
@@ -207,7 +260,7 @@ void describe("An object property MUST NOT give an existing variable a different
         filename: srcFile("utils/example.ts"),
         errors: [
           {
-            message: `"backgroundMode" maps the local "mode" inline. Rename the producer to "backgroundMode" and use property shorthand. ${doc}`,
+            message: `"backgroundMode" maps the local "mode". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
       },

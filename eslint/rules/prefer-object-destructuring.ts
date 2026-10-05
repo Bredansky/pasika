@@ -45,6 +45,8 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
 
   const propertyName = member.property.name;
   const localName = declarator.id.name;
+  if (propertyName !== localName) return undefined;
+
   const source = member.object;
   const sourceText = context.sourceCode.getText(source);
 
@@ -55,7 +57,7 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
     localName,
     source,
     sourceText,
-    bindingText: propertyName === localName ? propertyName : `${propertyName}: ${localName}`,
+    bindingText: propertyName,
   };
 }
 
@@ -133,7 +135,8 @@ function destructuringSelection(
       property.type !== "Property" ||
       property.computed ||
       property.key.type !== "Identifier" ||
-      property.value.type !== "Identifier"
+      property.value.type !== "Identifier" ||
+      property.key.name !== property.value.name
     ) {
       return undefined;
     }
