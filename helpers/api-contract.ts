@@ -5,15 +5,19 @@ export const apiErrorResponseSchema = z.object({
   message: z.string(),
 });
 
-export interface ApiContract<
-  TResponseSchema extends ZodType = ZodType,
-  TRequestSchema extends ZodType | undefined = undefined,
-> {
+interface ApiContractBase<TResponseSchema extends ZodType> {
   readonly method: HttpMethod;
   readonly path: string;
   readonly responseSchema: TResponseSchema;
-  readonly requestSchema?: TRequestSchema;
 }
+
+export type ApiContract<
+  TResponseSchema extends ZodType = ZodType,
+  TRequestSchema extends ZodType | undefined = undefined,
+> = ApiContractBase<TResponseSchema> &
+  (TRequestSchema extends ZodType
+    ? { readonly requestSchema: TRequestSchema }
+    : { readonly requestSchema?: undefined });
 
 /**
  * Declares one schema-validated JSON endpoint. Route, client, and mock import
