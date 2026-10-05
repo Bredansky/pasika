@@ -146,13 +146,13 @@ export function handleGet() {
   });
 });
 
-void describe("A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option.", () => {
+void describe("A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option. When the contract property name differs from the exported contract name, the value MUST stay qualified through an imported namespace or contract collection.", () => {
   ruleTester.run("api-contract", apiContractRule, {
     valid: [
       {
         filename: srcFile("features/orders/load-orders.ts"),
-        code: `import { ordersApiContract } from "@/schemas";
-return zodFetch({ contract: ordersApiContract });`,
+        code: `import * as apiContracts from "@/schemas";
+return zodFetch({ contract: apiContracts.ordersApiContract });`,
       },
       {
         filename: srcFile("features/files/relay-file.ts"),
@@ -173,6 +173,16 @@ return zodFetch({ contract: ordersApiContract });`,
         filename: srcFile("features/orders/load-orders.ts"),
         code: `const ordersApiContract = getContract();
 return zodFetch({ contract: ordersApiContract });`,
+        errors: [
+          {
+            message: `A schema-validated request must use an imported API contract through zodFetch({ contract }). ${DOC}`,
+          },
+        ],
+      },
+      {
+        filename: srcFile("features/orders/load-orders.ts"),
+        code: `const apiContracts = { ordersApiContract };
+return zodFetch({ contract: apiContracts.ordersApiContract });`,
         errors: [
           {
             message: `A schema-validated request must use an imported API contract through zodFetch({ contract }). ${DOC}`,

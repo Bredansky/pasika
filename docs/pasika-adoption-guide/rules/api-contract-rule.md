@@ -5,7 +5,7 @@ Schema-validated JSON endpoints drift when routes and clients restate paths, met
 - A schema-validated JSON API contract MUST be created with `defineApiContract` imported from `pasika/api-contract`.
 - A call to `defineApiContract` MUST initialize an exported named value.
 - A JSON route wrapped in `withResponse` MUST receive an imported API contract rather than a bare response schema or an inline contract.
-- A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option.
+- A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option. When the contract property name differs from the exported contract name, the value MUST stay qualified through an imported namespace or contract collection.
 - A mock that exports `apiRoutePath` MUST derive it from an imported API contract through `contract.path`.
 - That mock MUST validate successful JSON with the same contract's `responseSchema`.
 
@@ -45,12 +45,12 @@ Why: the client repeats the path and response schema independently, so either si
 ## Correct — Client Uses The Shared Contract
 
 ```ts
-import { ordersApiContract } from "@/schemas";
+import * as apiContracts from "@/schemas";
 
-return zodFetch({ contract: ordersApiContract });
+return zodFetch({ contract: apiContracts.ordersApiContract });
 ```
 
-Why: the contract supplies the path, method, request schema when present, and response schema from one imported value.
+Why: the contract supplies the path, method, request schema when present, and response schema from one imported value, while the qualified reference keeps the source name explicit at the object boundary.
 
 ## Incorrect — Contract Exists Only Locally
 
