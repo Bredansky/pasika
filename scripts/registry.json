@@ -692,8 +692,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A property MAY use a different name when it reads directly from another object.",
-      "hash": "8cfefe8437",
+      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.",
+      "hash": "3a9a586e84",
       "ref": "pasika/no-redundant-alias"
     },
     {

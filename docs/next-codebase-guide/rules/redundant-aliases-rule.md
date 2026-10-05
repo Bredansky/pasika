@@ -5,7 +5,7 @@ Aliases hide naming inconsistencies by giving the same value different local nam
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A property MAY use a different name when it reads directly from another object.
+- Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.
 - Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.

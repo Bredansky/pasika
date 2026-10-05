@@ -153,7 +153,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A property MAY use a different name when it reads directly from another object.", () => {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
