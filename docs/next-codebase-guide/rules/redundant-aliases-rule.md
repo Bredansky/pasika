@@ -1,6 +1,6 @@
 # Redundant Aliases Rule
 
-Aliases hide naming inconsistencies by giving the same value different local names. Keep a value's original name when creating a binding, and make name changes visible only where one object or contract is mapped into another.
+Aliases make one value appear under multiple names and can hide naming mismatches between models. Keep source names when creating bindings, and show genuine name differences only where one object or contract is mapped into another.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
@@ -10,7 +10,7 @@ Aliases hide naming inconsistencies by giving the same value different local nam
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
-## Incorrect — Renames Hidden in Bindings
+## Incorrect — Hidden Aliases and Scattered Reads
 
 ```ts
 const ApiClient = PlatformClient;
@@ -23,7 +23,7 @@ const { apiSecret: appSecret } = credentials;
 const { x: left } = layer.position;
 
 const { accessTokenSecret } = credentials;
-return { accessSecret: accessTokenSecret };
+const twitterCredentials = { accessSecret: accessTokenSecret };
 
 const previewUrl = file.previewUrl;
 const width = layer.position.width;
@@ -35,17 +35,22 @@ type FlagKeys = string;
 interface ApiResponse extends PlatformResponse {}
 ```
 
-Why: these forms create another local name for an existing value or hide a name change behind a local variable. A name change between models should stay visible at the object boundary instead.
+Why: aliases such as `appKey`, `appSecret`, and `left` give an existing value another name. Mapping `accessTokenSecret` only after it has been detached from `credentials` hides which model the value came from. Same-name property reads such as `file.previewUrl` should use destructuring, and properties read from the same object should be destructured together.
 
-## Correct — Same-Name Bindings and Explicit Mappings
+## Correct — Preserve Names and Map at Boundaries
 
 ```ts
-const config = app.config;
-let currentSize = initialSize;
+import { Toaster } from "sonner";
 export { defaultSliderMin };
 
+// app/api/example/route.ts
+export { handler as GET, handler as POST } from "./handler";
+
+const { previewUrl, type } = file;
+const { x, width, height, zIndex } = layer.position;
+
 const data = await loadResults();
-return { data };
+const resultPayload = { data };
 
 new TwitterApi({
   appKey: credentials.apiKey,
@@ -59,15 +64,12 @@ const apiCredential = {
   createdAt: row.created_at,
 };
 
-const { previewUrl, type } = file;
-const { x, width, height, zIndex } = layer.position;
-
-const position = createPositionSchema();
-z.object({ position });
-z.object({ position });
-
 defineApiContract({ method: HttpMethod.Post });
-const response = { status: ResponseStatus.Pending };
+const pendingResponse = { status: ResponseStatus.Pending };
+
+type BrandedIdentifier = string & {
+  readonly __brand: unique symbol;
+};
 
 type ApiCredential = PlatformCredentialApi & {
   source: "api";
@@ -78,4 +80,4 @@ interface ApiResponse extends PlatformResponse {
 }
 ```
 
-Why: bindings keep the names defined by their source. When two models use different names, the mapping is explicit and the source stays qualified, such as `appKey: credentials.apiKey` or `userAccountId: row.user_account_id`. Repeated properties stored in variables are destructured together, while type and interface declarations add structure instead of only renaming an existing type. Framework-required exported names remain allowed.
+Why: bindings keep the names provided by their source. When the target model genuinely uses another name, the object mapping shows both names and keeps the source qualified, such as `appKey: credentials.apiKey` or `userAccountId: row.user_account_id`. Same-name properties are destructured once and reused without aliases, object properties use shorthand for existing locals, and type or interface declarations add structure instead of only renaming an existing type. Framework-required export names remain allowed.
