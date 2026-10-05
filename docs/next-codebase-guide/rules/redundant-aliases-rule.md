@@ -4,8 +4,8 @@ Aliases that only give an existing symbol or primitive type a second name hide i
 
 - A `const` variable declaration whose initializer is another symbol identifier MUST NOT introduce a second name for that symbol unless Next.js requires a specific exported name.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- An object property MUST NOT rename a local value, and a member expression MUST NOT be mapped inline when it can be bound to the property name first.
-- A local variable derived directly from an object property MUST use object destructuring. Adjacent selections from the same source MUST use one object destructuring declaration rather than repeated declarations.
+- An object property MUST NOT give an existing variable a different name. A value read from another object MUST be assigned to the final property name before it is used in an object.
+- Properties read from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
