@@ -178,6 +178,29 @@ export function parseModule(file: string): ParsedModule {
     imports.push({ specifier: specifierNode.text, names, line: lineOf(sourceFile, node) });
   };
 
+  const namespaceMemberNames = (namespace: string): string[] => {
+    const names = new Set<string>();
+    const visit = (node: ts.Node): void => {
+      if (
+        ts.isPropertyAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === namespace
+      ) {
+        names.add(node.name.text);
+      } else if (
+        ts.isElementAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === namespace &&
+        ts.isStringLiteral(node.argumentExpression)
+      ) {
+        names.add(node.argumentExpression.text);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(sourceFile);
+    return [...names];
+  };
+
   for (const statement of sourceFile.statements) {
     if (ts.isImportDeclaration(statement)) {
       const names: string[] = [];
@@ -185,6 +208,8 @@ export function parseModule(file: string): ParsedModule {
       if (statement.importClause?.name) names.push(statement.importClause.name.text);
       if (bindings && ts.isNamedImports(bindings)) {
         for (const element of bindings.elements) names.push(element.propertyName?.text ?? element.name.text);
+      } else if (bindings && ts.isNamespaceImport(bindings)) {
+        names.push(...namespaceMemberNames(bindings.name.text));
       }
       addImport(statement.moduleSpecifier, names, statement);
       continue;
