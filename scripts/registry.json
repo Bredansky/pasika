@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
-      "text": "A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option.",
-      "hash": "32d953f002",
+      "text": "A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option. When the contract property name differs from the exported contract name, the value MUST stay qualified through an imported namespace or contract collection.",
+      "hash": "62e856d105",
       "ref": "pasika/api-contract"
     },
     {

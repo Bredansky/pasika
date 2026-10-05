@@ -68,6 +68,13 @@ function importedContractMember(
   return expression.object.name;
 }
 
+function isImportedContractReference(expression: ESTree.Node, imports: Set<string>): boolean {
+  if (expression.type === "Identifier") return imports.has(expression.name);
+  if (expression.type !== "MemberExpression" || expression.object.type !== "Identifier") return false;
+
+  return imports.has(expression.object.name);
+}
+
 function responseSchemaParserContract(
   callee: ESTree.Expression | ESTree.Super,
   imports: Set<string>,
@@ -199,7 +206,7 @@ export const apiContractRule: Rule.RuleModule = {
         const contractProperty = objectProperty(options, "contract");
         if (contractProperty) {
           const value = contractProperty.value;
-          if (!(value.type === "Identifier" && imports.has(value.name))) {
+          if (!isImportedContractReference(value, imports)) {
             context.report({ node: value, message: CLIENT_CONTRACT });
           }
           return;
