@@ -21,6 +21,10 @@
       "types": "./dist/helpers/cn.d.ts",
       "import": "./dist/helpers/cn.js"
     },
+    "./contract-mapping": {
+      "types": "./dist/helpers/contract-mapping.d.ts",
+      "import": "./dist/helpers/contract-mapping.js"
+    },
     "./http-error": {
       "types": "./dist/helpers/http-error.d.ts",
       "import": "./dist/helpers/http-error.js"

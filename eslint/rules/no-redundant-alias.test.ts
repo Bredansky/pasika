@@ -11,6 +11,10 @@ function bindingAliasMessage(alias: string, source: string): string {
   return `"${alias}" renames "${source}" while creating a binding. Keep the original name and map it only at the object boundary. ${doc}`;
 }
 
+function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
+  return `"${propertyName}" maps from "${sourcePropertyName}", but the names are not naming-convention equivalents. Rename the contracts to use one canonical name or wrap a genuine semantic translation in defineContractMapping(...). ${doc}`;
+}
+
 void describe("A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.", () => {
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
@@ -161,15 +165,15 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.", () => {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A field read directly from another object MAY change naming convention when the source and target names differ only by case or separators. A semantic field rename MUST be wrapped in `defineContractMapping(...)` so the contract translation is explicit.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
         code: [
           "const data = loadData(); const response = { data };",
           "const contract = { method: HttpMethod.Post };",
-          "const config = { appKey: credentials.apiKey };",
-          "const twitterCredentials = { accessSecret: credentials.accessTokenSecret };",
+          "const config = defineContractMapping({ appKey: credentials.apiKey });",
+          "const twitterCredentials = defineContractMapping({ accessSecret: credentials.accessTokenSecret });",
           "const apiCredential = { userAccountId: row.user_account_id };",
           'const wirePayload = { "access-token": credentials.accessToken };',
           "const computedPayload = { [fieldName]: value };",
@@ -182,6 +186,46 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
       },
     ],
     invalid: [
+      {
+        code: "const twitterCredentials = { accessSecret: credentials.accessTokenSecret };",
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [
+          {
+            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
+          },
+        ],
+      },
+      {
+        code: "const config = { appKey: credentials.apiKey };",
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [
+          {
+            message: semanticMappingMessage("appKey", "apiKey"),
+          },
+        ],
+      },
+      {
+        code: "const account = { userAccountId: row.account_id };",
+        output: null,
+        filename: srcFile("utils/account.ts"),
+        errors: [
+          {
+            message: semanticMappingMessage("userAccountId", "account_id"),
+          },
+        ],
+      },
+      {
+        code: "const config = { accessSecret: Credentials.accessTokenSecret };",
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [
+          {
+            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
+          },
+        ],
+      },
       {
         code: "const results = loadData(); const response = { data: results };",
         output: null,

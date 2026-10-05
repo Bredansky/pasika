@@ -8,10 +8,12 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import type { Node as EstreeNode } from "estree";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+const FRAMEWORK_MAPPING_KEYS = new Set(["default"]);
 const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
   TSBigIntKeyword: "bigint",
   TSBooleanKeyword: "boolean",
@@ -90,13 +92,44 @@ function objectPropertyMessage(propertyName: string, source: string): string {
   return `"${propertyName}" maps the local "${source}". Keep the local name or map directly from its source object instead. ${DOC}`;
 }
 
+function normalizePropertyName(name: string): string {
+  return name.replace(/[-_\s]/g, "").toLowerCase();
+}
+
+function memberPropertyName(node: EstreeNode): string | undefined {
+  if (node.type !== "MemberExpression") return undefined;
+  if (!node.computed && node.property.type === "Identifier") return node.property.name;
+  if (node.computed && node.property.type === "Literal" && typeof node.property.value === "string") {
+    return node.property.value;
+  }
+  return undefined;
+}
+
+function isNamedMemberValue(propertyName: string): boolean {
+  return /^[A-Z]/.test(propertyName);
+}
+
+function isExplicitContractMapping(node: Rule.Node): boolean {
+  const parent = node.parent;
+  if (parent?.type !== "CallExpression") return false;
+  return (
+    parent.callee.type === "Identifier" &&
+    parent.callee.name === "defineContractMapping" &&
+    parent.arguments[0] === node
+  );
+}
+
+function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
+  return `"${propertyName}" maps from "${sourcePropertyName}", but the names are not naming-convention equivalents. Rename the contracts to use one canonical name or wrap a genuine semantic translation in defineContractMapping(...). ${DOC}`;
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Disallow renamed bindings while allowing explicit cross-object property mappings.",
+      description: "Disallow redundant aliases and require explicit semantic contract mappings.",
     },
   },
   create(context) {
@@ -165,17 +198,33 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           return;
         }
 
-        if (node.parent.type !== "ObjectExpression" || node.value.type !== "Identifier") return;
-        if (node.shorthand) return;
+        if (node.parent.type !== "ObjectExpression") return;
 
-        const source = node.value.name;
+        if (node.value.type === "Identifier") {
+          if (node.shorthand) return;
+
+          const source = node.value.name;
+
+          context.report({
+            node,
+            message: objectPropertyMessage(propertyName, source),
+            fix(fixer) {
+              return propertyName === source ? fixer.replaceText(node, propertyName) : null;
+            },
+          });
+          return;
+        }
+
+        if (node.value.type !== "MemberExpression") return;
+        const sourcePropertyName = memberPropertyName(node.value);
+        if (sourcePropertyName === undefined) return;
+        if (normalizePropertyName(propertyName) === normalizePropertyName(sourcePropertyName)) return;
+        if (FRAMEWORK_MAPPING_KEYS.has(propertyName) || isNamedMemberValue(sourcePropertyName)) return;
+        if (isExplicitContractMapping(node.parent)) return;
 
         context.report({
           node,
-          message: objectPropertyMessage(propertyName, source),
-          fix(fixer) {
-            return propertyName === source ? fixer.replaceText(node, propertyName) : null;
-          },
+          message: semanticMappingMessage(propertyName, sourcePropertyName),
         });
       },
 
