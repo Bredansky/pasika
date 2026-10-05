@@ -12,7 +12,7 @@ function bindingAliasMessage(alias: string, source: string): string {
 }
 
 function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
-  return `"${propertyName}" maps from "${sourcePropertyName}", but the names are not naming-convention equivalents. Rename the contracts to use one canonical name or wrap a genuine semantic translation in defineContractMapping(...). ${doc}`;
+  return `"${propertyName}" maps from "${sourcePropertyName}" while sibling fields preserve their source names. Rename the contracts to use one canonical name. ${doc}`;
 }
 
 void describe("A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.", () => {
@@ -165,16 +165,21 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A field read directly from another object MAY change naming convention when the source and target names differ only by case or separators. A semantic field rename MUST be wrapped in `defineContractMapping(...)` so the contract translation is explicit.", () => {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When a returned object maps fields from the same source object and at least two fields preserve their source names, sibling field names MUST also match their source names apart from naming convention.", () => {
   ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
         code: [
           "const data = loadData(); const response = { data };",
           "const contract = { method: HttpMethod.Post };",
-          "const config = defineContractMapping({ appKey: credentials.apiKey });",
-          "const twitterCredentials = defineContractMapping({ accessSecret: credentials.accessTokenSecret });",
           "const apiCredential = { userAccountId: row.user_account_id };",
+          "const twitterCredential = { accessSecret: credentials.accessTokenSecret };",
+          "const imageSize = { width: image.naturalWidth, height: image.naturalHeight };",
+          "const field = { label: translations.botToken };",
+          "new TwitterApi({ appKey: credentials.apiKey, appSecret: credentials.apiSecret, accessToken: credentials.accessToken, accessSecret: credentials.accessSecret });",
+          "const telegramFile = { id: photo.file_id, width: photo.width, height: photo.height, size: photo.file_size };",
+          "function partial(credentials) { return { apiKey: credentials.apiKey, accessSecret: credentials.accessTokenSecret }; }",
+          "function mixed(a, b) { return { apiKey: a.apiKey, apiSecret: b.apiSecret, accessSecret: a.accessTokenSecret }; }",
           'const wirePayload = { "access-token": credentials.accessToken };',
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
@@ -187,7 +192,7 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
     ],
     invalid: [
       {
-        code: "const twitterCredentials = { accessSecret: credentials.accessTokenSecret };",
+        code: "function map(credentials) { return { apiKey: credentials.apiKey, apiSecret: credentials.apiSecret, accessToken: credentials.accessToken, accessSecret: credentials.accessTokenSecret }; }",
         output: null,
         filename: srcFile("utils/twitter.ts"),
         errors: [
@@ -197,7 +202,17 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         ],
       },
       {
-        code: "const config = { appKey: credentials.apiKey };",
+        code: 'function map(credentials) { return { "apiKey": credentials["apiKey"], "apiSecret": credentials["apiSecret"], "accessSecret": credentials["accessTokenSecret"] }; }',
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [
+          {
+            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
+          },
+        ],
+      },
+      {
+        code: "function map(credentials) { return { apiSecret: credentials.apiSecret, accessToken: credentials.accessToken, appKey: credentials.apiKey }; }",
         output: null,
         filename: srcFile("utils/twitter.ts"),
         errors: [
@@ -207,7 +222,7 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         ],
       },
       {
-        code: "const account = { userAccountId: row.account_id };",
+        code: "const map = (row) => ({ createdAt: row.created_at, updatedAt: row.updated_at, userAccountId: row.account_id });",
         output: null,
         filename: srcFile("utils/account.ts"),
         errors: [
@@ -217,7 +232,7 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         ],
       },
       {
-        code: "const config = { accessSecret: Credentials.accessTokenSecret };",
+        code: "function map() { return { apiKey: Credentials.apiKey, apiSecret: Credentials.apiSecret, accessToken: Credentials.accessToken, accessSecret: Credentials.accessTokenSecret }; }",
         output: null,
         filename: srcFile("utils/twitter.ts"),
         errors: [

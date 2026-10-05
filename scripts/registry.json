@@ -686,8 +686,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A field read directly from another object MAY change naming convention when the source and target names differ only by case or separators. A semantic field rename MUST be wrapped in `defineContractMapping(...)` so the contract translation is explicit.",
-      "hash": "fe4101f97b",
+      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When a returned object maps fields from the same source object and at least two fields preserve their source names, sibling field names MUST also match their source names apart from naming convention.",
+      "hash": "c578838247",
       "ref": "pasika/no-redundant-alias"
     },
     {

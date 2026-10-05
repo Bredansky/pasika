@@ -109,18 +109,40 @@ function isNamedMemberValue(propertyName: string): boolean {
   return /^[A-Z]/.test(propertyName);
 }
 
-function isExplicitContractMapping(node: Rule.Node): boolean {
-  const parent = node.parent;
-  if (parent?.type !== "CallExpression") return false;
-  return (
-    parent.callee.type === "Identifier" &&
-    parent.callee.name === "defineContractMapping" &&
-    parent.arguments[0] === node
-  );
+function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
+  return `"${propertyName}" maps from "${sourcePropertyName}" while sibling fields preserve their source names. Rename the contracts to use one canonical name. ${DOC}`;
 }
 
-function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
-  return `"${propertyName}" maps from "${sourcePropertyName}", but the names are not naming-convention equivalents. Rename the contracts to use one canonical name or wrap a genuine semantic translation in defineContractMapping(...). ${DOC}`;
+function objectPropertyName(node: EstreeNode): string | undefined {
+  if (node.type !== "Property" || node.computed) return undefined;
+  if (node.key.type === "Identifier") return node.key.name;
+  if (node.key.type === "Literal" && typeof node.key.value === "string") return node.key.value;
+  return undefined;
+}
+
+function sourceNodeText(context: Rule.RuleContext, node: EstreeNode): string | undefined {
+  if (!node.range) return undefined;
+  return context.sourceCode.text.slice(node.range[0], node.range[1]);
+}
+
+function hasConventionEquivalentSibling(context: Rule.RuleContext, node: Rule.Node, sourceObjectText: string): boolean {
+  if (node.parent?.type !== "ObjectExpression") return false;
+  const objectParent = node.parent.parent;
+  if (objectParent.type !== "ReturnStatement" && objectParent.type !== "ArrowFunctionExpression") return false;
+
+  let conventionEquivalentSiblings = 0;
+  for (const sibling of node.parent.properties) {
+    if (sibling === node || sibling.type !== "Property") continue;
+    const siblingPropertyName = objectPropertyName(sibling);
+    if (siblingPropertyName === undefined || sibling.value.type !== "MemberExpression") continue;
+    const siblingSourcePropertyName = memberPropertyName(sibling.value);
+    if (siblingSourcePropertyName === undefined) continue;
+    if (normalizePropertyName(siblingPropertyName) !== normalizePropertyName(siblingSourcePropertyName)) continue;
+    if (sourceNodeText(context, sibling.value.object) !== sourceObjectText) continue;
+    conventionEquivalentSiblings += 1;
+  }
+
+  return conventionEquivalentSiblings >= 2;
 }
 
 export const noRedundantAliasRule: Rule.RuleModule = {
@@ -129,7 +151,7 @@ export const noRedundantAliasRule: Rule.RuleModule = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Disallow redundant aliases and require explicit semantic contract mappings.",
+      description: "Disallow redundant aliases and inconsistent object-to-object mappings.",
     },
   },
   create(context) {
@@ -220,7 +242,8 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (sourcePropertyName === undefined) return;
         if (normalizePropertyName(propertyName) === normalizePropertyName(sourcePropertyName)) return;
         if (FRAMEWORK_MAPPING_KEYS.has(propertyName) || isNamedMemberValue(sourcePropertyName)) return;
-        if (isExplicitContractMapping(node.parent)) return;
+        const sourceObjectText = sourceNodeText(context, node.value.object);
+        if (sourceObjectText === undefined || !hasConventionEquivalentSibling(context, node, sourceObjectText)) return;
 
         context.report({
           node,

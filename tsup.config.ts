@@ -5,7 +5,6 @@ export default defineConfig({
     "eslint/pasika/index": "eslint/index.ts",
     "helpers/api-contract": "helpers/api-contract.ts",
     "helpers/cn": "helpers/cn.ts",
-    "helpers/contract-mapping": "helpers/contract-mapping.ts",
     "helpers/http-error": "helpers/http-error.ts",
     "helpers/http-method": "helpers/http-method.ts",
     "helpers/zod-fetch": "helpers/zod-fetch.ts",
