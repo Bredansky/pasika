@@ -2,7 +2,7 @@
  * ESLint rule: pasika/prefer-object-destructuring
  *
  * Require locals that directly read an object property to use object
- * destructuring. When one scope reads multiple properties from the same
+ * destructuring. When one block reads multiple properties from the same
  * object, require those reads to share one destructuring declaration.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
@@ -145,7 +145,7 @@ function recordDestructuringUsage(
 
 function scopeUsageMessage(sourceText: string, propertyNames: Set<string>): string {
   const names = [...propertyNames].map((name) => `"${name}"`).join(", ");
-  return `${names} are read from "${sourceText}" in the same scope. Destructure them together in one declaration. ${DOC}`;
+  return `${names} are read from "${sourceText}" in the same block. Destructure them together in one declaration. ${DOC}`;
 }
 
 function whitespaceKeepsStatementsAdjacent(text: string): boolean {

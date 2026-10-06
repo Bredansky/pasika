@@ -3,7 +3,7 @@ import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
-void describe("Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read in one scope, they MUST be destructured together in one declaration.", () => {
+void describe("Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "const { previewUrl } = file;",
@@ -115,7 +115,7 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
         output: null,
         errors: [
           {
-            message: `"emoji", "fontSize", "background", "size" are read from "config" in the same scope. Destructure them together in one declaration. ${doc}`,
+            message: `"emoji", "fontSize", "background", "size" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
           },
         ],
       },
@@ -124,7 +124,7 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
         output: null,
         errors: [
           {
-            message: `"width", "height" are read from "config" in the same scope. Destructure them together in one declaration. ${doc}`,
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
           },
         ],
       },
