@@ -692,8 +692,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "When an object uses an existing variable, the property MUST have the same name and use shorthand.",
-      "hash": "2182e80926",
+      "text": "When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.",
+      "hash": "3c6cfec7dc",
       "ref": "pasika/no-redundant-alias"
     },
     {
@@ -710,8 +710,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.",
-      "hash": "40fbf8f86b",
+      "text": "A direct field mapping MUST NOT be treated as a rename when the target contract already uses the source field name for a different value.",
+      "hash": "20b39ea33e",
       "ref": "pasika/no-redundant-alias"
     },
     {
