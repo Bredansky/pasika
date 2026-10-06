@@ -692,8 +692,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.",
-      "hash": "3c6cfec7dc",
+      "text": "When an object property uses an existing variable under the same name, it MUST use shorthand form.",
+      "hash": "92b4f635c2",
       "ref": "pasika/no-redundant-alias"
     },
     {
@@ -722,8 +722,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.",
-      "hash": "07dbca9723",
+      "text": "Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, or the property name cannot be used as a compliant local identifier. When two or more properties of the same object do not require qualified access and are read within the same block, they MUST be destructured together in one declaration.",
+      "hash": "c98af76279",
       "ref": "pasika/prefer-object-destructuring"
     },
     {

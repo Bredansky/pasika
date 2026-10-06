@@ -190,7 +190,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
 });
 
 void describe("Destructuring MUST keep property names unchanged.", () => {
-  describe("When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.", () => {
+  describe("When an object property uses an existing variable under the same name, it MUST use shorthand form.", () => {
     describe("A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.", () => {
       describe("Mappings between data contracts controlled by this repository MUST preserve one canonical field name.", () => {
         describe("A direct field mapping MAY qualify the source field name with the source object's name.", () => {
@@ -386,6 +386,31 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
                 ].join("\n"),
                 filename: srcFile("utils/example.ts"),
               },
+              {
+                code: "const results = loadData(); const response = { data: results };",
+                filename: srcFile("utils/example.ts"),
+              },
+              {
+                code: [
+                  "interface EmojiIconConfig { size: number }",
+                  "interface ImageOptions { width: number; height: number }",
+                  "function optionsOf(config: EmojiIconConfig): ImageOptions {",
+                  "  const { size } = config;",
+                  "  return { width: size, height: size };",
+                  "}",
+                ].join("\n"),
+                filename: srcFile("utils/example.ts"),
+              },
+              {
+                code: [
+                  "interface Config { size?: number }",
+                  "function optionsOf(config: Config) {",
+                  "  const { size = 24 } = config;",
+                  "  return { width: size };",
+                  "}",
+                ].join("\n"),
+                filename: srcFile("utils/example.ts"),
+              },
             ],
             invalid: [
               {
@@ -485,6 +510,21 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
                   "const rawCredentialsSchema = z.object({ accessTokenSecret: z.string() });",
                   "type RawCredentials = z.infer<typeof rawCredentialsSchema>;",
                   "interface Credentials { accessSecret: string }",
+                  "function map(rawCredentials: RawCredentials): Credentials {",
+                  "  const { accessTokenSecret } = rawCredentials;",
+                  "  return { accessSecret: accessTokenSecret };",
+                  "}",
+                ].join("\n"),
+                output: null,
+                filename: srcFile("utils/twitter.ts"),
+                errors: [{ message: semanticMappingMessage("accessSecret", "accessTokenSecret") }],
+              },
+              {
+                code: [
+                  'import { z } from "zod";',
+                  "const rawCredentialsSchema = z.object({ accessTokenSecret: z.string() });",
+                  "type RawCredentials = z.infer<typeof rawCredentialsSchema>;",
+                  "interface Credentials { accessSecret: string }",
                   "declare const rawCredentials: RawCredentials;",
                   "const credentials: Credentials = { accessSecret: rawCredentials.accessTokenSecret };",
                 ].join("\n"),
@@ -533,16 +573,6 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
                 errors: [{ message: unknownContractOwnershipMessage("caption", "text") }],
               },
               {
-                code: "const results = loadData(); const response = { data: results };",
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"data" maps the local "results". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
                 code: "const { apiKey: appKey } = credentials;",
                 output: null,
                 filename: srcFile("utils/example.ts"),
@@ -561,79 +591,10 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
                 errors: [{ message: bindingAliasMessage("left", "x") }],
               },
               {
-                code: 'const wirePayload = { "access-token": accessToken };',
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"access-token" maps the local "accessToken". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
                 code: "const data = loadData(); const response = { data: data };",
                 output: "const data = loadData(); const response = { data };",
                 filename: srcFile("utils/example.ts"),
                 errors: [{ message: `Use property shorthand for "data". ${doc}` }],
-              },
-              {
-                code: "const { id } = params; const input = { credentialId: id };",
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"credentialId" maps the local "id". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
-                code: [
-                  "function credentialsOf(rawCredentials: { accessTokenSecret: string }) {",
-                  "  const { accessTokenSecret } = rawCredentials;",
-                  "  if (!accessTokenSecret) throw new Error();",
-                  "  return { accessSecret: accessTokenSecret };",
-                  "}",
-                ].join("\n"),
-                output: null,
-                filename: srcFile("utils/twitter.ts"),
-                errors: [
-                  {
-                    message: `"accessSecret" maps the local "accessTokenSecret". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
-                code: "const positionSchema = createSchema(); const textLayer = { position: positionSchema }; const mediaLayer = { position: positionSchema };",
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"position" maps the local "positionSchema". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                  {
-                    message: `"position" maps the local "positionSchema". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
-                code: "export const routePostResultsSchema = createSchema(); const contract = { responseSchema: routePostResultsSchema };",
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"responseSchema" maps the local "routePostResultsSchema". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
-              },
-              {
-                code: "function run(mode: Mode) { return { backgroundMode: mode }; }",
-                output: null,
-                filename: srcFile("utils/example.ts"),
-                errors: [
-                  {
-                    message: `"backgroundMode" maps the local "mode". Keep the local name or map directly from its source object instead. ${doc}`,
-                  },
-                ],
               },
             ],
           });

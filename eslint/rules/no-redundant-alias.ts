@@ -8,8 +8,8 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import type { Node as EstreeNode } from "estree";
-import { contractOwnershipResolver } from "./contract-ownership";
+import type { Identifier, Node as EstreeNode, VariableDeclarator } from "estree";
+import { contractOwnershipResolver, type ContractEndpoint } from "./contract-ownership";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
@@ -140,6 +140,85 @@ function unknownContractOwnershipMessage(propertyName: string, sourcePropertyNam
   return `Cannot determine contract ownership for mapping "${propertyName}" from "${sourcePropertyName}". Define or propagate a concrete contract, make the boundary schema explicit, or connect a mirrored external schema to its defineApiContract. ${DOC}`;
 }
 
+interface DestructuredBindingSource {
+  declarator: VariableDeclarator;
+  propertyName: string;
+}
+
+function destructuredBindingSource(
+  context: Rule.RuleContext,
+  identifier: Identifier,
+): DestructuredBindingSource | undefined {
+  const initialScope = context.sourceCode.getScope(identifier);
+
+  for (let scope: typeof initialScope | null = initialScope; scope !== null; scope = scope.upper) {
+    const variable = scope.variables.find(({ name }) => name === identifier.name);
+    if (!variable) continue;
+
+    for (const definition of variable.defs) {
+      if (definition.type !== "Variable") continue;
+      const declarator = definition.node;
+      if (declarator.id.type !== "ObjectPattern") continue;
+
+      for (const property of declarator.id.properties) {
+        if (property.type !== "Property" || property.computed || property.key.type !== "Identifier") continue;
+
+        let binding: Identifier | undefined;
+        if (property.value.type === "Identifier") binding = property.value;
+        if (property.value.type === "AssignmentPattern" && property.value.left.type === "Identifier") {
+          binding = property.value.left;
+        }
+
+        if (binding?.name === identifier.name) {
+          return { declarator, propertyName: property.key.name };
+        }
+      }
+    }
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function contractMappingViolation(
+  propertyName: string,
+  sourcePropertyName: string,
+  sourceResolution: ContractEndpoint,
+  targetResolution: ContractEndpoint,
+): string | undefined {
+  if (sourceResolution.kind === "non-contract" || targetResolution.kind === "non-contract") return undefined;
+
+  if (
+    (sourceResolution.ownership === "third-party" || sourceResolution.ownership === "platform") &&
+    targetResolution.kind !== "missing"
+  ) {
+    return undefined;
+  }
+  if (
+    (targetResolution.ownership === "third-party" || targetResolution.ownership === "platform") &&
+    sourceResolution.kind !== "missing"
+  ) {
+    return undefined;
+  }
+
+  const hasDataContract = sourceResolution.kind === "data-contract" || targetResolution.kind === "data-contract";
+  if (!hasDataContract) return undefined;
+
+  if (
+    sourceResolution.kind === "missing" ||
+    targetResolution.kind === "missing" ||
+    sourceResolution.ownership === "unknown" ||
+    targetResolution.ownership === "unknown"
+  ) {
+    return unknownContractOwnershipMessage(propertyName, sourcePropertyName);
+  }
+
+  if (sourceResolution.kind !== "data-contract") return undefined;
+  if (sourceResolution.ownership !== "first-party" || targetResolution.ownership !== "first-party") return undefined;
+
+  return semanticMappingMessage(propertyName, sourcePropertyName);
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -224,13 +303,35 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           if (node.shorthand) return;
 
           const source = node.value.name;
+          if (propertyName === source) {
+            context.report({
+              node,
+              message: objectPropertyMessage(propertyName, source),
+              fix(fixer) {
+                return fixer.replaceText(node, propertyName);
+              },
+            });
+            return;
+          }
+
+          const bindingSource = destructuredBindingSource(context, node.value);
+          if (!bindingSource || !ownershipResolver) return;
+
+          const sourcePropertyName = bindingSource.propertyName;
+          if (normalizePropertyName(propertyName) === normalizePropertyName(sourcePropertyName)) return;
+          if (FRAMEWORK_MAPPING_KEYS.has(propertyName) || isNamedMemberValue(sourcePropertyName)) return;
+
+          const sourceResolution = ownershipResolver.sourceBinding(bindingSource.declarator, sourcePropertyName);
+          const targetResolution = ownershipResolver.targetProperty(node, propertyName);
+          const hasDataContract =
+            sourceResolution.kind === "data-contract" || targetResolution.kind === "data-contract";
+          if (!hasDataContract) return;
 
           context.report({
             node,
-            message: objectPropertyMessage(propertyName, source),
-            fix(fixer) {
-              return propertyName === source ? fixer.replaceText(node, propertyName) : null;
-            },
+            message:
+              contractMappingViolation(propertyName, sourcePropertyName, sourceResolution, targetResolution) ??
+              objectPropertyMessage(propertyName, source),
           });
           return;
         }
@@ -245,43 +346,17 @@ export const noRedundantAliasRule: Rule.RuleModule = {
 
         const sourceResolution = ownershipResolver.sourceMember(node.value);
         const targetResolution = ownershipResolver.targetProperty(node, propertyName);
-        if (sourceResolution.kind === "non-contract" || targetResolution.kind === "non-contract") return;
-
-        if (
-          (sourceResolution.ownership === "third-party" || sourceResolution.ownership === "platform") &&
-          targetResolution.kind !== "missing"
-        ) {
-          return;
-        }
-        if (
-          (targetResolution.ownership === "third-party" || targetResolution.ownership === "platform") &&
-          sourceResolution.kind !== "missing"
-        ) {
-          return;
-        }
-
-        const hasDataContract = sourceResolution.kind === "data-contract" || targetResolution.kind === "data-contract";
-        if (!hasDataContract) return;
-
-        if (
-          sourceResolution.kind === "missing" ||
-          targetResolution.kind === "missing" ||
-          sourceResolution.ownership === "unknown" ||
-          targetResolution.ownership === "unknown"
-        ) {
-          context.report({
-            node,
-            message: unknownContractOwnershipMessage(propertyName, sourcePropertyName),
-          });
-          return;
-        }
-
-        if (sourceResolution.kind !== "data-contract") return;
-        if (sourceResolution.ownership !== "first-party" || targetResolution.ownership !== "first-party") return;
+        const violation = contractMappingViolation(
+          propertyName,
+          sourcePropertyName,
+          sourceResolution,
+          targetResolution,
+        );
+        if (!violation) return;
 
         context.report({
           node,
-          message: semanticMappingMessage(propertyName, sourcePropertyName),
+          message: violation,
         });
       },
 
