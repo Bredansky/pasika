@@ -34,6 +34,7 @@ export default defineConfig({
   // clsx, tailwind-merge, and next are the peer installations the helpers run on.
   external: [
     "@typescript-eslint/parser",
+    "typescript",
     "@eslint/css",
     "@eslint/json",
     "@eslint/markdown",

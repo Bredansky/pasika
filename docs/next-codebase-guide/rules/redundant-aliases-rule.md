@@ -1,83 +1,114 @@
 # Redundant Aliases Rule
 
-Aliases make one value appear under multiple names and can hide naming mismatches between models. Keep source names when creating bindings, and show genuine name differences only where one object or contract is mapped into another.
+Aliases make one value appear under multiple names and can hide naming drift between data contracts, while ordinary local object shaping is not a contract mapping. A direct data-contract field mapping can qualify a field with its source object's name, and other renames should occur only where typed ownership proves a real external or platform boundary.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.
+- Destructuring MUST keep property names unchanged.
+- When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.
+- A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.
+- Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
+- A direct field mapping MAY qualify the source field name with the source object's name.
+- A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
 - Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
-## Incorrect — Hidden Aliases and Scattered Reads
+## Incorrect — Redundant Local Aliases
 
 ```ts
-const ApiClient = PlatformClient;
 import { Toaster as Sonner } from "sonner";
-export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };
 
 const appKey = credentials.apiKey;
-const method = HttpMethod.Post;
-const { apiSecret: appSecret } = credentials;
 const { x: left } = layer.position;
-
-const { accessTokenSecret } = credentials;
-const twitterCredentials = { accessSecret: accessTokenSecret };
-
 const previewUrl = file.previewUrl;
-const width = layer.position.width;
-const height = layer.position.height;
-
-type ApiCredential = PlatformCredentialApi;
-type FlagKeys = string;
-
-interface ApiResponse extends PlatformResponse {}
 ```
 
-Why: aliases such as `appKey`, `appSecret`, and `left` give an existing value another name. Mapping `accessTokenSecret` only after it has been detached from `credentials` hides which model the value came from. Same-name property reads such as `file.previewUrl` should use destructuring, and properties read from the same object should be destructured together.
+Why: `Sonner`, `appKey`, and `left` give existing values new local names, while `previewUrl` stores a property under the same name instead of destructuring it.
 
-## Correct — Preserve Names and Map at Boundaries
+## Correct — Original Local Names
 
 ```ts
 import { Toaster } from "sonner";
-export { defaultSliderMin };
 
-// app/api/example/route.ts
-export { handler as GET, handler as POST } from "./handler";
+const { apiKey } = credentials;
+const { x } = layer.position;
+const { previewUrl } = file;
+```
 
-const { previewUrl, type } = file;
-const { x, width, height, zIndex } = layer.position;
+Why: each binding keeps the name provided by its source.
 
-const data = await loadResults();
-const resultPayload = { data };
+## Incorrect — Duplicate Repository Contracts
 
-new TwitterApi({
-  appKey: credentials.apiKey,
-  appSecret: credentials.apiSecret,
-  accessToken: credentials.accessToken,
-  accessSecret: credentials.accessTokenSecret,
+```ts
+const credentialsSchema = z.object({
+  accessTokenSecret: z.string(),
 });
 
-const apiCredential = {
-  userAccountId: row.user_account_id,
-  createdAt: row.created_at,
-};
+type RawCredentials = z.infer<typeof credentialsSchema>;
 
-defineApiContract({ method: HttpMethod.Post });
-const pendingResponse = { status: ResponseStatus.Pending };
+interface Credentials {
+  accessSecret: string;
+}
 
-type BrandedIdentifier = string & {
-  readonly __brand: unique symbol;
-};
-
-type ApiCredential = PlatformCredentialApi & {
-  source: "api";
-};
-
-interface ApiResponse extends PlatformResponse {
-  receivedAt: Date;
+function credentialsOf(raw: RawCredentials): Credentials {
+  return {
+    accessSecret: raw.accessTokenSecret,
+  };
 }
 ```
 
-Why: bindings keep the names provided by their source. When the target model genuinely uses another name, the object mapping shows both names and keeps the source qualified, such as `appKey: credentials.apiKey` or `userAccountId: row.user_account_id`. Same-name properties are destructured once and reused without aliases, object properties use shorthand for existing locals, and type or interface declarations add structure instead of only renaming an existing type. Framework-required export names remain allowed.
+Why: both contracts describe the same value, but one calls it `accessTokenSecret` and the other calls it `accessSecret`.
+
+## Correct — One Repository Contract
+
+```ts
+const credentialsSchema = z.object({
+  accessTokenSecret: z.string(),
+});
+
+type Credentials = z.infer<typeof credentialsSchema>;
+```
+
+Why: one contract is enough when the shape and semantics are the same, so no mapper or second field name is introduced.
+
+## Incorrect — Unrelated Internal Field Name
+
+```ts
+interface File {
+  id: string;
+}
+
+interface MediaLayer {
+  mediaId: string;
+}
+
+function layerOf(file: File): MediaLayer {
+  return {
+    mediaId: file.id,
+  };
+}
+```
+
+Why: `mediaId` is an unrelated new name for `file.id`.
+
+## Correct — Qualified Internal Field Name
+
+```ts
+interface File {
+  id: string;
+}
+
+interface MediaLayer {
+  fileId: string;
+}
+
+function layerOf(file: File): MediaLayer {
+  return {
+    fileId: file.id,
+  };
+}
+```
+
+Why: `fileId` is derived directly from the source object name `file` and the source field name `id`. Names that differ only by convention, such as `user_account_id` and `userAccountId`, are also not semantic renames.

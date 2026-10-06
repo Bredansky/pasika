@@ -4,18 +4,19 @@ Use this reference to look up the terms this guide's workflows and rules use. Te
 
 ## Shared Terms
 
-These terms name the parts of the `src/` tree and the way an item's location is derived from its consumers, and the placement decisions this guide's workflows make with them.
+These terms name the parts of the `src/` tree, the way an item's location is derived from its consumers, and other shared concepts used across this guide.
 
-| Term                        | Definition                                                                                                                         |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                              |
-| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                          |
-| Composition                 | A component that imports from two or more feature folders.                                                                         |
-| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                |
-| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                    |
-| Closest common folder (CCF) | The closest folder under `src/` shared by every direct consumer of one exported item; sibling exports do not contribute consumers. |
-| Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`. |
-| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                   |
+| Term                        | Definition                                                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                                                  |
+| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                                              |
+| Composition                 | A component that imports from two or more feature folders.                                                                                             |
+| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                                    |
+| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                                        |
+| Closest common folder (CCF) | The closest folder under `src/` shared by every direct consumer of one exported item; sibling exports do not contribute consumers.                     |
+| Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`.                     |
+| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                                       |
+| Data contract               | A TypeScript type or runtime schema that defines the fields of structured data passed between parts of the application or across an external boundary. |
 
 ## Component Terms
 

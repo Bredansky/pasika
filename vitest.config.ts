@@ -10,7 +10,7 @@ export default defineConfig({
       exclude: ["**/*.test.ts"],
       thresholds: {
         lines: 93.3,
-        functions: 96.5,
+        functions: 96.6,
         branches: 83.1,
         statements: 88.9,
         autoUpdate: (newThreshold, previousThreshold) =>

@@ -8,10 +8,13 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import type { Node as EstreeNode } from "estree";
+import { contractOwnershipResolver } from "./contract-ownership";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 const VALUE_SENTINELS = new Set(["undefined", "NaN", "Infinity"]);
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
+const FRAMEWORK_MAPPING_KEYS = new Set(["default", "apiRoutePath"]);
 const PRIMITIVE_TYPE_NAMES: Readonly<Record<string, string>> = {
   TSBigIntKeyword: "bigint",
   TSBooleanKeyword: "boolean",
@@ -90,16 +93,65 @@ function objectPropertyMessage(propertyName: string, source: string): string {
   return `"${propertyName}" maps the local "${source}". Keep the local name or map directly from its source object instead. ${DOC}`;
 }
 
+function normalizePropertyName(name: string): string {
+  return name.replace(/[-_\s]/g, "").toLowerCase();
+}
+
+function memberPropertyName(node: EstreeNode): string | undefined {
+  if (node.type !== "MemberExpression") return undefined;
+  if (!node.computed && node.property.type === "Identifier") return node.property.name;
+  if (node.computed && node.property.type === "Literal" && typeof node.property.value === "string") {
+    return node.property.value;
+  }
+  return undefined;
+}
+
+function isNamedMemberValue(propertyName: string): boolean {
+  return /^[A-Z]/.test(propertyName);
+}
+
+function isQualifiedSourceField(propertyName: string, sourceMember: EstreeNode, sourcePropertyName: string): boolean {
+  if (sourceMember.type !== "MemberExpression" || sourceMember.object.type !== "Identifier") return false;
+  return (
+    normalizePropertyName(propertyName) === normalizePropertyName(`${sourceMember.object.name}${sourcePropertyName}`)
+  );
+}
+
+function isInsideSchemaDeclaration(node: Rule.Node): boolean {
+  let current: Rule.Node = node;
+  while (current.type !== "Program") {
+    if (
+      current.type === "VariableDeclarator" &&
+      current.id.type === "Identifier" &&
+      current.id.name.endsWith("Schema")
+    ) {
+      return true;
+    }
+    current = current.parent;
+  }
+  return false;
+}
+
+function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
+  return `"${propertyName}" maps from "${sourcePropertyName}" between first-party contracts. Use one canonical field name across the contracts. ${DOC}`;
+}
+
+function unknownContractOwnershipMessage(propertyName: string, sourcePropertyName: string): string {
+  return `Cannot determine contract ownership for mapping "${propertyName}" from "${sourcePropertyName}". Define or propagate a concrete contract, make the boundary schema explicit, or connect a mirrored external schema to its defineApiContract. ${DOC}`;
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Disallow renamed bindings while allowing explicit cross-object property mappings.",
+      description: "Disallow redundant aliases and inconsistent object-to-object mappings.",
     },
   },
   create(context) {
+    const ownershipResolver = contractOwnershipResolver(context);
+
     return {
       VariableDeclarator(node) {
         if (node.id.type !== "Identifier" || !node.init) return;
@@ -165,17 +217,71 @@ export const noRedundantAliasRule: Rule.RuleModule = {
           return;
         }
 
-        if (node.parent.type !== "ObjectExpression" || node.value.type !== "Identifier") return;
-        if (node.shorthand) return;
+        if (node.parent.type !== "ObjectExpression") return;
+        if (isInsideSchemaDeclaration(node)) return;
 
-        const source = node.value.name;
+        if (node.value.type === "Identifier") {
+          if (node.shorthand) return;
+
+          const source = node.value.name;
+
+          context.report({
+            node,
+            message: objectPropertyMessage(propertyName, source),
+            fix(fixer) {
+              return propertyName === source ? fixer.replaceText(node, propertyName) : null;
+            },
+          });
+          return;
+        }
+
+        if (node.value.type !== "MemberExpression") return;
+        const sourcePropertyName = memberPropertyName(node.value);
+        if (sourcePropertyName === undefined) return;
+        if (normalizePropertyName(propertyName) === normalizePropertyName(sourcePropertyName)) return;
+        if (FRAMEWORK_MAPPING_KEYS.has(propertyName) || isNamedMemberValue(sourcePropertyName)) return;
+        if (isQualifiedSourceField(propertyName, node.value, sourcePropertyName)) return;
+        if (!ownershipResolver) return;
+
+        const sourceResolution = ownershipResolver.sourceMember(node.value);
+        const targetResolution = ownershipResolver.targetProperty(node, propertyName);
+        if (sourceResolution.kind === "non-contract" || targetResolution.kind === "non-contract") return;
+
+        if (
+          (sourceResolution.ownership === "third-party" || sourceResolution.ownership === "platform") &&
+          targetResolution.kind !== "missing"
+        ) {
+          return;
+        }
+        if (
+          (targetResolution.ownership === "third-party" || targetResolution.ownership === "platform") &&
+          sourceResolution.kind !== "missing"
+        ) {
+          return;
+        }
+
+        const hasDataContract = sourceResolution.kind === "data-contract" || targetResolution.kind === "data-contract";
+        if (!hasDataContract) return;
+
+        if (
+          sourceResolution.kind === "missing" ||
+          targetResolution.kind === "missing" ||
+          sourceResolution.ownership === "unknown" ||
+          targetResolution.ownership === "unknown"
+        ) {
+          context.report({
+            node,
+            message: unknownContractOwnershipMessage(propertyName, sourcePropertyName),
+          });
+          return;
+        }
+
+        if (sourceResolution.kind !== "data-contract") return;
+        if (sourceResolution.ownership !== "first-party" || targetResolution.ownership !== "first-party") return;
 
         context.report({
           node,
-          message: objectPropertyMessage(propertyName, source),
-          fix(fixer) {
-            return propertyName === source ? fixer.replaceText(node, propertyName) : null;
-          },
+          message: semanticMappingMessage(propertyName, sourcePropertyName),
         });
       },
 

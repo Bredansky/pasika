@@ -668,12 +668,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.",
-      "hash": "6dddb14a52",
-      "ref": "pasika/prefer-object-destructuring"
-    },
-    {
-      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.",
       "hash": "74f4efb1d9",
       "ref": "pasika/no-redundant-alias"
@@ -692,9 +686,45 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When mapping one object to another, a property MAY use a different name if the value is read directly from the source object.",
-      "hash": "3a9a586e84",
+      "text": "Destructuring MUST keep property names unchanged.",
+      "hash": "167a04db5b",
       "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.",
+      "hash": "3c6cfec7dc",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.",
+      "hash": "79bc3ff6c4",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "Mappings between data contracts controlled by this repository MUST preserve one canonical field name.",
+      "hash": "585096f026",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A direct field mapping MAY qualify the source field name with the source object's name.",
+      "hash": "d8e16dccd3",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.",
+      "hash": "7f17ed3056",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.",
+      "hash": "6dddb14a52",
+      "ref": "pasika/prefer-object-destructuring"
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",

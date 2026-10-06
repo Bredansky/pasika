@@ -26,7 +26,7 @@ Use this no matter whether you are adding a new component or extracting from exi
 
 Use this when adding or moving a type or schema.
 
-1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the type or schema in its support folder at the CCF of its consumers.
+1. Read the [Shared Terms](references/glossary-reference.md#shared-terms) so you can place the type or schema in its support folder at the CCF of its consumers.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Types and Schemas Rule](rules/types-and-schemas-rule.md) so the type or schema is extracted only once a consumer needs it independently.
