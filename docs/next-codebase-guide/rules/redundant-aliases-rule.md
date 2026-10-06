@@ -10,7 +10,7 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
-- A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.
+- Both sides of a renamed contract field MUST have known ownership.
 - Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.

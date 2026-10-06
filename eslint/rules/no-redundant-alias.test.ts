@@ -643,7 +643,7 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
   });
 });
 
-void describe("A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.", () => {
+void describe("Both sides of a renamed contract field MUST have known ownership.", () => {
   typedRuleTester.run("no-redundant-alias:unknown-contract-ownership", noRedundantAliasRule, {
     valid: [],
     invalid: [

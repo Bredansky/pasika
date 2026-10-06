@@ -716,8 +716,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.",
-      "hash": "f017d68015",
+      "text": "Both sides of a renamed contract field MUST have known ownership.",
+      "hash": "89c526e606",
       "ref": "pasika/no-redundant-alias"
     },
     {
