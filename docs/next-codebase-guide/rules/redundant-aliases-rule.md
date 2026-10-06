@@ -6,12 +6,12 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - An import MUST NOT rename an imported symbol.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
 - Destructuring MUST keep property names unchanged.
-- When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.
+- When an object property uses an existing variable under the same name, it MUST use shorthand form.
 - A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
-- Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.
+- Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, or the property name cannot be used as a compliant local identifier. When two or more properties of the same object do not require qualified access and are read within the same block, they MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 

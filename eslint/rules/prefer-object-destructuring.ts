@@ -8,7 +8,8 @@
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
 import type { Rule } from "eslint";
-import type { Identifier, MemberExpression, Node, VariableDeclaration, VariableDeclarator } from "estree";
+import type { Identifier, MemberExpression, Node, Property, VariableDeclaration, VariableDeclarator } from "estree";
+import { contractOwnershipResolver, type ContractOwnershipResolver } from "./contract-ownership";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
@@ -62,6 +63,7 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
 
   const member = declarator.init;
   if (member.computed || member.optional || member.property.type !== "Identifier") return undefined;
+  if (!memberCanBecomeLocal(member)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const propertyName = member.property.name;
@@ -93,6 +95,80 @@ function isStableObjectSource(source: Node): boolean {
   return isStableObjectSource(source.object);
 }
 
+function rootIdentifierName(node: Node): string | undefined {
+  if (node.type === "Identifier") return node.name;
+  if (node.type !== "MemberExpression" || node.object.type === "Super") return undefined;
+  return rootIdentifierName(node.object);
+}
+
+function isCompliantLocalName(propertyName: string): boolean {
+  return !propertyName.includes("_");
+}
+
+function propertyNameOf(node: Node): string | undefined {
+  if (node.type !== "Property" || node.computed) return undefined;
+  if (node.key.type === "Identifier") return node.key.name;
+  if (node.key.type === "Literal" && typeof node.key.value === "string") return node.key.value;
+  return undefined;
+}
+
+interface DirectMapping {
+  property: Property;
+  sourceMember: MemberExpression;
+  targetName: string;
+}
+
+function renamedDirectMapping(context: Rule.RuleContext, member: MemberExpression): DirectMapping | undefined {
+  let current: Node = member;
+  const ancestors = context.sourceCode.getAncestors(member);
+
+  for (let index = ancestors.length - 1; index >= 0; index -= 1) {
+    const parent = ancestors[index];
+    if (!parent) break;
+
+    if (parent.type === "MemberExpression" && parent.object === current) {
+      current = parent;
+      continue;
+    }
+
+    if (parent.type !== "Property" || parent.value !== current) return undefined;
+
+    const targetName = propertyNameOf(parent);
+    const sourceName = !current.computed && current.property.type === "Identifier" ? current.property.name : undefined;
+    if (targetName === undefined || sourceName === undefined || targetName === sourceName) return undefined;
+
+    return { property: parent, sourceMember: current, targetName };
+  }
+
+  return undefined;
+}
+
+function memberCanBecomeLocal(member: MemberExpression): boolean {
+  if (rootIdentifierName(member) === "locales") return false;
+  return member.property.type === "Identifier" && isCompliantLocalName(member.property.name);
+}
+
+function directMappingRequiresQualifiedAccess(
+  context: Rule.RuleContext,
+  ownershipResolver: ContractOwnershipResolver | undefined,
+  member: MemberExpression,
+): boolean {
+  const mapping = renamedDirectMapping(context, member);
+  if (!mapping || !ownershipResolver) return false;
+
+  const sourceResolution = ownershipResolver.sourceMember(mapping.sourceMember);
+  const targetResolution = ownershipResolver.targetProperty(mapping.property, mapping.targetName);
+  return sourceResolution.kind === "data-contract" || targetResolution.kind === "data-contract";
+}
+
+function memberCanBeDestructured(
+  context: Rule.RuleContext,
+  ownershipResolver: ContractOwnershipResolver | undefined,
+  member: MemberExpression,
+): boolean {
+  return memberCanBecomeLocal(member) && !directMappingRequiresQualifiedAccess(context, ownershipResolver, member);
+}
+
 function objectUsage(scope: UsageScope, sourceText: string): ScopeObjectUsage {
   let usage = scope.objects.get(sourceText);
   if (!usage) {
@@ -121,8 +197,14 @@ function memberIsDirectVariableInitializer(context: Rule.RuleContext, member: Me
   return parent?.type === "VariableDeclarator" && parent.init === member;
 }
 
-function recordMemberUsage(context: Rule.RuleContext, scope: UsageScope | undefined, member: MemberExpression): void {
+function recordMemberUsage(
+  context: Rule.RuleContext,
+  scope: UsageScope | undefined,
+  ownershipResolver: ContractOwnershipResolver | undefined,
+  member: MemberExpression,
+): void {
   if (!scope || member.computed || member.optional || member.property.type !== "Identifier") return;
+  if (!memberCanBeDestructured(context, ownershipResolver, member)) return;
   if (!isStableObjectSource(member.object) || !memberIsRead(context, member)) return;
 
   const sourceText = context.sourceCode.getText(member.object);
@@ -144,6 +226,7 @@ function recordDestructuringUsage(
 
   for (const declarator of declaration.declarations) {
     if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isStableObjectSource(declarator.init)) continue;
+    if (rootIdentifierName(declarator.init) === "locales") continue;
 
     const sourceText = context.sourceCode.getText(declarator.init);
     const usage = objectUsage(scope, sourceText);
@@ -151,6 +234,7 @@ function recordDestructuringUsage(
 
     for (const property of declarator.id.properties) {
       if (property.type !== "Property" || property.computed || property.key.type !== "Identifier") continue;
+      if (!isCompliantLocalName(property.key.name)) continue;
       propertyNames.add(property.key.name);
       usage.propertyNames.add(property.key.name);
     }
@@ -249,6 +333,7 @@ function destructuringSelection(
 
   const declarator = declaration.declarations[0];
   if (declarator?.id.type !== "ObjectPattern" || !declarator.init) return undefined;
+  if (rootIdentifierName(declarator.init) === "locales") return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const bindingTexts: string[] = [];
@@ -260,6 +345,7 @@ function destructuringSelection(
       property.type !== "Property" ||
       property.computed ||
       property.key.type !== "Identifier" ||
+      !isCompliantLocalName(property.key.name) ||
       property.value.type !== "Identifier" ||
       property.key.name !== property.value.name
     ) {
@@ -355,6 +441,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
     },
   },
   create(context) {
+    const ownershipResolver = contractOwnershipResolver(context);
     const grouped = new Set<VariableDeclaration>();
     const usageScopes: UsageScope[] = [];
 
@@ -427,7 +514,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       ArrowFunctionExpression: enterUsageScope,
       "ArrowFunctionExpression:exit": exitUsageScope,
       MemberExpression(node) {
-        recordMemberUsage(context, currentUsageScope(), node);
+        recordMemberUsage(context, currentUsageScope(), ownershipResolver, node);
       },
       VariableDeclaration(node) {
         recordDestructuringUsage(context, currentUsageScope(), node);

@@ -109,6 +109,17 @@ class ContractOwnershipIndex {
     return this.endpointFromDeclarations(typeDeclarations);
   }
 
+  sourceBinding(node: ts.Node, name: string): ContractEndpoint {
+    if (!ts.isVariableDeclaration(node) || !node.initializer) {
+      return { kind: "missing", ownership: "unknown" };
+    }
+
+    const sourceType = this.checker.getTypeAtLocation(node.initializer);
+    const declarations = this.propertyDeclarations(sourceType, name);
+    if (declarations.length === 0) return { kind: "missing", ownership: "unknown" };
+    return this.endpointFromDeclarations(declarations);
+  }
+
   targetProperty(node: ts.Node, name: string): ContractEndpoint {
     if (!ts.isPropertyAssignment(node) && !ts.isShorthandPropertyAssignment(node)) {
       return { kind: "missing", ownership: "unknown" };
@@ -365,6 +376,7 @@ class ContractOwnershipIndex {
 
 export interface ContractOwnershipResolver {
   sourceMember: (node: EstreeNode) => ContractEndpoint;
+  sourceBinding: (node: EstreeNode, name: string) => ContractEndpoint;
   targetProperty: (node: EstreeNode, name: string) => ContractEndpoint;
 }
 
@@ -383,6 +395,10 @@ export function contractOwnershipResolver(context: Rule.RuleContext): ContractOw
     sourceMember(node) {
       const tsNode = nodeMap.get(node);
       return tsNode ? index.sourceMember(tsNode) : { kind: "missing", ownership: "unknown" };
+    },
+    sourceBinding(node, name) {
+      const tsNode = nodeMap.get(node);
+      return tsNode ? index.sourceBinding(tsNode, name) : { kind: "missing", ownership: "unknown" };
     },
     targetProperty(node, name) {
       const tsNode = nodeMap.get(node);

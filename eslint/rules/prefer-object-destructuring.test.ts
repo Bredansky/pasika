@@ -3,7 +3,7 @@ import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
-void describe("Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.", () => {
+void describe("Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, or the property name cannot be used as a compliant local identifier. When two or more properties of the same object do not require qualified access and are read within the same block, they MUST be destructured together in one declaration.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "const { previewUrl } = file;",
@@ -14,6 +14,13 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
       "const value: string = file.value;",
       "const value = file?.value;",
       "const errorMessage = locales.editor.missingRenderJobIds;",
+      "const credentials = locales.credentials;",
+      "use(locales.editor.save); use(locales.editor.cancel);",
+      "use(row.user_account_id); use(row.created_at);",
+      "config.first(); config.second();",
+      "config.first = 1; config.second = 2;",
+      "config.first++; delete config.second;",
+      "for (config.first in source) {} for (config.second of source) {}",
       "const first = config.current.first; use(first); const second = config.current.second;",
       "use(config.size);",
       "use(config.size); use(config.size);",
@@ -177,6 +184,22 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
         ],
       },
       {
+        code: ["function dimensions(config) {", "  return config.current.width * config.current.height;", "}"].join(
+          "\n",
+        ),
+        output: [
+          "function dimensions(config) {",
+          "  const { width, height } = config.current;",
+          "  return width * height;",
+          "}",
+        ].join("\n"),
+        errors: [
+          {
+            message: `"width", "height" are read from "config.current" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
         code: "const dimensions = (config) => config.width * config.height;",
         output: null,
         errors: [
@@ -193,20 +216,6 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
         errors: [
           {
             message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
-          },
-        ],
-      },
-      {
-        code: [
-          "function form(locales) {",
-          "  const credentials = {};",
-          "  return [locales.credentials, locales.cancel, credentials];",
-          "}",
-        ].join("\n"),
-        output: null,
-        errors: [
-          {
-            message: `"credentials", "cancel" are read from "locales" in the same block. Destructure them together in one declaration. ${doc}`,
           },
         ],
       },
