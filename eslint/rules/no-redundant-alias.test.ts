@@ -193,7 +193,7 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
   describe("When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.", () => {
     describe("A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.", () => {
       describe("Mappings between data contracts controlled by this repository MUST preserve one canonical field name.", () => {
-        describe("A direct field mapping MUST NOT be treated as a rename when the target contract already uses the source field name for a different value.", () => {
+        describe("A direct field mapping MAY qualify the source field name with the source object's name.", () => {
           typedRuleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
             valid: [
               {
@@ -296,11 +296,11 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
                 code: [
                   'import { z } from "zod";',
                   "const fileSchema = z.object({ id: z.string(), type: z.string() });",
-                  "const layerSchema = z.object({ id: z.string(), type: z.string(), fileId: z.string(), fileType: z.string() });",
+                  "const layerSchema = z.object({ fileId: z.string(), fileType: z.string() });",
                   "type File = z.infer<typeof fileSchema>;",
                   "type Layer = z.infer<typeof layerSchema>;",
                   "function layerOf(file: File): Layer {",
-                  '  return { id: "layer", type: "media", fileId: file.id, fileType: file.type };',
+                  "  return { fileId: file.id, fileType: file.type };",
                   "}",
                 ].join("\n"),
                 filename: srcFile("utils/example.ts"),
@@ -388,6 +388,21 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
               },
             ],
             invalid: [
+              {
+                code: [
+                  'import { z } from "zod";',
+                  "const sourceSchema = z.object({ legacyName: z.string() });",
+                  "const targetSchema = z.object({ legacyName: z.string(), canonicalName: z.string() });",
+                  "type Source = z.infer<typeof sourceSchema>;",
+                  "type Target = z.infer<typeof targetSchema>;",
+                  "function map(source: Source): Target {",
+                  '  return { legacyName: "kept", canonicalName: source.legacyName };',
+                  "}",
+                ].join("\n"),
+                output: null,
+                filename: srcFile("utils/example.ts"),
+                errors: [{ message: semanticMappingMessage("canonicalName", "legacyName") }],
+              },
               {
                 code: [
                   'import { z } from "zod";',

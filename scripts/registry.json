@@ -710,8 +710,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A direct field mapping MUST NOT be treated as a rename when the target contract already uses the source field name for a different value.",
-      "hash": "20b39ea33e",
+      "text": "A direct field mapping MAY qualify the source field name with the source object's name.",
+      "hash": "d8e16dccd3",
       "ref": "pasika/no-redundant-alias"
     },
     {

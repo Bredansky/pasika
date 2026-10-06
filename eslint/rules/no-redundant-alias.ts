@@ -110,22 +110,11 @@ function isNamedMemberValue(propertyName: string): boolean {
   return /^[A-Z]/.test(propertyName);
 }
 
-function objectPropertyName(node: EstreeNode): string | undefined {
-  if (node.type !== "Property" || node.computed) return undefined;
-  if (node.key.type === "Identifier") return node.key.name;
-  if (node.key.type === "Literal" && typeof node.key.value === "string") return node.key.value;
-  return undefined;
-}
-
-function objectDefinesSeparateSourceSlot(node: Rule.Node, sourcePropertyName: string): boolean {
-  if (node.parent?.type !== "ObjectExpression") return false;
-  return node.parent.properties.some((sibling) => {
-    if (sibling === node || sibling.type !== "Property") return false;
-    const siblingName = objectPropertyName(sibling);
-    return (
-      siblingName !== undefined && normalizePropertyName(siblingName) === normalizePropertyName(sourcePropertyName)
-    );
-  });
+function isQualifiedSourceField(propertyName: string, sourceMember: EstreeNode, sourcePropertyName: string): boolean {
+  if (sourceMember.type !== "MemberExpression" || sourceMember.object.type !== "Identifier") return false;
+  return (
+    normalizePropertyName(propertyName) === normalizePropertyName(`${sourceMember.object.name}${sourcePropertyName}`)
+  );
 }
 
 function isInsideSchemaDeclaration(node: Rule.Node): boolean {
@@ -251,7 +240,7 @@ export const noRedundantAliasRule: Rule.RuleModule = {
         if (sourcePropertyName === undefined) return;
         if (normalizePropertyName(propertyName) === normalizePropertyName(sourcePropertyName)) return;
         if (FRAMEWORK_MAPPING_KEYS.has(propertyName) || isNamedMemberValue(sourcePropertyName)) return;
-        if (objectDefinesSeparateSourceSlot(node, sourcePropertyName)) return;
+        if (isQualifiedSourceField(propertyName, node.value, sourcePropertyName)) return;
         if (!ownershipResolver) return;
 
         const sourceResolution = ownershipResolver.sourceMember(node.value);

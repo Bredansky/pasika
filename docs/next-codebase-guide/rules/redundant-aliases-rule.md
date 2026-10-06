@@ -1,6 +1,6 @@
 # Redundant Aliases Rule
 
-Aliases make one value appear under multiple names and can hide naming drift between data contracts. Direct data-contract field mappings should rename only where typed ownership proves a real external or platform boundary; ordinary local object shaping is not a contract mapping.
+Aliases make one value appear under multiple names and can hide naming drift between data contracts, while ordinary local object shaping is not a contract mapping. A direct data-contract field mapping can qualify a field with its source object's name, and other renames should occur only where typed ownership proves a real external or platform boundary.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
@@ -9,7 +9,7 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.
 - A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
-- A direct field mapping MUST NOT be treated as a rename when the target contract already uses the source field name for a different value.
+- A direct field mapping MAY qualify the source field name with the source object's name.
 - A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.
 - Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
@@ -67,7 +67,7 @@ interface ApiResponse extends PlatformResponse {}
 
 Why: aliases such as `appKey`, `appSecret`, and `left` give an existing value another name. The credential mapping renames a field from a repository-owned Zod data contract into another repository-owned contract, while the inferred file result provides no target contract whose ownership can be established. Same-name property reads such as `file.previewUrl` should use destructuring, and properties read from the same object should be destructured together.
 
-## Correct — Canonical Internal Names And Proven External Boundaries
+## Correct — Canonical Names, Qualified Fields, And External Boundaries
 
 ```ts
 import { Toaster } from "sonner";
@@ -133,4 +133,4 @@ interface ApiResponse extends PlatformResponse {
 }
 ```
 
-Why: bindings keep the names provided by their source. Naming-convention translations compare field names case-insensitively while ignoring separators, so `user_account_id` maps directly to `userAccountId`. `fileId: file.id` is not an alias because the target has its own separate `id` slot; the same applies to `fileType` beside the layer's own `type`. Pasika treats Zod fields and repository-owned generated database fields as data-contract evidence; ordinary local object shaping and Zod schema composition are not data-field mappings. The Twitter constructor exposes a third-party contextual type, and the Telegram wire schema is tied to an absolute external API contract, so those mappings have proven external ownership. Internal data contracts use one canonical field name, and mappings without enough contract information are completed instead of being guessed from surrounding sibling fields. Framework-required export names remain allowed.
+Why: bindings keep the names provided by their source. Naming-convention translations compare field names case-insensitively while ignoring separators, so `user_account_id` maps directly to `userAccountId`. `fileId: file.id` and `fileType: file.type` qualify the source fields with the source object name `file` instead of giving them unrelated semantic names. Pasika treats Zod fields and repository-owned generated database fields as data-contract evidence; ordinary local object shaping and Zod schema composition are not data-field mappings. The Twitter constructor exposes a third-party contextual type, and the Telegram wire schema is tied to an absolute external API contract, so those mappings have proven external ownership. Internal data contracts use one canonical field name, and mappings without enough contract information are completed instead of being guessed from surrounding sibling fields. Framework-required export names remain allowed.
