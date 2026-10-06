@@ -230,6 +230,20 @@ const pasikaNextjsAppConfig: Linter.Config = {
   rules: Object.fromEntries(pasikaNextjsAppRuleIds.map((id) => [id, "error"])),
 };
 
+/** Type information for ownership-aware contract rules, without forcing JS files into a TS project. */
+const pasikaTypedProjectServiceConfig: Linter.Config = {
+  files: ["src/**/*.{cts,mts,ts,tsx}"],
+  languageOptions: {
+    parser: tsParser,
+    parserOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      ecmaFeatures: { jsx: true },
+      projectService: true,
+    },
+  },
+};
+
 /**
  * The canonical `src/app/styles/globals.css` entry — marked by
  * `@import "tailwindcss"`. The Tailwind structural rules run only here:
@@ -361,6 +375,7 @@ export const pasikaNextjsApp: Linter.Config[] = pasikaNextjsAppWithDiagnostic([
   ...pasikaApp,
   pasikaNextjsAppPackageJsonConfig,
   pasikaNextjsAppConfig,
+  pasikaTypedProjectServiceConfig,
   tailwindStructureRules,
   tailwindImportGraph,
 ]);

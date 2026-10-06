@@ -1,5 +1,9 @@
-import { describe, ruleTester, srcFile } from "../rule-tester";
+import tsParser from "@typescript-eslint/parser";
+import { vi } from "vitest";
+import { CwdAwareRuleTester, describe, ruleTester, srcFile } from "../rule-tester";
 import { noRedundantAliasRule } from "./no-redundant-alias";
+
+vi.setConfig({ testTimeout: 30_000 });
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
@@ -12,9 +16,28 @@ function bindingAliasMessage(alias: string, source: string): string {
 }
 
 function semanticMappingMessage(propertyName: string, sourcePropertyName: string): string {
-  return `"${propertyName}" maps from "${sourcePropertyName}" while sibling fields preserve their source names. Rename the contracts to use one canonical name. ${doc}`;
+  return `"${propertyName}" maps from "${sourcePropertyName}" between first-party contracts. Use one canonical field name across the contracts. ${doc}`;
 }
 
+function unknownContractOwnershipMessage(propertyName: string, sourcePropertyName: string): string {
+  return `Cannot determine contract ownership for mapping "${propertyName}" from "${sourcePropertyName}". Define or propagate a concrete contract, make the boundary schema explicit, or connect a mirrored external schema to its defineApiContract. ${doc}`;
+}
+
+const typedRuleTester = new CwdAwareRuleTester({
+  languageOptions: {
+    parser: tsParser,
+    ecmaVersion: 2022,
+    sourceType: "module",
+    parserOptions: {
+      ecmaFeatures: { jsx: true },
+      projectService: {
+        allowDefaultProject: ["src/utils/*.ts"],
+        maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 16,
+      },
+      tsconfigRootDir: process.cwd(),
+    },
+  },
+});
 void describe("A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.", () => {
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
@@ -24,6 +47,7 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
           "const result = buildResult(source);",
           "let current = initial;",
           "var legacyCurrent = initial;",
+          "const localShape = { alias: source.value };",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
@@ -165,81 +189,329 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. When a returned object maps fields from the same source object and at least two fields preserve their source names, sibling field names MUST also match their source names apart from naming convention.", () => {
-  ruleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A direct data-contract field mapping whose names are not convention-equivalent MUST map across a third-party or platform contract boundary; mappings from first-party data contracts into first-party contracts MUST be rejected. A mapping is not a rename when the target object also defines a separate slot with the source field's name, such as its own `id` beside a referenced `fileId`.", () => {
+  typedRuleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
         code: [
+          "declare function loadData(): unknown;",
+          "declare const HttpMethod: { Post: string };",
+          "declare const credentials: { accessToken: string };",
+          "declare const fieldName: string;",
+          "declare const value: unknown;",
+          "declare const source: { [key: number]: string };",
+          "const numericKey = { 1: value };",
+          "const indexedValue = { value: source[0] };",
           "const data = loadData(); const response = { data };",
           "const contract = { method: HttpMethod.Post };",
-          "const apiCredential = { userAccountId: row.user_account_id };",
-          "const twitterCredential = { accessSecret: credentials.accessTokenSecret };",
-          "const imageSize = { width: image.naturalWidth, height: image.naturalHeight };",
-          "const field = { label: translations.botToken };",
-          "new TwitterApi({ appKey: credentials.apiKey, appSecret: credentials.apiSecret, accessToken: credentials.accessToken, accessSecret: credentials.accessSecret });",
-          "const telegramFile = { id: photo.file_id, width: photo.width, height: photo.height, size: photo.file_size };",
-          "function partial(credentials) { return { apiKey: credentials.apiKey, accessSecret: credentials.accessTokenSecret }; }",
-          "function mixed(a, b) { return { apiKey: a.apiKey, apiSecret: b.apiSecret, accessSecret: a.accessTokenSecret }; }",
           'const wirePayload = { "access-token": credentials.accessToken };',
           "const computedPayload = { [fieldName]: value };",
           'const literalPayload = { status: "ready", retries: 3 };',
           "const computedValue = { data: loadData() };",
-          'import { HttpMethod } from "pasika/http-method"; const contract = { method: HttpMethod.Post };',
           "const loader = import('./editor').then((mod) => ({ default: mod.EditorSidebar }));",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          "interface Row { user_account_id: string; created_at: string }",
+          "interface ApiCredential { userAccountId: string; createdAt: string }",
+          "function map(row: Row): ApiCredential {",
+          "  return { userAccountId: row.user_account_id, createdAt: row.created_at };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/account.ts"),
+      },
+      {
+        code: [
+          "interface Failure { detail: string }",
+          "function failureOf(error: Error): Failure {",
+          "  return { detail: error.message };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          "interface LocalSource { sourceName: string }",
+          "interface LocalTarget { targetName: string }",
+          "function mapLocal(source: LocalSource): LocalTarget {",
+          "  return { targetName: source.sourceName };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          "interface ListenerConfig { runOnce: boolean }",
+          "function optionsOf(config: ListenerConfig): AddEventListenerOptions {",
+          "  return { once: config.runOnce };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import type { RequestOptions } from "node:http";',
+          "interface HostConfig { host: string }",
+          "function optionsOf(config: HostConfig): RequestOptions {",
+          "  return { hostname: config.host };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import type { Stats } from "node:fs";',
+          "interface FileMetadata { createdAt: Date }",
+          "function metadataOf(stats: Stats): FileMetadata {",
+          "  return { createdAt: stats.birthtime };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const textSchema = z.string();",
+          "const schemas = { textSchema };",
+          "const payloadSchema = z.object({ content: schemas.textSchema });",
+          "void payloadSchema;",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          "declare const contract: { path: string };",
+          "const mock = { apiRoutePath: contract.path };",
+          "void mock;",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const fileSchema = z.object({ id: z.string(), type: z.string() });",
+          "const layerSchema = z.object({ id: z.string(), type: z.string(), fileId: z.string(), fileType: z.string() });",
+          "type File = z.infer<typeof fileSchema>;",
+          "type Layer = z.infer<typeof layerSchema>;",
+          "function layerOf(file: File): Layer {",
+          '  return { id: "layer", type: "media", fileId: file.id, fileType: file.type };',
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "const requestSchema = z.object({ caption: z.string() });",
+          "const apiSchemas = { requestSchema };",
+          'defineApiContract({ method: HttpMethod.Post, path: "https://api.example.com/send", requestSchema: apiSchemas.requestSchema, responseSchema: z.undefined() });',
+          "interface EditorPayload { text: string }",
+          "function adapt(payload: EditorPayload): z.infer<typeof requestSchema> {",
+          "  return { caption: payload.text };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "const responseSchema = z.object({ file_id: z.string() });",
+          'defineApiContract({ method: HttpMethod.Get, path: "https://api.example.com/files", responseSchema });',
+          "type ExternalFile = z.infer<typeof responseSchema>;",
+          "interface FileModel { id: string }",
+          "function adapt(file: ExternalFile): FileModel {",
+          "  return { id: file.file_id };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "const requestSchema = z.object({ caption: z.string() });",
+          'defineApiContract({ method: HttpMethod.Post, "path": "https://api.example.com/quoted", requestSchema, responseSchema: z.undefined() });',
+          "interface EditorPayload { text: string }",
+          "function adapt(payload: EditorPayload): z.infer<typeof requestSchema> {",
+          "  return { caption: payload.text };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          'import * as contracts from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          'const path = "https://api.example.com/bridge";',
+          "const apiSchemas = {",
+          "  requestSchema: z.object({ caption: z.string() }),",
+          "  responseSchema: z.object({ file_id: z.string() }),",
+          "};",
+          'contracts.defineApiContract({ method: HttpMethod.Post, path, requestSchema: apiSchemas.requestSchema, responseSchema: apiSchemas["responseSchema"] });',
+          "interface EditorPayload { text: string }",
+          "interface FileModel { id: string }",
+          "function outbound(payload: EditorPayload): z.infer<typeof apiSchemas.requestSchema> {",
+          "  return { caption: payload.text };",
+          "}",
+          "function inbound(file: z.infer<typeof apiSchemas.responseSchema>): FileModel {",
+          "  return { id: file.file_id };",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "const sourceSchema = z.object({ legacyName: z.string() });",
+          "const requestSchema = z.object({ canonicalName: z.string() });",
+          'defineApiContract({ method: HttpMethod.Post, path: "/api/internal", requestSchema, responseSchema: z.undefined() });',
+          'defineApiContract({ method: HttpMethod.Post, path: "https://api.example.com/external", requestSchema, responseSchema: z.undefined() });',
+          "function map(source: z.infer<typeof sourceSchema>): z.infer<typeof requestSchema> {",
+          "  return { canonicalName: source.legacyName };",
+          "}",
         ].join("\n"),
         filename: srcFile("utils/example.ts"),
       },
     ],
     invalid: [
       {
-        code: "function map(credentials) { return { apiKey: credentials.apiKey, apiSecret: credentials.apiSecret, accessToken: credentials.accessToken, accessSecret: credentials.accessTokenSecret }; }",
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "const sourceSchema = z.object({ legacyName: z.string() });",
+          "const requestSchema = z.object({ canonicalName: z.string() });",
+          'defineApiContract({ method: HttpMethod.Post, path: "/api/internal", requestSchema, responseSchema: z.undefined() });',
+          "function map(source: z.infer<typeof sourceSchema>): z.infer<typeof requestSchema> {",
+          "  return { canonicalName: source.legacyName };",
+          "}",
+        ].join("\n"),
         output: null,
-        filename: srcFile("utils/twitter.ts"),
-        errors: [
-          {
-            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
-          },
-        ],
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: semanticMappingMessage("canonicalName", "legacyName") }],
       },
       {
-        code: 'function map(credentials) { return { "apiKey": credentials["apiKey"], "apiSecret": credentials["apiSecret"], "accessSecret": credentials["accessTokenSecret"] }; }',
+        code: [
+          'import { z } from "zod";',
+          'import { defineApiContract } from "../../helpers/api-contract";',
+          'import { HttpMethod } from "../../constants/http-method";',
+          "declare function endpoint(): string;",
+          "const sourceSchema = z.object({ legacyName: z.string() });",
+          "const requestSchema = z.object({ canonicalName: z.string() });",
+          "defineApiContract({ method: HttpMethod.Post, path: endpoint(), requestSchema, responseSchema: z.undefined() });",
+          "function map(source: z.infer<typeof sourceSchema>): z.infer<typeof requestSchema> {",
+          "  return { canonicalName: source.legacyName };",
+          "}",
+        ].join("\n"),
         output: null,
-        filename: srcFile("utils/twitter.ts"),
-        errors: [
-          {
-            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
-          },
-        ],
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: unknownContractOwnershipMessage("canonicalName", "legacyName") }],
       },
       {
-        code: "function map(credentials) { return { apiSecret: credentials.apiSecret, accessToken: credentials.accessToken, appKey: credentials.apiKey }; }",
+        code: [
+          'import { z } from "zod";',
+          "const rawCredentialsSchema = z.object({ accessTokenSecret: z.string() });",
+          "type RawCredentials = z.infer<typeof rawCredentialsSchema>;",
+          "interface Credentials { accessSecret: string }",
+          "function map(rawCredentials: RawCredentials): Credentials {",
+          '  return { accessSecret: rawCredentials["accessTokenSecret"] };',
+          "}",
+        ].join("\n"),
         output: null,
         filename: srcFile("utils/twitter.ts"),
-        errors: [
-          {
-            message: semanticMappingMessage("appKey", "apiKey"),
-          },
-        ],
+        errors: [{ message: semanticMappingMessage("accessSecret", "accessTokenSecret") }],
       },
       {
-        code: "const map = (row) => ({ createdAt: row.created_at, updatedAt: row.updated_at, userAccountId: row.account_id });",
+        code: [
+          'import { z } from "zod";',
+          "const sourceSchema = z.object({ legacyName: z.string() });",
+          "type Source = z.infer<typeof sourceSchema>;",
+          "interface TargetA { canonicalName: string }",
+          "interface TargetB { canonicalName: string; marker?: boolean }",
+          "function map(source: Source): TargetA | TargetB {",
+          "  return { canonicalName: source.legacyName };",
+          "}",
+        ].join("\n"),
         output: null,
-        filename: srcFile("utils/account.ts"),
-        errors: [
-          {
-            message: semanticMappingMessage("userAccountId", "account_id"),
-          },
-        ],
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: semanticMappingMessage("canonicalName", "legacyName") }],
       },
       {
-        code: "function map() { return { apiKey: Credentials.apiKey, apiSecret: Credentials.apiSecret, accessToken: Credentials.accessToken, accessSecret: Credentials.accessTokenSecret }; }",
+        code: [
+          'import { z } from "zod";',
+          "const rawCredentialsSchema = z.object({ accessTokenSecret: z.string() });",
+          "type RawCredentials = z.infer<typeof rawCredentialsSchema>;",
+          "interface Credentials { accessSecret: string }",
+          "function map(rawCredentials: RawCredentials): Credentials {",
+          "  return { accessSecret: rawCredentials.accessTokenSecret };",
+          "}",
+        ].join("\n"),
         output: null,
         filename: srcFile("utils/twitter.ts"),
-        errors: [
-          {
-            message: semanticMappingMessage("accessSecret", "accessTokenSecret"),
-          },
-        ],
+        errors: [{ message: semanticMappingMessage("accessSecret", "accessTokenSecret") }],
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const rawCredentialsSchema = z.object({ accessTokenSecret: z.string() });",
+          "type RawCredentials = z.infer<typeof rawCredentialsSchema>;",
+          "interface Credentials { accessSecret: string }",
+          "declare const rawCredentials: RawCredentials;",
+          "const credentials: Credentials = { accessSecret: rawCredentials.accessTokenSecret };",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/twitter.ts"),
+        errors: [{ message: semanticMappingMessage("accessSecret", "accessTokenSecret") }],
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const sourceSchema = z.object({ file_id: z.string() });",
+          "type Source = z.infer<typeof sourceSchema>;",
+          "function map(source: Source) {",
+          "  return { id: source.file_id };",
+          "}",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: unknownContractOwnershipMessage("id", "file_id") }],
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const targetSchema = z.object({ id: z.string() });",
+          "type Target = z.infer<typeof targetSchema>;",
+          "function map(source: any): Target {",
+          "  return { id: source.file_id };",
+          "}",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: unknownContractOwnershipMessage("id", "file_id") }],
+      },
+      {
+        code: [
+          'import { z } from "zod";',
+          "const sourceSchema = z.object({ text: z.string() });",
+          "const looseSchema = z.object({}).loose();",
+          "type Source = z.infer<typeof sourceSchema>;",
+          "function map(source: Source): z.infer<typeof looseSchema> {",
+          "  return { caption: source.text };",
+          "}",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: unknownContractOwnershipMessage("caption", "text") }],
       },
       {
         code: "const results = loadData(); const response = { data: results };",
@@ -255,21 +527,19 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         code: "const { apiKey: appKey } = credentials;",
         output: null,
         filename: srcFile("utils/example.ts"),
-        errors: [
-          {
-            message: bindingAliasMessage("appKey", "apiKey"),
-          },
-        ],
+        errors: [{ message: bindingAliasMessage("appKey", "apiKey") }],
+      },
+      {
+        code: 'const { apiKey: appKey = "" } = credentials;',
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: bindingAliasMessage("appKey", "apiKey") }],
       },
       {
         code: "function render({ x: left }: { x: number }) { return left; }",
         output: null,
         filename: srcFile("utils/example.ts"),
-        errors: [
-          {
-            message: bindingAliasMessage("left", "x"),
-          },
-        ],
+        errors: [{ message: bindingAliasMessage("left", "x") }],
       },
       {
         code: 'const wirePayload = { "access-token": accessToken };',
@@ -285,11 +555,7 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
         code: "const data = loadData(); const response = { data: data };",
         output: "const data = loadData(); const response = { data };",
         filename: srcFile("utils/example.ts"),
-        errors: [
-          {
-            message: `Use property shorthand for "data". ${doc}`,
-          },
-        ],
+        errors: [{ message: `Use property shorthand for "data". ${doc}` }],
       },
       {
         code: "const { id } = params; const input = { credentialId: id };",
@@ -349,6 +615,27 @@ void describe("Destructuring MUST keep property names unchanged. When an object 
             message: `"backgroundMode" maps the local "mode". Keep the local name or map directly from its source object instead. ${doc}`,
           },
         ],
+      },
+    ],
+  });
+});
+
+void describe("A direct data-contract field mapping with unresolved contract ownership MUST establish ownership by defining or propagating a concrete contract, making a loose or unknown boundary schema explicit, or connecting a local mirror schema to the external `defineApiContract` that owns it.", () => {
+  typedRuleTester.run("no-redundant-alias:unknown-contract-ownership", noRedundantAliasRule, {
+    valid: [],
+    invalid: [
+      {
+        code: [
+          'import { z } from "zod";',
+          "const sourceSchema = z.object({ file_id: z.string() });",
+          "type Source = z.infer<typeof sourceSchema>;",
+          "function map(source: Source) {",
+          "  return { id: source.file_id };",
+          "}",
+        ].join("\n"),
+        output: null,
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: unknownContractOwnershipMessage("id", "file_id") }],
       },
     ],
   });

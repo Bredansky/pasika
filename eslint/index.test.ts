@@ -69,16 +69,42 @@ void describe("pasika presets", () => {
     );
   });
 
-  it("the src/** block ships a TypeScript/JSX parser so a standalone preset lints TS/TSX", () => {
+  it("the src/** blocks ship a TypeScript/JSX parser and enable project services only for TypeScript", () => {
     const srcBlocks = (preset: Linter.Config[]): Linter.Config[] =>
       preset.filter((block) => (block.files ?? []).some((glob) => glob.includes("src/**/*.{")));
     const blocks = srcBlocks(pasikaNextjsApp);
-    assert.ok(blocks.length > 0, "pasikaNextjsApp must contain a src/** block");
-    for (const block of blocks) {
-      const parser = block.languageOptions?.parser;
-      assert.ok(parser, "src/** block must specify a parser in languageOptions");
-      assert.equal(typeof parser, "object", "src/** block parser must be an object (a parser instance)");
-    }
+    assert.ok(blocks.length >= 2, "pasikaNextjsApp must contain source and typed-project src/** blocks");
+
+    const sourceBlock = blocks.find((block) =>
+      (block.files ?? []).includes("src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"),
+    );
+    assert.ok(sourceBlock, "missing the broad src/** source block");
+    assert.equal(typeof sourceBlock.languageOptions?.parser, "object", "source block must ship the TS/JSX parser");
+    const sourceParserOptions = sourceBlock.languageOptions?.parserOptions;
+    const sourceProjectService =
+      typeof sourceParserOptions === "object" && sourceParserOptions !== null && "projectService" in sourceParserOptions
+        ? sourceParserOptions.projectService
+        : undefined;
+    assert.equal(
+      sourceProjectService,
+      undefined,
+      "the broad source block must not force JS files into the TypeScript project",
+    );
+
+    const typedBlock = blocks.find((block) => (block.files ?? []).includes("src/**/*.{cts,mts,ts,tsx}"));
+    assert.ok(typedBlock, "missing the typed-project src/** block");
+    assert.equal(typeof typedBlock.languageOptions?.parser, "object", "typed block must ship the parser");
+    const typedParserOptions = typedBlock.languageOptions?.parserOptions;
+    const typedProjectService =
+      typeof typedParserOptions === "object" && typedParserOptions !== null && "projectService" in typedParserOptions
+        ? typedParserOptions.projectService
+        : undefined;
+    assert.equal(
+      typedProjectService,
+      true,
+      "typed source must enable TypeScript project services for ownership-aware rules",
+    );
+
     assert.equal(srcBlocks(pasikaApp).length, 0, "pasikaApp carries no src/** block");
   });
 
