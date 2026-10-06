@@ -31,12 +31,24 @@ interface DestructuringSelection {
   propertyNames: string[];
 }
 
+interface ScopeDestructuring {
+  pattern: Node;
+  propertyNames: Set<string>;
+}
+
+interface DirectMemberUsage {
+  member: MemberExpression;
+  propertyName: string;
+}
+
 interface ScopeObjectUsage {
   propertyNames: Set<string>;
-  directMembers: Map<string, MemberExpression>;
+  directMembers: DirectMemberUsage[];
+  destructuring?: ScopeDestructuring;
 }
 
 interface UsageScope {
+  node: Node;
   objects: Map<string, ScopeObjectUsage>;
 }
 
@@ -84,7 +96,7 @@ function isStableObjectSource(source: Node): boolean {
 function objectUsage(scope: UsageScope, sourceText: string): ScopeObjectUsage {
   let usage = scope.objects.get(sourceText);
   if (!usage) {
-    usage = { propertyNames: new Set(), directMembers: new Map() };
+    usage = { propertyNames: new Set(), directMembers: [] };
     scope.objects.set(sourceText, usage);
   }
   return usage;
@@ -118,8 +130,8 @@ function recordMemberUsage(context: Rule.RuleContext, scope: UsageScope | undefi
   const propertyName = member.property.name;
   usage.propertyNames.add(propertyName);
 
-  if (!memberIsDirectVariableInitializer(context, member) && !usage.directMembers.has(propertyName)) {
-    usage.directMembers.set(propertyName, member);
+  if (!memberIsDirectVariableInitializer(context, member)) {
+    usage.directMembers.push({ member, propertyName });
   }
 }
 
@@ -135,17 +147,47 @@ function recordDestructuringUsage(
 
     const sourceText = context.sourceCode.getText(declarator.init);
     const usage = objectUsage(scope, sourceText);
+    const propertyNames = new Set<string>();
 
     for (const property of declarator.id.properties) {
       if (property.type !== "Property" || property.computed || property.key.type !== "Identifier") continue;
+      propertyNames.add(property.key.name);
       usage.propertyNames.add(property.key.name);
     }
+
+    usage.destructuring ??= { pattern: declarator.id, propertyNames };
   }
 }
 
 function scopeUsageMessage(sourceText: string, propertyNames: Set<string>): string {
   const names = [...propertyNames].map((name) => `"${name}"`).join(", ");
   return `${names} are read from "${sourceText}" in the same block. Destructure them together in one declaration. ${DOC}`;
+}
+
+function hasBinding(context: Rule.RuleContext, node: Node, name: string): boolean {
+  const initialScope = context.sourceCode.getScope(node);
+  if (initialScope.variables.some((variable) => variable.name === name)) return true;
+
+  for (let scope = initialScope.upper; scope !== null; scope = scope.upper) {
+    if (scope.variables.some((variable) => variable.name === name)) return true;
+  }
+  return false;
+}
+
+function containingStatement(context: Rule.RuleContext, scopeNode: Node, node: Node): Node | undefined {
+  if (scopeNode.type !== "Program" && scopeNode.type !== "BlockStatement") return undefined;
+
+  const [nodeStart, nodeEnd] = context.sourceCode.getRange(node);
+  return scopeNode.body.find((statement) => {
+    const [statementStart, statementEnd] = context.sourceCode.getRange(statement);
+    return statementStart <= nodeStart && statementEnd >= nodeEnd;
+  });
+}
+
+function statementIndentation(context: Rule.RuleContext, statement: Node): string {
+  const [start] = context.sourceCode.getRange(statement);
+  const lineStart = context.sourceCode.text.lastIndexOf("\n", start - 1) + 1;
+  return context.sourceCode.text.slice(lineStart, start);
 }
 
 function whitespaceKeepsStatementsAdjacent(text: string): boolean {
@@ -318,8 +360,8 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
 
     const currentUsageScope = (): UsageScope | undefined => usageScopes.at(-1);
 
-    const enterUsageScope = (): void => {
-      usageScopes.push({ objects: new Map() });
+    const enterUsageScope = (node: Node): void => {
+      usageScopes.push({ node, objects: new Map() });
     };
 
     const exitUsageScope = (): void => {
@@ -327,14 +369,48 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       if (!scope) return;
 
       for (const [sourceText, usage] of scope.objects) {
-        if (usage.propertyNames.size < 2 || usage.directMembers.size === 0) continue;
+        if (usage.propertyNames.size < 2 || usage.directMembers.length === 0) continue;
 
-        const firstDirectMember = usage.directMembers.values().next().value;
-        if (!firstDirectMember) continue;
+        const firstDirectUsage = usage.directMembers[0];
+        if (!firstDirectUsage) continue;
+        const { member: firstDirectMember } = firstDirectUsage;
 
         context.report({
           node: firstDirectMember,
           message: scopeUsageMessage(sourceText, usage.propertyNames),
+          fix(fixer) {
+            const propertyNames = [...usage.propertyNames];
+            const missingPropertyNames = propertyNames.filter(
+              (propertyName) => !usage.destructuring?.propertyNames.has(propertyName),
+            );
+            if (missingPropertyNames.some((propertyName) => hasBinding(context, firstDirectMember, propertyName))) {
+              return null;
+            }
+
+            const memberFixes = usage.directMembers.map(({ member, propertyName }) =>
+              fixer.replaceText(member, propertyName),
+            );
+
+            if (usage.destructuring) {
+              if (missingPropertyNames.length === 0) return memberFixes;
+
+              const patternText = context.sourceCode.getText(usage.destructuring.pattern);
+              const closeIndex = patternText.lastIndexOf("}");
+              const beforeClose = patternText.slice(0, closeIndex);
+              const contentEnd = beforeClose.trimEnd().length;
+              const trailingWhitespace = beforeClose.slice(contentEnd);
+              const separator = usage.destructuring.propertyNames.size > 0 ? ", " : "";
+              const replacement = `${beforeClose.slice(0, contentEnd)}${separator}${missingPropertyNames.join(", ")}${trailingWhitespace}${patternText.slice(closeIndex)}`;
+              return [fixer.replaceText(usage.destructuring.pattern, replacement), ...memberFixes];
+            }
+
+            const statement = containingStatement(context, scope.node, firstDirectMember);
+            if (!statement) return null;
+
+            const indentation = statementIndentation(context, statement);
+            const declaration = `const { ${propertyNames.join(", ")} } = ${sourceText};\n${indentation}`;
+            return [fixer.insertTextBefore(statement, declaration), ...memberFixes];
+          },
         });
       }
     };
