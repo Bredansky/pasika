@@ -112,7 +112,12 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
           "  return { width: config.size, height: config.size, emoji, fontSize, background };",
           "}",
         ].join("\n"),
-        output: null,
+        output: [
+          "function icon(config) {",
+          '  const { emoji, fontSize, background = "transparent", size } = config;',
+          "  return { width: size, height: size, emoji, fontSize, background };",
+          "}",
+        ].join("\n"),
         errors: [
           {
             message: `"emoji", "fontSize", "background", "size" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
@@ -121,10 +126,87 @@ void describe("Properties stored in variables MUST use object destructuring. Whe
       },
       {
         code: ["function dimensions(config) {", "  return config.width * config.height;", "}"].join("\n"),
+        output: [
+          "function dimensions(config) {",
+          "  const { width, height } = config;",
+          "  return width * height;",
+          "}",
+        ].join("\n"),
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "function dimensions(config) {",
+          "  const { width, height } = config;",
+          "  return config.width * config.height;",
+          "}",
+        ].join("\n"),
+        output: [
+          "function dimensions(config) {",
+          "  const { width, height } = config;",
+          "  return width * height;",
+          "}",
+        ].join("\n"),
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "function dimensions(config) {",
+          "  const {} = config;",
+          "  return config.width * config.height;",
+          "}",
+        ].join("\n"),
+        output: [
+          "function dimensions(config) {",
+          "  const {width, height} = config;",
+          "  return width * height;",
+          "}",
+        ].join("\n"),
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const dimensions = (config) => config.width * config.height;",
         output: null,
         errors: [
           {
             message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: ["const width = 1;", "function dimensions(config) {", "  return config.width * config.height;", "}"].join(
+          "\n",
+        ),
+        output: null,
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "function form(locales) {",
+          "  const credentials = {};",
+          "  return [locales.credentials, locales.cancel, credentials];",
+          "}",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"credentials", "cancel" are read from "locales" in the same block. Destructure them together in one declaration. ${doc}`,
           },
         ],
       },
