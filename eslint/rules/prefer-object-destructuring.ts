@@ -2,8 +2,8 @@
  * ESLint rule: pasika/prefer-object-destructuring
  *
  * Require locals that directly read an object property to use object
- * destructuring. Adjacent declarations from the same simple source are
- * combined when doing so preserves evaluation semantics.
+ * destructuring. When one block reads multiple properties from the same
+ * object, require those reads to share one destructuring declaration.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
@@ -29,6 +29,15 @@ interface DestructuringSelection {
   bindingTexts: string[];
   localNames: string[];
   propertyNames: string[];
+}
+
+interface ScopeObjectUsage {
+  propertyNames: Set<string>;
+  directMembers: Map<string, MemberExpression>;
+}
+
+interface UsageScope {
+  objects: Map<string, ScopeObjectUsage>;
 }
 
 function hasTypeAnnotation(identifier: Identifier): boolean {
@@ -63,6 +72,80 @@ function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDe
 
 function canGroupSource(source: Node): boolean {
   return source.type === "Identifier" || source.type === "ThisExpression";
+}
+
+function isStableObjectSource(source: Node): boolean {
+  if (source.type === "Identifier" || source.type === "ThisExpression") return true;
+  if (source.type !== "MemberExpression") return false;
+  if (source.computed || source.optional || source.property.type !== "Identifier") return false;
+  return isStableObjectSource(source.object);
+}
+
+function objectUsage(scope: UsageScope, sourceText: string): ScopeObjectUsage {
+  let usage = scope.objects.get(sourceText);
+  if (!usage) {
+    usage = { propertyNames: new Set(), directMembers: new Map() };
+    scope.objects.set(sourceText, usage);
+  }
+  return usage;
+}
+
+function memberIsRead(context: Rule.RuleContext, member: MemberExpression): boolean {
+  const parent = context.sourceCode.getAncestors(member).at(-1);
+  if (!parent) return true;
+
+  if (parent.type === "AssignmentExpression" && parent.left === member) return false;
+  if (parent.type === "UpdateExpression" && parent.argument === member) return false;
+  if (parent.type === "UnaryExpression" && parent.operator === "delete" && parent.argument === member) return false;
+  if ((parent.type === "ForInStatement" || parent.type === "ForOfStatement") && parent.left === member) return false;
+  if ((parent.type === "CallExpression" || parent.type === "NewExpression") && parent.callee === member) return false;
+  if (parent.type === "TaggedTemplateExpression" && parent.tag === member) return false;
+
+  return true;
+}
+
+function memberIsDirectVariableInitializer(context: Rule.RuleContext, member: MemberExpression): boolean {
+  const parent = context.sourceCode.getAncestors(member).at(-1);
+  return parent?.type === "VariableDeclarator" && parent.init === member;
+}
+
+function recordMemberUsage(context: Rule.RuleContext, scope: UsageScope | undefined, member: MemberExpression): void {
+  if (!scope || member.computed || member.optional || member.property.type !== "Identifier") return;
+  if (!isStableObjectSource(member.object) || !memberIsRead(context, member)) return;
+
+  const sourceText = context.sourceCode.getText(member.object);
+  const usage = objectUsage(scope, sourceText);
+  const propertyName = member.property.name;
+  usage.propertyNames.add(propertyName);
+
+  if (!memberIsDirectVariableInitializer(context, member) && !usage.directMembers.has(propertyName)) {
+    usage.directMembers.set(propertyName, member);
+  }
+}
+
+function recordDestructuringUsage(
+  context: Rule.RuleContext,
+  scope: UsageScope | undefined,
+  declaration: VariableDeclaration,
+): void {
+  if (!scope) return;
+
+  for (const declarator of declaration.declarations) {
+    if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isStableObjectSource(declarator.init)) continue;
+
+    const sourceText = context.sourceCode.getText(declarator.init);
+    const usage = objectUsage(scope, sourceText);
+
+    for (const property of declarator.id.properties) {
+      if (property.type !== "Property" || property.computed || property.key.type !== "Identifier") continue;
+      usage.propertyNames.add(property.key.name);
+    }
+  }
+}
+
+function scopeUsageMessage(sourceText: string, propertyNames: Set<string>): string {
+  const names = [...propertyNames].map((name) => `"${name}"`).join(", ");
+  return `${names} are read from "${sourceText}" in the same block. Destructure them together in one declaration. ${DOC}`;
 }
 
 function whitespaceKeepsStatementsAdjacent(text: string): boolean {
@@ -226,14 +309,52 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Require locals derived directly from object properties to use object destructuring.",
+      description: "Require related object-property reads to use one object destructuring declaration.",
     },
   },
   create(context) {
     const grouped = new Set<VariableDeclaration>();
+    const usageScopes: UsageScope[] = [];
+
+    const currentUsageScope = (): UsageScope | undefined => usageScopes.at(-1);
+
+    const enterUsageScope = (): void => {
+      usageScopes.push({ objects: new Map() });
+    };
+
+    const exitUsageScope = (): void => {
+      const scope = usageScopes.pop();
+      if (!scope) return;
+
+      for (const [sourceText, usage] of scope.objects) {
+        if (usage.propertyNames.size < 2 || usage.directMembers.size === 0) continue;
+
+        const firstDirectMember = usage.directMembers.values().next().value;
+        if (!firstDirectMember) continue;
+
+        context.report({
+          node: firstDirectMember,
+          message: scopeUsageMessage(sourceText, usage.propertyNames),
+        });
+      }
+    };
 
     return {
+      Program: enterUsageScope,
+      "Program:exit": exitUsageScope,
+      BlockStatement: enterUsageScope,
+      "BlockStatement:exit": exitUsageScope,
+      FunctionDeclaration: enterUsageScope,
+      "FunctionDeclaration:exit": exitUsageScope,
+      FunctionExpression: enterUsageScope,
+      "FunctionExpression:exit": exitUsageScope,
+      ArrowFunctionExpression: enterUsageScope,
+      "ArrowFunctionExpression:exit": exitUsageScope,
+      MemberExpression(node) {
+        recordMemberUsage(context, currentUsageScope(), node);
+      },
       VariableDeclaration(node) {
+        recordDestructuringUsage(context, currentUsageScope(), node);
         if (grouped.has(node)) return;
 
         const selection = destructuringSelection(context, node);

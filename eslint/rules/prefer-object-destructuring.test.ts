@@ -3,7 +3,7 @@ import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
-void describe("Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.", () => {
+void describe("Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "const { previewUrl } = file;",
@@ -15,6 +15,8 @@ void describe("Properties stored in variables MUST use object destructuring. Pro
       "const value = file?.value;",
       "const errorMessage = locales.editor.missingRenderJobIds;",
       "const first = config.current.first; use(first); const second = config.current.second;",
+      "use(config.size);",
+      "use(config.size); use(config.size);",
     ],
     invalid: [
       {
@@ -102,6 +104,29 @@ void describe("Properties stored in variables MUST use object destructuring. Pro
         code: "const first = file.first, value = other.value;",
         output: "const { first } = file, { value } = other;",
         errors: 2,
+      },
+      {
+        code: [
+          "function icon(config) {",
+          '  const { emoji, fontSize, background = "transparent" } = config;',
+          "  return { width: config.size, height: config.size, emoji, fontSize, background };",
+          "}",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"emoji", "fontSize", "background", "size" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: ["function dimensions(config) {", "  return config.width * config.height;", "}"].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
       },
     ],
   });

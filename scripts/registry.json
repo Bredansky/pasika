@@ -722,8 +722,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.",
-      "hash": "6dddb14a52",
+      "text": "Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read within the same block, they MUST be destructured together in one declaration.",
+      "hash": "07dbca9723",
       "ref": "pasika/prefer-object-destructuring"
     },
     {
