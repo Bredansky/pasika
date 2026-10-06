@@ -11,7 +11,7 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
-- Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
+- Properties stored in variables MUST use object destructuring. When two or more properties of the same object are read in one scope, they MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
@@ -38,6 +38,40 @@ const { previewUrl } = file;
 ```
 
 Why: each binding keeps the name provided by its source.
+
+## Incorrect — Partial Object Destructuring
+
+```ts
+function icon(config: EmojiIconConfig) {
+  const { emoji, fontSize } = config;
+
+  return {
+    width: config.size,
+    height: config.size,
+    emoji,
+    fontSize,
+  };
+}
+```
+
+Why: the same object supplies several values in one scope, but `size` is still read through `config`.
+
+## Correct — Complete Object Destructuring
+
+```ts
+function icon(config: EmojiIconConfig) {
+  const { emoji, size, fontSize } = config;
+
+  return {
+    width: size,
+    height: size,
+    emoji,
+    fontSize,
+  };
+}
+```
+
+Why: all values read from `config` in the scope come from one destructuring declaration.
 
 ## Incorrect — Duplicate Repository Contracts
 
