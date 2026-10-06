@@ -716,8 +716,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Both sides of a renamed contract field MUST have known ownership.",
-      "hash": "89c526e606",
+      "text": "It MUST be possible to determine who controls both sides of a renamed contract field.",
+      "hash": "d326478a4e",
       "ref": "pasika/no-redundant-alias"
     },
     {

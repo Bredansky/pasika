@@ -643,7 +643,7 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
   });
 });
 
-void describe("Both sides of a renamed contract field MUST have known ownership.", () => {
+void describe("It MUST be possible to determine who controls both sides of a renamed contract field.", () => {
   typedRuleTester.run("no-redundant-alias:unknown-contract-ownership", noRedundantAliasRule, {
     valid: [],
     invalid: [
