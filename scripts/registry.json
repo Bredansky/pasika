@@ -698,14 +698,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary.",
-      "hash": "70d620af49",
+      "text": "A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.",
+      "hash": "79bc3ff6c4",
       "ref": "pasika/no-redundant-alias"
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Mappings between first-party data contracts MUST preserve one canonical field name.",
-      "hash": "1eed7fb275",
+      "text": "Mappings between data contracts controlled by this repository MUST preserve one canonical field name.",
+      "hash": "585096f026",
       "ref": "pasika/no-redundant-alias"
     },
     {
@@ -716,8 +716,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A direct data-contract field mapping with unresolved contract ownership MUST establish ownership by defining or propagating a concrete contract, making a loose or unknown boundary schema explicit, or connecting a local mirror schema to the external `defineApiContract` that owns it.",
-      "hash": "4f7316ca3d",
+      "text": "A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.",
+      "hash": "f017d68015",
       "ref": "pasika/no-redundant-alias"
     },
     {

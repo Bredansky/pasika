@@ -191,8 +191,8 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
 
 void describe("Destructuring MUST keep property names unchanged.", () => {
   describe("When an object uses an existing variable as a property value, the property MUST use the same name and shorthand form.", () => {
-    describe("A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary.", () => {
-      describe("Mappings between first-party data contracts MUST preserve one canonical field name.", () => {
+    describe("A direct data-contract field mapping whose names are not convention-equivalent MUST map to or from a contract controlled by an external service, third-party package, or runtime platform.", () => {
+      describe("Mappings between data contracts controlled by this repository MUST preserve one canonical field name.", () => {
         describe("A direct field mapping MUST NOT be treated as a rename when the target contract already uses the source field name for a different value.", () => {
           typedRuleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
             valid: [
@@ -628,7 +628,7 @@ void describe("Destructuring MUST keep property names unchanged.", () => {
   });
 });
 
-void describe("A direct data-contract field mapping with unresolved contract ownership MUST establish ownership by defining or propagating a concrete contract, making a loose or unknown boundary schema explicit, or connecting a local mirror schema to the external `defineApiContract` that owns it.", () => {
+void describe("A direct data-contract field mapping MUST establish who controls both contracts. If Pasika cannot determine this, define or propagate a concrete contract, make a loose or unknown boundary schema explicit, or connect a local mirror schema to the external `defineApiContract` that owns it.", () => {
   typedRuleTester.run("no-redundant-alias:unknown-contract-ownership", noRedundantAliasRule, {
     valid: [],
     invalid: [

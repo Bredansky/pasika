@@ -4,7 +4,7 @@ Use this reference to look up the terms this guide's workflows and rules use. Te
 
 ## Shared Terms
 
-These terms name the parts of the `src/` tree, the way an item's location is derived from its consumers, and the contract ownership concepts this guide's workflows use.
+These terms name the parts of the `src/` tree, the way an item's location is derived from its consumers, and other shared concepts used across this guide.
 
 | Term                        | Definition                                                                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -17,12 +17,6 @@ These terms name the parts of the `src/` tree, the way an item's location is der
 | Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`.                     |
 | Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                                       |
 | Data contract               | A TypeScript type or runtime schema that defines the fields of structured data passed between parts of the application or across an external boundary. |
-| Contract ownership          | The codebase, package, service, or platform that controls a data contract's field names.                                                               |
-| First-party contract        | A data contract whose field names this repository controls and can change together with its in-repo producers and consumers.                           |
-| Third-party contract        | A data contract whose field names an external service or package controls and this repository cannot rename.                                           |
-| Platform contract           | A data contract whose field names a runtime or platform API defines, such as DOM APIs.                                                                 |
-| Contract boundary           | A point where data is mapped between contracts with different ownership.                                                                               |
-| Canonical field name        | The one field name used for the same concept across first-party contracts.                                                                             |
 
 ## Component Terms
 
