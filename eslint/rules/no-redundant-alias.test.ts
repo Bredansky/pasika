@@ -189,7 +189,7 @@ void describe("An export specifier MUST NOT introduce a second name for a symbol
   });
 });
 
-void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A direct data-contract field mapping whose names are not convention-equivalent MUST map across a third-party or platform contract boundary; mappings from first-party data contracts into first-party contracts MUST be rejected. A mapping is not a rename when the target object also defines a separate slot with the source field's name, such as its own `id` beside a referenced `fileId`.", () => {
+void describe("Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary. Mappings between first-party data contracts MUST preserve one canonical field name. A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.", () => {
   typedRuleTester.run("no-redundant-alias:object-properties", noRedundantAliasRule, {
     valid: [
       {
