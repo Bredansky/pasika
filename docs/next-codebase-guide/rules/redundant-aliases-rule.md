@@ -18,80 +18,50 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 ## Incorrect — Redundant Local Aliases
 
 ```ts
-const ApiClient = PlatformClient;
 import { Toaster as Sonner } from "sonner";
-export { defaultSliderMin as TEXT_SIZE_SLIDER_MIN };
 
 const appKey = credentials.apiKey;
-const method = HttpMethod.Post;
-const { apiSecret: appSecret } = credentials;
 const { x: left } = layer.position;
-
 const previewUrl = file.previewUrl;
-const width = layer.position.width;
-const height = layer.position.height;
-
-type ApiCredential = PlatformCredentialApi;
-type FlagKeys = string;
-
-interface ApiResponse extends PlatformResponse {}
 ```
 
-Why: aliases such as `appKey`, `appSecret`, and `left` give an existing value another name. Same-name property reads such as `file.previewUrl` use destructuring, and properties read from the same object are destructured together.
+Why: `Sonner`, `appKey`, and `left` give existing values new local names, while `previewUrl` stores a property under the same name instead of destructuring it.
 
 ## Correct — Original Local Names
 
 ```ts
 import { Toaster } from "sonner";
-export { defaultSliderMin };
 
-// app/api/example/route.ts
-export { handler as GET, handler as POST } from "./handler";
-
-const { previewUrl, type } = file;
-const { x, width, height, zIndex } = layer.position;
-
-const data = await loadResults();
-const resultPayload = { data };
-
-type BrandedIdentifier = string & {
-  readonly __brand: unique symbol;
-};
-
-type ApiCredential = PlatformCredentialApi & {
-  source: "api";
-};
-
-interface ApiResponse extends PlatformResponse {
-  receivedAt: Date;
-}
+const { apiKey } = credentials;
+const { x } = layer.position;
+const { previewUrl } = file;
 ```
 
-Why: bindings keep the names provided by their source, object values use shorthand when the property name matches, and framework-required export names remain allowed. A type or interface that adds structure is not only another name for the original type.
+Why: each binding keeps the name provided by its source.
 
-## Incorrect — Renamed Repository Contract Field
+## Incorrect — Duplicate Repository Contracts
 
 ```ts
-const rawCredentialsSchema = z.object({
+const credentialsSchema = z.object({
   accessTokenSecret: z.string(),
 });
 
-type RawCredentials = z.infer<typeof rawCredentialsSchema>;
+type RawCredentials = z.infer<typeof credentialsSchema>;
 
 interface Credentials {
   accessSecret: string;
 }
 
-function credentialsOf(rawCredentials: RawCredentials): Credentials {
+function credentialsOf(raw: RawCredentials): Credentials {
   return {
-    accessSecret: rawCredentials.accessTokenSecret,
+    accessSecret: raw.accessTokenSecret,
   };
 }
 ```
 
-Why: both contracts are controlled by this repository, but the same value is called `accessTokenSecret` in one contract and `accessSecret` in the other.
+Why: both contracts describe the same value, but one calls it `accessTokenSecret` and the other calls it `accessSecret`.
 
-## Correct — Canonical Or Deterministic Contract Fields
+## Correct — One Repository Contract
 
 ```ts
 const credentialsSchema = z.object({
@@ -99,19 +69,49 @@ const credentialsSchema = z.object({
 });
 
 type Credentials = z.infer<typeof credentialsSchema>;
-
-const apiCredential: ApiCredential = {
-  userAccountId: row.user_account_id,
-  createdAt: row.created_at,
-};
-
-const mediaLayer: MediaLayer = {
-  fileId: file.id,
-  fileType: file.type,
-};
 ```
 
-Why: when two repository-owned contracts would describe the same values with the same shape and semantics, one canonical contract is used instead of mapping between duplicates. Naming-convention translations ignore case and separators, so `user_account_id` and `userAccountId` are equivalent. `fileId: file.id` and `fileType: file.type` deterministically qualify the source field with the source object name instead of assigning an unrelated semantic name.
+Why: one contract is enough when the shape and semantics are the same, so no mapper or second field name is introduced.
+
+## Incorrect — Unrelated Internal Field Name
+
+```ts
+interface File {
+  id: string;
+}
+
+interface MediaLayer {
+  mediaId: string;
+}
+
+function layerOf(file: File): MediaLayer {
+  return {
+    mediaId: file.id,
+  };
+}
+```
+
+Why: `mediaId` is an unrelated new name for `file.id`.
+
+## Correct — Qualified Internal Field Name
+
+```ts
+interface File {
+  id: string;
+}
+
+interface MediaLayer {
+  fileId: string;
+}
+
+function layerOf(file: File): MediaLayer {
+  return {
+    fileId: file.id,
+  };
+}
+```
+
+Why: `fileId` is derived directly from the source object name `file` and the source field name `id`. Names that differ only by convention, such as `user_account_id` and `userAccountId`, are also not semantic renames.
 
 ## Incorrect — Unknown Contract Ownership
 
@@ -122,14 +122,14 @@ const externalFileSchema = z.object({
 
 type ExternalFile = z.infer<typeof externalFileSchema>;
 
-function untypedFile(raw: ExternalFile) {
+function fileOf(raw: ExternalFile) {
   return {
     id: raw.file_id,
   };
 }
 ```
 
-Why: the source has a data contract, but the returned object has no concrete target contract, so there is not enough information to determine who controls both sides of the rename.
+Why: the source contract is known, but the returned object has no target contract whose owner can be determined.
 
 ## Correct — Proven External Contract Ownership
 
@@ -157,4 +157,4 @@ function fileOf(raw: ExternalFile): FileModel {
 }
 ```
 
-Why: the absolute external API contract proves that `file_id` is controlled outside this repository, while `FileModel.id` is controlled here. The mapping is therefore an adapter between contracts with known ownership rather than unexplained internal naming drift.
+Why: the external API owns `file_id`, while this repository owns `FileModel.id`, so the rename is an explicit adapter between two known contracts.
