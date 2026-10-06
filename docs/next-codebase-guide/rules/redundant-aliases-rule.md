@@ -94,15 +94,11 @@ Why: both contracts are controlled by this repository, but the same value is cal
 ## Correct — Canonical Or Deterministic Contract Fields
 
 ```ts
-interface Credentials {
-  accessTokenSecret: string;
-}
+const credentialsSchema = z.object({
+  accessTokenSecret: z.string(),
+});
 
-function credentialsOf(rawCredentials: RawCredentials): Credentials {
-  return {
-    accessTokenSecret: rawCredentials.accessTokenSecret,
-  };
-}
+type Credentials = z.infer<typeof credentialsSchema>;
 
 const apiCredential: ApiCredential = {
   userAccountId: row.user_account_id,
@@ -115,7 +111,7 @@ const mediaLayer: MediaLayer = {
 };
 ```
 
-Why: repository-owned contracts keep one canonical field name. Naming-convention translations ignore case and separators, so `user_account_id` and `userAccountId` are equivalent. `fileId: file.id` and `fileType: file.type` deterministically qualify the source field with the source object name instead of assigning an unrelated semantic name.
+Why: when two repository-owned contracts would describe the same values with the same shape and semantics, one canonical contract is used instead of mapping between duplicates. Naming-convention translations ignore case and separators, so `user_account_id` and `userAccountId` are equivalent. `fileId: file.id` and `fileType: file.type` deterministically qualify the source field with the source object name instead of assigning an unrelated semantic name.
 
 ## Incorrect — Unknown Contract Ownership
 
