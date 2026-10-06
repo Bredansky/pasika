@@ -686,8 +686,32 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary. Mappings between first-party data contracts MUST preserve one canonical field name. A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.",
-      "hash": "62228aa582",
+      "text": "Destructuring MUST keep property names unchanged.",
+      "hash": "167a04db5b",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "When an object uses an existing variable, the property MUST have the same name and use shorthand.",
+      "hash": "2182e80926",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary.",
+      "hash": "70d620af49",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "Mappings between first-party data contracts MUST preserve one canonical field name.",
+      "hash": "1eed7fb275",
+      "ref": "pasika/no-redundant-alias"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.",
+      "hash": "40fbf8f86b",
       "ref": "pasika/no-redundant-alias"
     },
     {

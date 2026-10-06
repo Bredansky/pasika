@@ -5,7 +5,11 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
-- Destructuring MUST keep property names unchanged. When an object uses an existing variable, the property MUST have the same name and use shorthand. A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary. Mappings between first-party data contracts MUST preserve one canonical field name. A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.
+- Destructuring MUST keep property names unchanged.
+- When an object uses an existing variable, the property MUST have the same name and use shorthand.
+- A direct data-contract field mapping whose names are not convention-equivalent MUST cross a third-party or platform contract boundary.
+- Mappings between first-party data contracts MUST preserve one canonical field name.
+- A mapping MUST NOT be treated as a rename when the target object also defines a separate slot with the source field's name.
 - A direct data-contract field mapping with unresolved contract ownership MUST establish ownership by defining or propagating a concrete contract, making a loose or unknown boundary schema explicit, or connecting a local mirror schema to the external `defineApiContract` that owns it.
 - Properties stored in variables MUST use object destructuring. Properties from the same object MUST be destructured together in one declaration.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
