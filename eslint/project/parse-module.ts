@@ -203,11 +203,14 @@ export function parseModule(file: string): ParsedModule {
       ) {
         for (const element of node.name.elements) {
           if (element.dotDotDotToken) continue;
-          const importedName = element.propertyName
-            ? propertyName(element.propertyName)
-            : ts.isIdentifier(element.name)
-              ? element.name.text
-              : undefined;
+
+          let importedName: string | undefined;
+          if (element.propertyName) {
+            importedName = propertyName(element.propertyName);
+          } else if (ts.isIdentifier(element.name)) {
+            importedName = element.name.text;
+          }
+
           if (importedName) names.add(importedName);
         }
       }
