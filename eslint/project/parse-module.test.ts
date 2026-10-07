@@ -35,6 +35,24 @@ describe("parseModule", () => {
     ]);
   });
 
+
+  it("classifies API contracts as constants rather than schemas", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
+    tempDirs.push(root);
+    const file = path.join(root, "api-contracts.ts");
+
+    writeFileSync(
+      file,
+      [
+        'import { defineApiContract } from "pasika/api-contract";',
+        "export const ordersApiContract = defineApiContract({ method, path, responseSchema });",
+        "",
+      ].join("\n"),
+    );
+
+    expect(parseModule(file).exports).toEqual([{ name: "ordersApiContract", kind: "constant", line: 2 }]);
+  });
+
   it("collects names exported through object destructuring", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);
