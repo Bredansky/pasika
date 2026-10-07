@@ -10,6 +10,8 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import { hasComponentOwner, hasExactEntry } from "../project/ccf";
+import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 const rootSupportFolders = new Set(["config", "constants", "hooks", "locales", "schemas", "types", "utils"]);
@@ -36,6 +38,30 @@ function sourceSegments(sourceRoot: string, absolutePath: string): string[] | un
   }
 
   return relativePath.split(path.sep);
+}
+
+function isWithin(root: string, candidate: string): boolean {
+  const relativePath = path.relative(root, candidate);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
+}
+
+/** Component folders containing a target, nearest first. */
+function componentFolderAncestors(targetFile: string, sourceRoot: string): string[] {
+  const folders: string[] = [];
+  let current = path.dirname(targetFile);
+
+  while (current !== sourceRoot && isWithin(sourceRoot, current)) {
+    const folderName = path.basename(current);
+    if (hasComponentOwner(current, folderName) && hasExactEntry(current, "index.ts")) {
+      folders.push(current);
+    }
+
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+
+  return folders;
 }
 
 /** The relative form of an import, always prefixed so it reads as a path. */
@@ -77,6 +103,31 @@ export const importBoundariesRule: Rule.RuleModule = {
       }
 
       const importPath = source.value;
+      const resolvedModule = resolveSpecifier(filename, importPath, sourceRoot);
+
+      if (resolvedModule) {
+        for (const componentFolder of componentFolderAncestors(resolvedModule, sourceRoot)) {
+          if (isWithin(componentFolder, filename)) continue;
+
+          const componentEntry = path.join(componentFolder, "index.ts");
+          if (path.resolve(resolvedModule) === path.resolve(componentEntry)) continue;
+
+          const entrySpecifier = prefersRelative(filename, componentFolder)
+            ? relativeSpecifier(filename, componentFolder)
+            : aliasSpecifier(sourceRoot, componentFolder);
+          const folderLabel = "src/" + path.relative(sourceRoot, componentFolder).split(path.sep).join("/") + "/";
+
+          context.report({
+            node: source,
+            message:
+              'Do not import "' + importPath + '" across the ' + folderLabel + ' component boundary; ' +
+              'outside consumers may import only "' + entrySpecifier + '". ' +
+              "Move nested internals to their CCF when they need reuse.",
+          });
+          return;
+        }
+      }
+
       const resolvedPath = resolveSourceImport(sourceRoot, filename, importPath);
 
       if (!resolvedPath) {
