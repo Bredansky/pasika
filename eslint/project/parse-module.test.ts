@@ -52,7 +52,6 @@ describe("parseModule", () => {
 
     expect(parseModule(file).exports).toEqual([{ name: "ordersApiContract", kind: "constant", line: 2 }]);
   });
-
   it("collects names exported through object destructuring", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);
