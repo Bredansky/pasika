@@ -33,7 +33,17 @@ function parentComponentName(dirPath: string, folderName: string): string | unde
   if (!fs.existsSync(componentFile)) return undefined;
   try {
     const exports = parseModule(componentFile).exports;
-    return exports.find((moduleExport) => moduleExport.kind === "component")?.name;
+    const classifiedComponent = exports.find((moduleExport) => moduleExport.kind === "component")?.name;
+    if (classifiedComponent) return classifiedComponent;
+
+    // A component may be declared locally and exported later with
+    // `export { Component }`. parseModule records that export as "other", so
+    // match the exported name back to the component folder as a fallback.
+    const normalizedFolderName = folderName.replaceAll("-", "").toLowerCase();
+    return exports.find(
+      (moduleExport) =>
+        isPascalCase(moduleExport.name) && moduleExport.name.toLowerCase() === normalizedFolderName,
+    )?.name;
   } catch {
     return undefined;
   }
@@ -97,7 +107,7 @@ export const enforceBarrelExportsRule: Rule.RuleModule = {
           context.report({
             loc: { line: 1, column: 0 },
             message:
-              `index.ts must not re-export exclusive children: ${nonParentExports.join(", ")}. ` +
+              `index.ts must not re-export nested internals: ${nonParentExports.join(", ")}. ` +
               `Only "${parentName}" may be re-exported. ` +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           });
