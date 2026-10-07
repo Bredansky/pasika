@@ -8,7 +8,6 @@ const BOUNDARY_MESSAGE = "This import violates the src layer boundary.";
 
 const choice = (preferred: string, other: string): string => `Use "${preferred}" instead of "${other}".`;
 
-
 function createNestedComponentFixture(): { consumer: string; owner: string } {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-import-boundary-"));
   const componentDir = path.join(root, "src", "shared", "carousel");
