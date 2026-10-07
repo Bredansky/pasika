@@ -5,7 +5,7 @@ Without nesting, exclusive children can look reusable and their relationship to 
 - A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
 - A component MUST NOT be nested only because it has support files.
 - A nested component's support files MUST live in its folder.
-- The nested folder's `index.ts` MUST named-re-export only the nested component; every other file in the folder MUST remain private to that folder, and a file needed by a consumer outside the folder MUST move to the CCF of its consumers.
+- A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.
 
 ## Incorrect — Exclusive Children Kept Flat
 
