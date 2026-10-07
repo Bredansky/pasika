@@ -40,10 +40,10 @@ function parentComponentName(dirPath: string, folderName: string): string | unde
     // `export { Component }`. parseModule records that export as "other", so
     // match the exported name back to the component folder as a fallback.
     const normalizedFolderName = folderName.replaceAll("-", "").toLowerCase();
-    return exports.find(
-      (moduleExport) =>
-        isPascalCase(moduleExport.name) && moduleExport.name.toLowerCase() === normalizedFolderName,
-    )?.name;
+    const ownerExport = exports.find(
+      (moduleExport) => isPascalCase(moduleExport.name) && moduleExport.name.toLowerCase() === normalizedFolderName,
+    );
+    return ownerExport?.name;
   } catch {
     return undefined;
   }
