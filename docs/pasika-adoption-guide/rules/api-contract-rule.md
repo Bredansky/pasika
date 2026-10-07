@@ -1,6 +1,6 @@
 # API Contract Rule
 
-Schema-validated JSON endpoints drift when routes and clients restate paths, methods, or schemas independently. This rule keeps one exported API contract as the shared source for those values and treats that contract as schema support for the existing placement rules.
+Schema-validated JSON endpoints drift when routes and clients restate paths, methods, or schemas independently. This rule keeps one exported API contract as the shared source for those values and treats that contract as a runtime constant for the existing placement rules.
 
 - A schema-validated JSON API contract MUST be created with `defineApiContract` imported from `pasika/api-contract`.
 - A call to `defineApiContract` MUST initialize an exported named value.
@@ -22,7 +22,7 @@ Why: the route validates one response schema, but nothing ties that schema to th
 ## Correct — Route Imports The Shared Contract
 
 ```ts
-import { ordersApiContract } from "@/schemas";
+import { ordersApiContract } from "@/constants";
 
 export const GET = withResponse(ordersApiContract, async () => {
   return { data: await listOrders() };
@@ -45,7 +45,7 @@ Why: the client repeats the path and response schema independently, so either si
 ## Correct — Client Uses The Shared Contract
 
 ```ts
-import * as apiContracts from "@/schemas";
+import * as apiContracts from "@/constants";
 
 return zodFetch({ contract: apiContracts.ordersApiContract });
 ```
@@ -94,7 +94,7 @@ Why: the mock can now drift independently from the route and client even if both
 ## Correct — Mock Reuses The Same Contract
 
 ```ts
-import { ordersApiContract } from "@/schemas";
+import { ordersApiContract } from "@/constants";
 
 export const apiRoutePath = ordersApiContract.path;
 
