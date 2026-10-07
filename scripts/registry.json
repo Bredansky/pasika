@@ -572,8 +572,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
-      "text": "The nested folder's `index.ts` MUST named-re-export only the nested component; every other file in the folder MUST remain private to that folder, and a file needed by a consumer outside the folder MUST move to the CCF of its consumers.",
-      "hash": "8856d16fff",
+      "text": "A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.",
+      "hash": "5faf2a6881",
       "ref": "pasika/enforce-barrel-exports, pasika/import-boundaries, pasika/component-placement"
     },
     {
