@@ -222,7 +222,7 @@ void describe("A configuration module MUST import only from root support folders
   });
 });
 
-void describe("The nested folder's `index.ts` MUST named-re-export only the nested component; every other file in the folder MUST remain private to that folder, and a file needed by a consumer outside the folder MUST move to the CCF of its consumers.", () => {
+void describe("A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
