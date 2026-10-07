@@ -34,12 +34,14 @@ const FIXTURE: Record<string, string> = {
   // name.
   "features/catalog/CatalogPanel/index.ts": 'export { CatalogPanel } from "./CatalogPanel";\n',
   "features/catalog/CatalogPanel/CatalogPanel.tsx":
-    'import { CatalogItem } from "../catalog-item";\nimport { CatalogPanelHeader } from "./catalog-panel-header";\nexport function CatalogPanel() { return <CatalogItem />; }\n',
+    'import { CatalogItem } from "../catalog-item";\nimport { CatalogPanelHeader } from "./catalog-panel-header";\nimport { CatalogPanelFooter } from "./catalog-panel-footer";\nexport function CatalogPanel() { return <CatalogItem />; }\n',
   "features/catalog/CatalogPanel/catalog-panel-header.tsx":
     "export function CatalogPanelHeader() { return <header />; }\n",
+  "features/catalog/CatalogPanel/catalog-panel-footer.tsx":
+    "export function CatalogPanelFooter() { return <footer />; }\n",
   "features/catalog/catalog-item.tsx": "export function CatalogItem() { return <span />; }\n",
   "features/catalog/catalog-page.tsx":
-    'import { CatalogPanel } from "./CatalogPanel";\nexport function CatalogPage() { return <CatalogPanel />; }\n',
+    'import { CatalogPanel } from "./CatalogPanel";\nimport { CatalogPanelFooter } from "./CatalogPanel/catalog-panel-footer";\nexport function CatalogPage() { return <CatalogPanelFooter />; }\n',
 
   // Compositions consumers count only when every consumer is one.
   "compositions/checkout.tsx":
@@ -135,6 +137,24 @@ void describe("A component with exclusive children may be nested in a folder nam
       },
     ],
     invalid: [],
+  });
+});
+
+void describe("A component inside a nested component folder other than the nested component itself MUST NOT have a consumer outside that folder; if it does, it MUST move to the CCF of its consumers.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [
+      {
+        code: read("features/catalog/CatalogPanel/catalog-panel-header.tsx"),
+        filename: file("features/catalog/CatalogPanel/catalog-panel-header.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("features/catalog/CatalogPanel/catalog-panel-footer.tsx"),
+        filename: file("features/catalog/CatalogPanel/catalog-panel-footer.tsx"),
+        errors: 1,
+      },
+    ],
   });
 });
 
