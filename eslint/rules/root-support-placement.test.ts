@@ -51,8 +51,28 @@ const FIXTURE: Record<string, string> = {
   "features/reporting/status-badge.tsx":
     'import type { InvoiceStatus } from "@/types/invoice-status";\nexport function StatusBadge(props: { status: InvoiceStatus }) { return <div />; }\n',
 
-  // An unused root utils/ export is not this rule's problem.
+  // A root support export with no consumers has not earned root placement.
   "utils/unused-helper.ts": "export function unusedHelper() { return 1; }\n",
+  "types/unused-result.ts": "export type UnusedResult = { ok: boolean };\n",
+  "schemas/unused-response-schema.ts": "export const unusedResponseSchema = {};\n",
+  "constants/unused-limit.ts": "export const unusedLimit = 3;\n",
+
+  // Regression: an unused root utility must not silently legitimize the root
+  // placement of the schema/type/constant support it happens to import.
+  "utils/bot-conversations.ts": [
+    'import { botConversationColumn } from "@/constants/bot-conversations";',
+    'import { botConversationRowSchema } from "@/schemas/bot-conversations";',
+    'import type { BotConversation } from "@/types/bot-conversations";',
+    "export function getAwaiting(): BotConversation | null {",
+    "  void botConversationColumn;",
+    "  void botConversationRowSchema;",
+    "  return null;",
+    "}",
+    "",
+  ].join("\n"),
+  "constants/bot-conversations.ts": 'export const botConversationColumn = "telegram_chat_id";\n',
+  "schemas/bot-conversations.ts": "export const botConversationRowSchema = {};\n",
+  "types/bot-conversations.ts": "export type BotConversation = { id: string };\n",
 
   // A zero-consumer function already correctly placed under a feature.
   "features/editor/utils/absolutize-clip-urls.ts":
@@ -96,11 +116,6 @@ void describe("A pure function with no consumer outside `src/app/` MUST live und
         code: read("utils/format-retry-delay.ts"),
         filename: file("utils/format-retry-delay.ts"),
       },
-      // Unused export is not this rule's problem.
-      {
-        code: read("utils/unused-helper.ts"),
-        filename: file("utils/unused-helper.ts"),
-      },
       // A file outside the support folders is out of scope.
       {
         code: read("features/billing/invoice.tsx"),
@@ -113,6 +128,28 @@ void describe("A pure function with no consumer outside `src/app/` MUST live und
       },
     ],
     invalid: [
+      {
+        code: read("utils/unused-helper.ts"),
+        filename: file("utils/unused-helper.ts"),
+        errors: [
+          {
+            message:
+              `Function "unusedHelper" has no consumers, so it has not earned root src/utils/; move it into the feature it ` +
+              `represents (src/features/<feature>/utils/), or remove it if it is unused. ${UTILITIES_DOC}`,
+          },
+        ],
+      },
+      {
+        code: read("utils/bot-conversations.ts"),
+        filename: file("utils/bot-conversations.ts"),
+        errors: [
+          {
+            message:
+              `Function "getAwaiting" has no consumers, so it has not earned root src/utils/; move it into the feature it ` +
+              `represents (src/features/<feature>/utils/), or remove it if it is unused. ${UTILITIES_DOC}`,
+          },
+        ],
+      },
       {
         code: read("utils/absolutize-media-urls.ts"),
         filename: file("utils/absolutize-media-urls.ts"),
@@ -164,6 +201,28 @@ void describe("A type or schema with no consumer outside `src/app/` MUST live un
     ],
     invalid: [
       {
+        code: read("types/unused-result.ts"),
+        filename: file("types/unused-result.ts"),
+        errors: [
+          {
+            message:
+              `Type "UnusedResult" has no consumers, so it has not earned root src/types/; move it into the feature it ` +
+              `represents (src/features/<feature>/types/), or remove it if it is unused. ${TYPES_AND_SCHEMAS_DOC}`,
+          },
+        ],
+      },
+      {
+        code: read("schemas/unused-response-schema.ts"),
+        filename: file("schemas/unused-response-schema.ts"),
+        errors: [
+          {
+            message:
+              `Schema "unusedResponseSchema" has no consumers, so it has not earned root src/schemas/; move it into the feature it ` +
+              `represents (src/features/<feature>/schemas/), or remove it if it is unused. ${TYPES_AND_SCHEMAS_DOC}`,
+          },
+        ],
+      },
+      {
         code: read("types/render-order.ts"),
         filename: file("types/render-order.ts"),
         errors: [
@@ -196,6 +255,17 @@ void describe("A constant with no consumer outside `src/app/` MUST live under `s
   ruleTester.run("root-support-placement", rootSupportPlacementRule, {
     valid: [],
     invalid: [
+      {
+        code: read("constants/unused-limit.ts"),
+        filename: file("constants/unused-limit.ts"),
+        errors: [
+          {
+            message:
+              `Constant "unusedLimit" has no consumers, so it has not earned root src/constants/; move it into the feature it ` +
+              `represents (src/features/<feature>/constants/), or remove it if it is unused. ${CONSTANTS_DOC}`,
+          },
+        ],
+      },
       {
         code: read("constants/max-render-jobs.ts"),
         filename: file("constants/max-render-jobs.ts"),

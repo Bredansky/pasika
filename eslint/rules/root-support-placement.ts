@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/root-support-placement
  *
- * A pure function, type, schema, or constant whose only consumers are files
- * under src/app/ MUST live under src/features/<name>/, not the matching root
- * support folder or anywhere else. This mirrors component-placement's
+ * A pure function, type, schema, or constant with no consumers, or whose only
+ * consumers are files under src/app/, MUST live under src/features/<name>/,
+ * not the matching root support folder or anywhere else. This mirrors component-placement's
  * zero-consumer fallback exactly, including the mechanical part: that fallback
  * does not just recommend a feature folder, it checks the component already sits
  * in one (`segments[0] !== "features"`). Root src/utils/, src/types/,
@@ -70,7 +70,7 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a zero-consumer support-folder export to live under a feature folder, not root or elsewhere.",
+        "Require zero-consumer or app-only support-folder exports to live under a feature folder, not root or elsewhere.",
     },
   },
   create(context) {
@@ -105,7 +105,17 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
       if (exp.kind !== expectedKind) continue;
 
       const consumers = [...(index.symbolConsumers.get(symbolKey(file, exp.name)) ?? [])];
-      if (consumers.length === 0) continue;
+      const where = isRoot ? `root src/${supportFolder}/` : `src/${folderSegments.join("/")}/`;
+
+      if (consumers.length === 0) {
+        findings.push({
+          line: exp.line,
+          message:
+            `${label} "${exp.name}" has no consumers, so it has not earned ${where}; move it into the feature it ` +
+            `represents (src/features/<feature>/${supportFolder}/), or remove it if it is unused. See ${doc}`,
+        });
+        continue;
+      }
 
       // A consumer outside src/app/ places the file, so only an app-only export
       // is left to this rule. A route or a page is an entry point rather than a
@@ -113,7 +123,6 @@ export const rootSupportPlacementRule: Rule.RuleModule = {
       const outsideApp = consumers.filter((consumer) => isPlacingConsumer(consumer, sourceRoot));
       if (outsideApp.length > 0) continue;
 
-      const where = isRoot ? `root src/${supportFolder}/` : `src/${folderSegments.join("/")}/`;
       findings.push({
         line: exp.line,
         message:
