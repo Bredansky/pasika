@@ -197,12 +197,17 @@ export function parseModule(file: string): ParsedModule {
       } else if (
         ts.isVariableDeclaration(node) &&
         ts.isObjectBindingPattern(node.name) &&
+        node.initializer &&
         ts.isIdentifier(node.initializer) &&
         node.initializer.text === namespace
       ) {
         for (const element of node.name.elements) {
           if (element.dotDotDotToken) continue;
-          const importedName = element.propertyName ? propertyName(element.propertyName) : propertyName(element.name);
+          const importedName = element.propertyName
+            ? propertyName(element.propertyName)
+            : ts.isIdentifier(element.name)
+              ? element.name.text
+              : undefined;
           if (importedName) names.add(importedName);
         }
       }
