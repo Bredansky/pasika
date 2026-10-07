@@ -88,11 +88,8 @@ function canGroupSource(source: Node): boolean {
   return source.type === "Identifier" || source.type === "ThisExpression";
 }
 
-function isStableObjectSource(source: Node): boolean {
-  if (source.type === "Identifier" || source.type === "ThisExpression") return true;
-  if (source.type !== "MemberExpression") return false;
-  if (source.computed || source.optional || source.property.type !== "Identifier") return false;
-  return isStableObjectSource(source.object);
+function isGroupedUsageSource(source: Node): boolean {
+  return source.type === "Identifier" || source.type === "ThisExpression";
 }
 
 function rootIdentifierName(node: Node): string | undefined {
@@ -205,7 +202,7 @@ function recordMemberUsage(
 ): void {
   if (!scope || member.computed || member.optional || member.property.type !== "Identifier") return;
   if (!memberCanBeDestructured(context, ownershipResolver, member)) return;
-  if (!isStableObjectSource(member.object) || !memberIsRead(context, member)) return;
+  if (!isGroupedUsageSource(member.object) || !memberIsRead(context, member)) return;
 
   const sourceText = context.sourceCode.getText(member.object);
   const usage = objectUsage(scope, sourceText);
@@ -225,11 +222,13 @@ function recordDestructuringUsage(
   if (!scope) return;
 
   for (const declarator of declaration.declarations) {
-    if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isStableObjectSource(declarator.init)) continue;
+    if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isGroupedUsageSource(declarator.init)) continue;
     if (rootIdentifierName(declarator.init) === "locales") continue;
 
     const sourceText = context.sourceCode.getText(declarator.init);
     const usage = objectUsage(scope, sourceText);
+    if (usage.directMembers.length > 0) continue;
+
     const propertyNames = new Set<string>();
 
     for (const property of declarator.id.properties) {
@@ -443,12 +442,16 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
   create(context) {
     const ownershipResolver = contractOwnershipResolver(context);
     const grouped = new Set<VariableDeclaration>();
-    const usageScopes: UsageScope[] = [];
+    const usageScopes: (UsageScope | undefined)[] = [];
 
     const currentUsageScope = (): UsageScope | undefined => usageScopes.at(-1);
 
     const enterUsageScope = (node: Node): void => {
       usageScopes.push({ node, objects: new Map() });
+    };
+
+    const enterUsageBarrier = (): void => {
+      usageScopes.push(undefined);
     };
 
     const exitUsageScope = (): void => {
@@ -461,19 +464,18 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         const firstDirectUsage = usage.directMembers[0];
         if (!firstDirectUsage) continue;
         const { member: firstDirectMember } = firstDirectUsage;
+        const propertyNames = [...usage.propertyNames];
+        const missingPropertyNames = propertyNames.filter(
+          (propertyName) => !usage.destructuring?.propertyNames.has(propertyName),
+        );
+        if (missingPropertyNames.some((propertyName) => hasBinding(context, firstDirectMember, propertyName))) {
+          continue;
+        }
 
         context.report({
           node: firstDirectMember,
           message: scopeUsageMessage(sourceText, usage.propertyNames),
           fix(fixer) {
-            const propertyNames = [...usage.propertyNames];
-            const missingPropertyNames = propertyNames.filter(
-              (propertyName) => !usage.destructuring?.propertyNames.has(propertyName),
-            );
-            if (missingPropertyNames.some((propertyName) => hasBinding(context, firstDirectMember, propertyName))) {
-              return null;
-            }
-
             const memberFixes = usage.directMembers.map(({ member, propertyName }) =>
               fixer.replaceText(member, propertyName),
             );
@@ -507,11 +509,11 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       "Program:exit": exitUsageScope,
       BlockStatement: enterUsageScope,
       "BlockStatement:exit": exitUsageScope,
-      FunctionDeclaration: enterUsageScope,
+      FunctionDeclaration: enterUsageBarrier,
       "FunctionDeclaration:exit": exitUsageScope,
-      FunctionExpression: enterUsageScope,
+      FunctionExpression: enterUsageBarrier,
       "FunctionExpression:exit": exitUsageScope,
-      ArrowFunctionExpression: enterUsageScope,
+      ArrowFunctionExpression: enterUsageBarrier,
       "ArrowFunctionExpression:exit": exitUsageScope,
       MemberExpression(node) {
         recordMemberUsage(context, currentUsageScope(), ownershipResolver, node);
