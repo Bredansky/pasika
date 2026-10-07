@@ -28,6 +28,8 @@ void describe("Properties stored in variables MUST use object destructuring unle
       "const dimensions = (config) => config.width * config.height;",
       "const width = 1; function dimensions(config) { return config.width * config.height; }",
       "function render(layer) { if (layer.type) use(layer.type); const { color, type } = layer; use(color, type); }",
+      "function render(position) { use(position.width, position.height); return (box) => { const { width, height } = box; return width + height; }; }",
+      "function process(post) { use(post.id, post.currentPayload); return [1].map((id) => id); }",
     ],
     invalid: [
       {

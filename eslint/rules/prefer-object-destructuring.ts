@@ -251,6 +251,14 @@ function hasBinding(context: Rule.RuleContext, node: Node, name: string): boolea
   const initialScope = context.sourceCode.getScope(node);
   if (initialScope.variables.some((variable) => variable.name === name)) return true;
 
+  const descendantHasBinding = (scope: typeof initialScope): boolean =>
+    scope.childScopes.some(
+      (childScope) =>
+        childScope.variables.some((variable) => variable.name === name) || descendantHasBinding(childScope),
+    );
+
+  if (descendantHasBinding(initialScope)) return true;
+
   for (let scope = initialScope.upper; scope !== null; scope = scope.upper) {
     if (scope.variables.some((variable) => variable.name === name)) return true;
   }
