@@ -35,7 +35,6 @@ describe("parseModule", () => {
     ]);
   });
 
-
   it("classifies API contracts as constants rather than schemas", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);
