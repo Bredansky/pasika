@@ -8,7 +8,7 @@ const BOUNDARY_MESSAGE = "This import violates the src layer boundary.";
 
 const choice = (preferred: string, other: string): string => `Use "${preferred}" instead of "${other}".`;
 
-function createNestedComponentFixture(): { consumer: string; owner: string } {
+function createNestedComponentFixture(): { root: string; consumer: string; owner: string } {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-import-boundary-"));
   const componentDir = path.join(root, "src", "shared", "carousel");
   const consumer = path.join(root, "src", "features", "editor", "media-preview.tsx");
@@ -21,10 +21,11 @@ function createNestedComponentFixture(): { consumer: string; owner: string } {
     "export function CarouselItem() { return <article />; }\n",
   );
   writeFileSync(consumer, "export function MediaPreview() { return <div />; }\n");
-  return { consumer, owner: path.join(componentDir, "carousel.tsx") };
+  return { root, consumer, owner: path.join(componentDir, "carousel.tsx") };
 }
 
 const nestedComponentFixture = createNestedComponentFixture();
+process.chdir(nestedComponentFixture.root);
 
 void describe("An import whose target is in the current directory or its direct parent directory MUST use a relative path with ./ or ../.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
