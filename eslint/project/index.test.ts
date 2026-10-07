@@ -21,11 +21,20 @@ describe("project index cache", () => {
     writeFileSync(schemaFile, "export const ordersApiContract = {};\n");
     writeFileSync(
       clientFile,
-      ['import * as apiContracts from "./schemas";', "void apiContracts.ordersApiContract;", ""].join("\n"),
+      [
+        'import * as apiContracts from "./schemas";',
+        "void apiContracts.ordersApiContract;",
+        "const { usersApiContract: usersContract } = apiContracts;",
+        "void usersContract;",
+        "",
+      ].join("\n"),
     );
+
+    writeFileSync(schemaFile, "export const ordersApiContract = {};\nexport const usersApiContract = {};\n");
 
     const index = getProjectIndex(sourceRoot);
     expect(index?.symbolConsumers.get(`${schemaFile}\u0000ordersApiContract`)).toEqual(new Set([clientFile]));
+    expect(index?.symbolConsumers.get(`${schemaFile}\u0000usersApiContract`)).toEqual(new Set([clientFile]));
   });
 
   it("rebuilds the index after the cache is cleared", () => {

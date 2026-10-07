@@ -194,6 +194,17 @@ export function parseModule(file: string): ParsedModule {
         ts.isStringLiteral(node.argumentExpression)
       ) {
         names.add(node.argumentExpression.text);
+      } else if (
+        ts.isVariableDeclaration(node) &&
+        ts.isObjectBindingPattern(node.name) &&
+        ts.isIdentifier(node.initializer) &&
+        node.initializer.text === namespace
+      ) {
+        for (const element of node.name.elements) {
+          if (element.dotDotDotToken) continue;
+          const importedName = element.propertyName ? propertyName(element.propertyName) : propertyName(element.name);
+          if (importedName) names.add(importedName);
+        }
       }
       ts.forEachChild(node, visit);
     };
