@@ -572,9 +572,21 @@
     },
     {
       "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
-      "text": "The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
-      "hash": "d3fba850df",
+      "text": "The nested folder's `index.ts` MUST named-re-export only the nested component.",
+      "hash": "ee6a13db11",
       "ref": "pasika/enforce-barrel-exports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
+      "text": "A consumer outside a nested component folder MUST import that folder only through its `index.ts`.",
+      "hash": "9b2dfd0ebf",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
+      "text": "A component inside a nested component folder other than the nested component itself MUST NOT have a consumer outside that folder; if it does, it MUST move to the CCF of its consumers.",
+      "hash": "5042578272",
+      "ref": "pasika/component-placement"
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",
