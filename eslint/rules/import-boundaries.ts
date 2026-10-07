@@ -115,14 +115,16 @@ export const importBoundariesRule: Rule.RuleModule = {
           const entrySpecifier = prefersRelative(filename, componentFolder)
             ? relativeSpecifier(filename, componentFolder)
             : aliasSpecifier(sourceRoot, componentFolder);
-          const folderLabel = "src/" + path.relative(sourceRoot, componentFolder).split(path.sep).join("/") + "/";
+          const folderLabel = `src/${path.relative(sourceRoot, componentFolder).split(path.sep).join("/")}/`;
+          const message = [
+            `Do not import "${importPath}" across the ${folderLabel} component boundary;`,
+            `outside consumers may import only "${entrySpecifier}".`,
+            "Move nested internals to their CCF when they need reuse.",
+          ].join(" ");
 
           context.report({
             node: source,
-            message:
-              'Do not import "' + importPath + '" across the ' + folderLabel + ' component boundary; ' +
-              'outside consumers may import only "' + entrySpecifier + '". ' +
-              "Move nested internals to their CCF when they need reuse.",
+            message,
           });
           return;
         }
