@@ -36,7 +36,25 @@ function createKebabComponentFolder(): string {
 const kebabComponentDir = createKebabComponentFolder();
 const kebabBarrel = path.join(kebabComponentDir, "index.ts");
 
-void describe("The nested folder's index.ts MUST named-re-export the nested component and MUST NOT re-export its exclusive children.", () => {
+function createLocallyExportedComponentFolder(): string {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-"));
+  const carouselDir = path.join(root, "shared", "carousel");
+  mkdirSync(carouselDir, { recursive: true });
+  writeFileSync(
+    path.join(carouselDir, "carousel.tsx"),
+    "function Carousel() { return <section />; }\nexport { Carousel };\n",
+  );
+  writeFileSync(
+    path.join(carouselDir, "carousel-item.tsx"),
+    "export function CarouselItem() { return <article />; }\n",
+  );
+  return carouselDir;
+}
+
+const locallyExportedComponentDir = createLocallyExportedComponentFolder();
+const locallyExportedBarrel = path.join(locallyExportedComponentDir, "index.ts");
+
+void describe("A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.", () => {
   ruleTester.run("enforce-barrel-exports", enforceBarrelExportsRule, {
     valid: [
       { code: 'export { BlogPage } from "./BlogPage";', filename: barrel },
@@ -51,7 +69,7 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
         errors: [
           {
             message:
-              'index.ts must not re-export exclusive children: BlogHeader. Only "BlogPage" may be re-exported. ' +
+              'index.ts must not re-export nested internals: BlogHeader. Only "BlogPage" may be re-exported. ' +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],
@@ -63,6 +81,17 @@ void describe("The nested folder's index.ts MUST named-re-export the nested comp
           {
             message:
               'index.ts in "BlogPage/" must re-export "BlogPage". ' +
+              "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
+          },
+        ],
+      },
+      {
+        code: 'export { Carousel } from "./carousel";\nexport { CarouselItem } from "./carousel-item";',
+        filename: locallyExportedBarrel,
+        errors: [
+          {
+            message:
+              'index.ts must not re-export nested internals: CarouselItem. Only "Carousel" may be re-exported. ' +
               "See docs/next-codebase-guide/rules/folder-nesting-rule.md",
           },
         ],

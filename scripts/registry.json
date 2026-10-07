@@ -572,9 +572,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
-      "text": "The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.",
-      "hash": "d3fba850df",
-      "ref": "pasika/enforce-barrel-exports"
+      "text": "A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.",
+      "hash": "5faf2a6881",
+      "ref": "pasika/enforce-barrel-exports, pasika/import-boundaries, pasika/component-placement"
     },
     {
       "doc": "next-codebase-guide/rules/hook-extraction-rule.md",

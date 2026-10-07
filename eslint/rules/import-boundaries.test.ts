@@ -1,9 +1,31 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { importBoundariesRule } from "./import-boundaries";
 
 const BOUNDARY_MESSAGE = "This import violates the src layer boundary.";
 
 const choice = (preferred: string, other: string): string => `Use "${preferred}" instead of "${other}".`;
+
+function createNestedComponentFixture(): { root: string; consumer: string; owner: string } {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-import-boundary-"));
+  const componentDir = path.join(root, "src", "shared", "carousel");
+  const consumer = path.join(root, "src", "features", "editor", "media-preview.tsx");
+  mkdirSync(componentDir, { recursive: true });
+  mkdirSync(path.dirname(consumer), { recursive: true });
+  writeFileSync(path.join(componentDir, "index.ts"), 'export { Carousel } from "./carousel";\n');
+  writeFileSync(path.join(componentDir, "carousel.tsx"), "export function Carousel() { return <section />; }\n");
+  writeFileSync(
+    path.join(componentDir, "carousel-item.tsx"),
+    "export function CarouselItem() { return <article />; }\n",
+  );
+  writeFileSync(consumer, "export function MediaPreview() { return <div />; }\n");
+  return { root, consumer, owner: path.join(componentDir, "carousel.tsx") };
+}
+
+const nestedComponentFixture = createNestedComponentFixture();
+process.chdir(nestedComponentFixture.root);
 
 void describe("An import whose target is in the current directory or its direct parent directory MUST use a relative path with ./ or ../.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
@@ -195,6 +217,33 @@ void describe("A configuration module MUST import only from root support folders
         code: 'import { Checkout } from "@/compositions/checkout";',
         filename: srcFile("config/home-feed/index.ts"),
         errors: [{ message: BOUNDARY_MESSAGE }],
+      },
+    ],
+  });
+});
+
+void describe("A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.", () => {
+  ruleTester.run("import-boundaries", importBoundariesRule, {
+    valid: [
+      {
+        code: 'import { Carousel } from "@/shared/carousel";',
+        filename: nestedComponentFixture.consumer,
+      },
+      {
+        code: 'import { CarouselItem } from "./carousel-item";',
+        filename: nestedComponentFixture.owner,
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { Carousel } from "@/shared/carousel/carousel";',
+        filename: nestedComponentFixture.consumer,
+        errors: 1,
+      },
+      {
+        code: 'import { CarouselItem } from "@/shared/carousel/carousel-item";',
+        filename: nestedComponentFixture.consumer,
+        errors: 1,
       },
     ],
   });

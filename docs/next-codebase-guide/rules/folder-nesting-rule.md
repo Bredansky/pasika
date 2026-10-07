@@ -1,11 +1,11 @@
 # Folder Nesting Rule
 
-Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule groups them with their parent and keeps them out of the folder's public API.
+Without nesting, exclusive children can look reusable and their relationship to the parent is easy to miss in review. This rule makes a nested component folder an encapsulation boundary: its barrel exposes only the owner, while internals that gain outside consumers move to the folder their consumers share.
 
 - A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.
 - A component MUST NOT be nested only because it has support files.
 - A nested component's support files MUST live in its folder.
-- The nested folder's `index.ts` MUST named-re-export the nested component and MUST NOT re-export its exclusive children.
+- A nested component folder's `index.ts` MUST export only the nested component, and any file needed outside that folder MUST move to the CCF of its consumers.
 
 ## Incorrect — Exclusive Children Kept Flat
 
@@ -67,7 +67,7 @@ export { BlogPage } from "./BlogPage";
 export { BlogHeader } from "./blog-header";
 ```
 
-Why: the barrel re-exports the child as well as the nested component, so outside consumers can import `blog-header.tsx` through `index.ts` and the child stops being exclusive to `BlogPage`.
+Why: the barrel exposes `BlogHeader` outside `BlogPage/`, so the nested folder no longer has one public entry point.
 
 ## Correct — Only the Nested Component Re-Exported
 
@@ -79,4 +79,34 @@ export { BlogPage } from "./BlogPage";
 import { BlogHeader } from "./blog-header";
 ```
 
-Why: the barrel exposes only the nested component, so it does not expose the child.
+Why: the barrel exposes only the owner component and keeps nested internals behind the folder boundary.
+
+## Incorrect — Nested Child Reused From Outside Its Owner
+
+```tsx
+// src/features/blog/blog-list.tsx
+import { BlogHeader } from "./BlogPage/blog-header";
+```
+
+Why: `blog-list.tsx` reaches inside `BlogPage/`. Once `BlogHeader` has a consumer outside that folder, it belongs at the consumer CCF instead of remaining a nested internal.
+
+## Correct — Reused Child Moved To The Consumer CCF
+
+```text
+src/features/blog/
+  BlogPage/
+    index.ts
+    BlogPage.tsx
+  blog-header.tsx
+  blog-list.tsx
+```
+
+```tsx
+// src/features/blog/BlogPage/BlogPage.tsx
+import { BlogHeader } from "../blog-header";
+
+// src/features/blog/blog-list.tsx
+import { BlogHeader } from "./blog-header";
+```
+
+Why: the reused component lives at the feature scope shared by both consumers, while `BlogPage/` keeps only files private to its own boundary.

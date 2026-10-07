@@ -34,17 +34,24 @@ const sameFolder = (left: string[], right: string[]): boolean =>
   left.length === right.length && left.every((segment, depth) => segment === right[depth]);
 
 /**
- * A component folder (a folder holding a same-named .tsx) may sit one level
- * inside the folder its consumers imply: stay-flat requires nesting a component
- * with exclusive children, and the nesting folder is the CCF plus the component
- * name. Without this, stay-flat and component-placement would contradict each
- * other for every nested component.
+ * The component that owns a component folder may sit one level inside the
+ * folder its consumers imply: stay-flat requires nesting a component with
+ * exclusive children, and the nesting folder is the CCF plus the component
+ * name. Child components do not get this exception; reuse outside the owner
+ * folder moves them to their own CCF.
  */
 function isNestedInside(expectedFolder: string[], currentFolder: string[], componentFile: string): boolean {
   if (currentFolder.length !== expectedFolder.length + 1) return false;
   if (!sameFolder(currentFolder.slice(0, -1), expectedFolder)) return false;
   const folderName = currentFolder[currentFolder.length - 1];
   if (!folderName) return false;
+
+  // Only the folder-owning component gets the one-level nesting exception.
+  // Child components that gain consumers outside this folder must move to
+  // their actual CCF instead of remaining hidden inside the owner's folder.
+  const componentName = path.basename(componentFile, path.extname(componentFile));
+  if (componentName !== folderName) return false;
+
   return fs.existsSync(path.join(path.dirname(componentFile), `${folderName}.tsx`));
 }
 
