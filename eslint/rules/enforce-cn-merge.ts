@@ -96,8 +96,23 @@ export const enforceCnMergeRule = {
 
     return {
       CallExpression(node: ESTree.CallExpression) {
-        if (node.callee.type !== "Identifier" || node.callee.name !== "cva") return;
+        if (node.callee.type !== "Identifier") return;
 
+        if (node.callee.name === "cn") {
+          for (const argument of node.arguments) {
+            if (argument.type !== "Literal" || typeof argument.value !== "string" || classCount(argument.value) <= 5) {
+              continue;
+            }
+            context.report({
+              node: argument,
+              message:
+                "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/next-tailwind-guide/rules/class-composition-rule.md",
+            });
+          }
+          return;
+        }
+
+        if (node.callee.name !== "cva") return;
         for (const argument of node.arguments) {
           if (argument.type === "SpreadElement") continue;
           for (const literal of staticClassLiterals(argument)) {
@@ -188,17 +203,6 @@ export const enforceCnMergeRule = {
               "Static className with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
           return;
-        }
-        if (expr.type === "CallExpression" && expr.callee.type === "Identifier" && expr.callee.name === "cn") {
-          for (const arg of expr.arguments) {
-            if (arg.type === "Literal" && typeof arg.value === "string" && classCount(arg.value) > 5) {
-              context.report({
-                node: arg,
-                message:
-                  "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/next-tailwind-guide/rules/class-composition-rule.md",
-              });
-            }
-          }
         }
       },
     };
