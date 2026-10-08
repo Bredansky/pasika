@@ -165,13 +165,11 @@ void describe("A static class list with more than five class names MUST use cn w
         filename: srcFile("shared/card.tsx"),
       },
       {
-        code:
-          'const buttonVariants = cva(cn("inline-flex items-center justify-center", "gap-2 whitespace-nowrap rounded-md", "text-sm font-medium transition-all"));',
+        code: 'const buttonVariants = cva(cn("inline-flex items-center justify-center", "gap-2 whitespace-nowrap rounded-md", "text-sm font-medium transition-all"));',
         filename: srcFile("shared/button.tsx"),
       },
       {
-        code:
-          'const buttonVariants = cva("inline-flex", { variants: { size: { lg: cn("h-10 rounded-md px-6", "shadow-sm transition-all") } } });',
+        code: 'const buttonVariants = cva("inline-flex", { variants: { size: { lg: cn("h-10 rounded-md px-6", "shadow-sm transition-all") } } });',
         filename: srcFile("shared/button.tsx"),
       },
     ],
@@ -187,20 +185,17 @@ void describe("A static class list with more than five class names MUST use cn w
         errors: [{ message: GROUP_MESSAGE }],
       },
       {
-        code:
-          'const buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all");',
+        code: 'const buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all");',
         filename: srcFile("shared/button.tsx"),
         errors: [{ message: CVA_MESSAGE }],
       },
       {
-        code:
-          'const buttonVariants = cva("inline-flex", { variants: { size: { lg: "h-10 rounded-md px-6 shadow-sm transition-all font-medium" } } });',
+        code: 'const buttonVariants = cva("inline-flex", { variants: { size: { lg: "h-10 rounded-md px-6 shadow-sm transition-all font-medium" } } });',
         filename: srcFile("shared/button.tsx"),
         errors: [{ message: CVA_MESSAGE }],
       },
       {
-        code:
-          'const buttonVariants = cva(cn("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm"));',
+        code: 'const buttonVariants = cva(cn("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm"));',
         filename: srcFile("shared/button.tsx"),
         errors: [{ message: GROUP_MESSAGE }],
       },
