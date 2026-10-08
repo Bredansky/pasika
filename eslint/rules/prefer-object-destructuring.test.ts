@@ -1,7 +1,26 @@
-import { describe, ruleTester } from "../rule-tester";
+import tsParser from "@typescript-eslint/parser";
+import { vi } from "vitest";
+import { CwdAwareRuleTester, describe, ruleTester, srcFile } from "../rule-tester";
 import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
+vi.setConfig({ testTimeout: 30_000 });
+
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
+
+const typedRuleTester = new CwdAwareRuleTester({
+  languageOptions: {
+    parser: tsParser,
+    ecmaVersion: 2022,
+    sourceType: "module",
+    parserOptions: {
+      projectService: {
+        allowDefaultProject: ["src/utils/*.ts"],
+        maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 8,
+      },
+      tsconfigRootDir: process.cwd(),
+    },
+  },
+});
 
 void describe("Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with an existing binding. When two or more properties are read from the same object identifier within the same block and no exception applies, they MUST be destructured together in one declaration.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
@@ -186,6 +205,63 @@ void describe("Properties stored in variables MUST use object destructuring unle
         errors: [
           {
             message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.", () => {
+  ruleTester.run("prefer-object-destructuring-enums", preferObjectDestructuringRule, {
+    valid: [
+      [
+        'enum Platform { Telegram = "telegram", Twitter = "twitter" }',
+        "use(Platform.Telegram);",
+        "use(Platform.Twitter);",
+      ].join("\n"),
+      ['enum Platform { Telegram = "telegram" }', "const Telegram = Platform.Telegram;", "use(Telegram);"].join("\n"),
+    ],
+    invalid: [
+      {
+        code: [
+          'enum Platform { Telegram = "telegram", Twitter = "twitter" }',
+          "const { Telegram, Twitter } = Platform;",
+          "use(Telegram, Twitter);",
+        ].join("\n"),
+        errors: [
+          {
+            message: `"Platform" is an enum. Keep enum member accesses qualified instead of destructuring it. ${doc}`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured. (typed imports)", () => {
+  typedRuleTester.run("prefer-object-destructuring-imported-enums", preferObjectDestructuringRule, {
+    valid: [
+      {
+        code: [
+          'import { SyntaxKind } from "typescript";',
+          "use(SyntaxKind.Identifier);",
+          "use(SyntaxKind.StringLiteral);",
+        ].join("\n"),
+        filename: srcFile("utils/enum-valid.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: [
+          'import { SyntaxKind } from "typescript";',
+          "const { Identifier, StringLiteral } = SyntaxKind;",
+          "use(Identifier, StringLiteral);",
+        ].join("\n"),
+        filename: srcFile("utils/enum-invalid.ts"),
+        errors: [
+          {
+            message: `"SyntaxKind" is an enum. Keep enum member accesses qualified instead of destructuring it. ${doc}`,
           },
         ],
       },

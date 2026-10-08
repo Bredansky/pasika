@@ -12,6 +12,7 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
 - Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with an existing binding. When two or more properties are read from the same object identifier within the same block and no exception applies, they MUST be destructured together in one declaration.
+- Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
 
@@ -72,6 +73,33 @@ function icon(config: EmojiIconConfig) {
 ```
 
 Why: all values read from `config` in the block come from one destructuring declaration.
+
+## Incorrect — Destructured Enum Members
+
+```ts
+enum Platform {
+  Telegram = "telegram",
+  Twitter = "twitter",
+}
+
+const { Telegram, Twitter } = Platform;
+use(Telegram, Twitter);
+```
+
+Why: destructuring erases the enum qualifier at each use site and makes enum members look like unrelated local values.
+
+## Correct — Qualified Enum Members
+
+```ts
+enum Platform {
+  Telegram = "telegram",
+  Twitter = "twitter",
+}
+
+use(Platform.Telegram, Platform.Twitter);
+```
+
+Why: qualified access keeps the enum domain visible wherever a member is used.
 
 ## Incorrect — Duplicate Repository Contracts
 

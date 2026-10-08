@@ -9,7 +9,8 @@
  */
 import type { Rule } from "eslint";
 import type { Identifier, MemberExpression, Node, Property, VariableDeclaration, VariableDeclarator } from "estree";
-import { contractOwnershipResolver, type ContractOwnershipResolver } from "./contract-ownership";
+import ts from "typescript";
+import { contractOwnershipResolver, typedParserServices, type ContractOwnershipResolver } from "./contract-ownership";
 
 const DOC = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 
@@ -42,6 +43,8 @@ interface DirectMemberUsage {
   propertyName: string;
 }
 
+type EnumValueResolver = (node: Node) => boolean;
+
 interface ScopeObjectUsage {
   propertyNames: Set<string>;
   directMembers: DirectMemberUsage[];
@@ -57,11 +60,16 @@ function hasTypeAnnotation(identifier: Identifier): boolean {
   return "typeAnnotation" in identifier && identifier.typeAnnotation !== undefined;
 }
 
-function directPropertyBinding(context: Rule.RuleContext, declarator: VariableDeclarator): PropertyBinding | undefined {
+function directPropertyBinding(
+  context: Rule.RuleContext,
+  declarator: VariableDeclarator,
+  isEnumValue: EnumValueResolver,
+): PropertyBinding | undefined {
   if (declarator.id.type !== "Identifier" || hasTypeAnnotation(declarator.id)) return undefined;
   if (declarator.init?.type !== "MemberExpression") return undefined;
 
   const member = declarator.init;
+  if (isEnumValue(member.object)) return undefined;
   if (member.computed || member.optional || member.property.type !== "Identifier") return undefined;
   if (!memberCanBecomeLocal(member)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
@@ -145,6 +153,48 @@ function memberCanBecomeLocal(member: MemberExpression): boolean {
   return member.property.type === "Identifier" && isCompliantLocalName(member.property.name);
 }
 
+function isEnumDefinition(definition: unknown): boolean {
+  return (
+    typeof definition === "object" && definition !== null && "type" in definition && definition.type === "TSEnumName"
+  );
+}
+
+function localEnumBinding(context: Rule.RuleContext, node: Node): boolean {
+  if (node.type !== "Identifier") return false;
+
+  let scope = context.sourceCode.getScope(node);
+  for (;;) {
+    const variable = scope.variables.find(({ name }) => name === node.name);
+    if (variable) return variable.defs.some(isEnumDefinition);
+    if (scope.upper === null) return false;
+    scope = scope.upper;
+  }
+}
+
+function enumValueResolver(context: Rule.RuleContext): EnumValueResolver {
+  const services = typedParserServices(context.sourceCode.parserServices);
+  if (!services) return (node) => localEnumBinding(context, node);
+
+  const checker = services.program.getTypeChecker();
+  const { esTreeNodeToTSNodeMap: nodeMap } = services;
+
+  const isEnumSymbol = (symbol: ts.Symbol): boolean => {
+    const resolved = symbol.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+    return (resolved.declarations ?? []).some((declaration) => ts.isEnumDeclaration(declaration));
+  };
+
+  return (node) => {
+    const tsNode = nodeMap.get(node);
+    if (!tsNode) return localEnumBinding(context, node);
+
+    const symbol = checker.getSymbolAtLocation(tsNode);
+    if (symbol && isEnumSymbol(symbol)) return true;
+
+    const typeSymbol = checker.getTypeAtLocation(tsNode).getSymbol();
+    return typeSymbol ? isEnumSymbol(typeSymbol) : localEnumBinding(context, node);
+  };
+}
+
 function directMappingRequiresQualifiedAccess(
   context: Rule.RuleContext,
   ownershipResolver: ContractOwnershipResolver | undefined,
@@ -162,8 +212,13 @@ function memberCanBeDestructured(
   context: Rule.RuleContext,
   ownershipResolver: ContractOwnershipResolver | undefined,
   member: MemberExpression,
+  isEnumValue: EnumValueResolver,
 ): boolean {
-  return memberCanBecomeLocal(member) && !directMappingRequiresQualifiedAccess(context, ownershipResolver, member);
+  return (
+    !isEnumValue(member.object) &&
+    memberCanBecomeLocal(member) &&
+    !directMappingRequiresQualifiedAccess(context, ownershipResolver, member)
+  );
 }
 
 function objectUsage(scope: UsageScope, sourceText: string): ScopeObjectUsage {
@@ -199,9 +254,10 @@ function recordMemberUsage(
   scope: UsageScope | undefined,
   ownershipResolver: ContractOwnershipResolver | undefined,
   member: MemberExpression,
+  isEnumValue: EnumValueResolver,
 ): void {
   if (!scope || member.computed || member.optional || member.property.type !== "Identifier") return;
-  if (!memberCanBeDestructured(context, ownershipResolver, member)) return;
+  if (!memberCanBeDestructured(context, ownershipResolver, member, isEnumValue)) return;
   if (!isGroupedUsageSource(member.object) || !memberIsRead(context, member)) return;
 
   const sourceText = context.sourceCode.getText(member.object);
@@ -218,12 +274,13 @@ function recordDestructuringUsage(
   context: Rule.RuleContext,
   scope: UsageScope | undefined,
   declaration: VariableDeclaration,
+  isEnumValue: EnumValueResolver,
 ): void {
   if (!scope) return;
 
   for (const declarator of declaration.declarations) {
     if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isGroupedUsageSource(declarator.init)) continue;
-    if (rootIdentifierName(declarator.init) === "locales") continue;
+    if (rootIdentifierName(declarator.init) === "locales" || isEnumValue(declarator.init)) continue;
 
     const sourceText = context.sourceCode.getText(declarator.init);
     const usage = objectUsage(scope, sourceText);
@@ -290,6 +347,7 @@ function groupedDeclarations(
   context: Rule.RuleContext,
   declaration: VariableDeclaration,
   firstBinding: PropertyBinding,
+  isEnumValue: EnumValueResolver,
 ): { declaration: VariableDeclaration; binding: PropertyBinding }[] {
   if (declaration.declarations.length !== 1) {
     return [{ declaration, binding: firstBinding }];
@@ -316,7 +374,7 @@ function groupedDeclarations(
     const nextDeclarator = nextNode.declarations[0];
     if (!nextDeclarator) break;
 
-    const nextBinding = directPropertyBinding(context, nextDeclarator);
+    const nextBinding = directPropertyBinding(context, nextDeclarator, isEnumValue);
     if (nextBinding?.sourceText !== firstBinding.sourceText) break;
     if (seenProperties.has(nextBinding.propertyName)) break;
 
@@ -335,12 +393,13 @@ function groupedDeclarations(
 function destructuringSelection(
   context: Rule.RuleContext,
   declaration: VariableDeclaration,
+  isEnumValue: EnumValueResolver,
 ): DestructuringSelection | undefined {
   if (declaration.declarations.length !== 1) return undefined;
 
   const declarator = declaration.declarations[0];
   if (declarator?.id.type !== "ObjectPattern" || !declarator.init) return undefined;
-  if (rootIdentifierName(declarator.init) === "locales") return undefined;
+  if (rootIdentifierName(declarator.init) === "locales" || isEnumValue(declarator.init)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const bindingTexts: string[] = [];
@@ -379,6 +438,7 @@ function destructuringSelection(
 function groupedDestructuringSelections(
   context: Rule.RuleContext,
   first: DestructuringSelection,
+  isEnumValue: EnumValueResolver,
 ): DestructuringSelection[] {
   const parent = context.sourceCode.getAncestors(first.declaration).at(-1);
   if (parent?.type !== "Program" && parent?.type !== "BlockStatement") return [first];
@@ -395,7 +455,7 @@ function groupedDestructuringSelections(
     const previous = group.at(-1)?.declaration;
     if (!previous || nextNode?.type !== "VariableDeclaration" || nextNode.kind !== first.declaration.kind) break;
 
-    const next = destructuringSelection(context, nextNode);
+    const next = destructuringSelection(context, nextNode, isEnumValue);
     if (next?.sourceText !== first.sourceText) break;
     if (next.propertyNames.some((propertyName) => seenProperties.has(propertyName))) break;
 
@@ -449,6 +509,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
   },
   create(context) {
     const ownershipResolver = contractOwnershipResolver(context);
+    const isEnumValue = enumValueResolver(context);
     const grouped = new Set<VariableDeclaration>();
     const usageScopes: (UsageScope | undefined)[] = [];
 
@@ -524,15 +585,25 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       ArrowFunctionExpression: enterUsageBarrier,
       "ArrowFunctionExpression:exit": exitUsageScope,
       MemberExpression(node) {
-        recordMemberUsage(context, currentUsageScope(), ownershipResolver, node);
+        recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue);
       },
       VariableDeclaration(node) {
-        recordDestructuringUsage(context, currentUsageScope(), node);
+        for (const declarator of node.declarations) {
+          if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isEnumValue(declarator.init)) continue;
+
+          const sourceText = context.sourceCode.getText(declarator.init);
+          context.report({
+            node: declarator.id,
+            message: `"${sourceText}" is an enum. Keep enum member accesses qualified instead of destructuring it. ${DOC}`,
+          });
+        }
+
+        recordDestructuringUsage(context, currentUsageScope(), node, isEnumValue);
         if (grouped.has(node)) return;
 
-        const selection = destructuringSelection(context, node);
+        const selection = destructuringSelection(context, node, isEnumValue);
         if (selection) {
-          const group = groupedDestructuringSelections(context, selection);
+          const group = groupedDestructuringSelections(context, selection, isEnumValue);
           if (group.length <= 1) return;
 
           for (const item of group.slice(1)) grouped.add(item.declaration);
@@ -561,7 +632,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         }
 
         const bindings = node.declarations
-          .map((declarator) => directPropertyBinding(context, declarator))
+          .map((declarator) => directPropertyBinding(context, declarator, isEnumValue))
           .filter((binding): binding is PropertyBinding => binding !== undefined);
         if (bindings.length === 0) return;
 
@@ -592,7 +663,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         }
 
         if (node.declarations.length === 1 && bindings.length === 1) {
-          const group = groupedDeclarations(context, node, firstBinding);
+          const group = groupedDeclarations(context, node, firstBinding, isEnumValue);
 
           if (group.length > 1) {
             for (const item of group.slice(1)) grouped.add(item.declaration);
