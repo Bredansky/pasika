@@ -32,6 +32,7 @@ const DOC = "See docs/next-tailwind-guide/rules/class-composition-rule.md";
 const TEMPLATE_MESSAGE = `Use cn() instead of template literals with conditionals for className. ${DOC}`;
 const PLUS_MESSAGE = `Use cn() instead of + operator for className. ${DOC}`;
 const STATIC_MESSAGE = `Static className with more than 5 classes must use cn() with grouped string literals. ${DOC}`;
+const CVA_MESSAGE = `Static cva class list with more than 5 classes must use cn() with grouped string literals. ${DOC}`;
 const GROUP_MESSAGE = `Each cn() string argument must contain at most 5 class names. Group by styling concern. ${DOC}`;
 const CONDITIONAL_MESSAGE = `Use cn() for conditional classes in className. ${DOC}`;
 
@@ -163,6 +164,16 @@ void describe("A static class list with more than five class names MUST use cn w
         code: '<article className={cn("rounded-lg border border-border", "bg-card shadow-sm", "px-6 py-4")} />',
         filename: srcFile("shared/card.tsx"),
       },
+      {
+        code:
+          'const buttonVariants = cva(cn("inline-flex items-center justify-center", "gap-2 whitespace-nowrap rounded-md", "text-sm font-medium transition-all"));',
+        filename: srcFile("shared/button.tsx"),
+      },
+      {
+        code:
+          'const buttonVariants = cva("inline-flex", { variants: { size: { lg: cn("h-10 rounded-md px-6", "shadow-sm transition-all") } } });',
+        filename: srcFile("shared/button.tsx"),
+      },
     ],
     invalid: [
       {
@@ -173,6 +184,24 @@ void describe("A static class list with more than five class names MUST use cn w
       {
         code: '<article className={cn("rounded-lg border border-border bg-card px-6 py-4 shadow-sm")} />',
         filename: srcFile("shared/card.tsx"),
+        errors: [{ message: GROUP_MESSAGE }],
+      },
+      {
+        code:
+          'const buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all");',
+        filename: srcFile("shared/button.tsx"),
+        errors: [{ message: CVA_MESSAGE }],
+      },
+      {
+        code:
+          'const buttonVariants = cva("inline-flex", { variants: { size: { lg: "h-10 rounded-md px-6 shadow-sm transition-all font-medium" } } });',
+        filename: srcFile("shared/button.tsx"),
+        errors: [{ message: CVA_MESSAGE }],
+      },
+      {
+        code:
+          'const buttonVariants = cva(cn("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm"));',
+        filename: srcFile("shared/button.tsx"),
         errors: [{ message: GROUP_MESSAGE }],
       },
     ],
