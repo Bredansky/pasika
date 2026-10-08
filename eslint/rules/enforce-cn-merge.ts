@@ -59,9 +59,7 @@ function staticClassLiterals(node: ESTree.Node | null | undefined): ESTree.Liter
   }
 
   if (node.type === "ArrayExpression") {
-    return node.elements.flatMap((element) =>
-      element?.type === "SpreadElement" ? [] : staticClassLiterals(element),
-    );
+    return node.elements.flatMap((element) => (element?.type === "SpreadElement" ? [] : staticClassLiterals(element)));
   }
 
   if (node.type === "ConditionalExpression") {
@@ -202,7 +200,6 @@ export const enforceCnMergeRule = {
             message:
               "Static className with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
-          return;
         }
       },
     };
