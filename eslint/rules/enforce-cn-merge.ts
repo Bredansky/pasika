@@ -41,6 +41,38 @@ function stringArguments(node: ESTree.Node | null | undefined): string[] {
   return [];
 }
 
+function staticClassLiterals(node: ESTree.Node | null | undefined): ESTree.Literal[] {
+  if (!node) return [];
+  if (node.type === "Literal" && typeof node.value === "string") return [node];
+
+  if (node.type === "CallExpression") {
+    if (node.callee.type === "Identifier" && node.callee.name === "cn") return [];
+    return node.arguments.flatMap((argument) =>
+      argument.type === "SpreadElement" ? [] : staticClassLiterals(argument),
+    );
+  }
+
+  if (node.type === "ObjectExpression") {
+    return node.properties.flatMap((property) =>
+      property.type === "Property" ? staticClassLiterals(property.value) : [],
+    );
+  }
+
+  if (node.type === "ArrayExpression") {
+    return node.elements.flatMap((element) => (element?.type === "SpreadElement" ? [] : staticClassLiterals(element)));
+  }
+
+  if (node.type === "ConditionalExpression") {
+    return [...staticClassLiterals(node.consequent), ...staticClassLiterals(node.alternate)];
+  }
+
+  if (node.type === "LogicalExpression") {
+    return [...staticClassLiterals(node.left), ...staticClassLiterals(node.right)];
+  }
+
+  return [];
+}
+
 export const enforceCnMergeRule = {
   meta: { schema: [], type: "problem" as const, docs: { description: "Enforce cn() for conditional class merging." } },
   create(context: Rule.RuleContext) {
@@ -61,6 +93,36 @@ export const enforceCnMergeRule = {
     }
 
     return {
+      CallExpression(node: ESTree.CallExpression) {
+        if (node.callee.type !== "Identifier") return;
+
+        if (node.callee.name === "cn") {
+          for (const argument of node.arguments) {
+            if (argument.type !== "Literal" || typeof argument.value !== "string" || classCount(argument.value) <= 5) {
+              continue;
+            }
+            context.report({
+              node: argument,
+              message:
+                "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/next-tailwind-guide/rules/class-composition-rule.md",
+            });
+          }
+          return;
+        }
+
+        if (node.callee.name !== "cva") return;
+        for (const argument of node.arguments) {
+          if (argument.type === "SpreadElement") continue;
+          for (const literal of staticClassLiterals(argument)) {
+            if (typeof literal.value !== "string" || classCount(literal.value) <= 5) continue;
+            context.report({
+              node: literal,
+              message:
+                "Static cva class list with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
+            });
+          }
+        }
+      },
       JSXAttribute(node: JsxAttributeNode) {
         const attributeName = node.name?.name ?? "";
         const element = node.parent.parent;
@@ -138,18 +200,6 @@ export const enforceCnMergeRule = {
             message:
               "Static className with more than 5 classes must use cn() with grouped string literals. See docs/next-tailwind-guide/rules/class-composition-rule.md",
           });
-          return;
-        }
-        if (expr.type === "CallExpression" && expr.callee.type === "Identifier" && expr.callee.name === "cn") {
-          for (const arg of expr.arguments) {
-            if (arg.type === "Literal" && typeof arg.value === "string" && classCount(arg.value) > 5) {
-              context.report({
-                node: arg,
-                message:
-                  "Each cn() string argument must contain at most 5 class names. Group by styling concern. See docs/next-tailwind-guide/rules/class-composition-rule.md",
-              });
-            }
-          }
         }
       },
     };
