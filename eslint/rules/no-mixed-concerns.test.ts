@@ -26,6 +26,14 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         filename: srcFile("features/nav/menu.tsx"),
       },
       {
+        code: 'export const metadata = { title: "Home" };\nexport default function RootLayout() { return <main />; }',
+        filename: srcFile("app/layout.tsx"),
+      },
+      {
+        code: 'export const viewport = { width: "device-width" };\nexport function Page() { return <main />; }\nexport function generateMetadata() { return { title: "Home" }; }',
+        filename: srcFile("app/page.tsx"),
+      },
+      {
         code: "function Menu() { return <nav />; }\nexport { Menu };",
         filename: srcFile("features/nav/menu.tsx"),
       },
@@ -66,6 +74,16 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
       {
         code: 'export function Dialog() { return <div />; }\nexport * from "./dialog-content";',
         filename: srcFile("shared/dialog.tsx"),
+        errors: 1,
+      },
+      {
+        code: 'export const metadata = { title: "Wrong" };\nexport function Menu() { return <nav />; }',
+        filename: srcFile("features/nav/menu.tsx"),
+        errors: 1,
+      },
+      {
+        code: "export const extra = true;\nexport function Page() { return <main />; }",
+        filename: srcFile("app/page.tsx"),
         errors: 1,
       },
       {
