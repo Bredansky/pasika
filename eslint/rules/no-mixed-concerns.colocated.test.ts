@@ -36,7 +36,7 @@ process.chdir(root);
 const filename = (relative: string): string => path.join(root, "src", relative);
 const code = (relative: string): string => FIXTURE[relative] ?? "";
 
-void describe("A supporting non-component export from a component MAY stay in its .tsx file when every consumer also imports the component.", () => {
+void describe("A supporting non-component export from a component MUST stay in its .tsx file when every consumer also imports the component.", () => {
   ruleTester.run("no-mixed-concerns", noMixedConcernsRule, {
     valid: [
       { filename: filename("features/ui/badge.tsx"), code: code("features/ui/badge.tsx") },

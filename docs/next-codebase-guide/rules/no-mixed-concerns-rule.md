@@ -4,7 +4,7 @@ One component per file keeps components easy to find and change independently. T
 
 - A `.tsx` file that defines a component MUST NOT contain a second component.
 - A component `.tsx` file MUST NOT re-export another component.
-- A supporting non-component export from a component MAY stay in its `.tsx` file when every consumer also imports the component.
+- A supporting non-component export from a component MUST stay in its `.tsx` file when every consumer also imports the component.
 
 ## Incorrect — Two Components in One File
 
