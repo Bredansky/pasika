@@ -66,6 +66,14 @@ write("features/billing/components/foo.tsx", "export function Foo() { return <ma
 // A component folder missing its index barrel.
 write("features/billing/BarePanel/BarePanel.tsx", "export function BarePanel() { return <main />; }\n");
 
+write(
+  "shared/confirmation-dialog-component.tsx",
+  'export interface ConfirmationDialogProps { title: string; }\nexport function ConfirmationDialog() { return <div />; }\n',
+);
+write("shared/status-badge.tsx", "export function StatusBadge() { return <span />; }\n");
+write("shared/public-dialog/index.ts", 'export { PublicDialog } from "./public-dialog";\n');
+write("shared/public-dialog/public-dialog.tsx", "export function PublicDialog() { return <div />; }\n");
+
 process.chdir(root);
 
 const valid = (relativePath: string): { code: string; filename: string } => ({
@@ -310,6 +318,35 @@ void describe("src/app/ MUST contain Next.js App Router framework-convention fil
               "src/app/ may contain routing files and framework assets, but ordinary components and support files must live outside src/app/.",
           },
         ],
+      },
+    ],
+  });
+});
+
+void describe("A non-index .ts module MUST NOT merely forward a sibling component instead of using its public .tsx path.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [
+      {
+        code: 'export { PublicDialog } from "./public-dialog";',
+        filename: file("shared/public-dialog/index.ts"),
+      },
+      {
+        code: 'export { StatusBadge } from "./status-badge";\nexport const name = "badge";',
+        filename: file("shared/status-badge-exports.ts"),
+      },
+      {
+        code: 'export type { ConfirmationDialogProps } from "./confirmation-dialog-component";',
+        filename: file("shared/confirmation-dialog-types.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'export { ConfirmationDialog } from "./confirmation-dialog-component";\nexport type { ConfirmationDialogProps } from "./confirmation-dialog-component";',
+        filename: file("shared/confirmation-dialog.ts"),
+        errors: [{
+          message:
+            "Avoid a forwarding .ts file for a sibling component: move the implementation from confirmation-dialog-component.tsx to confirmation-dialog.tsx and remove the .ts facade.",
+        }],
       },
     ],
   });
