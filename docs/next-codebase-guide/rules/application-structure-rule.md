@@ -12,6 +12,24 @@ Without a fixed set of folders, every contributor invents a new place for code a
 - A file that does not define a component MUST have a kebab-case name.
 - A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.
 
+## Component-only forwarding files
+
+A non-`index.ts` source file that only forwards a sibling React component SHOULD
+be replaced by the component's own `.tsx` file at that public path. This avoids
+a misleading `.ts` module standing in for a component. Component-folder
+`index.ts` entry points remain required and are exempt.
+
+Incorrect:
+
+```ts
+// src/shared/confirmation-dialog.ts
+export { ConfirmationDialog } from "./confirmation-dialog-component";
+export type { ConfirmationDialogProps } from "./confirmation-dialog-component";
+```
+
+Correct: define and export `ConfirmationDialog` and its props directly in
+`src/shared/confirmation-dialog.tsx`.
+
 ## Incorrect — Invented Top-Level Folder
 
 ```text
