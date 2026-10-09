@@ -11,4 +11,152 @@ Without a fixed set of folders, every contributor invents a new place for code a
 - A support folder MUST NOT contain a component.
 - A file that does not define a component MUST have a kebab-case name.
 - A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.
-- A non-`index.ts` `.ts` file MUST NOT only re-export a sibling React component; place the component implementation in the `.tsx` file at the public import path instead. Component-folder `index.ts` entry points remain required.
+- A non-`index.ts` `.ts` file MUST NOT only re-export a sibling React component; the component implementation belongs in the `.tsx` file at its public import path. Component-folder `index.ts` entry points remain required.
+
+## Incorrect — Component Hidden Behind a Forwarding Module
+
+```ts
+// src/shared/confirmation-dialog.ts
+export { ConfirmationDialog } from "./confirmation-dialog-component";
+export type { ConfirmationDialogProps } from "./confirmation-dialog-component";
+```
+
+Why: the public path is a forwarding TypeScript file even though the component could be defined there directly.
+
+## Correct — Component Defined at Its Public Path
+
+```tsx
+// src/shared/confirmation-dialog.tsx
+export interface ConfirmationDialogProps {
+  title: string;
+}
+
+export function ConfirmationDialog({ title }: ConfirmationDialogProps): React.JSX.Element {
+  return <div>{title}</div>;
+}
+```
+
+Why: the public file defines and exports the component itself, without an unnecessary forwarding layer.
+
+## Incorrect — Invented Top-Level Folder
+
+```text
+src/
+├── app/
+├── features/
+├── lib/
+│   └── format-date.ts
+└── components/
+    └── button.tsx
+```
+
+Why: `lib/` and `components/` sit beside the layer folders, so two more places now compete with `src/utils/` and `src/shared/` for the same kinds of file.
+
+## Correct — Only Layer and Support Folders
+
+```text
+src/
+├── app/
+├── features/
+├── shared/
+│   └── button.tsx
+└── utils/
+    └── format-date.ts
+```
+
+Why: every folder under `src/` is either a layer or a support folder, so each kind of file has exactly one home.
+
+## Incorrect — Support Folder Directly Under `src/features/`
+
+```text
+src/features/
+├── billing/
+│   └── invoice.tsx
+└── utils/
+    └── format-amount.ts
+```
+
+Why: `src/features/utils/` belongs to no feature, so a file placed there is shared by every feature without living in a shared layer.
+
+## Correct — Support Folder Inside a Feature
+
+```text
+src/features/
+└── billing/
+    ├── invoice.tsx
+    └── utils/
+        └── format-amount.ts
+```
+
+Why: the support folder sits inside the feature that owns it, so its scope matches its location.
+
+## Incorrect — Component Inside a Support Folder
+
+```text
+src/features/billing/
+├── invoice.tsx
+└── utils/
+    ├── calculate-total.ts
+    └── invoice-row.tsx
+```
+
+Why: a component sits in the folder reserved for pure functions, so the folder no longer tells a reader what kind of file it holds.
+
+## Correct — Component Beside Its Feature's Support Folder
+
+```text
+src/features/billing/
+├── invoice.tsx
+├── invoice-row.tsx
+└── utils/
+    └── calculate-total.ts
+```
+
+Why: the component sits at the feature scope and the support folder holds only pure functions.
+
+## Incorrect — Non-Support Folder Without Its Component
+
+```text
+src/features/billing/
+├── invoice.tsx
+└── random-folder/
+    └── helper.ts
+```
+
+Why: `random-folder/` is neither a support folder nor a component folder — nothing inside it is named after it, so a reader cannot tell what it holds.
+
+## Correct — Component Folder Named After Its Component
+
+```text
+src/features/billing/
+├── invoice.tsx
+└── InvoicePanel/
+    ├── index.ts
+    └── InvoicePanel.tsx
+```
+
+Why: `InvoicePanel/` is a component folder: it holds `InvoicePanel.tsx` and its `index.ts` re-exports that component.
+
+## Incorrect — Support File Named Like a Component
+
+```text
+src/features/billing/
+├── hooks/
+│   └── useInvoiceSort.ts
+└── utils/
+    └── formatAmount.ts
+```
+
+Why: the hook and the utility carry component casing, so a reader scanning the tree cannot tell them apart from smart component files.
+
+## Correct — Support File Named in kebab-case
+
+```text
+src/features/billing/
+├── hooks/
+│   └── use-invoice-sort.ts
+└── utils/
+    └── format-amount.ts
+```
+
+Why: every file that does not define a component reads the same way, leaving PascalCase to mean "smart component".
