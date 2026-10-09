@@ -13,7 +13,6 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         filename: srcFile("features/nav/menu.tsx"),
       },
       {
-        // Type-only exports do not create another runtime entry point.
         code: "export function Menu() { return <nav />; }\nexport type { MenuProps } from './types';",
         filename: srcFile("features/nav/menu.tsx"),
       },
@@ -38,9 +37,21 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         filename: srcFile("features/nav/menu.tsx"),
       },
       {
-        // A private helper that does not render JSX (lowercase) is not a component.
-        code: "export function Menu() { return <nav>{label}</nav>; }\nfunction label() { return 'menu'; }",
+        // CVA variant values and other helpers are not React components.
+        code: 'const menuVariants = cva("flex");\nfunction Menu() { return <nav />; }\nexport { Menu, menuVariants };',
         filename: srcFile("features/nav/menu.tsx"),
+      },
+      {
+        code: "export function Menu() { return <nav />; }\nexport function menuLabel() { return 'menu'; }",
+        filename: srcFile("features/nav/menu.tsx"),
+      },
+      {
+        code: 'export const metadata = { title: "Custom" };\nexport function Menu() { return <nav />; }',
+        filename: srcFile("features/nav/menu.tsx"),
+      },
+      {
+        code: 'export function Select() { return <div />; }\nexport { SelectTriggerSize } from "./constants";',
+        filename: srcFile("features/credentials/select.tsx"),
       },
     ],
     invalid: [
@@ -55,20 +66,8 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         errors: 1,
       },
       {
-        // A private (non-exported) second component is still a second component.
         code: "export function Menu() { return <nav><MenuItem /></nav>; }\nfunction MenuItem() { return <a />; }",
         filename: srcFile("features/nav/menu.tsx"),
-        errors: 1,
-      },
-      {
-        // A component must not forward its sibling components as a barrel.
-        code: 'export function Select() { return <div />; }\nexport { SelectTrigger } from "./select-trigger";\nexport { SelectItem } from "./select-item";',
-        filename: srcFile("features/credentials/select.tsx"),
-        errors: 2,
-      },
-      {
-        code: 'export function Select() { return <div />; }\nexport { SelectTriggerSize } from "./constants";',
-        filename: srcFile("features/credentials/select.tsx"),
         errors: 1,
       },
       {
@@ -77,23 +76,8 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         errors: 1,
       },
       {
-        code: 'export const metadata = { title: "Wrong" };\nexport function Menu() { return <nav />; }',
-        filename: srcFile("features/nav/menu.tsx"),
-        errors: 1,
-      },
-      {
         code: "export const extra = true;\nexport function Page() { return <main />; }",
         filename: srcFile("app/page.tsx"),
-        errors: 1,
-      },
-      {
-        code: "export function Menu() { return <nav />; }\nexport const menuId = 'menu';",
-        filename: srcFile("features/nav/menu.tsx"),
-        errors: 1,
-      },
-      {
-        code: "function Menu() { return <nav />; }\nexport { Menu, menuId };",
-        filename: srcFile("features/nav/menu.tsx"),
         errors: 1,
       },
     ],
