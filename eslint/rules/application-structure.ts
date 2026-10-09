@@ -14,6 +14,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { hasComponentOwner, hasExactEntry, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 import { parseModule, type ExportKind } from "../project/parse-module";
+import { parseComponentInfo } from "./component-conventions";
 import { sourceRootOf } from "./project-root";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -136,6 +137,39 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
   return undefined;
 }
 
+/**
+ * A non-index .ts file must not serve only as a forwarding alias for a sibling
+ * component. Keep the implementation at the public .tsx path instead.
+ * index.ts remains the required entry point for component folders.
+ */
+function componentFacadeTarget(context: Rule.RuleContext, filename: string): string | undefined {
+  if (path.extname(filename) !== ".ts" || path.basename(filename) === "index.ts") return undefined;
+  const statements = context.sourceCode.ast.body;
+  if (statements.length === 0 || !statements.every((statement) =>
+    statement.type === "ExportNamedDeclaration" && statement.source !== null && statement.specifiers.length > 0
+  )) return undefined;
+
+  const targets = statements.map((statement) => {
+    if (statement.type !== "ExportNamedDeclaration" || !statement.source) return undefined;
+    return typeof statement.source.value === "string" ? statement.source.value : undefined;
+  });
+  if (targets.some((target) => !target || !target.startsWith("./")) || new Set(targets).size !== 1) return undefined;
+
+  const target = targets[0];
+  if (!target) return undefined;
+  const resolved = path.resolve(path.dirname(filename), target);
+  const componentFile = path.extname(resolved) ? resolved : `${resolved}.tsx`;
+  if (path.extname(componentFile) !== ".tsx" || !fs.existsSync(componentFile)) return undefined;
+  try {
+    const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
+    const exported = statements.flatMap((statement) => statement.type === "ExportNamedDeclaration"
+      ? statement.specifiers.map((specifier) => specifier.local.name) : []);
+    return components.some((component) => exported.includes(component.name)) ? componentFile : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export const applicationStructureRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -149,6 +183,14 @@ export const applicationStructureRule: Rule.RuleModule = {
     const sourceRoot = sourceRootOf(context);
     const segments = segmentsOf(filename, sourceRoot);
     if (segments.length === 0) return {};
+
+    const componentTarget = componentFacadeTarget(context, filename);
+    if (componentTarget) {
+      return report(
+        context,
+        `Avoid a forwarding .ts file for a sibling component: move the implementation from ${path.basename(componentTarget)} to ${path.basename(filename, ".ts")}.tsx and remove the .ts facade.`,
+      );
+    }
 
     const [topLevel, secondLevel] = segments;
     if (topLevel === undefined) return {};
