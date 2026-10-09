@@ -14,6 +14,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { hasComponentOwner, hasExactEntry, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 import { parseModule, type ExportKind } from "../project/parse-module";
+import { parseComponentInfo } from "./component-conventions";
 import { sourceRootOf } from "./project-root";
 
 const MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"]);
@@ -136,6 +137,32 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
   return undefined;
 }
 
+/** Detect a component forwarded through a non-index TypeScript module. */
+function componentFacadeTarget(context: Rule.RuleContext, filename: string): string | undefined {
+  if (path.extname(filename) !== ".ts" || path.basename(filename) === "index.ts") return undefined;
+
+  const statements = context.sourceCode.ast.body;
+  if (statements.length === 0 || statements.some((node) => node.type !== "ExportNamedDeclaration" || !node.source)) {
+    return undefined;
+  }
+
+  const exports = statements.flatMap((node) => (node.type === "ExportNamedDeclaration" ? node.specifiers : []));
+  const sources = statements.map((node) => (node.type === "ExportNamedDeclaration" ? node.source?.value : undefined));
+  if (new Set(sources).size !== 1 || typeof sources[0] !== "string" || !sources[0].startsWith("./")) {
+    return undefined;
+  }
+
+  const componentFile = path.resolve(path.dirname(filename), `${sources[0]}.tsx`);
+  if (!fs.existsSync(componentFile)) return undefined;
+
+  const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
+  return components.some(({ name }) =>
+    exports.some((specifier) => specifier.local.type === "Identifier" && specifier.local.name === name),
+  )
+    ? componentFile
+    : undefined;
+}
+
 export const applicationStructureRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -149,6 +176,14 @@ export const applicationStructureRule: Rule.RuleModule = {
     const sourceRoot = sourceRootOf(context);
     const segments = segmentsOf(filename, sourceRoot);
     if (segments.length === 0) return {};
+
+    const componentTarget = componentFacadeTarget(context, filename);
+    if (componentTarget) {
+      return report(
+        context,
+        `Avoid a forwarding .ts file for a sibling component: move the implementation from ${path.basename(componentTarget)} to ${path.basename(filename, ".ts")}.tsx and remove the .ts facade.`,
+      );
+    }
 
     const [topLevel, secondLevel] = segments;
     if (topLevel === undefined) return {};
