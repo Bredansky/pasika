@@ -68,7 +68,7 @@ write("features/billing/BarePanel/BarePanel.tsx", "export function BarePanel() {
 
 write(
   "shared/confirmation-dialog-component.tsx",
-  'export interface ConfirmationDialogProps { title: string; }\nexport function ConfirmationDialog() { return <div />; }\n',
+  "export interface ConfirmationDialogProps { title: string; }\nexport function ConfirmationDialog() { return <div />; }\n",
 );
 write("shared/status-badge.tsx", "export function StatusBadge() { return <span />; }\n");
 write("shared/public-dialog/index.ts", 'export { PublicDialog } from "./public-dialog";\n');
@@ -343,10 +343,12 @@ void describe("A non-index .ts module MUST NOT merely forward a sibling componen
       {
         code: 'export { ConfirmationDialog } from "./confirmation-dialog-component";\nexport type { ConfirmationDialogProps } from "./confirmation-dialog-component";',
         filename: file("shared/confirmation-dialog.ts"),
-        errors: [{
-          message:
-            "Avoid a forwarding .ts file for a sibling component: move the implementation from confirmation-dialog-component.tsx to confirmation-dialog.tsx and remove the .ts facade.",
-        }],
+        errors: [
+          {
+            message:
+              "Avoid a forwarding .ts file for a sibling component: move the implementation from confirmation-dialog-component.tsx to confirmation-dialog.tsx and remove the .ts facade.",
+          },
+        ],
       },
     ],
   });
