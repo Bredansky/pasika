@@ -43,10 +43,29 @@ export const noMixedConcernsRule: Rule.RuleModule = {
 
         const componentName = components[0]?.name;
         if (!componentName) return;
+        const isNextPageOrLayout = /(?:^|[/\\])src[/\\]app[/\\](?:[^/\\]+[/\\])*(?:page|layout)\.tsx$/.test(
+          context.filename,
+        );
         for (const statement of context.sourceCode.ast.body) {
           if (statement.type === "ExportNamedDeclaration") {
             if (/^export\s+(?:type|interface)\b/.test(context.sourceCode.getText(statement))) continue;
             const declaration = statement.declaration;
+            if (
+              isNextPageOrLayout &&
+              declaration?.type === "VariableDeclaration" &&
+              declaration.declarations.every(
+                (item) => item.id.type === "Identifier" && (item.id.name === "metadata" || item.id.name === "viewport"),
+              )
+            ) {
+              continue;
+            }
+            if (
+              isNextPageOrLayout &&
+              declaration?.type === "FunctionDeclaration" &&
+              (declaration.id.name === "generateMetadata" || declaration.id.name === "generateViewport")
+            ) {
+              continue;
+            }
             if (declaration?.type === "FunctionDeclaration" && declaration.id.name === componentName) continue;
             if (
               declaration?.type === "VariableDeclaration" &&
