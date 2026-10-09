@@ -156,7 +156,9 @@ function componentFacadeTarget(context: Rule.RuleContext, filename: string): str
     const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
     if (
       components.some(({ name }) =>
-        statement.specifiers.some((specifier) => specifier.local.type === "Identifier" && specifier.local.name === name),
+        statement.specifiers.some(
+          (specifier) => specifier.local.type === "Identifier" && specifier.local.name === name,
+        ),
       )
     ) {
       return componentFile;
