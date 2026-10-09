@@ -71,6 +71,8 @@ write(
   "export interface ConfirmationDialogProps { title: string; }\nexport function ConfirmationDialog() { return <div />; }\n",
 );
 write("shared/status-badge.tsx", "export function StatusBadge() { return <span />; }\n");
+write("shared/dialog-root.tsx", "export function Dialog() { return <div />; }\n");
+write("shared/dialog-content.tsx", "export function DialogContent() { return <div />; }\n");
 write("shared/public-dialog/index.ts", 'export { PublicDialog } from "./public-dialog";\n');
 write("shared/public-dialog/public-dialog.tsx", "export function PublicDialog() { return <div />; }\n");
 
@@ -340,6 +342,16 @@ void describe("A non-index .ts module MUST NOT merely forward a sibling componen
       },
     ],
     invalid: [
+      {
+        code: 'export { Dialog } from "./dialog-root";\nexport { DialogContent } from "./dialog-content";',
+        filename: file("shared/dialog.ts"),
+        errors: [
+          {
+            message:
+              "Avoid a forwarding .ts file for a sibling component: move the implementation from dialog-root.tsx to dialog.tsx and remove the .ts facade.",
+          },
+        ],
+      },
       {
         code: 'export { ConfirmationDialog } from "./confirmation-dialog-component";\nexport type { ConfirmationDialogProps } from "./confirmation-dialog-component";',
         filename: file("shared/confirmation-dialog.ts"),

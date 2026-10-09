@@ -137,7 +137,7 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
   return undefined;
 }
 
-/** Detect a component forwarded through a non-index TypeScript module. */
+/** Detect non-index TypeScript modules that only forward sibling components. */
 function componentFacadeTarget(context: Rule.RuleContext, filename: string): string | undefined {
   if (path.extname(filename) !== ".ts" || path.basename(filename) === "index.ts") return undefined;
 
@@ -146,21 +146,25 @@ function componentFacadeTarget(context: Rule.RuleContext, filename: string): str
     return undefined;
   }
 
-  const exports = statements.flatMap((node) => (node.type === "ExportNamedDeclaration" ? node.specifiers : []));
-  const sources = statements.map((node) => (node.type === "ExportNamedDeclaration" ? node.source?.value : undefined));
-  if (new Set(sources).size !== 1 || typeof sources[0] !== "string" || !sources[0].startsWith("./")) {
-    return undefined;
+  for (const statement of statements) {
+    if (statement.type !== "ExportNamedDeclaration" || typeof statement.source?.value !== "string") continue;
+    if (!statement.source.value.startsWith("./")) return undefined;
+
+    const componentFile = path.resolve(path.dirname(filename), `${statement.source.value}.tsx`);
+    if (!fs.existsSync(componentFile)) continue;
+
+    const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
+    if (
+      components.some(({ name }) =>
+        statement.specifiers.some(
+          (specifier) => specifier.local.type === "Identifier" && specifier.local.name === name,
+        ),
+      )
+    ) {
+      return componentFile;
+    }
   }
-
-  const componentFile = path.resolve(path.dirname(filename), `${sources[0]}.tsx`);
-  if (!fs.existsSync(componentFile)) return undefined;
-
-  const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
-  return components.some(({ name }) =>
-    exports.some((specifier) => specifier.local.type === "Identifier" && specifier.local.name === name),
-  )
-    ? componentFile
-    : undefined;
+  return undefined;
 }
 
 export const applicationStructureRule: Rule.RuleModule = {
