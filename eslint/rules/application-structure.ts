@@ -156,7 +156,9 @@ function componentFacadeTarget(context: Rule.RuleContext, filename: string): str
   if (!fs.existsSync(componentFile)) return undefined;
 
   const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
-  return components.some(({ name }) => exports.some((specifier) => specifier.local.name === name)) ? componentFile : undefined;
+  return components.some(({ name }) => exports.some((specifier) => specifier.local.name === name))
+    ? componentFile
+    : undefined;
 }
 
 export const applicationStructureRule: Rule.RuleModule = {
