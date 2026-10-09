@@ -137,37 +137,28 @@ function componentFolderViolation(segments: string[], sourceRoot: string): strin
   return undefined;
 }
 
-/**
- * A non-index .ts file must not serve only as a forwarding alias for a sibling
- * component. Keep the implementation at the public .tsx path instead.
- * index.ts remains the required entry point for component folders.
- */
+/** Detect a component forwarded through a non-index TypeScript module. */
 function componentFacadeTarget(context: Rule.RuleContext, filename: string): string | undefined {
   if (path.extname(filename) !== ".ts" || path.basename(filename) === "index.ts") return undefined;
+
   const statements = context.sourceCode.ast.body;
-  if (statements.length === 0 || !statements.every((statement) =>
-    statement.type === "ExportNamedDeclaration" && statement.source !== null && statement.specifiers.length > 0
-  )) return undefined;
-
-  const targets = statements.map((statement) => {
-    if (statement.type !== "ExportNamedDeclaration" || !statement.source) return undefined;
-    return typeof statement.source.value === "string" ? statement.source.value : undefined;
-  });
-  if (targets.some((target) => !target || !target.startsWith("./")) || new Set(targets).size !== 1) return undefined;
-
-  const target = targets[0];
-  if (!target) return undefined;
-  const resolved = path.resolve(path.dirname(filename), target);
-  const componentFile = path.extname(resolved) ? resolved : `${resolved}.tsx`;
-  if (path.extname(componentFile) !== ".tsx" || !fs.existsSync(componentFile)) return undefined;
-  try {
-    const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
-    const exported = statements.flatMap((statement) => statement.type === "ExportNamedDeclaration"
-      ? statement.specifiers.map((specifier) => specifier.local.name) : []);
-    return components.some((component) => exported.includes(component.name)) ? componentFile : undefined;
-  } catch {
+  if (statements.length === 0 || statements.some((node) => node.type !== "ExportNamedDeclaration" || !node.source)) {
     return undefined;
   }
+
+  const exports = statements.flatMap((node) => node.type === "ExportNamedDeclaration" ? node.specifiers : []);
+  const sources = statements.map((node) => node.type === "ExportNamedDeclaration" ? node.source?.value : undefined);
+  if (new Set(sources).size !== 1 || typeof sources[0] !== "string" || !sources[0].startsWith("./")) {
+    return undefined;
+  }
+
+  const componentFile = path.resolve(path.dirname(filename), `${sources[0]}.tsx`);
+  if (!fs.existsSync(componentFile)) return undefined;
+
+  const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
+  return components.some(({ name }) => exports.some((specifier) => specifier.local.name === name))
+    ? componentFile
+    : undefined;
 }
 
 export const applicationStructureRule: Rule.RuleModule = {
