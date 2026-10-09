@@ -3,6 +3,8 @@
 One component per file keeps components easy to find and change independently. This rule fixes how many components a component file holds.
 
 - A `.tsx` file that defines a component MUST NOT contain a second component.
+- A component `.tsx` file MUST NOT re-export another component.
+- A supporting non-component export from a component MAY stay in its `.tsx` file when every consumer also imports the component.
 
 ## Incorrect — Two Components in One File
 
@@ -61,3 +63,38 @@ export function Menu(): React.JSX.Element {
 ```
 
 Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable.
+
+## Incorrect — Importing a Colocated Variant Without Its Component
+
+```tsx
+// badge.tsx
+const badgeVariants = cva("inline-flex");
+function Badge() {
+  return <span />;
+}
+export { Badge, badgeVariants };
+
+// elsewhere.ts
+import { badgeVariants } from "./badge";
+```
+
+Why: the consumer only needs the variants, so the variants belong in a separate module.
+
+## Correct — Importing a Colocated Variant With Its Component
+
+```tsx
+// badge.tsx
+const badgeVariants = cva("inline-flex");
+function Badge() {
+  return <span className={badgeVariants()} />;
+}
+export { Badge, badgeVariants };
+
+// elsewhere.tsx
+import { Badge, badgeVariants } from "./badge";
+export function Preview() {
+  return <Badge className={badgeVariants()} />;
+}
+```
+
+Why: the exported styling helper remains coupled to the component that owns it.

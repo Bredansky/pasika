@@ -667,6 +667,18 @@
       "ref": "pasika/no-mixed-concerns"
     },
     {
+      "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
+      "text": "A component `.tsx` file MUST NOT re-export another component.",
+      "hash": "25c91f78c1",
+      "ref": "pasika/no-mixed-concerns"
+    },
+    {
+      "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
+      "text": "A supporting non-component export from a component MAY stay in its `.tsx` file when every consumer also imports the component.",
+      "hash": "fa159f9115",
+      "ref": "pasika/no-mixed-concerns"
+    },
+    {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.",
       "hash": "74f4efb1d9",
