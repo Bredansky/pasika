@@ -146,8 +146,8 @@ function componentFacadeTarget(context: Rule.RuleContext, filename: string): str
     return undefined;
   }
 
-  const exports = statements.flatMap((node) => node.type === "ExportNamedDeclaration" ? node.specifiers : []);
-  const sources = statements.map((node) => node.type === "ExportNamedDeclaration" ? node.source?.value : undefined);
+  const exports = statements.flatMap((node) => (node.type === "ExportNamedDeclaration" ? node.specifiers : []));
+  const sources = statements.map((node) => (node.type === "ExportNamedDeclaration" ? node.source?.value : undefined));
   if (new Set(sources).size !== 1 || typeof sources[0] !== "string" || !sources[0].startsWith("./")) {
     return undefined;
   }
@@ -156,9 +156,7 @@ function componentFacadeTarget(context: Rule.RuleContext, filename: string): str
   if (!fs.existsSync(componentFile)) return undefined;
 
   const components = parseComponentInfo(fs.readFileSync(componentFile, "utf8"), componentFile);
-  return components.some(({ name }) => exports.some((specifier) => specifier.local.name === name))
-    ? componentFile
-    : undefined;
+  return components.some(({ name }) => exports.some((specifier) => specifier.local.name === name)) ? componentFile : undefined;
 }
 
 export const applicationStructureRule: Rule.RuleModule = {
