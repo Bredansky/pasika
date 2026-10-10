@@ -2,8 +2,12 @@ import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import tsParser from "@typescript-eslint/parser";
+import { vi } from "vitest";
 import { CwdAwareRuleTester, describe, ruleTester } from "../rule-tester";
 import { preferEnumRule } from "./prefer-enum";
+
+// Typed parser-service fixture initialization can exceed 5 seconds under CI coverage.
+vi.setConfig({ testTimeout: 20_000 });
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-prefer-enum-tuples-")));
 process.chdir(root);
@@ -12,7 +16,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 const diagnostic =
   "A const tuple used as a named enum domain must be replaced with a TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A named `as const` array of distinct string or number literals used by `z.enum` or as a `typeof values[number]` domain MUST be replaced with a TypeScript `enum`.", () => {
+void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.", () => {
   ruleTester.run("prefer-enum: const tuple domain uses", preferEnumRule, {
     valid: [
       {
