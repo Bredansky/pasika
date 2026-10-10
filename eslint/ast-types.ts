@@ -148,6 +148,12 @@ export type TsAsExpressionNode = Rule.Node & {
   typeAnnotation?: TsTypeNode;
 };
 
+/** TSIndexedAccessType — `(typeof statuses)[number]` from the TypeScript parser. */
+export type TsIndexedAccessTypeNode = Rule.Node & {
+  objectType?: { type?: string; exprName?: ESTree.Identifier };
+  indexType?: { type?: string };
+};
+
 /** VariableDeclarator — local shape used by rules that inspect initializer expressions. */
 export type VariableDeclaratorNode = Rule.Node & {
   id?: ESTree.Pattern;

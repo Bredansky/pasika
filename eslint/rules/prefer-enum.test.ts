@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.", () => {
+void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
@@ -19,7 +19,7 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         code: 'enum LanguageLabel { Ukrainian = "UA", Polish = "PL", English = "EN" }',
         filename: file("constants/index.ts"),
       },
-      // `as const` on an array is a different, structurally valid pattern (e.g. feeding z.enum), not an enum candidate.
+      // An unconsumed tuple is data, not a declaration of a named domain.
       { code: 'const draftFormats = ["post_45", "carousel"] as const;', filename: file("schemas/drafts.ts") },
       // A mixed-type object cannot become an enum.
       {
