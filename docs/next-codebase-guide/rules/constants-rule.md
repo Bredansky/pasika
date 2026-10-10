@@ -14,6 +14,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.
 - A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.
 - A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, or a property declared as an inline string/number literal union.
+- A named `as const` array of distinct string or number literals used by `z.enum` or as a `typeof values[number]` domain MUST be replaced with a TypeScript `enum`.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
@@ -113,6 +114,31 @@ export enum AlignmentGuideId {
 ```
 
 Why: the enum gives the closed set one canonical runtime and type-level representation.
+
+## Incorrect — Const Tuple Used as a Named Enum Domain
+
+```ts
+export const draftMediaStatuses = ["pending", "stored", "too_large", "failed"] as const;
+export type DraftMediaStatus = (typeof draftMediaStatuses)[number];
+const draftMediaRowSchema = z.object({ status: z.enum(draftMediaStatuses) });
+```
+
+Why: the tuple defines a reusable domain in both the type system and runtime validation. Maintain one named TypeScript enum instead; this also lets different features import the same definition without duplicating string arrays.
+
+## Correct — Named Enum Used by Zod
+
+```ts
+export enum DraftMediaStatusEnum {
+  Pending = "pending",
+  Stored = "stored",
+  TooLarge = "too_large",
+  Failed = "failed",
+}
+
+const draftMediaRowSchema = z.object({ status: z.enum(DraftMediaStatusEnum) });
+```
+
+Why: the enum is the single source of truth for runtime and type-level values. Ordinary tuples used for ordering, positional data, or options are unaffected unless they define an enum-like domain.
 
 ## Incorrect — Inline Literal Union for a Property
 

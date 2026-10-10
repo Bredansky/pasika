@@ -3,21 +3,25 @@
  *
  * A fixed set of named string or number values MUST be a TypeScript enum
  * instead of an object literal marked `as const`, a literal-union type alias,
- * an inline literal-union property type, or raw Zod discriminated-union discriminator literals.
+ * an inline literal-union property type, enum-like const tuple declarations, or
+ * raw Zod discriminated-union discriminator literals.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
+import ts from "typescript";
 import type {
   CallExpressionNode,
   TsAsExpressionNode,
+  TsIndexedAccessTypeNode,
   TsPropertySignatureNode,
   TsTypeAliasDeclarationNode,
   TsTypeNode,
   VariableDeclaratorNode,
 } from "../ast-types";
+import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
@@ -89,13 +93,48 @@ function rawZodDiscriminantLiteral(
   return undefined;
 }
 
+/**
+ * A const tuple is a domain-enum substitute only when it is used to declare
+ * a named Zod enum or a named indexed-access union. Ordinary tuples (ordering,
+ * UI options, data rows) are intentionally not banned.
+ */
+function isLiteralTupleAssertion(node: TsAsExpressionNode): boolean {
+  if (!isConstAssertion(node)) return false;
+  const expression = node.expression;
+  if (expression?.type !== "ArrayExpression" || expression.elements.length < 2) return false;
+  const values = expression.elements.map((element) => {
+    if (element?.type !== "Literal") return undefined;
+    return typeof element.value === "string" || typeof element.value === "number" ? element.value : undefined;
+  });
+  return values.every((value) => value !== undefined) && new Set(values).size >= 2;
+}
+
+function isTsLiteralTupleDeclaration(declaration: ts.Declaration): boolean {
+  if (!ts.isVariableDeclaration(declaration) || !declaration.initializer) return false;
+  const init = declaration.initializer;
+  if (
+    !ts.isAsExpression(init) ||
+    !ts.isTypeReferenceNode(init.type) ||
+    !ts.isIdentifier(init.type.typeName) ||
+    init.type.typeName.text !== "const" ||
+    !ts.isArrayLiteralExpression(init.expression) ||
+    init.expression.elements.length < 2
+  ) {
+    return false;
+  }
+  const values = init.expression.elements.map((element) =>
+    ts.isStringLiteral(element) || ts.isNumericLiteral(element) ? element.text : undefined,
+  );
+  return values.every((value) => value !== undefined) && new Set(values).size >= 2;
+}
+
 export const preferEnumRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require fixed sets of named string/number values to be TypeScript enums, including Zod discriminated-union discriminator values.",
+        "Require fixed sets of named string/number values to be TypeScript enums, including named Zod enum tuples and discriminated-union discriminator values.",
     },
   },
   create(context) {
@@ -104,22 +143,65 @@ export const preferEnumRule: Rule.RuleModule = {
     if (!filename.startsWith(sourceRoot + path.sep)) return {};
 
     const objectSchemas = new Map<string, ESTree.CallExpression>();
+    const literalTuples = new Set<string>();
+    const enumTupleUses: { name: ESTree.Identifier; node: Rule.Node }[] = [];
     const discriminatedUnions: CallExpressionNode[] = [];
     const reportedDiscriminants = new Set<ESTree.Literal>();
+    const services = typedParserServices(context.sourceCode.parserServices);
+
+    function isTupleDomain(name: ESTree.Identifier): boolean {
+      // The typed resolver follows imports and lexical shadowing. The local
+      // name index is only a fallback for files linted without a TS program.
+      if (!services) return literalTuples.has(name.name);
+
+      const tsNode = services.esTreeNodeToTSNodeMap.get(name);
+      if (!tsNode) return false;
+      const checker = services.program.getTypeChecker();
+      const symbol = checker.getSymbolAtLocation(tsNode);
+      if (!symbol) return false;
+      const original = symbol.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+      return (original.declarations ?? []).some(isTsLiteralTupleDeclaration);
+    }
 
     return {
       VariableDeclarator(node: VariableDeclaratorNode) {
         const { id, init } = node;
-        if (id?.type !== "Identifier" || init?.type !== "CallExpression" || !isZodCall(init, "object")) return;
-
-        objectSchemas.set(id.name, init);
+        if (id?.type !== "Identifier" || !init) return;
+        if (init.type === "CallExpression" && isZodCall(init, "object")) {
+          objectSchemas.set(id.name, init);
+        }
       },
       CallExpression(node: CallExpressionNode) {
         if (isZodCall(node, "discriminatedUnion")) {
           discriminatedUnions.push(node);
         }
+        const argument = node.arguments?.[0];
+        if (isZodCall(node, "enum") && argument?.type === "Identifier") {
+          enumTupleUses.push({ name: argument, node });
+        }
+      },
+      TSIndexedAccessType(node: TsIndexedAccessTypeNode) {
+        const { objectType, indexType } = node;
+        if (
+          objectType?.type === "TSTypeQuery" &&
+          objectType.exprName?.type === "Identifier" &&
+          indexType?.type === "TSNumberKeyword"
+        ) {
+          enumTupleUses.push({ name: objectType.exprName, node });
+        }
       },
       "Program:exit"() {
+        const reportedTuples = new Set<string>();
+        for (const use of enumTupleUses) {
+          if (reportedTuples.has(use.name.name) || !isTupleDomain(use.name)) continue;
+          reportedTuples.add(use.name.name);
+          context.report({
+            node: use.node,
+            message:
+              "A const tuple used as a named enum domain must be replaced with a TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+          });
+        }
+
         for (const unionCall of discriminatedUnions) {
           const [discriminatorArg, optionsArg] = unionCall.arguments ?? [];
           if (
@@ -155,6 +237,11 @@ export const preferEnumRule: Rule.RuleModule = {
       },
       TSAsExpression(node: TsAsExpressionNode) {
         if (!isConstAssertion(node)) return;
+
+        if (isLiteralTupleAssertion(node) && node.parent?.type === "VariableDeclarator") {
+          const { id } = node.parent;
+          if (id.type === "Identifier") literalTuples.add(id.name);
+        }
 
         const expression = node.expression;
         if (!expression || expression.type !== "ObjectExpression") return;

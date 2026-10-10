@@ -19,7 +19,7 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         code: 'enum LanguageLabel { Ukrainian = "UA", Polish = "PL", English = "EN" }',
         filename: file("constants/index.ts"),
       },
-      // `as const` on an array is a different, structurally valid pattern (e.g. feeding z.enum), not an enum candidate.
+      // An unconsumed tuple is data, not a declaration of a named domain.
       { code: 'const draftFormats = ["post_45", "carousel"] as const;', filename: file("schemas/drafts.ts") },
       // A mixed-type object cannot become an enum.
       {

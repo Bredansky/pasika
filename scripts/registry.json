@@ -488,6 +488,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A named `as const` array of distinct string or number literals used by `z.enum` or as a `typeof values[number]` domain MUST be replaced with a TypeScript `enum`.",
+      "hash": "a61f5a8c02",
+      "ref": "pasika/prefer-enum"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
       "hash": "f9d3845ae6",
       "ref": "pasika/root-support-placement"
