@@ -5,7 +5,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.
 - A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.
 - Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.
-- Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`; modules within the same `constants/` folder MAY import their sibling files directly to avoid circular barrel imports.
+- Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.
 - A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` re-exports.
 - A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.
 - When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
