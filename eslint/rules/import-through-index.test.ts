@@ -15,7 +15,7 @@ function project(): { root: string; consumer: string } {
   return { root, consumer };
 }
 
-void describe("Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`; modules within the same `constants/` folder MAY import their sibling files directly to avoid circular barrel imports.", () => {
+void describe("Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.", () => {
   const { root, consumer } = project();
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import { maxRetries } from "./constants";', filename: consumer }],
@@ -30,7 +30,7 @@ void describe("Consumers outside a `constants/` folder MUST import extracted con
   void root;
 });
 
-void describe("Support-folder modules MAY import sibling support files directly to avoid importing their own barrel.", () => {
+void describe("Modules within the same constants folder MUST import sibling files directly to avoid their own barrel.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-support-siblings-"));
   const constants = path.join(root, "src", "constants");
   const schemas = path.join(root, "src", "schemas");
@@ -59,6 +59,26 @@ void describe("Support-folder modules MAY import sibling support files directly 
         code: 'import { route } from "./constants/routes";',
         filename: path.join(root, "src", "middleware.ts"),
         errors: 1,
+      },
+      {
+        code: 'import { route } from "./index";',
+        filename: path.join(constants, "api-contracts.ts"),
+        errors: [
+          {
+            message:
+              'Import sibling constants directly instead of through "./index" to avoid circular barrel imports. See the next-codebase-guide constants rule.',
+          },
+        ],
+      },
+      {
+        code: 'import { route } from ".";',
+        filename: path.join(constants, "api-contracts.ts"),
+        errors: [
+          {
+            message:
+              'Import sibling constants directly instead of through "." to avoid circular barrel imports. See the next-codebase-guide constants rule.',
+          },
+        ],
       },
     ],
   });
