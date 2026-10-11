@@ -734,8 +734,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "When a block reads only one property from an object, it SHOULD use that property directly instead of creating a local variable. Keep the variable if you need a snapshot, default value, rest properties, or the result of a function call.",
-      "hash": "60ba34a566",
+      "text": "A variable MUST NOT be created just to read one object property. Use the property directly. Keep a variable only when it is needed for a snapshot, default value, rest properties, or to avoid repeated evaluation.",
+      "hash": "71a33cb1bd",
       "ref": "pasika/prefer-object-destructuring"
     },
     {

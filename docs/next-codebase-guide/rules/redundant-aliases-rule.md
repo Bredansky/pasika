@@ -11,7 +11,7 @@ Aliases give one value several names, making code harder to follow. Keep field n
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
-- When a block reads only one property from an object, it SHOULD use that property directly instead of creating a local variable. Keep the variable if you need a snapshot, default value, rest properties, or the result of a function call.
+- A variable MUST NOT be created just to read one object property. Use the property directly. Keep a variable only when it is needed for a snapshot, default value, rest properties, or to avoid repeated evaluation.
 - When a block reads two or more different properties from one object, it MUST destructure them together. Keep direct access when a namespace, field mapping, invalid variable name, or name conflict prevents this.
 - Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.

@@ -22,7 +22,7 @@ const typedRuleTester = new CwdAwareRuleTester({
   },
 });
 
-void describe("When a block reads only one property from an object, it SHOULD use that property directly instead of creating a local variable. Keep the variable if you need a snapshot, default value, rest properties, or the result of a function call.", () => {
+void describe("A variable MUST NOT be created just to read one object property. Use the property directly. Keep a variable only when it is needed for a snapshot, default value, rest properties, or to avoid repeated evaluation.", () => {
   ruleTester.run("prefer-object-destructuring-single-field", preferObjectDestructuringRule, {
     valid: [
       "use(process.env.TELEGRAM_WEBHOOK_SECRET);",
@@ -32,6 +32,15 @@ void describe("When a block reads only one property from an object, it SHOULD us
     invalid: [
       {
         code: "const { TELEGRAM_WEBHOOK_SECRET } = process.env; use(TELEGRAM_WEBHOOK_SECRET);",
+        output: null,
+        errors: [
+          {
+            message: `"TELEGRAM_WEBHOOK_SECRET" is the only property bound from "process.env". Read "process.env.TELEGRAM_WEBHOOK_SECRET" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET; use(TELEGRAM_WEBHOOK_SECRET);",
         output: null,
         errors: [
           {
