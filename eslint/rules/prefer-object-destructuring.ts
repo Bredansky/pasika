@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/prefer-object-destructuring
  *
- * Require locals that directly read an object property to use object
- * destructuring. When one block reads multiple properties from the same
- * object, require those reads to share one destructuring declaration.
+ * Prefer qualified access over a local binding for a single property.
+ * When one block reads multiple properties from the same object, require
+ * those reads to share one destructuring declaration.
  *
  * @see docs/next-codebase-guide/rules/redundant-aliases-rule.md
  */
@@ -51,9 +51,16 @@ interface ScopeObjectUsage {
   destructuring?: ScopeDestructuring;
 }
 
+interface SinglePropertyBinding {
+  node: Node;
+  sourceText: string;
+  propertyName: string;
+}
+
 interface UsageScope {
   node: Node;
   objects: Map<string, ScopeObjectUsage>;
+  singleProperties: SinglePropertyBinding[];
 }
 
 function hasTypeAnnotation(identifier: Identifier): boolean {
@@ -100,6 +107,18 @@ function isGroupedUsageSource(source: Node): boolean {
   return source.type === "Identifier" || source.type === "ThisExpression";
 }
 
+/** Never recommend inlining a getter call, optional chain, or computed source. */
+function canInlinePropertySource(source: Node): boolean {
+  if (isGroupedUsageSource(source)) return true;
+  return (
+    source.type === "MemberExpression" &&
+    !source.computed &&
+    !source.optional &&
+    source.property.type === "Identifier" &&
+    canInlinePropertySource(source.object)
+  );
+}
+
 function rootIdentifierName(node: Node): string | undefined {
   if (node.type === "Identifier") return node.name;
   if (node.type !== "MemberExpression" || node.object.type === "Super") return undefined;
@@ -107,7 +126,7 @@ function rootIdentifierName(node: Node): string | undefined {
 }
 
 function isCompliantLocalName(propertyName: string): boolean {
-  return !propertyName.includes("_");
+  return !propertyName.includes("_") || /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/u.test(propertyName);
 }
 
 function propertyNameOf(node: Node): string | undefined {
@@ -475,8 +494,8 @@ function declarationTerminator(context: Rule.RuleContext, declaration: VariableD
   return context.sourceCode.getText(declaration).trimEnd().endsWith(";") ? ";" : "";
 }
 
-function singleMessage(binding: PropertyBinding): string {
-  return `"${binding.localName}" is derived directly from "${binding.sourceText}.${binding.propertyName}". Use object destructuring. ${DOC}`;
+function singlePropertyMessage(binding: SinglePropertyBinding): string {
+  return `"${binding.propertyName}" is the only property bound from "${binding.sourceText}". Read "${binding.sourceText}.${binding.propertyName}" directly instead of creating a local binding. ${DOC}`;
 }
 
 function groupMessage(bindings: PropertyBinding[]): string {
@@ -504,7 +523,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Require related object-property reads to use one object destructuring declaration.",
+      description: "Prefer direct access for one property and shared destructuring for related property reads.",
     },
   },
   create(context) {
@@ -516,7 +535,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
     const currentUsageScope = (): UsageScope | undefined => usageScopes.at(-1);
 
     const enterUsageScope = (node: Node): void => {
-      usageScopes.push({ node, objects: new Map() });
+      usageScopes.push({ node, objects: new Map(), singleProperties: [] });
     };
 
     const enterUsageBarrier = (): void => {
@@ -571,6 +590,39 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
           },
         });
       }
+
+      for (const binding of scope.singleProperties) {
+        const fromSameSource = scope.singleProperties.filter(({ sourceText }) => sourceText === binding.sourceText);
+        if (fromSameSource[0] !== binding) continue;
+
+        const usage = scope.objects.get(binding.sourceText);
+        const usedProperties = usage?.propertyNames;
+        if (usedProperties && usedProperties.size > 1 && usage.directMembers.length > 0) {
+          // The existing scope-level diagnostic handles direct reads mixed with destructuring.
+          if (
+            scope.singleProperties.some(
+              (item) => item.node.type === "ObjectPattern" && item.sourceText === binding.sourceText,
+            )
+          ) {
+            continue;
+          }
+        }
+        if (usedProperties && usedProperties.size > 1) {
+          // Multiple fields from the same object belong in one destructuring.
+          context.report({ node: binding.node, message: scopeUsageMessage(binding.sourceText, usedProperties) });
+          continue;
+        }
+
+        if (fromSameSource.length > 1) {
+          const names = new Set(fromSameSource.map(({ propertyName }) => propertyName));
+          if (names.size > 1) {
+            context.report({ node: binding.node, message: scopeUsageMessage(binding.sourceText, names) });
+            continue;
+          }
+        }
+
+        context.report({ node: binding.node, message: singlePropertyMessage(binding) });
+      }
     };
 
     return {
@@ -604,7 +656,24 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         const selection = destructuringSelection(context, node, isEnumValue);
         if (selection) {
           const group = groupedDestructuringSelections(context, selection, isEnumValue);
-          if (group.length <= 1) return;
+          if (group.length <= 1) {
+            if (
+              node.kind === "const" &&
+              selection.propertyNames.length === 1 &&
+              canInlinePropertySource(selection.source)
+            ) {
+              const declarator = node.declarations[0];
+              const propertyName = selection.propertyNames[0];
+              if (declarator && propertyName) {
+                currentUsageScope()?.singleProperties.push({
+                  node: declarator.id,
+                  sourceText: selection.sourceText,
+                  propertyName,
+                });
+              }
+            }
+            return;
+          }
 
           for (const item of group.slice(1)) grouped.add(item.declaration);
 
@@ -694,14 +763,12 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         }
 
         for (const binding of bindings) {
-          if (!canGroupSource(binding.source)) continue;
+          if (node.kind !== "const" || !canInlinePropertySource(binding.source)) continue;
 
-          context.report({
+          currentUsageScope()?.singleProperties.push({
             node: binding.declarator,
-            message: singleMessage(binding),
-            fix(fixer) {
-              return fixer.replaceText(binding.declarator, `{ ${binding.bindingText} } = ${binding.sourceText}`);
-            },
+            sourceText: binding.sourceText,
+            propertyName: binding.propertyName,
           });
         }
       },

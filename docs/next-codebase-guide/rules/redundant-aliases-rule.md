@@ -11,7 +11,8 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
-- Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with an existing binding. When two or more properties are read from the same object identifier within the same block and no exception applies, they MUST be destructured together in one declaration.
+- When only one property is read from an object within a block, a local binding that merely caches that property SHOULD NOT be introduced; prefer qualified property access unless preserving a snapshot, default, rest value, or an evaluated source requires the binding.
+- When two or more distinct properties are read from the same object identifier within the same block, they MUST be destructured together in one declaration unless access must remain qualified to preserve a namespace or contract mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with another binding.
 - Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
@@ -23,22 +24,39 @@ import { Toaster as Sonner } from "sonner";
 
 const appKey = credentials.apiKey;
 const { x: left } = layer.position;
-const previewUrl = file.previewUrl;
+const { previewUrl } = file;
 ```
 
-Why: `Sonner`, `appKey`, and `left` give existing values new local names, while `previewUrl` stores a property under the same name instead of destructuring it.
+Why: `Sonner`, `appKey`, and `left` give existing values new local names, while the single `previewUrl` binding is redundant when qualified access suffices.
 
 ## Correct — Original Local Names
 
 ```ts
 import { Toaster } from "sonner";
 
-const { apiKey } = credentials;
-const { x } = layer.position;
-const { previewUrl } = file;
+use(credentials.apiKey);
+use(layer.position.x);
+use(file.previewUrl);
 ```
 
-Why: each binding keeps the name provided by its source.
+Why: each single property stays qualified at the use site, without introducing an unnecessary local binding.
+
+## Incorrect — Single Webhook Secret Binding
+
+```ts
+const { TELEGRAM_WEBHOOK_SECRET } = process.env;
+if (!TELEGRAM_WEBHOOK_SECRET) throw new Error("Missing secret");
+```
+
+Why: the local binding hides its source when only one environment property is needed.
+
+## Correct — Qualified Webhook Secret Read
+
+```ts
+if (!process.env.TELEGRAM_WEBHOOK_SECRET) throw new Error("Missing secret");
+```
+
+Why: a direct read keeps the environment source visible. When code intentionally needs a stable snapshot of a mutable value, retain the local binding instead.
 
 ## Incorrect — Partial Object Destructuring
 
