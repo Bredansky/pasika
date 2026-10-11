@@ -476,6 +476,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A database column-selector call or local API route path MUST use an imported enum member instead of a matching raw string when exactly one imported enum member expresses that value in the same domain.",
+      "hash": "a7c74af6f2",
+      "ref": "pasika/prefer-existing-enum-value"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.",
       "hash": "ab7e6bc445",
       "ref": "pasika/repeated-numeric-value"
