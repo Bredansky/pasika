@@ -1,6 +1,6 @@
 # Redundant Aliases Rule
 
-Aliases make one value appear under multiple names and can hide naming drift between data contracts, while ordinary local object shaping is not a contract mapping. A direct data-contract field mapping can qualify a field with its source object's name, and other renames should occur only where typed ownership proves a real external or platform boundary.
+Aliases give one value several names, making code harder to follow. Keep field names consistent, and make their source clear when a different name is needed.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
@@ -11,8 +11,8 @@ Aliases make one value appear under multiple names and can hide naming drift bet
 - Mappings between data contracts controlled by this repository MUST preserve one canonical field name.
 - A direct field mapping MAY qualify the source field name with the source object's name.
 - A renamed contract field MUST map directly between source and target contracts whose ownership can be determined.
-- When only one property is read from an object within a block, a local binding that merely caches that property SHOULD NOT be introduced; prefer qualified property access unless preserving a snapshot, default, rest value, or an evaluated source requires the binding.
-- When two or more distinct properties are read from the same object identifier within the same block, they MUST be destructured together in one declaration unless access must remain qualified to preserve a namespace or contract mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with another binding.
+- When a block reads only one property from an object, it SHOULD use that property directly instead of creating a local variable. Keep the variable if you need a snapshot, default value, rest properties, or the result of a function call.
+- When a block reads two or more different properties from one object, it MUST destructure them together. Keep direct access when a namespace, field mapping, invalid variable name, or name conflict prevents this.
 - Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.
 - A type alias that directly names one non-generic type or primitive type MUST NOT introduce a second name for that type.
 - An empty interface that extends exactly one non-generic type MUST NOT introduce a second name for that type.
@@ -27,7 +27,7 @@ const { x: left } = layer.position;
 const { previewUrl } = file;
 ```
 
-Why: `Sonner`, `appKey`, and `left` give existing values new local names, while the single `previewUrl` binding is redundant when qualified access suffices.
+Why: `Sonner`, `appKey`, and `left` rename existing values. `{ previewUrl }` adds an unnecessary variable for one field.
 
 ## Correct — Original Local Names
 
@@ -39,7 +39,7 @@ use(layer.position.x);
 use(file.previewUrl);
 ```
 
-Why: each single property stays qualified at the use site, without introducing an unnecessary local binding.
+Why: each value is read directly, without another name.
 
 ## Incorrect — Single Webhook Secret Binding
 
@@ -48,7 +48,7 @@ const { TELEGRAM_WEBHOOK_SECRET } = process.env;
 if (!TELEGRAM_WEBHOOK_SECRET) throw new Error("Missing secret");
 ```
 
-Why: the local binding hides its source when only one environment property is needed.
+Why: the variable hides where the secret comes from.
 
 ## Correct — Qualified Webhook Secret Read
 
@@ -56,7 +56,7 @@ Why: the local binding hides its source when only one environment property is ne
 if (!process.env.TELEGRAM_WEBHOOK_SECRET) throw new Error("Missing secret");
 ```
 
-Why: a direct read keeps the environment source visible. When code intentionally needs a stable snapshot of a mutable value, retain the local binding instead.
+Why: direct access makes the source clear. Use a variable if you need to keep the value unchanged.
 
 ## Incorrect — Partial Object Destructuring
 
@@ -73,7 +73,7 @@ function icon(config: EmojiIconConfig) {
 }
 ```
 
-Why: the same object supplies several values in one block, but `size` is still read through `config`.
+Why: the code destructures two `config` fields but still reads `size` separately.
 
 ## Correct — Complete Object Destructuring
 
@@ -90,7 +90,7 @@ function icon(config: EmojiIconConfig) {
 }
 ```
 
-Why: all values read from `config` in the block come from one destructuring declaration.
+Why: all three fields come from one destructuring statement.
 
 ## Incorrect — Destructured Enum Members
 
@@ -104,7 +104,7 @@ const { Telegram, Twitter } = Platform;
 use(Telegram, Twitter);
 ```
 
-Why: destructuring erases the enum qualifier at each use site and makes enum members look like unrelated local values.
+Why: `Telegram` and `Twitter` lose their `Platform` prefix.
 
 ## Correct — Qualified Enum Members
 
@@ -117,7 +117,7 @@ enum Platform {
 use(Platform.Telegram, Platform.Twitter);
 ```
 
-Why: qualified access keeps the enum domain visible wherever a member is used.
+Why: the `Platform` prefix makes it clear where each value belongs.
 
 ## Incorrect — Duplicate Repository Contracts
 
@@ -139,7 +139,7 @@ function credentialsOf(raw: RawCredentials): Credentials {
 }
 ```
 
-Why: both contracts describe the same value, but one calls it `accessTokenSecret` and the other calls it `accessSecret`.
+Why: two names describe the same field.
 
 ## Correct — One Repository Contract
 
@@ -151,7 +151,7 @@ const credentialsSchema = z.object({
 type Credentials = z.infer<typeof credentialsSchema>;
 ```
 
-Why: one contract is enough when the shape and semantics are the same, so no mapper or second field name is introduced.
+Why: one contract keeps the field name consistent.
 
 ## Incorrect — Unrelated Internal Field Name
 
@@ -191,4 +191,4 @@ function layerOf(file: File): MediaLayer {
 }
 ```
 
-Why: `fileId` is derived directly from the source object name `file` and the source field name `id`. Names that differ only by convention, such as `user_account_id` and `userAccountId`, are also not semantic renames.
+Why: `fileId` clearly comes from `file.id`. Differences such as `user_account_id` versus `userAccountId` are just naming styles, not new meanings.

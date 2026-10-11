@@ -22,7 +22,7 @@ const typedRuleTester = new CwdAwareRuleTester({
   },
 });
 
-void describe("When only one property is read from an object within a block, a local binding that merely caches that property SHOULD NOT be introduced; prefer qualified property access unless preserving a snapshot, default, rest value, or an evaluated source requires the binding.", () => {
+void describe("When a block reads only one property from an object, it SHOULD use that property directly instead of creating a local variable. Keep the variable if you need a snapshot, default value, rest properties, or the result of a function call.", () => {
   ruleTester.run("prefer-object-destructuring-single-field", preferObjectDestructuringRule, {
     valid: [
       "use(process.env.TELEGRAM_WEBHOOK_SECRET);",
@@ -43,7 +43,7 @@ void describe("When only one property is read from an object within a block, a l
   });
 });
 
-void describe("When two or more distinct properties are read from the same object identifier within the same block, they MUST be destructured together in one declaration unless access must remain qualified to preserve a namespace or contract mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with another binding.", () => {
+void describe("When a block reads two or more different properties from one object, it MUST destructure them together. Keep direct access when a namespace, field mapping, invalid variable name, or name conflict prevents this.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
       "use(file.previewUrl);",
