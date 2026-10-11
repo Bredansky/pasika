@@ -314,6 +314,86 @@ void describe("When a block reads two or more different properties from one obje
   });
 });
 
+void describe("Callable object fields count toward grouped destructuring without detaching receiver-sensitive methods.", () => {
+  typedRuleTester.run("prefer-object-destructuring-callable-fields", preferObjectDestructuringRule, {
+    valid: [
+      {
+        code: [
+          "declare function renderHook(): { result: { current: number }; unmount: () => void };",
+          "function test() {",
+          "  const { result, unmount } = renderHook();",
+          "  use(result.current);",
+          "  unmount();",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/callable-props.ts"),
+      },
+      {
+        code: [
+          "class Hook { result = 1; unmount() { use(this.result); } }",
+          "function test() {",
+          "  const hook = new Hook();",
+          "  use(hook.result);",
+          "  hook.unmount();",
+          "}",
+        ].join("\n"),
+        filename: srcFile("utils/callable-props.ts"),
+      },
+      {
+        code: [
+          "interface Hook { result: number; unmount(): void }",
+          "declare function renderHook(): Hook;",
+          "function test() { const hook = renderHook(); use(hook.result); hook.unmount(); }",
+        ].join("\n"),
+        filename: srcFile("utils/callable-props.ts"),
+      },
+      {
+        code: [
+          "interface Hook { result: number; unmount: (this: Hook) => void }",
+          "declare function renderHook(): Hook;",
+          "function test() { const hook = renderHook(); use(hook.result); hook.unmount(); }",
+        ].join("\n"),
+        filename: srcFile("utils/callable-props.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: [
+          "declare function renderHook(): { result: { current: number }; unmount: () => void };",
+          "function test() {",
+          "  const hook = renderHook();",
+          "  use(hook.result.current);",
+          "  hook.unmount();",
+          "}",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"result", "unmount" are read from "hook" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+        filename: srcFile("utils/callable-props.ts"),
+      },
+      {
+        code: [
+          "function test() {",
+          "  const hook = { result: 1, unmount: () => {} };",
+          "  use(hook.result);",
+          "  hook.unmount();",
+          "}",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"result", "unmount" are read from "hook" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+        filename: srcFile("utils/callable-props.ts"),
+      },
+    ],
+  });
+});
+
 void describe("Enum member accesses MUST remain qualified through the enum name, and enum values MUST NOT be object-destructured.", () => {
   ruleTester.run("prefer-object-destructuring-enums", preferObjectDestructuringRule, {
     valid: [
