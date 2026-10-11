@@ -172,6 +172,7 @@ export const importBoundariesRule: Rule.RuleModule = {
             importedLayer === "shared" ||
             importedIsRootSupport)) ||
         (isCodeModule && importerLayer === "shared" && (importedLayer === "shared" || importedIsRootSupport)) ||
+        (isCodeModule && importer.length === 1 && importedIsRootSupport) ||
         (isCodeModule &&
           rootSupportFolders.has(importerLayer) &&
           importedIsRootSupport &&

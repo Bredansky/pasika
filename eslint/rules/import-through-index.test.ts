@@ -15,7 +15,7 @@ function project(): { root: string; consumer: string } {
   return { root, consumer };
 }
 
-void describe("Consumers MUST import an extracted constant through the index.ts in that constant's constants/ folder.", () => {
+void describe("Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.", () => {
   const { root, consumer } = project();
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import { maxRetries } from "./constants";', filename: consumer }],
@@ -28,6 +28,60 @@ void describe("Consumers MUST import an extracted constant through the index.ts 
     ],
   });
   void root;
+});
+
+void describe("Modules within the same constants folder MUST import sibling files directly to avoid their own barrel.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-support-siblings-"));
+  const constants = path.join(root, "src", "constants");
+  const schemas = path.join(root, "src", "schemas");
+  mkdirSync(constants, { recursive: true });
+  mkdirSync(schemas, { recursive: true });
+  writeFileSync(path.join(constants, "index.ts"), 'export * from "./routes";\\n');
+  writeFileSync(path.join(constants, "routes.ts"), 'export const route = "/api/example";\\n');
+  writeFileSync(path.join(constants, "api-contracts.ts"), 'export const contract = "example";\\n');
+  writeFileSync(path.join(schemas, "index.ts"), 'export * from "./shared";\\n');
+  writeFileSync(path.join(schemas, "shared.ts"), "export const example = 1;\\n");
+  writeFileSync(path.join(schemas, "draft.ts"), "export const draft = 1;\\n");
+
+  ruleTester.run("import-through-index", importThroughIndexRule, {
+    valid: [
+      {
+        code: 'import { route } from "./routes";',
+        filename: path.join(constants, "api-contracts.ts"),
+      },
+      {
+        code: 'import { example } from "./shared";',
+        filename: path.join(schemas, "draft.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { route } from "./constants/routes";',
+        filename: path.join(root, "src", "middleware.ts"),
+        errors: 1,
+      },
+      {
+        code: 'import { route } from "./index";',
+        filename: path.join(constants, "api-contracts.ts"),
+        errors: [
+          {
+            message:
+              'Import sibling constants directly instead of through "./index" to avoid circular barrel imports. See the next-codebase-guide constants rule.',
+          },
+        ],
+      },
+      {
+        code: 'import { route } from ".";',
+        filename: path.join(constants, "api-contracts.ts"),
+        errors: [
+          {
+            message:
+              'Import sibling constants directly instead of through "." to avoid circular barrel imports. See the next-codebase-guide constants rule.',
+          },
+        ],
+      },
+    ],
+  });
 });
 
 void describe("Consumers MUST import an extracted type or schema through the index.ts in that type or schema's types/ or schemas/ folder.", () => {

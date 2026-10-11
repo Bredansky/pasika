@@ -434,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Consumers MUST import an extracted constant through the `index.ts` in that constant's `constants/` folder.",
-      "hash": "0a7bdc1dfe",
+      "text": "Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.",
+      "hash": "c034f8e3d2",
       "ref": "pasika/import-through-index"
     },
     {
@@ -542,8 +542,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.",
-      "hash": "a73db9af2e",
+      "text": "A file in the `root` layer, including framework-required files directly under `src/`, MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.",
+      "hash": "2328bca172",
       "ref": "pasika/import-boundaries"
     },
     {

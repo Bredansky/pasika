@@ -172,7 +172,7 @@ void describe("A file under src/shared/ MUST NOT import from src/app/, src/compo
   });
 });
 
-void describe("A file in the root layer MUST NOT import from src/app/, src/compositions/, a feature folder, or src/shared/.", () => {
+void describe("A file in the `root` layer, including framework-required files directly under `src/`, MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
@@ -189,6 +189,38 @@ void describe("A file in the root layer MUST NOT import from src/app/, src/compo
       {
         code: 'import { Invoice } from "@/features/billing/invoice";',
         filename: srcFile("hooks/use-search.ts"),
+        errors: [{ message: BOUNDARY_MESSAGE }],
+      },
+    ],
+  });
+});
+
+void describe("A framework-required file directly under src/ MUST follow root-layer import boundaries.", () => {
+  ruleTester.run("import-boundaries", importBoundariesRule, {
+    valid: [
+      {
+        code: 'import { ApiRoute } from "./constants";',
+        filename: srcFile("middleware.ts"),
+      },
+      {
+        code: 'import { ApiRoute } from "./constants";',
+        filename: srcFile("proxy.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { ApiRoute } from "@/constants";',
+        filename: srcFile("middleware.ts"),
+        errors: [{ message: choice("./constants", "@/constants") }],
+      },
+      {
+        code: 'import { auth } from "./features/auth";',
+        filename: srcFile("middleware.ts"),
+        errors: [{ message: BOUNDARY_MESSAGE }],
+      },
+      {
+        code: 'import { Sidebar } from "./shared/sidebar";',
+        filename: srcFile("proxy.ts"),
         errors: [{ message: BOUNDARY_MESSAGE }],
       },
     ],
