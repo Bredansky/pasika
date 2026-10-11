@@ -92,26 +92,6 @@ function icon(config: EmojiIconConfig) {
 
 Why: all three fields come from one destructuring statement.
 
-## Incorrect — Separately Read Hook Fields
-
-```ts
-const hook = renderHook(() => useCredentials());
-use(hook.result.current);
-hook.unmount();
-```
-
-Why: `result` and `unmount` are both properties read from the hook result. Calling the function-valued `unmount` field still counts as reading it.
-
-## Correct — Grouped Hook Fields
-
-```ts
-const { result, unmount } = renderHook(() => useCredentials());
-use(result.current);
-unmount();
-```
-
-Why: both independent fields are destructured together. Methods that require their object's `this` receiver must remain qualified instead.
-
 ## Incorrect — Destructured Enum Members
 
 ```ts
