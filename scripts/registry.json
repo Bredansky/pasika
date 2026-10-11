@@ -734,8 +734,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with an existing binding. When two or more properties are read from the same object identifier within the same block and no exception applies, they MUST be destructured together in one declaration.",
-      "hash": "d733944921",
+      "text": "A variable MUST NOT be created just to read one object property. Use the property directly. Destructuring with a default value or rest properties is allowed.",
+      "hash": "cbd6b067cc",
+      "ref": "pasika/prefer-object-destructuring"
+    },
+    {
+      "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
+      "text": "When a block reads two or more different properties from one object, it MUST destructure them together. Keep direct access when a namespace, field mapping, invalid variable name, or name conflict prevents this.",
+      "hash": "bc39e696a0",
       "ref": "pasika/prefer-object-destructuring"
     },
     {

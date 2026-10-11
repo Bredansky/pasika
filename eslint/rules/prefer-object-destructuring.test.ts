@@ -22,11 +22,80 @@ const typedRuleTester = new CwdAwareRuleTester({
   },
 });
 
-void describe("Properties stored in variables MUST use object destructuring unless the access must remain qualified to preserve a namespace or direct field mapping, the property name cannot be used as a compliant local identifier, or destructuring would conflict with an existing binding. When two or more properties are read from the same object identifier within the same block and no exception applies, they MUST be destructured together in one declaration.", () => {
+void describe("A variable MUST NOT be created just to read one object property. Use the property directly. Destructuring with a default value or rest properties is allowed.", () => {
+  ruleTester.run("prefer-object-destructuring-single-field", preferObjectDestructuringRule, {
+    valid: ["use(process.env.TELEGRAM_WEBHOOK_SECRET);", "const { value = 1 } = file;", "use(loadFile().value);"],
+    invalid: [
+      {
+        code: "async function run(job) { const status = job.status; await refresh(job); use(status); }",
+        output: null,
+        errors: [
+          {
+            message: `"status" is the only property bound from "job". Read "job.status" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const token = getConfig().token; send(token); log(token);",
+        output: null,
+        errors: [
+          {
+            message: `"token" is the only property bound from "getConfig()". Read "getConfig().token" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { token } = getConfig(); send(token);",
+        output: null,
+        errors: [
+          {
+            message: `"token" is the only property bound from "getConfig()". Read "getConfig().token" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { value } = loadFile(); use(value);",
+        output: null,
+        errors: [
+          {
+            message: `"value" is the only property bound from "loadFile()". Read "loadFile().value" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { TELEGRAM_WEBHOOK_SECRET } = process.env; use(TELEGRAM_WEBHOOK_SECRET);",
+        output: null,
+        errors: [
+          {
+            message: `"TELEGRAM_WEBHOOK_SECRET" is the only property bound from "process.env". Read "process.env.TELEGRAM_WEBHOOK_SECRET" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET; use(TELEGRAM_WEBHOOK_SECRET);",
+        output: null,
+        errors: [
+          {
+            message: `"TELEGRAM_WEBHOOK_SECRET" is the only property bound from "process.env". Read "process.env.TELEGRAM_WEBHOOK_SECRET" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("When a block reads two or more different properties from one object, it MUST destructure them together. Keep direct access when a namespace, field mapping, invalid variable name, or name conflict prevents this.", () => {
   ruleTester.run("prefer-object-destructuring", preferObjectDestructuringRule, {
     valid: [
-      "const { previewUrl } = file;",
+      "use(file.previewUrl);",
+      "const { type, id } = file; use(type, id);",
       "const fileType = file.type;",
+      "const { value = 1 } = file;",
+      "const { value, ...rest } = file;",
+      "function show({ value }) { return value; }",
+      "use(createFile().value);",
+      "const { key } = file?.config ?? {};",
+      "use(process.env.TELEGRAM_WEBHOOK_SECRET);",
       "export const apiRoutePath = textEditApiContract.path;",
       "const value = getValue();",
       'const value = file["value"];',
@@ -40,7 +109,7 @@ void describe("Properties stored in variables MUST use object destructuring unle
       "config.first = 1; config.second = 2;",
       "config.first++; delete config.second;",
       "for (config.first in source) {} for (config.second of source) {}",
-      "const first = config.current.first; use(first); const second = config.current.second;",
+      "use(config.current.first); use(config.current.second);",
       "use(config.size);",
       "use(config.size); use(config.size);",
       "function dimensions(config) { return config.current.width * config.current.height; }",
@@ -52,11 +121,47 @@ void describe("Properties stored in variables MUST use object destructuring unle
     ],
     invalid: [
       {
-        code: "const previewUrl = file.previewUrl;",
-        output: "const { previewUrl } = file;",
+        code: "const { previewUrl } = file; use(previewUrl);",
+        output: null,
         errors: [
           {
-            message: `"previewUrl" is derived directly from "file.previewUrl". Use object destructuring. ${doc}`,
+            message: `"previewUrl" is the only property bound from "file". Read "file.previewUrl" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { TELEGRAM_WEBHOOK_SECRET } = process.env; use(TELEGRAM_WEBHOOK_SECRET);",
+        output: null,
+        errors: [
+          {
+            message: `"TELEGRAM_WEBHOOK_SECRET" is the only property bound from "process.env". Read "process.env.TELEGRAM_WEBHOOK_SECRET" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET; use(TELEGRAM_WEBHOOK_SECRET);",
+        output: null,
+        errors: [
+          {
+            message: `"TELEGRAM_WEBHOOK_SECRET" is the only property bound from "process.env". Read "process.env.TELEGRAM_WEBHOOK_SECRET" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { first } = file; use(file.second, first);",
+        output: "const { first, second } = file; use(second, first);",
+        errors: [
+          {
+            message: `"first", "second" are read from "file" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const previewUrl = file.previewUrl;",
+        output: null,
+        errors: [
+          {
+            message: `"previewUrl" is the only property bound from "file". Read "file.previewUrl" directly instead of creating a local binding. ${doc}`,
           },
         ],
       },
@@ -76,13 +181,10 @@ void describe("Properties stored in variables MUST use object destructuring unle
       },
       {
         code: ["const first = file.first;", "// keep separate", "const second = file.second;"].join("\n"),
-        output: ["const { first } = file;", "// keep separate", "const { second } = file;"].join("\n"),
+        output: null,
         errors: [
           {
-            message: `"first" is derived directly from "file.first". Use object destructuring. ${doc}`,
-          },
-          {
-            message: `"second" is derived directly from "file.second". Use object destructuring. ${doc}`,
+            message: `"first", "second" are read from "file" in the same block. Destructure them together in one declaration. ${doc}`,
           },
         ],
       },
@@ -134,7 +236,7 @@ void describe("Properties stored in variables MUST use object destructuring unle
       },
       {
         code: "const first = file.first, value = other.value;",
-        output: "const { first } = file, { value } = other;",
+        output: null,
         errors: 2,
       },
       {
