@@ -22,14 +22,46 @@ const typedRuleTester = new CwdAwareRuleTester({
   },
 });
 
-void describe("A variable MUST NOT be created just to read one object property. Use the property directly. Keep a variable only when it is needed for a snapshot, default value, rest properties, or to avoid repeated evaluation.", () => {
+void describe("A variable MUST NOT be created just to read one object property. Use the property directly. Destructuring with a default value or rest properties is allowed.", () => {
   ruleTester.run("prefer-object-destructuring-single-field", preferObjectDestructuringRule, {
-    valid: [
-      "use(process.env.TELEGRAM_WEBHOOK_SECRET);",
-      "const { value = 1 } = file;",
-      "const { value } = loadFile();",
-    ],
+    valid: ["use(process.env.TELEGRAM_WEBHOOK_SECRET);", "const { value = 1 } = file;", "use(loadFile().value);"],
     invalid: [
+      {
+        code: "async function run(job) { const status = job.status; await refresh(job); use(status); }",
+        output: null,
+        errors: [
+          {
+            message: `"status" is the only property bound from "job". Read "job.status" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const token = getConfig().token; send(token); log(token);",
+        output: null,
+        errors: [
+          {
+            message: `"token" is the only property bound from "getConfig()". Read "getConfig().token" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { token } = getConfig(); send(token);",
+        output: null,
+        errors: [
+          {
+            message: `"token" is the only property bound from "getConfig()". Read "getConfig().token" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const { value } = loadFile(); use(value);",
+        output: null,
+        errors: [
+          {
+            message: `"value" is the only property bound from "loadFile()". Read "loadFile().value" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
       {
         code: "const { TELEGRAM_WEBHOOK_SECRET } = process.env; use(TELEGRAM_WEBHOOK_SECRET);",
         output: null,
@@ -61,7 +93,7 @@ void describe("When a block reads two or more different properties from one obje
       "const { value = 1 } = file;",
       "const { value, ...rest } = file;",
       "function show({ value }) { return value; }",
-      "const { value } = createFile();",
+      "use(createFile().value);",
       "const { key } = file?.config ?? {};",
       "use(process.env.TELEGRAM_WEBHOOK_SECRET);",
       "export const apiRoutePath = textEditApiContract.path;",

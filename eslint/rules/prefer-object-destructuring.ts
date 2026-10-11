@@ -107,15 +107,15 @@ function isGroupedUsageSource(source: Node): boolean {
   return source.type === "Identifier" || source.type === "ThisExpression";
 }
 
-/** Never recommend inlining a getter call, optional chain, or computed source. */
-function canInlinePropertySource(source: Node): boolean {
-  if (isGroupedUsageSource(source)) return true;
+/** Classify single-property sources for reports; do not autofix their reads. */
+function supportsSinglePropertySource(source: Node): boolean {
+  if (isGroupedUsageSource(source) || source.type === "CallExpression") return true;
   return (
     source.type === "MemberExpression" &&
     !source.computed &&
     !source.optional &&
     source.property.type === "Identifier" &&
-    canInlinePropertySource(source.object)
+    supportsSinglePropertySource(source.object)
   );
 }
 
@@ -660,7 +660,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
             if (
               node.kind === "const" &&
               selection.propertyNames.length === 1 &&
-              canInlinePropertySource(selection.source)
+              supportsSinglePropertySource(selection.source)
             ) {
               const declarator = node.declarations[0];
               const propertyName = selection.propertyNames[0];
@@ -763,7 +763,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         }
 
         for (const binding of bindings) {
-          if (node.kind !== "const" || !canInlinePropertySource(binding.source)) continue;
+          if (node.kind !== "const" || !supportsSinglePropertySource(binding.source)) continue;
 
           currentUsageScope()?.singleProperties.push({
             node: binding.declarator,

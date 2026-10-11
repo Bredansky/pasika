@@ -734,8 +734,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "A variable MUST NOT be created just to read one object property. Use the property directly. Keep a variable only when it is needed for a snapshot, default value, rest properties, or to avoid repeated evaluation.",
-      "hash": "71a33cb1bd",
+      "text": "A variable MUST NOT be created just to read one object property. Use the property directly. Destructuring with a default value or rest properties is allowed.",
+      "hash": "cbd6b067cc",
       "ref": "pasika/prefer-object-destructuring"
     },
     {
