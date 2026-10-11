@@ -10,7 +10,7 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A file under `src/compositions/` MUST NOT import from `src/app/`.
 - A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.
 - A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
-- A file in the `root` layer MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
+- A file in the `root` layer, including framework-required files directly under `src/`, MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
 - A configuration module MUST import only from root support folders and its own files.
 
 ## Incorrect — Support Barrel Filters A Local Module

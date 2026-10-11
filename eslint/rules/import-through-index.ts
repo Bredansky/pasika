@@ -14,6 +14,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
   create(context) {
     const filename = path.resolve(context.filename);
     const sourceRoot = sourceRootOf(context, filename);
+    const importerSegments = segmentsOf(filename, sourceRoot);
     return {
       Program(node) {
         for (const specifier of importSpecifiers(context.sourceCode.text)) {
@@ -26,6 +27,10 @@ export const importThroughIndexRule: Rule.RuleModule = {
           const supportFolder = supportFolderIndex >= 0 ? targetSegments[supportFolderIndex] : undefined;
           if (!supportFolder || path.basename(target).startsWith("index.")) continue;
           const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
+          const withinSameSupportFolder =
+            importerSegments.length > supportFolderIndex + 1 &&
+            folderIndex.every((segment, index) => importerSegments[index] === segment);
+          if (withinSameSupportFolder) continue;
           const expected = `@/${folderIndex.join("/")}`;
           context.report({
             node,
