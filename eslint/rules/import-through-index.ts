@@ -8,7 +8,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require imports of support files to use their support-folder index.",
+      description: "Enforce public support barrels and direct sibling constants imports.",
     },
   },
   create(context) {
@@ -25,11 +25,22 @@ export const importThroughIndexRule: Rule.RuleModule = {
             ["constants", "types", "schemas"].includes(segment),
           );
           const supportFolder = supportFolderIndex >= 0 ? targetSegments[supportFolderIndex] : undefined;
-          if (!supportFolder || path.basename(target).startsWith("index.")) continue;
+          if (!supportFolder) continue;
           const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
           const withinSameSupportFolder =
             importerSegments.length > supportFolderIndex + 1 &&
             folderIndex.every((segment, index) => importerSegments[index] === segment);
+          if (path.basename(target).startsWith("index.")) {
+            if (supportFolder === "constants" && withinSameSupportFolder) {
+              context.report({
+                node,
+                message:
+                  `Import sibling constants directly instead of through "${specifier}" to avoid circular barrel imports. ` +
+                  "See the next-codebase-guide constants rule.",
+              });
+            }
+            continue;
+          }
           if (withinSameSupportFolder) continue;
           const expected = `@/${folderIndex.join("/")}`;
           context.report({
