@@ -650,6 +650,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
+      "text": "A feature locale namespace MUST contain string entries directly and MUST NOT contain nested locale objects.",
+      "hash": "42b9eb2ac1",
+      "ref": "pasika/locale-key-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/locales-rule.md",
       "text": "A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.",
       "hash": "7cd7fc7794",
       "ref": "pasika/locale-key-shape"
