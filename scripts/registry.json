@@ -434,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`; modules within the same `constants/` folder MAY import their sibling files directly to avoid circular barrel imports.",
-      "hash": "f0a655758a",
+      "text": "Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.",
+      "hash": "c034f8e3d2",
       "ref": "pasika/import-through-index"
     },
     {
