@@ -44,6 +44,7 @@ interface DirectMemberUsage {
 }
 
 type EnumValueResolver = (node: Node) => boolean;
+type DetachableCallResolver = (member: MemberExpression) => boolean;
 
 interface ScopeObjectUsage {
   propertyNames: Set<string>;
@@ -214,6 +215,43 @@ function enumValueResolver(context: Rule.RuleContext): EnumValueResolver {
   };
 }
 
+/**
+ * Function-valued fields can be called without the original receiver.
+ * Exclude method declarations: destructuring a method could change its `this`.
+ */
+function detachableCallResolver(context: Rule.RuleContext): DetachableCallResolver {
+  const services = typedParserServices(context.sourceCode.parserServices);
+  if (!services) return () => false;
+
+  const checker = services.program.getTypeChecker();
+  const { esTreeNodeToTSNodeMap: nodeMap } = services;
+  const isUnboundFunctionType = (type: ts.TypeNode): boolean =>
+    ts.isFunctionTypeNode(type) &&
+    !type.parameters.some((parameter) => ts.isIdentifier(parameter.name) && parameter.name.text === "this");
+
+  return (member) => {
+    const node = nodeMap.get(member);
+    if (!node || !ts.isPropertyAccessExpression(node)) return false;
+
+    const symbol = checker.getSymbolAtLocation(node.name);
+    const declarations = symbol?.declarations;
+    if (!declarations?.length) return false;
+
+    return declarations.every((declaration) => {
+      if (ts.isPropertySignature(declaration) || ts.isPropertyDeclaration(declaration)) {
+        return (
+          (declaration.type !== undefined && isUnboundFunctionType(declaration.type)) ||
+          (ts.isPropertyDeclaration(declaration) &&
+            declaration.initializer !== undefined &&
+            ts.isArrowFunction(declaration.initializer))
+        );
+      }
+      if (ts.isPropertyAssignment(declaration)) return ts.isArrowFunction(declaration.initializer);
+      return false;
+    });
+  };
+}
+
 function directMappingRequiresQualifiedAccess(
   context: Rule.RuleContext,
   ownershipResolver: ContractOwnershipResolver | undefined,
@@ -249,7 +287,11 @@ function objectUsage(scope: UsageScope, sourceText: string): ScopeObjectUsage {
   return usage;
 }
 
-function memberIsRead(context: Rule.RuleContext, member: MemberExpression): boolean {
+function memberIsRead(
+  context: Rule.RuleContext,
+  member: MemberExpression,
+  detachableCall: DetachableCallResolver,
+): boolean {
   const parent = context.sourceCode.getAncestors(member).at(-1);
   if (!parent) return true;
 
@@ -257,7 +299,8 @@ function memberIsRead(context: Rule.RuleContext, member: MemberExpression): bool
   if (parent.type === "UpdateExpression" && parent.argument === member) return false;
   if (parent.type === "UnaryExpression" && parent.operator === "delete" && parent.argument === member) return false;
   if ((parent.type === "ForInStatement" || parent.type === "ForOfStatement") && parent.left === member) return false;
-  if ((parent.type === "CallExpression" || parent.type === "NewExpression") && parent.callee === member) return false;
+  if (parent.type === "CallExpression" && parent.callee === member) return detachableCall(member);
+  if (parent.type === "NewExpression" && parent.callee === member) return false;
   if (parent.type === "TaggedTemplateExpression" && parent.tag === member) return false;
 
   return true;
@@ -274,10 +317,11 @@ function recordMemberUsage(
   ownershipResolver: ContractOwnershipResolver | undefined,
   member: MemberExpression,
   isEnumValue: EnumValueResolver,
+  detachableCall: DetachableCallResolver,
 ): void {
   if (!scope || member.computed || member.optional || member.property.type !== "Identifier") return;
   if (!memberCanBeDestructured(context, ownershipResolver, member, isEnumValue)) return;
-  if (!isGroupedUsageSource(member.object) || !memberIsRead(context, member)) return;
+  if (!isGroupedUsageSource(member.object) || !memberIsRead(context, member, detachableCall)) return;
 
   const sourceText = context.sourceCode.getText(member.object);
   const usage = objectUsage(scope, sourceText);
@@ -529,6 +573,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
   create(context) {
     const ownershipResolver = contractOwnershipResolver(context);
     const isEnumValue = enumValueResolver(context);
+    const detachableCall = detachableCallResolver(context);
     const grouped = new Set<VariableDeclaration>();
     const usageScopes: (UsageScope | undefined)[] = [];
 
@@ -564,6 +609,16 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
           node: firstDirectMember,
           message: scopeUsageMessage(sourceText, usage.propertyNames),
           fix(fixer) {
+            // Keep called function properties as manual fixes to avoid changing call semantics automatically.
+            if (
+              usage.directMembers.some(({ member }) => {
+                const parent = context.sourceCode.getAncestors(member).at(-1);
+                return parent?.type === "CallExpression" && parent.callee === member;
+              })
+            ) {
+              return null;
+            }
+
             const memberFixes = usage.directMembers.map(({ member, propertyName }) =>
               fixer.replaceText(member, propertyName),
             );
@@ -637,7 +692,7 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       ArrowFunctionExpression: enterUsageBarrier,
       "ArrowFunctionExpression:exit": exitUsageScope,
       MemberExpression(node) {
-        recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue);
+        recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue, detachableCall);
       },
       VariableDeclaration(node) {
         for (const declarator of node.declarations) {
