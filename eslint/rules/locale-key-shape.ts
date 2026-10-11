@@ -5,6 +5,7 @@
  * MAX_KEY_LENGTH characters is an unwieldy translation, so it must be
  * purpose-based: it must end in an element role from the WAI-ARIA vocabulary
  * (button, link, dialog, ...).
+ * Feature namespaces may contain locale strings, but not nested objects.
  *
  * @see docs/next-codebase-guide/rules/locales-rule.md
  * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles
@@ -88,6 +89,27 @@ function reportFor(context: Rule.RuleContext, node: ESTree.Node, message: string
   context.report({ node, message });
 }
 
+/** TypeScript `as const` and `satisfies` wrap a locale literal in an expression node. */
+function isLocaleWrapper(node: ESTree.Node): node is ESTree.Node & { expression: ESTree.Node } {
+  return (
+    ["TSAsExpression", "TSSatisfiesExpression"].includes(node.type) &&
+    "expression" in node &&
+    typeof node.expression === "object" &&
+    "type" in node.expression
+  );
+}
+
+/** Extracts a locale object literal through TypeScript expression wrappers. */
+function localeObject(node: ESTree.Node | null | undefined): ESTree.ObjectExpression | undefined {
+  let current = node;
+  while (current) {
+    if (current.type === "ObjectExpression") return current;
+    if (!isLocaleWrapper(current)) return undefined;
+    current = current.expression;
+  }
+  return undefined;
+}
+
 /** Checks one leaf locale key (a property whose value is a string). */
 function checkKey(context: Rule.RuleContext, node: ESTree.Property, name: string): void {
   if (!ENGLISH.test(name)) {
@@ -132,14 +154,23 @@ export const localeKeyShapeRule: Rule.RuleModule = {
   create(context) {
     if (!isLocalesFile(context.filename)) return {};
 
-    function visitObject(node: ESTree.ObjectExpression): void {
+    function visitObject(node: ESTree.ObjectExpression, namespace?: string): void {
       for (const property of node.properties) {
         if (property.type !== "Property") continue;
         const name = keyName(property.key);
         if (name === undefined) continue;
 
-        if (property.value.type === "ObjectExpression") {
-          visitObject(property.value);
+        const nested = localeObject(property.value);
+        if (nested) {
+          if (namespace !== undefined) {
+            reportFor(
+              context,
+              property,
+              `Locale "${namespace}.${name}" must not be a nested object. Keep string keys directly inside the "${namespace}" feature namespace. See docs/next-codebase-guide/rules/locales-rule.md`,
+            );
+          } else {
+            visitObject(nested, name);
+          }
         } else if (property.value.type === "Literal" && typeof property.value.value === "string") {
           checkKey(context, property, name);
         }
@@ -149,8 +180,9 @@ export const localeKeyShapeRule: Rule.RuleModule = {
     return {
       VariableDeclarator(node) {
         if (node.id.type !== "Identifier" || node.id.name !== "locales") return;
-        if (node.init?.type !== "ObjectExpression") return;
-        visitObject(node.init);
+        const root = localeObject(node.init);
+        if (!root) return;
+        visitObject(root);
       },
     };
   },
