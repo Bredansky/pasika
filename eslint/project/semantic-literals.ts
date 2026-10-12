@@ -17,7 +17,6 @@ export interface SemanticLiteral {
   family: string;
   line: number;
   column: number;
-  handledByImportedEnumRule: boolean;
 }
 export interface CanonicalLiteral {
   file: string;
@@ -128,47 +127,43 @@ function contextFor(
   value: LiteralValue,
   file: string,
   root: string,
-): { role: string; family: string; handledByImportedEnumRule: boolean } | undefined {
+): { role: string; family: string } | undefined {
   if (typeof value === "number" && ignoredNumbers.has(value)) return undefined;
   if (typeof value === "string" && (value.length < 3 || /\s/.test(value))) return undefined;
   const parent = node.parent;
   const scope = featureOf(file, root);
   const isApiRoute = typeof value === "string" && value.startsWith("/api/") && !/[?&#\s]/.test(value);
-  const route = (handled: boolean): { role: string; family: string; handledByImportedEnumRule: boolean } => ({
-    role: "api-route",
-    family: "api-route",
-    handledByImportedEnumRule: handled,
-  });
+  const route = (): { role: string; family: string } => ({ role: "api-route", family: "api-route" });
   if (ts.isPropertyAssignment(parent) && parent.initializer === node) {
     const name = nameOf(parent.name);
     if (!name) return undefined;
-    if (name === "path" && isApiRoute) return route(true);
+    if (name === "path" && isApiRoute) return route();
     if (!semanticProperties.has(name)) return undefined;
     // The numeric named-slot rule already owns numeric property assignments.
     if (typeof value === "number") return undefined;
-    if (isApiRoute && /route|path|endpoint/i.test(name)) return route(false);
-    return { role: `property:${name}:${scope}`, family: `property:${name}`, handledByImportedEnumRule: false };
+    if (isApiRoute && /route|path|endpoint/i.test(name)) return route();
+    return { role: `property:${name}:${scope}`, family: `property:${name}` };
   }
   if (ts.isVariableDeclaration(parent) && parent.initializer === node && ts.isIdentifier(parent.name)) {
     // Numeric declarations are already covered by repeated-numeric-value.
     if (typeof value === "number") return undefined;
     const name = parent.name.text;
     if (excludedProperties.has(name) || !semanticVariableName.test(name)) return undefined;
-    if (isApiRoute && /route|path|endpoint/i.test(name)) return route(false);
-    return { role: `variable:${name}:${scope}`, family: `variable:${name}`, handledByImportedEnumRule: false };
+    if (isApiRoute && /route|path|endpoint/i.test(name)) return route();
+    return { role: `variable:${name}:${scope}`, family: `variable:${name}` };
   }
   if (ts.isCallExpression(parent)) {
     const position = parent.arguments.findIndex((argument) => argument === node);
     if (position < 0) return undefined;
     const call = invocation(parent);
     if (!call) return undefined;
-    if (isApiRoute && position === 0 && (call.method === "fetch" || call.method === "zodFetch")) return route(false);
+    if (isApiRoute && position === 0 && (call.method === "fetch" || call.method === "zodFetch")) return route();
     if (
       typeof value === "number" &&
       position === 1 &&
       (call.method === "setTimeout" || call.method === "setInterval")
     ) {
-      return { role: `timer:${call.method}:${scope}`, family: "timer", handledByImportedEnumRule: false };
+      return { role: `timer:${call.method}:${scope}`, family: "timer" };
     }
     if (
       typeof value === "string" &&
@@ -177,7 +172,7 @@ function contextFor(
       (call.receiver === "localStorage" || call.receiver === "sessionStorage") &&
       ["getItem", "setItem", "removeItem"].includes(call.method)
     ) {
-      return { role: `storage:${call.receiver}`, family: "storage", handledByImportedEnumRule: false };
+      return { role: `storage:${call.receiver}`, family: "storage" };
     }
     if (
       typeof value === "string" &&
@@ -186,7 +181,7 @@ function contextFor(
       eventMethods.has(call.method) &&
       /(?:event|bus|socket|emitter)/i.test(call.receiver)
     ) {
-      return { role: `event:${call.receiver}`, family: "event", handledByImportedEnumRule: false };
+      return { role: `event:${call.receiver}`, family: "event" };
     }
     if (
       typeof value === "string" &&
@@ -196,7 +191,7 @@ function contextFor(
       value.length > 3 &&
       /^[a-z][a-z0-9_]*$/.test(value)
     ) {
-      return { role: `column:${scope}`, family: "column", handledByImportedEnumRule: true };
+      return { role: `column:${scope}`, family: "column" };
     }
   }
   if (
@@ -206,7 +201,7 @@ function contextFor(
       parent.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken) &&
     ((parent.left === node && isPathname(parent.right)) || (parent.right === node && isPathname(parent.left)))
   ) {
-    return route(true);
+    return route();
   }
   if (
     isApiRoute &&
@@ -216,7 +211,7 @@ function contextFor(
     parent.expression.name.text === "startsWith" &&
     isPathname(parent.expression.expression)
   ) {
-    return route(true);
+    return route();
   }
   return undefined;
 }

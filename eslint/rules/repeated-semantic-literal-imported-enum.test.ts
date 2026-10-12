@@ -2,8 +2,12 @@ import { mkdtempSync, mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import tsParser from "@typescript-eslint/parser";
+import { vi } from "vitest";
 import { CwdAwareRuleTester, describe } from "../rule-tester";
-import { preferExistingEnumValueRule } from "./prefer-existing-enum-value";
+import { repeatedSemanticLiteralRule } from "./repeated-semantic-literal";
+
+// TypeScript project-service initialization is slower under full coverage instrumentation.
+vi.setConfig({ testTimeout: 20_000 });
 
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-existing-enum-")));
 process.chdir(root);
@@ -59,11 +63,11 @@ const typedTester = new CwdAwareRuleTester({
 
 const doc = "See docs/next-codebase-guide/rules/constants-rule.md";
 function diagnostic(member: string, raw: string, slot: string): string {
-  return `Use ${member} instead of the raw string "${raw}" in this ${slot}. ${doc}`;
+  return `Reuse ${member} from src/${slot} instead of raw ${JSON.stringify(raw)}. ${doc}`;
 }
 
-void describe("A database column-selector call or local API route path MUST use an imported enum member instead of a matching raw string when exactly one imported enum member expresses that value in the same domain.", () => {
-  typedTester.run("prefer-existing-enum-value", preferExistingEnumValueRule, {
+void describe("A raw string or number MUST reuse a uniquely matching canonical constant or enum, or be extracted when the same meaningful semantic value recurs within or across production files; a single reusable value MUST use a `const` local to its file or at its consumers' CCF, while a known closed set of multiple related values MUST use an `enum`.", () => {
+  typedTester.run("repeated-semantic-literal: imported enums", repeatedSemanticLiteralRule, {
     valid: [
       file(
         "features/publishing/canonical.ts",
@@ -73,13 +77,6 @@ void describe("A database column-selector call or local API route path MUST use 
           'query.eq(DraftColumnEnum.ChannelSourceId, "source");',
           "query.order(DraftColumnEnum.CreatedAt);",
           "const contract = { path: ApiRoute.Post };",
-        ].join("\n"),
-      ),
-      file(
-        "features/publishing/not-imported.ts",
-        [
-          "declare const query: { eq: (name: string, value: string) => unknown };",
-          'query.eq("channel_source_id", "source");',
         ].join("\n"),
       ),
       file(
@@ -121,6 +118,18 @@ void describe("A database column-selector call or local API route path MUST use 
     invalid: [
       {
         ...file(
+          "features/publishing/not-imported.ts",
+          [
+            "declare const query: { eq: (name: string, value: string) => unknown };",
+            'query.eq("channel_source_id", "source");',
+          ].join("\n"),
+        ),
+        errors: [
+          { message: diagnostic("DraftColumnEnum.ChannelSourceId", "channel_source_id", "constants/draft-columns.ts") },
+        ],
+      },
+      {
+        ...file(
           "features/publishing/raw-columns.ts",
           [
             'import { DraftColumnEnum } from "@/constants";',
@@ -130,8 +139,8 @@ void describe("A database column-selector call or local API route path MUST use 
           ].join("\n"),
         ),
         errors: [
-          { message: diagnostic("DraftColumnEnum.ChannelSourceId", "channel_source_id", "column selector") },
-          { message: diagnostic("DraftColumnEnum.CreatedAt", "created_at", "column selector") },
+          { message: diagnostic("DraftColumnEnum.ChannelSourceId", "channel_source_id", "constants/draft-columns.ts") },
+          { message: diagnostic("DraftColumnEnum.CreatedAt", "created_at", "constants/draft-columns.ts") },
         ],
       },
       {
@@ -146,9 +155,9 @@ void describe("A database column-selector call or local API route path MUST use 
           ].join("\n"),
         ),
         errors: [
-          { message: diagnostic("ApiRoute.Post", "/api/post", "route path") },
-          { message: diagnostic("ApiRoute.TelegramWebhook", "/api/telegram/webhook", "route path") },
-          { message: diagnostic("ApiRoute.AuthPrefix", "/api/auth/", "route path") },
+          { message: diagnostic("ApiRoute.Post", "/api/post", "constants/routes.ts") },
+          { message: diagnostic("ApiRoute.TelegramWebhook", "/api/telegram/webhook", "constants/routes.ts") },
+          { message: diagnostic("ApiRoute.AuthPrefix", "/api/auth/", "constants/routes.ts") },
         ],
       },
       {
@@ -160,7 +169,7 @@ void describe("A database column-selector call or local API route path MUST use 
             'query.eq("channel_source_id", "x");',
           ].join("\n"),
         ),
-        errors: [{ message: diagnostic("Columns.ChannelSourceId", "channel_source_id", "column selector") }],
+        errors: [{ message: diagnostic("Columns.ChannelSourceId", "channel_source_id", "constants/draft-columns.ts") }],
       },
     ],
   });

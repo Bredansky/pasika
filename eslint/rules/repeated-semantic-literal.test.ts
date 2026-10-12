@@ -61,12 +61,13 @@ void describe("A raw string or number MUST reuse a uniquely matching canonical c
       file("features/payments/status.ts", 'export const payment = { status: "queued" };'),
       file("features/publishing/copy.ts", 'const message = "user not found"; const label = "success";'),
       file("features/publishing/example.test.ts", 'fetch("/api/publish");'),
-      file(
-        "features/publishing/imported-route.ts",
-        'import { ApiRoute } from "@/constants"; const data = { path: "/api/existing" };',
-      ),
     ],
     invalid: [
+      {
+        filename: path.join(root, "src/features/publishing/imported-route.ts"),
+        code: 'import { ApiRoute } from "@/constants"; const data = { path: "/api/existing" };',
+        errors: [{ message: reused("ApiRoute.Existing", '"/api/existing"', "constants/routes.ts") }],
+      },
       {
         filename: path.join(root, "src/constants/api-contracts.ts"),
         code: 'defineApiContract({ path: "/api/credentials/[id]" }); defineApiContract({ path: "/api/credentials/[id]" });',

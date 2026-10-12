@@ -1,22 +1,25 @@
 /**
- * ESLint rule: pasika/prefer-existing-enum-value
- *
- * An already imported enum is the source of truth for column selectors and
- * local route paths. Only report uniquely identified enum members, avoiding
- * unrelated user-visible, third-party and test string literals.
- *
- * @see docs/next-codebase-guide/rules/constants-rule.md
+ * Type-aware matching for imported enum members. This augments the general
+ * semantic-literal rule for aliased imports and short values (such as "id")
+ * that are intentionally excluded from the heuristic project-wide index.
  */
 import path from "node:path";
 import type { Rule } from "eslint";
 import ts from "typescript";
 import { typedParserServices } from "./contract-ownership";
-import { sourceRootOf } from "./project-root";
 
 type EnumDomain = "column" | "route";
 interface EnumMatch {
   reference: string;
   domain: EnumDomain;
+  sourceFile: string;
+}
+export interface ImportedEnumLiteralUse {
+  reference: string;
+  sourceFile: string;
+  value: string;
+  line: number;
+  column: number;
 }
 
 const columnMethods = new Set([
@@ -66,7 +69,6 @@ function importedEnums(
     ) {
       continue;
     }
-
     for (const specifier of statement.importClause.namedBindings.elements) {
       if (!importedNames.has(specifier.name.text)) continue;
       const symbol = checker.getSymbolAtLocation(specifier.name);
@@ -74,17 +76,21 @@ function importedEnums(
       const resolved = symbol.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
       for (const declaration of resolved.declarations ?? []) {
         if (!ts.isEnumDeclaration(declaration)) continue;
-        if (!isWithin(sourceRoot, path.resolve(declaration.getSourceFile().fileName))) continue;
+        const declarationFile = path.resolve(declaration.getSourceFile().fileName);
+        if (!isWithin(sourceRoot, declarationFile)) continue;
         const domain = domainOf(declaration.name.text);
         if (!domain) continue;
         for (const member of declaration.members) {
-          const initializer = member.initializer;
-          if (!initializer || !ts.isStringLiteral(initializer)) continue;
+          if (!member.initializer || !ts.isStringLiteral(member.initializer)) continue;
           const name = memberName(member.name);
           if (!name) continue;
-          const entries = matches.get(initializer.text) ?? [];
-          entries.push({ reference: `${specifier.name.text}.${name}`, domain });
-          matches.set(initializer.text, entries);
+          const entries = matches.get(member.initializer.text) ?? [];
+          entries.push({
+            reference: `${specifier.name.text}.${name}`,
+            domain,
+            sourceFile: declarationFile,
+          });
+          matches.set(member.initializer.text, entries);
         }
       }
     }
@@ -117,58 +123,46 @@ function domainForUse(node: ts.StringLiteral): EnumDomain | undefined {
   return undefined;
 }
 
-export const preferExistingEnumValueRule: Rule.RuleModule = {
-  meta: {
-    schema: [],
-    type: "problem",
-    docs: {
-      description: "Reuse imported enum members for database column selectors and local API route paths.",
-    },
-  },
-  create(context) {
-    const filename = path.resolve(context.filename);
-    const sourceRoot = sourceRootOf(context);
-    if (!isWithin(sourceRoot, filename) || /\.(?:test|spec|mock)\.[^.]+$/.test(filename)) return {};
-    const services = typedParserServices(context.sourceCode.parserServices);
-    if (!services) return {};
-    const file = services.program.getSourceFile(filename);
-    // TypeScript project-service programs may lag the text ESLint is linting.
-    // Do not match imports from a stale source snapshot.
-    if (file?.text !== context.sourceCode.text) return {};
-    const importedNames = new Set<string>();
-    for (const statement of context.sourceCode.ast.body) {
-      if (statement.type !== "ImportDeclaration") continue;
-      for (const specifier of statement.specifiers) {
-        importedNames.add(specifier.local.name);
+export function importedEnumLiteralUses(context: Rule.RuleContext, root: string): ImportedEnumLiteralUse[] {
+  const filename = path.resolve(context.filename);
+  if (!isWithin(root, filename)) return [];
+  const services = typedParserServices(context.sourceCode.parserServices);
+  if (!services) return [];
+  const file = services.program.getSourceFile(filename);
+  // Project service can retain an older source snapshot while ESLint runs.
+  if (file?.text !== context.sourceCode.text) return [];
+
+  const importedNames = new Set<string>();
+  for (const statement of context.sourceCode.ast.body) {
+    if (statement.type !== "ImportDeclaration") continue;
+    for (const specifier of statement.specifiers) importedNames.add(specifier.local.name);
+  }
+  if (importedNames.size === 0) return [];
+
+  const matches = importedEnums(file, services.program.getTypeChecker(), root, importedNames);
+  if (matches.size === 0) return [];
+
+  const uses: ImportedEnumLiteralUse[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isStringLiteral(node)) {
+      const domain = domainForUse(node);
+      const candidates = matches.get(node.text)?.filter((entry) => entry.domain === domain) ?? [];
+      if (candidates.length === 1) {
+        const match = candidates[0];
+        if (match) {
+          const position = file.getLineAndCharacterOfPosition(node.getStart(file));
+          uses.push({
+            reference: match.reference,
+            sourceFile: match.sourceFile,
+            value: node.text,
+            line: position.line + 1,
+            column: position.character,
+          });
+        }
       }
     }
-    if (importedNames.size === 0) return {};
-    const matches = importedEnums(file, services.program.getTypeChecker(), sourceRoot, importedNames);
-    if (matches.size === 0) return {};
-
-    return {
-      Program() {
-        const visit = (node: ts.Node): void => {
-          if (ts.isStringLiteral(node)) {
-            const domain = domainForUse(node);
-            const candidates = matches.get(node.text)?.filter((entry) => entry.domain === domain) ?? [];
-            if (candidates.length === 1) {
-              const match = candidates[0];
-              if (match) {
-                const position = file.getLineAndCharacterOfPosition(node.getStart(file));
-                context.report({
-                  loc: { line: position.line + 1, column: position.character },
-                  message:
-                    `Use ${match.reference} instead of the raw string "${node.text}" in this ${domain === "column" ? "column selector" : "route path"}. ` +
-                    "See docs/next-codebase-guide/rules/constants-rule.md",
-                });
-              }
-            }
-          }
-          ts.forEachChild(node, visit);
-        };
-        visit(file);
-      },
-    };
-  },
-};
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return uses;
+}

@@ -17,6 +17,7 @@ import {
   type CanonicalLiteral,
   type SemanticLiteral,
 } from "../project/semantic-literals";
+import { importedEnumLiteralUses } from "./imported-enum-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
@@ -94,7 +95,8 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
     if (!project?.modules.has(file)) return {};
     const index = getSemanticLiteralIndex(project);
     const current = index.uses.filter((entry) => entry.file === file);
-    if (current.length === 0) return {};
+    const imported = importedEnumLiteralUses(context, root);
+    if (current.length === 0 && imported.length === 0) return {};
 
     // Only values repeated at least twice within the same semantic role count
     // towards deciding whether an API route domain offers multiple alternatives.
@@ -125,19 +127,25 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
       }
     }
     const existingRouteEnum = routeDomains.size === 1 ? [...routeDomains.values()][0] : undefined;
-    const imports = new Set(project.modules.get(file)?.imports.flatMap((entry) => entry.names) ?? []);
+    const recognized = new Set(imported.map((use) => `${String(use.line)}:${String(use.column)}`));
     return {
       Program(node) {
+        for (const use of imported) {
+          const relative = path.relative(root, use.sourceFile).replaceAll(path.sep, "/");
+          context.report({
+            node,
+            loc: { line: use.line, column: use.column },
+            message: `Reuse ${use.reference} from src/${relative} instead of raw ${JSON.stringify(use.value)}. ${DOC}`,
+          });
+        }
         for (const use of current) {
+          if (recognized.has(`${String(use.line)}:${String(use.column)}`)) continue;
           const candidates = index.canonicals.filter(
             (canonical) => canonicalMatches(use, canonical, root) && canonical.file !== file,
           );
           if (candidates.length === 1) {
             const canonical = candidates[0];
             if (!canonical) continue;
-            // The older, type-aware enum rule already diagnoses these exact
-            // contexts when the enum is imported into the current file.
-            if (use.handledByImportedEnumRule && canonical.owner && imports.has(canonical.owner)) continue;
             const relative = path.relative(root, canonical.file).replaceAll(path.sep, "/");
             context.report({
               node,
