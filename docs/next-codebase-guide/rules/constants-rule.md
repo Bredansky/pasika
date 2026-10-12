@@ -2,8 +2,9 @@
 
 Duplicated constants are hard to keep in sync, while extracting every single-use value creates unnecessary files. This rule keeps reused constants in one file and leaves single-use values close to their consumer.
 
-- A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.
-- A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.
+- A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant into a `constants/` folder at its consumers' CCF.
+- A TypeScript `enum` MUST remain in its declaring file while no other file imports it; an enum imported by another file MUST live in a `constants/` folder at the CCF of its consumers.
+- A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.
 - Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.
 - Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.
 - A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` re-exports.
@@ -13,8 +14,8 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
 - A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.
 - A database column-selector call or local API route path MUST use an imported enum member instead of a matching raw string when exactly one imported enum member expresses that value in the same domain.
-- A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.
-- A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.
+- A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant. The values `-1`, `0`, and `1` MAY still be written inline.
+- A fixed set of two or more named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value

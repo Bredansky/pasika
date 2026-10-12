@@ -2,7 +2,8 @@
  * ESLint rule: pasika/repeated-numeric-value
  *
  * A raw numeric value MUST NOT be repeated under the same semantic slot across
- * production files. Exact names form a semantic slot; common rendering
+ * production files. A single reused numeric value needs a constant, not an enum.
+ * Exact names form a semantic slot; common rendering
  * measurements/timing additionally normalize `compositionWidth`, `baseWidth`,
  * object/JSX `width` (and corresponding height/fps/duration names) together.
  *
@@ -41,8 +42,7 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description:
-        "Require repeated named numeric values across production files to use one extracted constant or enum.",
+      description: "Require repeated named numeric values across production files to use one shared constant.",
     },
   },
   create(context) {
@@ -88,7 +88,7 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
             loc: { line: literal.line, column: 0 },
             message:
               `The numeric value ${String(literal.value)} is repeated for the "${literal.semanticName}" semantic slot ` +
-              `in ${String(files.size)} production files. Extract one constant or enum at their CCF and import it instead. ` +
+              `in ${String(files.size)} production files. Extract one constant at their CCF and import it instead. ` +
               "See docs/next-codebase-guide/rules/constants-rule.md",
           });
         }

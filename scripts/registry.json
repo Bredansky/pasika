@@ -416,14 +416,20 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
-      "hash": "e779f5ec6f",
+      "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant into a `constants/` folder at its consumers' CCF.",
+      "hash": "0452b7b20e",
       "ref": "pasika/value-extraction"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.",
-      "hash": "4871d858a2",
+      "text": "A TypeScript `enum` MUST remain in its declaring file while no other file imports it; an enum imported by another file MUST live in a `constants/` folder at the CCF of its consumers.",
+      "hash": "e92bfd8704",
+      "ref": "pasika/enum-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.",
+      "hash": "36c939ead1",
       "ref": "pasika/enum-placement"
     },
     {
@@ -482,14 +488,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.",
-      "hash": "ab7e6bc445",
+      "text": "A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant. The values `-1`, `0`, and `1` MAY still be written inline.",
+      "hash": "3a5a23810b",
       "ref": "pasika/repeated-numeric-value"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.",
-      "hash": "f0eb530c74",
+      "text": "A fixed set of two or more named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.",
+      "hash": "4026cd1ee2",
       "ref": "pasika/prefer-enum"
     },
     {

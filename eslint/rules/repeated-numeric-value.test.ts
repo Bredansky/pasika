@@ -39,7 +39,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.", () => {
+void describe("A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant. The values `-1`, `0`, and `1` MAY still be written inline.", () => {
   ruleTester.run("repeated-numeric-value", repeatedNumericValueRule, {
     valid: [
       {
@@ -79,12 +79,12 @@ void describe("A raw numeric value MUST NOT be repeated under the same semantic 
           {
             message:
               'The numeric value 360 is repeated for the "width" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
               'The numeric value 640 is repeated for the "height" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
       },
@@ -95,7 +95,7 @@ void describe("A raw numeric value MUST NOT be repeated under the same semantic 
           {
             message:
               'The numeric value 300 is repeated for the "duration" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
       },
@@ -106,17 +106,17 @@ void describe("A raw numeric value MUST NOT be repeated under the same semantic 
           {
             message:
               'The numeric value 1080 is repeated for the "width" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
               'The numeric value 1920 is repeated for the "height" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
               'The numeric value 30 is repeated for the "fps" semantic slot in 2 production files. ' +
-              `Extract one constant or enum at their CCF and import it instead. ${DOC}`,
+              `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
       },

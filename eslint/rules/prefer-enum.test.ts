@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.", () => {
+void describe("A fixed set of two or more named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
@@ -36,8 +36,10 @@ void describe("A fixed set of named string or number values MUST be a TypeScript
         code: 'const nested = { ua: { code: "UA" } } as const;',
         filename: file("constants/index.ts"),
       },
-      // An empty object has no fixed set of values to convert.
+      // Zero or one value cannot form an enum domain.
       { code: "const empty = {} as const;", filename: file("constants/index.ts") },
+      { code: 'const single = { publish: "/api/publish" } as const;', filename: file("constants/index.ts") },
+      { code: "const singleNumber = { width: 360 } as const;", filename: file("constants/index.ts") },
       // A plain (non-const) type assertion is not this rule's concern.
       {
         code: 'const languageLabels = { ua: "UA" } as Record<string, string>;',
