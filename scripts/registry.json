@@ -482,6 +482,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A raw string or number MUST reuse a uniquely matching canonical constant or enum, or be extracted when the same meaningful semantic value recurs within or across production files; a single reusable value MUST use a `const` local to its file or at its consumers' CCF, while a known closed set of multiple related values MUST use an `enum`.",
+      "hash": "740452044d",
+      "ref": "pasika/repeated-semantic-literal"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A database column-selector call or local API route path MUST use an imported enum member instead of a matching raw string when exactly one imported enum member expresses that value in the same domain.",
       "hash": "a7c74af6f2",
       "ref": "pasika/prefer-existing-enum-value"

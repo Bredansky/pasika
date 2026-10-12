@@ -55,6 +55,7 @@ import { preferExistingEnumValueRule } from "./rules/prefer-existing-enum-value"
 import { preferObjectDestructuringRule } from "./rules/prefer-object-destructuring";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { repeatedNumericValueRule } from "./rules/repeated-numeric-value";
+import { repeatedSemanticLiteralRule } from "./rules/repeated-semantic-literal";
 import { repeatedStructureRule } from "./rules/repeated-structure";
 import { requireBarrelStarExportsRule } from "./rules/require-barrel-star-exports";
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
@@ -106,6 +107,7 @@ const pasikaNextjsAppRules = {
   "constant-casing": constantCasingRule,
   "prefer-enum": preferEnumRule,
   "prefer-existing-enum-value": preferExistingEnumValueRule,
+  "repeated-semantic-literal": repeatedSemanticLiteralRule,
   "prefer-object-destructuring": preferObjectDestructuringRule,
   "enum-placement": enumPlacementRule,
   "type-extraction": typeExtractionRule,
