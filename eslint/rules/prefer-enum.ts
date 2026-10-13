@@ -1,10 +1,9 @@
 /**
  * ESLint rule: pasika/prefer-enum
  *
- * A fixed set of two or more named string or number values MUST be a TypeScript enum
- * instead of an object literal marked `as const`, a literal-union type alias,
- * an inline literal-union property type, enum-like const tuple declarations, or
- * raw Zod discriminated-union discriminator literals.
+ * A reusable closed domain of related string or numeric values should use a
+ * TypeScript enum. Detect enum-shaped alternatives without requiring callers
+ * to enumerate forbidden syntax forms in the documentation.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */

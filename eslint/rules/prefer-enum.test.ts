@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A fixed set of two or more named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.", () => {
+void describe("A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
