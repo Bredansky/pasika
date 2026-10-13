@@ -66,7 +66,7 @@ function diagnostic(member: string, raw: string, slot: string): string {
   return `Reuse ${member} from src/${slot} instead of raw ${JSON.stringify(raw)}. ${doc}`;
 }
 
-void describe("A raw string or number MUST reuse a uniquely matching canonical constant or enum, or be extracted when the same meaningful semantic value recurs within or across production files; a single reusable value MUST use a `const` local to its file or at its consumers' CCF, while a known closed set of multiple related values MUST use an `enum`.", () => {
+void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   typedTester.run("repeated-semantic-literal: imported enums", repeatedSemanticLiteralRule, {
     valid: [
       file(

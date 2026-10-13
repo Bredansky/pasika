@@ -54,7 +54,7 @@ file(
 );
 file("features/publishing/events.ts", 'eventBus.emit("draft:stored"); eventBus.on("draft:stored", handler);');
 
-void describe("A raw string or number MUST reuse a uniquely matching canonical constant or enum, or be extracted when the same meaningful semantic value recurs within or across production files; a single reusable value MUST use a `const` local to its file or at its consumers' CCF, while a known closed set of multiple related values MUST use an `enum`.", () => {
+void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
     valid: [
       file("features/publishing/unrelated.ts", 'const onlyOnce = "unique-value";'),

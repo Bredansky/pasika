@@ -15,7 +15,7 @@ function project(): { root: string; consumer: string } {
   return { root, consumer };
 }
 
-void describe("Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.", () => {
+void describe("Consumers outside `constants/` MUST import extracted constants through its `index.ts`; modules within that folder MUST import sibling files directly.", () => {
   const { root, consumer } = project();
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import { maxRetries } from "./constants";', filename: consumer }],

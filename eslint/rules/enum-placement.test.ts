@@ -27,7 +27,7 @@ file(
   'import { OrderStatus } from "./constants/order-status"; export const orderStatus = OrderStatus.Draft;',
 );
 
-void describe("A TypeScript `enum` MUST remain in its declaring file while no other file imports it; an enum imported by another file MUST live in a `constants/` folder at the CCF of its consumers.", () => {
+void describe("A TypeScript `enum` MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file(

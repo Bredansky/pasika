@@ -39,7 +39,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant. The values `-1`, `0`, and `1` MAY still be written inline.", () => {
+void describe("Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.", () => {
   ruleTester.run("repeated-numeric-value", repeatedNumericValueRule, {
     valid: [
       {
