@@ -21,7 +21,7 @@ function emptyFixture(folder: string, index: string): string {
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/` folder MUST define constants in `index.ts` when it has at most one sibling file; with multiple sibling files, it MUST group related constants in files re-exported by `index.ts`.", () => {
+void describe("A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const grouped = fixture(
     "constants",

@@ -11,8 +11,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
-- Consumers outside `constants/` MUST import extracted constants through its `index.ts`; modules within that folder MUST import sibling files directly.
-- A `constants/` folder MUST define constants in `index.ts` when it has at most one sibling file; with multiple sibling files, it MUST group related constants in files re-exported by `index.ts`.
+- A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value

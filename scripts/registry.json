@@ -470,15 +470,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Consumers outside `constants/` MUST import extracted constants through its `index.ts`; modules within that folder MUST import sibling files directly.",
-      "hash": "f5bea3eaaa",
-      "ref": "pasika/import-through-index"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder MUST define constants in `index.ts` when it has at most one sibling file; with multiple sibling files, it MUST group related constants in files re-exported by `index.ts`.",
-      "hash": "244c61a12c",
-      "ref": "pasika/support-folder-shape"
+      "text": "A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.",
+      "hash": "da8a9e0961",
+      "ref": "pasika/import-through-index, pasika/support-folder-shape"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
