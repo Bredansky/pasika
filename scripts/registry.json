@@ -416,81 +416,69 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.",
-      "hash": "e779f5ec6f",
-      "ref": "pasika/value-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.",
-      "hash": "4871d858a2",
+      "text": "A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.",
+      "hash": "36c939ead1",
       "ref": "pasika/enum-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.",
-      "hash": "34022a9e2b",
-      "ref": "pasika/support-file-placement"
+      "text": "A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.",
+      "hash": "3504540b3d",
+      "ref": "pasika/prefer-enum"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.",
-      "hash": "c034f8e3d2",
-      "ref": "pasika/import-through-index"
+      "text": "A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
+      "hash": "dd5da63697",
+      "ref": "pasika/repeated-semantic-literal"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` re-exports.",
-      "hash": "330e5ab838",
-      "ref": "pasika/support-folder-shape"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.",
-      "hash": "e61aca9eff",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.",
-      "hash": "2b137b9350",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.",
-      "hash": "d37cf43f88",
-      "ref": "pasika/support-file-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).",
-      "hash": "21bf51f0a3",
-      "ref": "pasika/constant-casing"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.",
-      "hash": "9b0984eb4c",
-      "note": "A reviewer decides whether a repeated literal is already represented by an existing enum or constant."
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.",
-      "hash": "ab7e6bc445",
+      "text": "Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.",
+      "hash": "e4c9e83d80",
       "ref": "pasika/repeated-numeric-value"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.",
-      "hash": "f0eb530c74",
-      "ref": "pasika/prefer-enum"
+      "text": "A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.",
+      "hash": "8f9301d343",
+      "ref": "pasika/value-extraction, pasika/enum-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.",
+      "hash": "a6c5e11312",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A `constants/` file MUST split exported constants whose direct consumers have different CCFs.",
+      "hash": "99a4c0b012",
+      "ref": "pasika/support-file-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.",
       "hash": "f9d3845ae6",
       "ref": "pasika/root-support-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.",
+      "hash": "37a852f70e",
+      "ref": "pasika/support-file-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.",
+      "hash": "da8a9e0961",
+      "ref": "pasika/import-through-index, pasika/support-folder-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A constant's name MUST be `camelCase`, except when a framework requires an exact export name.",
+      "hash": "5e96671a1d",
+      "ref": "pasika/constant-casing"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",

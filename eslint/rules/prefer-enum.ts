@@ -1,10 +1,9 @@
 /**
  * ESLint rule: pasika/prefer-enum
  *
- * A fixed set of named string or number values MUST be a TypeScript enum
- * instead of an object literal marked `as const`, a literal-union type alias,
- * an inline literal-union property type, enum-like const tuple declarations, or
- * raw Zod discriminated-union discriminator literals.
+ * A reusable closed domain of related string or numeric values should use a
+ * TypeScript enum. Detect enum-shaped alternatives without requiring callers
+ * to enumerate forbidden syntax forms in the documentation.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -207,7 +206,8 @@ export const preferEnumRule: Rule.RuleModule = {
           if (
             discriminatorArg?.type !== "Literal" ||
             typeof discriminatorArg.value !== "string" ||
-            optionsArg?.type !== "ArrayExpression"
+            optionsArg?.type !== "ArrayExpression" ||
+            optionsArg.elements.length < 2
           ) {
             continue;
           }
@@ -245,7 +245,7 @@ export const preferEnumRule: Rule.RuleModule = {
 
         const expression = node.expression;
         if (!expression || expression.type !== "ObjectExpression") return;
-        if (expression.properties.length === 0) return;
+        if (expression.properties.length < 2) return;
         if (!expression.properties.every(isEnumConvertibleProperty)) return;
 
         context.report({

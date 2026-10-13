@@ -163,7 +163,7 @@ const ok = (relativePath: string): { code: string; filename: string } => ({
   filename: file(relativePath),
 });
 
-void describe("Extracted constants MUST live in a constants/ folder at the CCF of their consumers.", () => {
+void describe("Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [ok("features/billing/constants/index.ts"), ok("features/billing/constants/invoice-status.ts")],
     invalid: [
@@ -183,7 +183,7 @@ void describe("Extracted constants MUST live in a constants/ folder at the CCF o
   });
 });
 
-void describe("When a constant's CCF is src/features/, it MUST move to src/constants/.", () => {
+void describe("Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],
     invalid: [
@@ -245,7 +245,7 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
   });
 });
 
-void describe("A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.", () => {
+void describe("A `constants/` file MUST split exported constants whose direct consumers have different CCFs.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],
     invalid: [
@@ -391,7 +391,7 @@ void describe("A constant in one configuration module that only another configur
   });
 });
 
-void describe("A constant MAY live in src/config/<config-name>/ instead of a constants/ folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.", () => {
+void describe("A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     // Consumers outside the config module do not place a config-owned constant;
     // only a consuming config module does, and that case has its own test above.

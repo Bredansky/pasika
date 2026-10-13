@@ -2,19 +2,17 @@
 
 Duplicated constants are hard to keep in sync, while extracting every single-use value creates unnecessary files. This rule keeps reused constants in one file and leaves single-use values close to their consumer.
 
-- A value MUST remain in its declaring component or file until another file imports it independently; it MUST then be extracted as a constant.
-- A TypeScript `enum` MUST always live in a `constants/` folder because it creates runtime values as well as a type.
-- Extracted constants MUST live in a `constants/` folder at the CCF of their consumers.
-- Consumers outside a `constants/` folder MUST import extracted constants through that folder's `index.ts`. Modules within the same `constants/` folder MUST import their sibling files directly to avoid circular barrel imports.
-- A `constants/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related constants in files that `index.ts` re-exports.
-- A file in `constants/` MUST calculate each exported constant's CCF from that constant's direct consumers and MUST split exports whose CCFs differ.
-- When a constant's CCF is `src/features/`, it MUST move to `src/constants/`.
-- A constant MAY live in `src/config/<config-name>/` instead of a `constants/` folder when a developer determines that it configures application behavior and is best understood alongside the configuration that parameterizes it, even when consumers exist outside the configuration file.
-- A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).
-- A raw literal SHOULD NOT be repeated when the same value is available through an existing enum/constant.
-- A raw numeric value MUST NOT be repeated under the same semantic slot across production files; repeated named numeric values MUST use one extracted constant or enum. The values `-1`, `0`, and `1` MAY still be written inline.
-- A fixed set of named string or number values MUST be a TypeScript `enum` instead of an object literal marked `as const`, a named type alias made only of string/number literals, a property declared as an inline string/number literal union, or a named `as const` array used as an enum domain through `z.enum` or `typeof values[number]`.
+- A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.
+- A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.
+- A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
+- Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.
+- A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
+- Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.
+- A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
+- A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
+- A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
+- A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
@@ -226,15 +224,12 @@ import { maxRetries } from "../constants/max-retries";
 
 Why: the consumer bypasses the feature's `constants/index.ts`.
 
-## Correct — Grouped Constants Re-Exported from `constants/index.ts`
+## Correct — Constants Defined in `constants/index.ts`
 
 ```ts
-// src/features/billing/constants/retry.ts
+// src/features/billing/constants/index.ts
 export const maxRetries = 3;
 export const retryDelayMs = 1_000;
-
-// src/features/billing/constants/index.ts
-export { maxRetries, retryDelayMs } from "./retry";
 ```
 
 ```ts
@@ -293,13 +288,13 @@ Why: the constant's only consumer is a route under `src/app/`, which never count
 ## Correct — Route-Only Constant in the Feature It Represents
 
 ```ts
-// src/features/editor/constants/max-render-jobs.ts
+// src/features/editor/constants/index.ts
 export const maxRenderJobs = 10;
 ```
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-import { maxRenderJobs } from "@/features/editor/constants/max-render-jobs";
+import { maxRenderJobs } from "@/features/editor/constants";
 ```
 
 Why: with no consumer outside `src/app/`, the constant belongs in the feature it represents, the same way a component with no outside consumer does.

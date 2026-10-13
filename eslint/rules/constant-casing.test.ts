@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A constant's name MUST be `camelCase`, unless a framework requires a specific name for it (for example, a Next.js route handler exported as `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, or `OPTIONS`).", () => {
+void describe("A constant's name MUST be `camelCase`, except when a framework requires an exact export name.", () => {
   ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
       // camelCase constant.
