@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import type { Linter } from "eslint";
+import { ESLint, type Linter } from "eslint";
 import { describe, it } from "vitest";
 import { pasikaNextjsApp, pasikaApp } from "./index";
 
@@ -16,6 +16,16 @@ function fileGlobs(blocks: Linter.Config[]): string[] {
   return out;
 }
 
+function fileLengthSeverity(config: unknown): unknown {
+  if (typeof config !== "object" || config === null || !("rules" in config)) return undefined;
+  const { rules } = config;
+  if (typeof rules !== "object" || rules === null || !("pasika/file-length" in rules)) return undefined;
+  const setting: unknown = rules["pasika/file-length"];
+  if (!Array.isArray(setting)) return undefined;
+  const severity: unknown = setting[0];
+  return severity;
+}
+
 void describe("pasika presets", () => {
   it("pasikaNextjsApp contains every pasikaApp block (pasikaApp is a subset)", () => {
     assert.ok(pasikaNextjsApp.length > pasikaApp.length);
@@ -24,10 +34,10 @@ void describe("pasika presets", () => {
     }
   });
 
-  it("pasikaApp carries no src/** source block: manifest, zirka contract, and docs only", () => {
+  it("pasikaApp carries no full src/** application rule block", () => {
     assert.ok(
       !fileGlobs(pasikaApp).some((glob) => glob.includes("src/")),
-      "pasikaApp must not lint src/** — source linting belongs to pasikaNextjsApp",
+      "pasikaApp must not enable the full src/** application rule block",
     );
     assert.ok(
       fileGlobs(pasikaApp).some((glob) => glob === "package.json"),
@@ -57,6 +67,54 @@ void describe("pasika presets", () => {
       fileGlobs(pasikaNextjsApp).some((glob) => glob.includes("src/**/*.{")),
       "pasikaNextjsApp must lint src/** with a source block",
     );
+  });
+
+  it("enforces the 300-line limit on TypeScript files throughout the repository in both presets", async () => {
+    const locations = [
+      "src/features/example/example.ts",
+      "tests/unit/example.test.ts",
+      "tests/e2e/example.spec.ts",
+      "scripts/example.mts",
+      "config/example.cts",
+      "eslint.config.ts",
+      "root-component.tsx",
+    ];
+    for (const preset of [pasikaApp, pasikaNextjsApp]) {
+      const eslint = new ESLint({ overrideConfigFile: true, overrideConfig: preset });
+      for (const location of locations) {
+        const config: unknown = await eslint.calculateConfigForFile(location);
+        assert.equal(fileLengthSeverity(config), 2, `${location} must enforce file-length`);
+      }
+    }
+  });
+
+  it("rejects 301 lines and accepts 300 lines in a test file", async () => {
+    const eslint = new ESLint({ overrideConfigFile: true, overrideConfig: pasikaApp });
+    const source = (lines: number): string =>
+      Array.from({ length: lines }, (_, i) => `export const value${String(i)} = ${String(i)};`).join("\n");
+    const filePath = "tests/unit/telegram-webhook.test.ts";
+    const [allowed] = await eslint.lintText(source(300), { filePath });
+    const [oversized] = await eslint.lintText(source(301), { filePath });
+    assert.equal(allowed?.messages.filter((msg) => msg.ruleId === "pasika/file-length").length, 0);
+    assert.equal(oversized?.messages.filter((msg) => msg.ruleId === "pasika/file-length").length, 1);
+  });
+
+  it("keeps JavaScript source enforcement and excludes JavaScript outside src", async () => {
+    const eslint = new ESLint({ overrideConfigFile: true, overrideConfig: pasikaNextjsApp });
+    const app: unknown = await eslint.calculateConfigForFile("src/features/example/example.js");
+    const script: unknown = await eslint.calculateConfigForFile("scripts/example.js");
+    assert.equal(fileLengthSeverity(app), 2);
+    assert.equal(fileLengthSeverity(script), undefined);
+  });
+
+  it("respects consumer ignores for generated TypeScript files", async () => {
+    const eslint = new ESLint({
+      overrideConfigFile: true,
+      overrideConfig: [{ ignores: ["src/types/database-generated.ts"] }, ...pasikaApp],
+    });
+    assert.equal(await eslint.calculateConfigForFile("src/types/database-generated.ts"), undefined);
+    const handwritten: unknown = await eslint.calculateConfigForFile("src/types/manual.ts");
+    assert.equal(fileLengthSeverity(handwritten), 2);
   });
 
   it("the Next.js-stack requirement applies only to pasikaNextjsApp, not pasikaApp", () => {

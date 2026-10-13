@@ -4,7 +4,7 @@ import { fileLengthRule } from "./file-length";
 const sourceWithLines = (lineCount: number): string =>
   Array.from({ length: lineCount }, (_, index) => `export const value${String(index)} = ${String(index)};`).join("\n");
 
-void describe("A source file MUST NOT exceed 300 lines.", () => {
+void describe("A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines.", () => {
   ruleTester.run("file-length", fileLengthRule, {
     valid: [
       {

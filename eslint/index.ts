@@ -222,6 +222,17 @@ const pasikaAppLanguageOptions: Linter.Config["languageOptions"] = {
   },
 };
 
+/**
+ * Repository-wide TypeScript file length, including tests, scripts and root
+ * configuration files. Consumers exclude generated files with ESLint ignores.
+ */
+const pasikaTypeScriptFileLengthConfig: Linter.Config = {
+  files: ["**/*.{cts,mts,ts,tsx}"],
+  languageOptions: pasikaAppLanguageOptions,
+  plugins: { pasika: pasikaPlugin },
+  rules: { "pasika/file-length": "error" },
+};
+
 /** The app's TS/TSX source (`src/**`), running every source rule. */
 const pasikaNextjsAppConfig: Linter.Config = {
   files: ["src/**/*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}"],
@@ -335,11 +346,16 @@ const documentationConfig: Linter.Config = {
 /**
  * TypeScript app preset: the framework-agnostic baseline — the package.json
  * manifest (incl. husky hook and vulyk requirements), the zirka configuration
- * contract, and the documentation markdown rules. It carries no `src/**`
- * source block: source linting is the Next.js app's job.
+ * contract, the documentation markdown rules, and the repository-wide TypeScript
+ * file-length limit. Only the Next.js preset adds the full `src/**` source rules.
  * Use this for a plain TypeScript repository that does not adopt the framework.
  */
-export const pasikaApp: Linter.Config[] = [pasikaAppPackageJsonConfig, zirkaConfig, documentationConfig];
+export const pasikaApp: Linter.Config[] = [
+  pasikaAppPackageJsonConfig,
+  zirkaConfig,
+  documentationConfig,
+  pasikaTypeScriptFileLengthConfig,
+];
 
 /**
  * Wrap the `pasikaNextjsApp` preset so the TypeScript alignment diagnostic runs the

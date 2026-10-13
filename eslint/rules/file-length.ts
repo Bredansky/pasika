@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/file-length
  *
- * Keeps application source files bounded so a file cannot accumulate several
- * independent responsibilities without forcing an extraction decision.
+ * Keeps repository TypeScript and application JavaScript files bounded so they
+ * cannot accumulate independent responsibilities without extraction.
  *
  * @see docs/next-codebase-guide/rules/application-structure-rule.md
  */
@@ -15,7 +15,7 @@ export const fileLengthRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require application source files to stay at or below 300 lines.",
+      description: "Require TypeScript files and application JavaScript files to stay at or below 300 lines.",
     },
   },
   create(context) {
