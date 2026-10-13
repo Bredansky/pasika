@@ -440,15 +440,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A value MUST remain in its declaring file until another file independently imports it; only then MUST it be extracted as a shared constant.",
-      "hash": "edbc1a74d7",
-      "ref": "pasika/value-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A TypeScript `enum` MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.",
-      "hash": "ec29c5c1e9",
-      "ref": "pasika/enum-placement"
+      "text": "A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.",
+      "hash": "8f9301d343",
+      "ref": "pasika/value-extraction, pasika/enum-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",

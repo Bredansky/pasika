@@ -27,7 +27,7 @@ file(
   'import { OrderStatus } from "./constants/order-status"; export const orderStatus = OrderStatus.Draft;',
 );
 
-void describe("A TypeScript `enum` MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.", () => {
+void describe("A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file(

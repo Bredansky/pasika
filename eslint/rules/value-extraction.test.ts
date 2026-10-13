@@ -32,7 +32,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A value MUST remain in its declaring file until another file independently imports it; only then MUST it be extracted as a shared constant.", () => {
+void describe("A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.", () => {
   ruleTester.run("value-extraction", valueExtractionRule, {
     valid: [
       {

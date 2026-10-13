@@ -6,8 +6,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.
-- A value MUST remain in its declaring file until another file independently imports it; only then MUST it be extracted as a shared constant.
-- A TypeScript `enum` MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
+- A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
 - Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
