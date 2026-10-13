@@ -302,8 +302,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A source file MUST NOT exceed 300 lines.",
-      "hash": "b524531bd5",
+      "text": "A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines.",
+      "hash": "3e2dd1d91e",
       "ref": "pasika/file-length"
     },
     {
