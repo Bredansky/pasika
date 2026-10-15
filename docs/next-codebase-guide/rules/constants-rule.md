@@ -4,6 +4,7 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.
 - A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.
+- A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.
 - A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
@@ -13,6 +14,29 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
 - A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
+
+## Incorrect — Unique Raw Values In A Closed Route Domain
+
+```ts
+const list = { path: "/api/orders" };
+const create = { path: "/api/orders/create" };
+```
+
+Why: each route occurs only once, but together they form a closed runtime vocabulary rather than independent ad-hoc text.
+
+## Correct — One Canonical Route Enum
+
+```ts
+enum ApiRoute {
+  Orders = "/api/orders",
+  CreateOrder = "/api/orders/create",
+}
+
+const list = { path: ApiRoute.Orders };
+const create = { path: ApiRoute.CreateOrder };
+```
+
+Why: named route members remain the single source of truth for clients, contracts, and route checks. The same principle applies to recognized event and storage-key domains.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 

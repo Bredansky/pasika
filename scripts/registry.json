@@ -428,6 +428,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.",
+      "hash": "5c913d96f0",
+      "ref": "pasika/repeated-semantic-literal"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
       "hash": "dd5da63697",
       "ref": "pasika/repeated-semantic-literal"
@@ -1204,12 +1210,6 @@
       "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
       "text": "A call to `defineApiContract` MUST initialize an exported named value.",
       "hash": "883cbc0ead",
-      "ref": "pasika/api-contract"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
-      "text": "A `defineApiContract` path MUST reference a named route value, such as a route enum member or another API contract's `path`, instead of an inline string or constructed URL.",
-      "hash": "2adc7d5c2c",
       "ref": "pasika/api-contract"
     },
     {
