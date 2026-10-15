@@ -2,7 +2,8 @@
 
 Duplicated constants are hard to keep in sync, while extracting every single-use value creates unnecessary files. This rule keeps reused constants in one file and leaves single-use values close to their consumer.
 
-- A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.
+- A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a numeric value written only once MAY remain inline.
+- Every runtime string value MUST be a named const or enum member; an inline string MAY appear only inside a JSX className prop.
 - A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.
 - A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
@@ -14,6 +15,44 @@ Duplicated constants are hard to keep in sync, while extracting every single-use
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
 - A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
+
+## Incorrect — Inline Runtime Strings
+
+```tsx
+function Card() {
+  return <section title="Draft">Draft</section>;
+}
+
+fetch("/api/drafts");
+localStorage.setItem("theme", value);
+```
+
+Why: UI copy, API URLs, and storage keys are runtime values, even when they are used only once.
+
+## Correct — Named Values And JSX Class Names
+
+```tsx
+const draftTitle = "Draft";
+const themeStorageKey = "theme";
+
+enum ApiRoute {
+  Drafts = "/api/drafts",
+  Post = "/api/post",
+}
+
+function Card() {
+  return (
+    <section className="p-4" title={draftTitle}>
+      {draftTitle}
+    </section>
+  );
+}
+
+fetch(ApiRoute.Drafts);
+localStorage.setItem(themeStorageKey, value);
+```
+
+Why: every runtime string is named, and only the JSX className property contains an inline string. Import/export module specifiers, syntax directives such as `"use client"`, object property names and TypeScript structural type keys are language syntax rather than runtime string values.
 
 ## Incorrect — Unique Raw Values In A Closed Route Domain
 
