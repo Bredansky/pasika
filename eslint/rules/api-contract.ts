@@ -20,6 +20,7 @@ const TEST_FILE = /(?:^|[\\/])(?:__tests__|tests)[\\/]|[.](?:test|spec)[.][cm]?[
 const DECLARED = `A repository must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
 const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
 const EXPORTED = `A call to ${HELPER} must initialize an exported named contract. See ${DOC}`;
+const NAMED_PATH = `A ${HELPER} path must reference a named route value, such as an enum member or another API contract's path, rather than an inline URL. See ${DOC}`;
 const DEFINED = `An exported *ApiContract value must be created with ${HELPER}. See ${DOC}`;
 const ROUTE_IMPORTED = `withResponse must receive an imported API contract for a JSON route. See ${DOC}`;
 const CLIENT_CONTRACT = `A schema-validated request must use an imported API contract through zodFetch({ contract }). See ${DOC}`;
@@ -180,8 +181,18 @@ export const apiContractRule: Rule.RuleModule = {
         const responseContract = responseSchemaParserContract(node.callee, imports);
         if (responseContract) mockResponseContracts.add(responseContract);
 
-        if (isNamed(node.callee, HELPER) && !isExportedDefinition(context, node)) {
-          context.report({ node, message: EXPORTED });
+        if (isNamed(node.callee, HELPER)) {
+          const options = node.arguments[0];
+          if (options?.type === "ObjectExpression") {
+            const routePath = objectProperty(options, "path");
+            if (routePath && routePath.value.type !== "Identifier" && routePath.value.type !== "MemberExpression") {
+              context.report({ node: routePath.value, message: NAMED_PATH });
+            }
+          }
+
+          if (!isExportedDefinition(context, node)) {
+            context.report({ node, message: EXPORTED });
+          }
           return;
         }
 

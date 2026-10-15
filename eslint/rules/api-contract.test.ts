@@ -11,9 +11,10 @@ void describe("A schema-validated JSON API contract MUST be created with `define
           filename: srcFile("schemas/orders.ts"),
           code: `import { defineApiContract } from "pasika/api-contract";
 import { HttpMethod } from "pasika/http-method";
+import { ApiRoute } from "./routes";
 export const ordersApiContract = defineApiContract({
   method: HttpMethod.Get,
-  path: "/api/orders",
+  path: ApiRoute.Orders,
   responseSchema: ordersSchema,
 });`,
         },
@@ -53,6 +54,57 @@ const ordersApiContract = defineApiContract({ method, path, responseSchema });`,
   });
 });
 
+void describe("A `defineApiContract` path MUST reference a named route value, such as a route enum member or another API contract's `path`, instead of an inline string or constructed URL.", () => {
+  const pathMessage = `A defineApiContract path must reference a named route value, such as an enum member or another API contract's path, rather than an inline URL. ${DOC}`;
+
+  ruleTester.run("api-contract", apiContractRule, {
+    valid: [
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `import { defineApiContract } from "pasika/api-contract";
+import { ApiRoute } from "./routes";
+export const ordersApiContract = defineApiContract({ method, path: ApiRoute.Orders, responseSchema });`,
+      },
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `export const listOrdersApiContract = defineApiContract({ method, path: ApiRoute.Orders, responseSchema });
+export const createOrderApiContract = defineApiContract({ method, path: listOrdersApiContract.path, responseSchema });`,
+      },
+      {
+        filename: srcFile("features/orders/orders.ts"),
+        code: `const url = "/api/orders";`,
+      },
+    ],
+    invalid: [
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `export const ordersApiContract = defineApiContract({ method, path: "/api/orders", responseSchema });`,
+        errors: [{ message: pathMessage }],
+      },
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: "export const ordersApiContract = defineApiContract({ method, path: `/api/orders`, responseSchema });",
+        errors: [{ message: pathMessage }],
+      },
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `export const ordersApiContract = defineApiContract({ method, path: \`/api/\${"orders"}\`, responseSchema });`,
+        errors: [{ message: pathMessage }],
+      },
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `export const ordersApiContract = defineApiContract({ method, path: "/api/" + "orders", responseSchema });`,
+        errors: [{ message: pathMessage }],
+      },
+      {
+        filename: srcFile("constants/api-contracts.ts"),
+        code: `export const ordersApiContract = defineApiContract({ method, path: buildRoute("orders"), responseSchema });`,
+        errors: [{ message: pathMessage }],
+      },
+    ],
+  });
+});
+
 void describe("A JSON route wrapped in `withResponse` MUST receive an imported API contract rather than a bare response schema or an inline contract.", () => {
   ruleTester.run("api-contract", apiContractRule, {
     valid: [
@@ -82,6 +134,9 @@ export const GET = withResponse(
         errors: [
           { message: `withResponse must receive an imported API contract for a JSON route. ${DOC}` },
           { message: `A call to defineApiContract must initialize an exported named contract. ${DOC}` },
+          {
+            message: `A defineApiContract path must reference a named route value, such as an enum member or another API contract's path, rather than an inline URL. ${DOC}`,
+          },
         ],
       },
     ],

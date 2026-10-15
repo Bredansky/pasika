@@ -4,6 +4,7 @@ Schema-validated JSON endpoints drift when routes and clients restate paths, met
 
 - A schema-validated JSON API contract MUST be created with `defineApiContract` imported from `pasika/api-contract`.
 - A call to `defineApiContract` MUST initialize an exported named value.
+- A `defineApiContract` path MUST reference a named route value, such as a route enum member or another API contract's `path`, instead of an inline string or constructed URL.
 - A JSON route wrapped in `withResponse` MUST receive an imported API contract rather than a bare response schema or an inline contract.
 - A `zodFetch` call that names a request or response schema MUST use an imported API contract through its `contract` option. When the contract property name differs from the exported contract name, the value MUST stay qualified through an imported namespace or contract collection.
 - A mock that exports `apiRoutePath` MUST derive it from an imported API contract through `contract.path`.
@@ -70,6 +71,20 @@ Why: a local contract cannot be the shared source for the route and its callers.
 import { defineApiContract } from "pasika/api-contract";
 import { HttpMethod } from "pasika/http-method";
 
+import { ApiRoute } from "./routes";
+
+export const ordersApiContract = defineApiContract({
+  method: HttpMethod.Get,
+  path: ApiRoute.Orders,
+  responseSchema: ordersResponseSchema,
+});
+```
+
+Why: one exported contract can be imported by every participant, and its path comes from a named route value.
+
+## Incorrect — Contract Uses An Inline Route URL
+
+```ts
 export const ordersApiContract = defineApiContract({
   method: HttpMethod.Get,
   path: "/api/orders",
@@ -77,7 +92,21 @@ export const ordersApiContract = defineApiContract({
 });
 ```
 
-Why: one exported value can be imported by every participant instead of recreated.
+Why: an unnamed route string bypasses the canonical route vocabulary and allows a URL to change without updating its named definition.
+
+## Correct — Contract Uses A Named Route Path
+
+```ts
+import { ApiRoute } from "./routes";
+
+export const ordersApiContract = defineApiContract({
+  method: HttpMethod.Get,
+  path: ApiRoute.Orders,
+  responseSchema: ordersResponseSchema,
+});
+```
+
+Why: the enum owns the literal URL while the contract owns method, request, and response semantics. Contracts sharing an endpoint may reuse `ordersApiContract.path` instead.
 
 ## Incorrect — Mock Restates The Path Or Skips Response Validation
 
