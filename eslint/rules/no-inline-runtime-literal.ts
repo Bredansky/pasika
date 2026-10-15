@@ -1,8 +1,8 @@
 /**
- * ESLint rule: pasika/no-inline-string
+ * ESLint rule: pasika/no-inline-runtime-literal
  *
- * Runtime string values must be named constants or enum members. Only JSX
- * className props may contain inline strings. Module specifiers, directives,
+ * Runtime string and numeric values must be named constants or enum members.
+ * Only JSX className props may contain inline literal values. Module specifiers, directives,
  * property keys and TypeScript structural keys are syntax, not runtime values.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
@@ -14,7 +14,7 @@ import { isProductionSource } from "../project/semantic-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Inline runtime strings must be declared as named constants or enum members; only JSX className props permit inline strings. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Only JSX className props permit inline values. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -29,6 +29,8 @@ interface AncestorNode {
   key?: unknown;
   computed?: unknown;
   directive?: unknown;
+  argument?: unknown;
+  operator?: unknown;
 }
 
 function isClassNameProp(node: AncestorNode): boolean {
@@ -46,12 +48,16 @@ function isClassNameProp(node: AncestorNode): boolean {
 
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Type assertions preserve ownership of the initializer.
-  while (
-    current.parent &&
-    (current.parent.type === "TSAsExpression" || current.parent.type === "TSSatisfiesExpression")
-  ) {
-    current = current.parent;
+  // Type assertions and signed numeric literals preserve named initializer ownership.
+  while (current.parent) {
+    const parent = current.parent;
+    const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
+    const isSignedNumber =
+      parent.type === "UnaryExpression" &&
+      parent.argument === current &&
+      (parent.operator === "-" || parent.operator === "+");
+    if (!isTypeWrapper && !isSignedNumber) break;
+    current = parent;
   }
   const parent = current.parent;
   if (!parent) return false;
@@ -93,11 +99,11 @@ function isSyntacticString(node: AncestorNode): boolean {
   return false;
 }
 
-export const noInlineStringRule: Rule.RuleModule = {
+export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    docs: { description: "Require named runtime strings except inside JSX className props." },
+    docs: { description: "Require named runtime string and numeric values except inside JSX className props." },
   },
   create(context) {
     const root = sourceRootOf(context);
@@ -105,7 +111,14 @@ export const noInlineStringRule: Rule.RuleModule = {
     if (!file.startsWith(root + path.sep) || !isProductionSource(file, root)) return {};
     return {
       Literal(node: Rule.Node & ESTree.Literal) {
-        if (typeof node.value !== "string") return;
+        if (
+          typeof node.value !== "string" &&
+          typeof node.value !== "number" &&
+          typeof node.value !== "bigint" &&
+          !("bigint" in node && typeof node.bigint === "string")
+        ) {
+          return;
+        }
         if (isClassNameProp(node) || isNamedValue(node) || isSyntacticString(node)) return;
         context.report({ node, message: MESSAGE });
       },

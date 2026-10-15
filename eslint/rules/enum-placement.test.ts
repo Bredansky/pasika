@@ -59,7 +59,7 @@ void describe("A constant or enum MUST remain in its declaring file until anothe
   });
 });
 
-void describe("A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a numeric value written only once MAY remain inline.", () => {
+void describe("A single named string or number value MUST be represented by a `const`, not a one-member `enum`.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file("features/billing/one-const.ts", 'const publishRoute = "/api/publish"; export const send = publishRoute;'),
