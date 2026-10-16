@@ -21,6 +21,9 @@ import { importedEnumLiteralUses } from "./imported-enum-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
+// These roles identify one bounded runtime vocabulary. Other semantic slots
+// (for example, unrelated objects' `status` fields) are not necessarily a domain.
+const closedDomainFamilies = new Set(["api-route", "event", "storage"]);
 function canonicalMatches(use: SemanticLiteral, canonical: CanonicalLiteral, sourceRoot: string): boolean {
   if (use.kind !== canonical.kind || use.value !== canonical.value) return false;
   const name = canonical.owner ?? canonical.name;
@@ -120,6 +123,14 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
       if (values.size >= 2) duplicatedApiRoutes.add(role);
     }
 
+    const closedDomains = new Map<string, Set<string>>();
+    for (const use of index.uses) {
+      if (use.kind !== "string" || !closedDomainFamilies.has(use.family)) continue;
+      const values = closedDomains.get(use.role) ?? new Set<string>();
+      values.add(String(use.value));
+      closedDomains.set(use.role, values);
+    }
+
     const routeDomains = new Map<string, CanonicalLiteral>();
     for (const canonical of index.canonicals) {
       if (canonical.owner && /^ApiRoute(?:Enum)?$/.test(canonical.owner)) {
@@ -157,7 +168,26 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
           if (candidates.length > 1) continue; // Ambiguous canonical ownership.
           const key = `${use.kind}\u0000${String(use.value)}\u0000${use.role}`;
           const peers = groups.get(key) ?? [];
-          if (peers.length < 2) continue;
+          if (peers.length < 2) {
+            if (use.family === "api-route" && existingRouteEnum?.owner) {
+              const location = path.relative(root, existingRouteEnum.file).replaceAll(path.sep, "/");
+              context.report({
+                node,
+                loc: { line: use.line, column: use.column },
+                message: `The route ${formatValue(use)} belongs to existing ${existingRouteEnum.owner}; add a member in src/${location} and reuse it. ${DOC}`,
+              });
+              continue;
+            }
+            const domain = closedDomains.get(use.role);
+            if (domain && domain.size >= 2) {
+              context.report({
+                node,
+                loc: { line: use.line, column: use.column },
+                message: `The string literal ${formatValue(use)} is one of ${String(domain.size)} values in a closed ${use.family} domain. Declare the domain in a shared enum at the consumers' CCF and reuse it. ${DOC}`,
+              });
+            }
+            continue;
+          }
           // Existing repeated-numeric-value handles named numeric declarations
           // and properties; this rule handles numeric call arguments.
           if (use.kind === "number" && !use.family.startsWith("timer")) continue;
