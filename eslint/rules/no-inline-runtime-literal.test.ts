@@ -3,9 +3,9 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Only JSX className props permit inline values. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline className values in JSX props are the only exception for application values.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -36,8 +36,81 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "const indexed = { 0: existing }; type StatusCode = 200; const ok = 1;" },
       { filename: file, code: 'const View = () => <Canvas className={active ? "mt-2" : "mt-4"} />;' },
       { filename: srcFile("features/editor/screen.test.tsx"), code: 'const value = ["inline-in-tests"];' },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { welcome: "Ласкаво просимо", settings: { save: "Зберегти" } };',
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { common: { cancel: "Cancel" }, save: "Save" } as const;',
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { save: "Save" } satisfies Record<string, string>;',
+      },
+      {
+        filename: srcFile("features/mocks/utils/draft-preview-mock.test.ts"),
+        code: 'const mock = new Headers({ "Content-Type": "image/png" });',
+      },
+      {
+        filename: srcFile("features/editor/__mocks__/service.ts"),
+        code: 'const mock = new Headers({ "Content-Type": "image/png" });',
+      },
+      {
+        filename: srcFile("features/editor/service.mock.ts"),
+        code: 'const mock = new Headers({ "Content-Type": "image/png" });',
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: "export const locales = { greeting: `Hello` };",
+      },
     ],
     invalid: [
+      {
+        filename: srcFile("locales/index.ts"),
+        code: `export const locales = { greeting: \`Hello \${name}\` };`,
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("features/mocks/utils/draft-preview-mock.ts"),
+        code: 'const headers = new Headers({ "Content-Type": "image/png", "X-Format": "post_45" });',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: srcFile("mocks/preview.ts"),
+        code: 'reply({ "Content-Type": "image/png" });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { save: "Save" }; send("not a translation");',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'const locales = { save: "Save" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { nested: { deeper: { invalid: "too deep" } } };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: "export const locales = { retries: 3 };",
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/index.ts"),
+        code: 'export const locales = { good: "Saved", bad: format("inline") };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("features/editor/screen.tsx"),
+        code: 'export const locales = { save: "Save" };',
+        errors: [{ message: MESSAGE }],
+      },
       { filename: file, code: 'fetch("/api/post");', errors: [{ message: MESSAGE }] },
       { filename: file, code: 'const config = { path: "/api/post" };', errors: [{ message: MESSAGE }] },
       { filename: file, code: 'const values = ["a", "b"];', errors: [{ message: MESSAGE }, { message: MESSAGE }] },
