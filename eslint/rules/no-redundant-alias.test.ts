@@ -128,11 +128,25 @@ void describe("An import MUST NOT rename an imported symbol.", () => {
   ruleTester.run("no-redundant-alias:imports", noRedundantAliasRule, {
     valid: [
       {
+        code: 'import { Roboto_Mono as robotoMonoFont, Noto_Sans as notoSansFont } from "next/font/google";',
+        filename: srcFile("app/layout.tsx"),
+      },
+      {
         code: 'import { Toaster } from "sonner";',
         filename: srcFile("utils/example.ts"),
       },
     ],
     invalid: [
+      {
+        code: 'import { Roboto_Mono as robotoMonoFont } from "some-other-font-package";',
+        filename: srcFile("app/layout.tsx"),
+        errors: [{ message: bindingAliasMessage("robotoMonoFont", "Roboto_Mono") }],
+      },
+      {
+        code: 'import { Inter as otherFont } from "next/font/google";',
+        filename: srcFile("app/layout.tsx"),
+        errors: [{ message: bindingAliasMessage("otherFont", "Inter") }],
+      },
       {
         code: 'import { Toaster as Sonner } from "sonner";',
         filename: srcFile("utils/example.ts"),
