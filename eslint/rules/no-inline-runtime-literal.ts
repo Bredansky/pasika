@@ -48,7 +48,8 @@ function isClassNameProp(node: AncestorNode): boolean {
 
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Type assertions and signed numeric literals preserve named initializer ownership.
+  // Literal operands of arithmetic calculations belong to the named value
+  // when the entire calculation directly initializes a const or enum member.
   while (current.parent) {
     const parent = current.parent;
     const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
@@ -56,7 +57,11 @@ function isNamedValue(node: AncestorNode): boolean {
       parent.type === "UnaryExpression" &&
       parent.argument === current &&
       (parent.operator === "-" || parent.operator === "+");
-    if (!isTypeWrapper && !isSignedNumber) break;
+    const isArithmetic =
+      parent.type === "BinaryExpression" &&
+      typeof parent.operator === "string" &&
+      ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator);
+    if (!isTypeWrapper && !isSignedNumber && !isArithmetic) break;
     current = parent;
   }
   const parent = current.parent;

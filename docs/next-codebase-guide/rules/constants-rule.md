@@ -100,6 +100,8 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 export const maxFileSize = 20 * 1024 * 1024;
 ```
 
+Why: numeric operands used to calculate a named constant or enum value are part of that named definition. The calculation is permitted here, but its literals are not permitted inline at call sites or inside unrelated object values.
+
 ## Incorrect — Repeated Named Numeric Value Across Files
 
 ```ts
