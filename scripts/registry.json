@@ -428,15 +428,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.",
-      "hash": "3504540b3d",
-      "ref": "pasika/prefer-enum"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.",
-      "hash": "5c913d96f0",
-      "ref": "pasika/repeated-semantic-literal"
+      "text": "A reusable, closed set of two or more related string or numeric values MUST use a TypeScript `enum`; recognized closed runtime string domains MUST reuse a shared enum even when each member appears only once.",
+      "hash": "dd07ea5808",
+      "ref": "pasika/prefer-enum, pasika/repeated-semantic-literal"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",

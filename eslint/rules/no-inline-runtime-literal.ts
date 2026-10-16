@@ -31,6 +31,10 @@ interface AncestorNode {
   directive?: unknown;
   argument?: unknown;
   operator?: unknown;
+  value?: unknown;
+  left?: unknown;
+  right?: unknown;
+  expression?: unknown;
 }
 
 function isClassNameProp(node: AncestorNode): boolean {
@@ -46,10 +50,24 @@ function isClassNameProp(node: AncestorNode): boolean {
   return false;
 }
 
+function containsInlineString(node: unknown): boolean {
+  if (typeof node !== "object" || node === null || !("type" in node)) return false;
+  if (node.type === "TemplateLiteral") return true;
+  if (node.type === "Literal") return "value" in node && typeof node.value === "string";
+  if (node.type === "BinaryExpression") {
+    return ("left" in node && containsInlineString(node.left)) || ("right" in node && containsInlineString(node.right));
+  }
+  if (node.type === "TSAsExpression" || node.type === "TSSatisfiesExpression") {
+    return "expression" in node && containsInlineString(node.expression);
+  }
+  return false;
+}
+
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Literal operands of arithmetic calculations belong to the named value
-  // when the entire calculation directly initializes a const or enum member.
+  // Only numeric arithmetic operands belong to the named value when the
+  // calculation directly initializes a const or enum member. Concatenated
+  // inline strings and templates are never exempted as arithmetic.
   while (current.parent) {
     const parent = current.parent;
     const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
@@ -60,7 +78,9 @@ function isNamedValue(node: AncestorNode): boolean {
     const isArithmetic =
       parent.type === "BinaryExpression" &&
       typeof parent.operator === "string" &&
-      ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator);
+      ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator) &&
+      !containsInlineString(parent.left) &&
+      !containsInlineString(parent.right);
     if (!isTypeWrapper && !isSignedNumber && !isArithmetic) break;
     current = parent;
   }
@@ -124,7 +144,13 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         ) {
           return;
         }
-        if (isClassNameProp(node) || isNamedValue(node) || isSyntacticString(node)) return;
+        if (
+          (typeof node.value === "string" && isClassNameProp(node)) ||
+          isNamedValue(node) ||
+          isSyntacticString(node)
+        ) {
+          return;
+        }
         context.report({ node, message: MESSAGE });
       },
       TemplateLiteral(node: Rule.Node & ESTree.TemplateLiteral) {

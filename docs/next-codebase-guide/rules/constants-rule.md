@@ -4,8 +4,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline className values in JSX props are the only exception for application values.
-- A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.
-- A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.
+- A reusable, closed set of two or more related string or numeric values MUST use a TypeScript `enum`; recognized closed runtime string domains MUST reuse a shared enum even when each member appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
 - A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
@@ -100,7 +99,7 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 export const maxFileSize = 20 * 1024 * 1024;
 ```
 
-Why: numeric operands used to calculate a named constant or enum value are part of that named definition. The calculation is permitted here, but its literals are not permitted inline at call sites or inside unrelated object values.
+Why: numeric operands used to calculate a named constant or enum value are part of that named definition. The calculation is permitted here, but its literals are not permitted inline at call sites or inside unrelated object values. This exemption applies only to numeric arithmetic, not string concatenation such as `const path = "/api/" + segment`.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 

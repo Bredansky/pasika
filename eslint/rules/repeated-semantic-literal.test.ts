@@ -66,7 +66,7 @@ file(
 file("features/publishing/events.ts", 'eventBus.emit("draft:stored"); eventBus.on("draft:stored", handler);');
 
 void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
-  void describe("A recognized closed runtime string domain MUST reuse a shared enum even when its distinct members each appear only once.", () => {
+  void describe("A reusable, closed set of two or more related string or numeric values MUST use a TypeScript `enum`; recognized closed runtime string domains MUST reuse a shared enum even when each member appears only once.", () => {
     ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
       valid: [
         file("features/publishing/unrelated.ts", 'const onlyOnce = "unique-value";'),
