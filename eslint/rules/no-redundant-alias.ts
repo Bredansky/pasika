@@ -377,6 +377,18 @@ export const noRedundantAliasRule: Rule.RuleModule = {
       ImportSpecifier(node) {
         if (node.imported.type !== "Identifier" || node.imported.name === node.local.name) return;
 
+        // Next.js font loader requires named imports, while several exported font
+        // identifiers use underscores that violate common camelcase lint rules.
+        const importDeclaration = node.parent;
+        if (
+          importDeclaration.type === "ImportDeclaration" &&
+          importDeclaration.source.value === "next/font/google" &&
+          /^[A-Z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+$/.test(node.imported.name) &&
+          /^[a-z][A-Za-z0-9]*$/.test(node.local.name)
+        ) {
+          return;
+        }
+
         context.report({
           node,
           message: bindingAliasMessage(node.local.name, node.imported.name),

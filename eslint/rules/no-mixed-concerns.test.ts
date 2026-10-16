@@ -33,6 +33,14 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
         filename: srcFile("app/page.tsx"),
       },
       {
+        code: 'export function generateStaticParams() { return [{ slug: "first" }]; }\nexport default function Page() { return <main />; }',
+        filename: srcFile("app/blog/[slug]/page.tsx"),
+      },
+      {
+        code: 'export function generateStaticParams() { return [{ slug: "first" }]; }\nexport default function Layout({ children }: { children: React.ReactNode }) { return <main>{children}</main>; }',
+        filename: srcFile("app/blog/[slug]/layout.tsx"),
+      },
+      {
         code: "function Menu() { return <nav />; }\nexport { Menu };",
         filename: srcFile("features/nav/menu.tsx"),
       },
@@ -73,6 +81,11 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
       {
         code: 'export function Dialog() { return <div />; }\nexport * from "./dialog-content";',
         filename: srcFile("shared/dialog.tsx"),
+        errors: 1,
+      },
+      {
+        code: "export function generateStaticParams() { return []; }\nexport default function Page() { return <main />; }",
+        filename: srcFile("app/page.tsx"),
         errors: 1,
       },
       {
