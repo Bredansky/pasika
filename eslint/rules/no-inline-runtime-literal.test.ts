@@ -13,7 +13,10 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'enum ApiRoute { Post = "/api/post" }; send(ApiRoute.Post);' },
       { filename: file, code: "const post = ApiRoute.Post; fetch(post);" },
       { filename: file, code: 'export function Card({ active }) { return <div className="text-sm" />; }' },
-      { filename: file, code: 'export function CredentialForm() { return <form data-component="credential-form" />; }' },
+      {
+        filename: file,
+        code: 'export function CredentialForm() { return <form data-component="credential-form" />; }',
+      },
       { filename: file, code: 'export function CredentialCard() { return <div data-component="CredentialCard" />; }' },
       {
         filename: file,
