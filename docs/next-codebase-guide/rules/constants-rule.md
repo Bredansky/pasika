@@ -58,7 +58,7 @@ setTimeout(refresh, refreshDelayMs);
 const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
-Why: every runtime string and number is named, and the JSX className property may contain an inline value. Translation strings inside the exported canonical `locales` object are also exempt. Runtime mock handlers in `mocks/` still require named values; tests and fixtures are excluded. Import/export module specifiers, syntax directives such as `"use client"`, object property names and TypeScript structural type keys are language syntax rather than runtime string values. Known, fixed sets of routes, event names, and storage keys use shared enums, even when each member appears only once.
+Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, and locale strings are exceptions.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
