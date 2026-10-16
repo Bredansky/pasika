@@ -2,7 +2,7 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
-- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.
+- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static `data-component` metadata, and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
@@ -58,7 +58,7 @@ setTimeout(refresh, refreshDelayMs);
 const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
-Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, and locale strings are exceptions.
+Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, `data-component` metadata, and locale strings are exceptions.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 

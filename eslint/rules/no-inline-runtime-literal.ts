@@ -2,7 +2,7 @@
  * ESLint rule: pasika/no-inline-runtime-literal
  *
  * Runtime string and numeric values must be named constants or enum members.
- * Inline JSX className values and canonical locale dictionary strings are exempt.
+ * Inline JSX className, static data-component metadata, and canonical locale dictionary strings are exempt.
  * Module specifiers, directives, property keys and TypeScript structural keys are syntax.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
@@ -14,7 +14,7 @@ import { isProductionSource } from "../project/semantic-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className, data-component metadata, and canonical locale strings are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -43,7 +43,12 @@ function isClassNameProp(node: AncestorNode): boolean {
     current = current.parent;
     if (current.type === "JSXAttribute") {
       const { name } = current;
-      return typeof name === "object" && name !== null && "name" in name && name.name === "className";
+      return (
+        typeof name === "object" &&
+        name !== null &&
+        "name" in name &&
+        (name.name === "className" || name.name === "data-component")
+      );
     }
     if (current.type === "Program") return false;
   }
@@ -183,7 +188,10 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    docs: { description: "Require named runtime values except JSX className and canonical locale strings." },
+    docs: {
+      description:
+        "Require named runtime values except JSX className, data-component metadata, and canonical locale strings.",
+    },
   },
   create(context) {
     const root = sourceRootOf(context);
