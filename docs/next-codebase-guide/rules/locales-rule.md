@@ -1,6 +1,6 @@
 # Locales Rule
 
-Translations live inline in `locales`, grouped by feature with clear keys. Other runtime values still follow the constants rule.
+Scattered translations make user-facing text hard to find and keep consistent. This rule keeps them centralized and organized by feature.
 
 - All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
 - Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).
