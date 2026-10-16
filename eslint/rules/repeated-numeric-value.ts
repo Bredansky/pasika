@@ -15,8 +15,6 @@ import { getProjectIndex } from "../project/index";
 import type { NamedNumericLiteral } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
-const ignoredValues = new Set([-1, 0, 1]);
-
 function isNonProductionFile(file: string, sourceRoot: string): boolean {
   const relative = path.relative(sourceRoot, file);
   const segments = relative.split(path.sep);
@@ -61,7 +59,6 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
       if (isNonProductionFile(moduleFile, sourceRoot)) continue;
 
       for (const literal of parsedModule.namedNumericLiterals) {
-        if (ignoredValues.has(literal.value)) continue;
         const key = groupKey(literal);
         const files = filesByGroup.get(key) ?? new Set<string>();
         files.add(moduleFile);
@@ -74,8 +71,6 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
         const reported = new Set<string>();
 
         for (const literal of currentModule.namedNumericLiterals) {
-          if (ignoredValues.has(literal.value)) continue;
-
           const key = groupKey(literal);
           if (reported.has(key)) continue;
 
