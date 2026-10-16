@@ -3,7 +3,7 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className, data-component metadata, and canonical locale strings are exempt. ${DOC}`;
 
 void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
@@ -13,6 +13,8 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'enum ApiRoute { Post = "/api/post" }; send(ApiRoute.Post);' },
       { filename: file, code: "const post = ApiRoute.Post; fetch(post);" },
       { filename: file, code: 'export function Card({ active }) { return <div className="text-sm" />; }' },
+      { filename: file, code: 'export function CredentialForm() { return <form data-component="credential-form" />; }' },
+      { filename: file, code: 'export function CredentialCard() { return <div data-component="CredentialCard" />; }' },
       {
         filename: file,
         code: 'export function Card({ active }) { return <div className={active ? "block" : "hidden"} />; }',
