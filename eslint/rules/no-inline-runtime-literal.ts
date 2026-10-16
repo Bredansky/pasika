@@ -43,7 +43,12 @@ function isClassNameProp(node: AncestorNode): boolean {
     current = current.parent;
     if (current.type === "JSXAttribute") {
       const { name } = current;
-      return typeof name === "object" && name !== null && "name" in name && (name.name === "className" || name.name === "data-component");
+      return (
+        typeof name === "object" &&
+        name !== null &&
+        "name" in name &&
+        (name.name === "className" || name.name === "data-component")
+      );
     }
     if (current.type === "Program") return false;
   }
@@ -183,7 +188,10 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    docs: { description: "Require named runtime values except JSX className, data-component metadata, and canonical locale strings." },
+    docs: {
+      description:
+        "Require named runtime values except JSX className, data-component metadata, and canonical locale strings.",
+    },
   },
   create(context) {
     const root = sourceRootOf(context);
