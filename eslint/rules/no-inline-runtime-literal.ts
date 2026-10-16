@@ -2,8 +2,8 @@
  * ESLint rule: pasika/no-inline-runtime-literal
  *
  * Runtime string and numeric values must be named constants or enum members.
- * Only JSX className props may contain inline literal values. Module specifiers, directives,
- * property keys and TypeScript structural keys are syntax, not runtime values.
+ * Inline JSX className values and canonical locale dictionary strings are exempt.
+ * Module specifiers, directives, property keys and TypeScript structural keys are syntax.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -14,7 +14,7 @@ import { isProductionSource } from "../project/semantic-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Only JSX className props permit inline values. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -124,16 +124,73 @@ function isSyntacticString(node: AncestorNode): boolean {
   return false;
 }
 
+/**
+ * Runtime mock handlers live in mocks/ folders, but are application code rather
+ * than test fixtures. Keep other rules' shared production-source classification
+ * unchanged, and exclude tests and dedicated __mocks__ fixtures.
+ */
+function isRuntimeMockSource(file: string, root: string): boolean {
+  const parts = path.relative(root, file).split(path.sep);
+  return (
+    parts.includes("mocks") &&
+    !parts.some((part) => part === "__tests__" || part === "__mocks__") &&
+    !/\.(?:test|spec|mock)\.[^.]+$/.test(path.basename(file))
+  );
+}
+
+/**
+ * Locale entries are content, not standalone runtime constants. Only allow
+ * direct string values and one level of feature namespaces inside the exported
+ * canonical `locales` object, never arbitrary expressions in the same file.
+ */
+function isCanonicalLocaleString(node: AncestorNode, root: string, file: string): boolean {
+  if (path.relative(root, file) !== path.join("locales", "index.ts")) return false;
+
+  let current = node;
+  let depth = 0;
+  while (current.parent?.type === "Property" && current.parent.value === current) {
+    const object = current.parent.parent;
+    if (object?.type !== "ObjectExpression") return false;
+    current = object;
+    depth += 1;
+  }
+  if (depth < 1 || depth > 2) return false;
+
+  while (
+    (current.parent?.type === "TSAsExpression" || current.parent?.type === "TSSatisfiesExpression") &&
+    current.parent.expression === current
+  ) {
+    current = current.parent;
+  }
+
+  const declaration = current.parent;
+  if (declaration?.type !== "VariableDeclarator" || declaration.init !== current) return false;
+  const id = declaration.id;
+  return (
+    typeof id === "object" &&
+    id !== null &&
+    "type" in id &&
+    id.type === "Identifier" &&
+    "name" in id &&
+    id.name === "locales" &&
+    declaration.parent?.type === "VariableDeclaration" &&
+    declaration.parent.kind === "const" &&
+    declaration.parent.parent?.type === "ExportNamedDeclaration"
+  );
+}
+
 export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    docs: { description: "Require named runtime string and numeric values except inside JSX className props." },
+    docs: { description: "Require named runtime values except JSX className and canonical locale strings." },
   },
   create(context) {
     const root = sourceRootOf(context);
     const file = path.resolve(context.filename);
-    if (!file.startsWith(root + path.sep) || !isProductionSource(file, root)) return {};
+    if (!file.startsWith(root + path.sep) || (!isProductionSource(file, root) && !isRuntimeMockSource(file, root))) {
+      return {};
+    }
     return {
       Literal(node: Rule.Node & ESTree.Literal) {
         if (
@@ -145,7 +202,7 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
           return;
         }
         if (
-          (typeof node.value === "string" && isClassNameProp(node)) ||
+          (typeof node.value === "string" && (isClassNameProp(node) || isCanonicalLocaleString(node, root, file))) ||
           isNamedValue(node) ||
           isSyntacticString(node)
         ) {
@@ -154,7 +211,13 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         context.report({ node, message: MESSAGE });
       },
       TemplateLiteral(node: Rule.Node & ESTree.TemplateLiteral) {
-        if (isClassNameProp(node) || isNamedValue(node)) return;
+        if (
+          isClassNameProp(node) ||
+          isNamedValue(node) ||
+          (node.expressions.length === 0 && isCanonicalLocaleString(node, root, file))
+        ) {
+          return;
+        }
         if (node.quasis.every((quasi) => quasi.value.raw === "")) return;
         context.report({ node, message: MESSAGE });
       },

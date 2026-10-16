@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline className values in JSX props are the only exception for application values.",
-      "hash": "6e2f0ef0de",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.",
+      "hash": "24a5215f22",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {

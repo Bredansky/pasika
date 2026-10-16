@@ -1,6 +1,6 @@
 # Locales Rule
 
-When locale strings are scattered across components and constants, they are hard to find and keep consistent. This rule keeps them in one central file, puts each feature's strings together, and uses readable keys.
+When locale strings are scattered across components and constants, they are hard to find and keep consistent. Keep translations inline in the exported `locales` object and each feature's strings together with readable keys; unrelated runtime values in the same file still follow the constants rule.
 
 - All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
 - Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).
