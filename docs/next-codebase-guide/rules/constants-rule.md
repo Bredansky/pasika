@@ -2,18 +2,18 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
-- A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline className values in JSX props are the only exception for application values.
+- A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
+- A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 - A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
 - Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.
-- A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
+- A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
-- A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 
 ## Incorrect — Inline Runtime Values
 
@@ -58,30 +58,7 @@ setTimeout(refresh, refreshDelayMs);
 const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
-Why: every runtime string and number is named, and only the JSX className property contains an inline value. Import/export module specifiers, syntax directives such as `"use client"`, object property names and TypeScript structural type keys are language syntax rather than runtime string values.
-
-## Incorrect — Unique Raw Values In A Closed Route Domain
-
-```ts
-const list = { path: "/api/orders" };
-const create = { path: "/api/orders/create" };
-```
-
-Why: each route occurs only once, but together they form a closed runtime vocabulary rather than independent ad-hoc text.
-
-## Correct — One Canonical Route Enum
-
-```ts
-enum ApiRoute {
-  Orders = "/api/orders",
-  CreateOrder = "/api/orders/create",
-}
-
-const list = { path: ApiRoute.Orders };
-const create = { path: ApiRoute.CreateOrder };
-```
-
-Why: named route members remain the single source of truth for clients, contracts, and route checks. The same principle applies to recognized event and storage-key domains.
+Why: every runtime string and number is named, and only the JSX className property contains an inline value. Import/export module specifiers, syntax directives such as `"use client"`, object property names and TypeScript structural type keys are language syntax rather than runtime string values. Known, fixed sets of routes, event names, and storage keys use shared enums, even when each member appears only once.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
