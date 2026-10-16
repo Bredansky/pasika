@@ -416,21 +416,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A single named string or number value MUST be represented by a `const`, not a one-member `enum`.",
-      "hash": "312f9eda9b",
+      "text": "A single named string or number value MUST be represented by a `const`, not a one-member `enum`; a value written only once MAY remain inline.",
+      "hash": "36c939ead1",
       "ref": "pasika/enum-placement"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline className values in JSX props are the only exception for application values.",
-      "hash": "6e2f0ef0de",
-      "ref": "pasika/no-inline-runtime-literal"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A reusable, closed set of two or more related string or numeric values MUST use a TypeScript `enum`; recognized closed runtime string domains MUST reuse a shared enum even when each member appears only once.",
-      "hash": "dd07ea5808",
-      "ref": "pasika/prefer-enum, pasika/repeated-semantic-literal"
+      "text": "A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.",
+      "hash": "3504540b3d",
+      "ref": "pasika/prefer-enum"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
@@ -440,8 +434,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Repeated named numeric values in the same semantic slot across production files MUST share a constant.",
-      "hash": "7d4a8beb3f",
+      "text": "Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.",
+      "hash": "e4c9e83d80",
       "ref": "pasika/repeated-numeric-value"
     },
     {

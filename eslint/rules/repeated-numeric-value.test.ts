@@ -16,10 +16,6 @@ const FIXTURE: Record<string, string> = {
     "export function Root() { return <Composition width={1080} height={1920} fps={30} />; }\n",
   "features/editor/unique.ts": "export const timeoutMs = 5000;\n",
   "features/editor/identity.ts": "export const objectScale = 1; export const selectedIndex = -1;\n",
-  "features/editor/numeric-boundaries-a.ts":
-    "const firstIndex = 0; const retryCount = 1; const missingIndex = -1; export const values = { firstIndex, retryCount, missingIndex };\n",
-  "features/remotion/numeric-boundaries-b.ts":
-    "const firstIndex = 0; const retryCount = 1; const missingIndex = -1; export const values = { firstIndex, retryCount, missingIndex };\n",
   "features/shared/identity.ts": "export const previewScale = 1; export const activeIndex = -1;\n",
   "features/editor/thumbnail.ts": "export const thumbnailWidth = 320;\n",
   "features/editor/thumbnail.test.ts": "export const expectedWidth = 320;\n",
@@ -43,7 +39,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Repeated named numeric values in the same semantic slot across production files MUST share a constant.", () => {
+void describe("Repeated named numeric values in the same semantic slot across production files MUST share a constant; `-1`, `0`, and `1` MAY remain inline.", () => {
   ruleTester.run("repeated-numeric-value", repeatedNumericValueRule, {
     valid: [
       {
@@ -76,21 +72,6 @@ void describe("Repeated named numeric values in the same semantic slot across pr
       },
     ],
     invalid: [
-      {
-        code: read("features/editor/numeric-boundaries-a.ts"),
-        filename: file("features/editor/numeric-boundaries-a.ts"),
-        errors: [
-          {
-            message: `The numeric value 0 is repeated for the "first index" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
-          },
-          {
-            message: `The numeric value 1 is repeated for the "retry count" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
-          },
-          {
-            message: `The numeric value -1 is repeated for the "missing index" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
-          },
-        ],
-      },
       {
         code: read("features/editor/generate.ts"),
         filename: file("features/editor/generate.ts"),

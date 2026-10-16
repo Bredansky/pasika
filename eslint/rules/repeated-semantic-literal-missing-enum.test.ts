@@ -21,7 +21,6 @@ const local = (value: string): string =>
 file("features/news/a.ts", 'fetch("/api/alpha"); fetch("/api/beta");');
 file("features/news/b.ts", 'fetch("/api/alpha"); fetch("/api/beta");');
 file("features/news/local.ts", 'fetch("/api/local"); fetch("/api/local");');
-file("features/news/unique-routes.ts", 'const contracts = [{ path: "/api/unique-a" }, { path: "/api/unique-b" }];');
 file("features/news/ui.ts", 'const options = { variant: "default", label: "publish" };');
 file("features/news/ui-other.ts", 'const options = { variant: "default", label: "publish" };');
 
@@ -38,18 +37,6 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
         filename: path.join(root, "src/features/news/b.ts"),
         code: 'fetch("/api/alpha"); fetch("/api/beta");',
         errors: [{ message: shared('"/api/alpha"') }, { message: shared('"/api/beta"') }],
-      },
-      {
-        filename: path.join(root, "src/features/news/unique-routes.ts"),
-        code: 'const contracts = [{ path: "/api/unique-a" }, { path: "/api/unique-b" }];',
-        errors: [
-          {
-            message: `The string literal "/api/unique-a" is one of 5 values in a closed api-route domain. Declare the domain in a shared enum at the consumers' CCF and reuse it. ${DOC}`,
-          },
-          {
-            message: `The string literal "/api/unique-b" is one of 5 values in a closed api-route domain. Declare the domain in a shared enum at the consumers' CCF and reuse it. ${DOC}`,
-          },
-        ],
       },
       {
         filename: path.join(root, "src/features/news/local.ts"),

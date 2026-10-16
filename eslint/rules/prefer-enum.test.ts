@@ -11,7 +11,7 @@ const file = (relativePath: string): string => path.join(root, "src", relativePa
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A reusable, closed set of two or more related string or numeric values MUST use a TypeScript `enum`; recognized closed runtime string domains MUST reuse a shared enum even when each member appears only once.", () => {
+void describe("A reusable, closed set of two or more related string or numeric values MUST be represented by a TypeScript `enum`.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
       // Already an enum.
