@@ -31,6 +31,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify generated Vulyk files
+        run: |
+          npx vulyk sync
+          npx vulyk agents
+          git diff --exit-code -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
+          test -z "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)"
+
+      - name: Format
+        run: npm run format
+
       - name: Lint
         run: npm run lint
 
@@ -39,6 +49,9 @@ jobs:
 
       - name: Verify unit coverage
         run: npm run test:unit:coverage
+
+      - name: Verify coverage thresholds are committed
+        run: git diff --exit-code -- vitest.config.ts
 
       - name: Verify requirements
         run: npm run test:requirements

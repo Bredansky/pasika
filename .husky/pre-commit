@@ -1,10 +1,10 @@
 npx vulyk sync
 npx vulyk agents
 
-if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
-  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed)" ]; then
+if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed ||
+  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)" ]; then
   echo "Vulyk generated unstaged changes. Review and stage them before committing."
-  git status --short -- AGENTS.md CLAUDE.md docs/managed
+  git status --short -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
   exit 1
 fi
 
@@ -19,7 +19,4 @@ if ! git diff --quiet -- vitest.config.ts; then
   exit 1
 fi
 
-# Check dependency drift only when staged dependency files change.
-if ! git diff --cached --quiet -- package.json package-lock.json npm-shrinkwrap.json pnpm-lock.yaml yarn.lock; then
-  npx libyear --limit-major-individual=1 --no-pre-releases
-fi
+npx libyear --limit-major-individual=1 --no-pre-releases
