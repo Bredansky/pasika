@@ -1,5 +1,22 @@
+npx vulyk sync
+npx vulyk agents
+
+if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
+  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed)" ]; then
+  echo "Vulyk generated unstaged changes. Review and stage them before committing."
+  git status --short -- AGENTS.md CLAUDE.md docs/managed
+  exit 1
+fi
+
 npx lint-staged
 npm run typecheck
 npm run test:requirements
 npm run test:unit:coverage
+
+if ! git diff --quiet -- vitest.config.ts; then
+  echo "Vitest configuration changed. Review and stage it before committing."
+  git status --short -- vitest.config.ts
+  exit 1
+fi
+
 npx libyear --limit-major-individual=1 --no-pre-releases

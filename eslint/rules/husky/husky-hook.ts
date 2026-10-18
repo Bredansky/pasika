@@ -1,15 +1,8 @@
 /**
  * ESLint rule: pasika/husky-hook
  *
- * A repository MUST configure .husky/pre-commit to run lint-staged and
- * npx libyear --limit-major-individual=1 directly, with a "prepare": "husky"
- * script in package.json. Its typecheck, coverage suite, and — once the
- * repository tracks eslint-suppressions.json — its suppression-file ratchet,
- * run through named package.json scripts that the hook calls by name. The hook
- * stages the suppression file after pruning, while coverage threshold updates
- * remain explicit working-tree changes instead of being auto-staged.
- * What each named script does internally is the repository's choice; this
- * rule only checks that the name exists in both places.
+ * Enforces named pre-commit checks and explicit review of generated Vulyk
+ * documentation and Vitest coverage configuration changes.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -48,6 +41,7 @@ export const huskyHookRule: JSONRuleDefinition = {
           return;
         }
         const content = readFileSync(hookPath, "utf8");
+        const commands = content.replace(/^[ \t]*#[^\r\n]*$/gm, "");
 
         const scripts = root.members.find((member) => memberName(member) === "scripts");
         const scriptNames = new Set(scripts?.value.type === "Object" ? scripts.value.members.map(memberName) : []);
@@ -67,6 +61,60 @@ export const huskyHookRule: JSONRuleDefinition = {
         }
         requireNamedScript("typecheck");
         requireNamedScript("test:unit:coverage");
+
+        const autoStageAll = /^\s*git\s+add\s+(?:--\s+)?(?:-A|--all|-u|\.)(?:\s*(?:#.*)?)?$/m.test(commands);
+        const coverageIndex = commands.indexOf("npm run test:unit:coverage");
+        const coverageGuard =
+          /if\s+!\s+git\s+diff\s+--quiet\s+--\s+vitest\.config\.ts\s*;\s*then[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.exec(
+            commands,
+          );
+        if (coverageIndex >= 0 && (!coverageGuard || coverageGuard.index <= coverageIndex)) {
+          context.report({
+            node,
+            message: ".husky/pre-commit must reject unstaged vitest.config.ts changes after coverage.",
+          });
+        }
+        if (autoStageAll || /\bgit\s+add\s+(?:--\s+)?vitest\.config\.ts\b/.test(commands)) {
+          context.report({ node, message: ".husky/pre-commit must not auto-stage vitest.config.ts." });
+        }
+
+        if (existsSync(path.join(context.cwd, "vulyk.config.ts"))) {
+          const syncIndex = commands.search(/\bnpx\s+vulyk\s+sync\b/);
+          const agentsIndex = commands.search(/\bnpx\s+vulyk\s+agents\b/);
+          const stagedIndex = commands.indexOf("lint-staged");
+          if (syncIndex < 0 || agentsIndex <= syncIndex || stagedIndex <= agentsIndex) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must run npx vulyk sync and npx vulyk agents before lint-staged.",
+            });
+          }
+
+          const vulykGuard =
+            /if\s+!\s+git\s+diff\s+--quiet\s+--[\s\S]*?git\s+ls-files\s+--others\s+--exclude-standard\s+--[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.exec(
+              commands,
+            );
+          const tracked = /git diff --quiet -- (?<paths>[^\r\n]*)/.exec(vulykGuard?.[0] ?? "")?.groups?.paths;
+          const untracked = /git ls-files --others --exclude-standard -- (?<paths>[^\r\n)]*)/.exec(
+            vulykGuard?.[0] ?? "",
+          )?.groups?.paths;
+          const outputPaths = ["AGENTS.md", "CLAUDE.md", "docs/managed"];
+          const hasPaths = outputPaths.every((output) => tracked?.includes(output) && untracked?.includes(output));
+          if (!hasPaths || !vulykGuard || vulykGuard.index <= agentsIndex || vulykGuard.index >= stagedIndex) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must reject unstaged and untracked Vulyk-generated files before lint-staged.",
+            });
+          }
+          if (
+            autoStageAll ||
+            /\bgit\s+add\s+(?:-A\s+|--all\s+|--\s+)?(?:AGENTS\.md|CLAUDE\.md|docs\/managed)\b/.test(commands)
+          ) {
+            context.report({
+              node,
+              message: ".husky/pre-commit must not auto-stage Vulyk-generated files.",
+            });
+          }
+        }
 
         if (!content.includes("libyear --limit-major-individual=1")) {
           context.report({ node, message: ".husky/pre-commit must run npx libyear --limit-major-individual=1." });
