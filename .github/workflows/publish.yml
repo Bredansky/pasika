@@ -37,8 +37,11 @@ jobs:
 
       - name: Verify generated Vulyk files
         run: |
-          npx vulyk sync
-          npx vulyk agents
+          git worktree add --detach "$RUNNER_TEMP/pasika-vulyk-check" HEAD
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/pasika-vulyk-check/node_modules"
+          cd "$RUNNER_TEMP/pasika-vulyk-check"
+          npx --no-install vulyk sync
+          npx --no-install vulyk agents
           git diff --exit-code -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
           test -z "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)"
 
@@ -55,7 +58,7 @@ jobs:
         run: npm run typecheck
 
       - name: Verify unit coverage
-        run: npm run test:unit:coverage
+        run: npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false
 
       - name: Verify coverage thresholds are committed
         run: git diff --exit-code -- vitest.config.ts
