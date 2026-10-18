@@ -65,17 +65,17 @@ Why: a commit can absorb updated instructions and documentation without a contri
 npx vulyk sync
 npx vulyk agents
 
-if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
-  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed)" ]; then
+if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed ||
+  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)" ]; then
   echo "Vulyk generated unstaged changes. Review and stage them before committing."
-  git status --short -- AGENTS.md CLAUDE.md docs/managed
+  git status --short -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
   exit 1
 fi
 
 npx lint-staged
 ```
 
-Why: unstaged updates and new generated paths interrupt the commit while reviewed, already-staged output can proceed. This working-tree guard does not validate partial staging, staged deletions, or customized Vulyk targets; projects with other output paths should extend its scope.
+Why: unstaged updates and new generated paths interrupt the commit while reviewed, already-staged output can proceed. Pasika also generates `docs/AGENTS.md`, so its hook includes that path. This working-tree guard does not validate partial staging, staged deletions, or customized Vulyk targets; projects with other output paths should extend its scope.
 
 ## Incorrect — Coverage Changes Are Added Automatically
 

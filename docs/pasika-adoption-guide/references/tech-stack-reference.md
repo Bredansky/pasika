@@ -154,17 +154,9 @@ Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package
 
 ## Husky Configuration
 
-`.husky/pre-commit` must run the local checks and capture suppression and coverage ratchets in the commit.
+Husky runs local checks and may rewrite generated documentation, staged source files, and coverage thresholds. Contributors explicitly review and stage Vulyk-generated files and coverage updates; repositories tracking `eslint-suppressions.json` also prune and stage that suppression file.
 
-```sh
-# .husky/pre-commit
-npx lint-staged
-npm run typecheck
-npm run lint:prune
-git add eslint-suppressions.json
-npm run test:unit:coverage
-npx libyear --limit-major-individual=1
-```
+Pasika's own `.husky/pre-commit` first runs `npx vulyk sync` and `npx vulyk agents`, then rejects unstaged or untracked generated files (`AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/managed`). It runs `npx lint-staged`, `npm run typecheck`, `npm run test:requirements`, and `npm run test:unit:coverage`, rejects unstaged changes to `vitest.config.ts`, then runs `npx libyear --limit-major-individual=1 --no-pre-releases` **on every commit**. Other repositories should check their own generated output paths.
 
 ## lint-staged Wiring
 
@@ -188,19 +180,30 @@ Every named `*:staged` script is wired into `lint-staged` against the glob it ap
 
 ## CI (Recommended, Not Enforced)
 
-No pasika rule checks a CI workflow file today — everything above is verified locally, at commit time. The following is a recommended pattern, not a requirement:
+No pasika rule checks CI workflow files today; CI verifies committed output without fixing or staging files. Pasika uses GitHub Actions `Checks` for pull requests and `main`, and `Publish Package` for release tags.
+
+After checkout, Node setup, and `npm ci`, both workflows run these checks (the generated paths are specific to this repository):
 
 ```yaml
-- run: npm run lint
-- run: npm run lint:prune
-- run: git diff --exit-code -- eslint-suppressions.json
+- name: Verify generated Vulyk files
+  run: |
+    git worktree add --detach "$RUNNER_TEMP/pasika-vulyk-check" HEAD
+    ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/pasika-vulyk-check/node_modules"
+    cd "$RUNNER_TEMP/pasika-vulyk-check"
+    npx --no-install vulyk sync
+    npx --no-install vulyk agents
+    git diff --exit-code -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
+    test -z "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)"
 - run: npm run format
+- run: npm run lint
 - run: npm run typecheck
-- run: npm run test:unit:coverage
+- run: npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false
 - run: git diff --exit-code -- vitest.config.ts
-- run: npx libyear --limit-major-individual=1
+- run: npm run test:requirements
 - run: npm run build
 ```
+
+Vulyk generation runs in an isolated temporary worktree, leaving the checked-out source unchanged; coverage thresholds are checked without updating `vitest.config.ts`. The publishing workflow also runs `npm publish` on release tags and creates a GitHub Release after successful publication. Dependency drift (`libyear`) and suppression pruning belong to the local hook, not the CI checks. This division is a recommended pattern for adopters, not a new framework requirement.
 
 ## Not Declared
 
