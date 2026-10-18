@@ -20,24 +20,10 @@ const DOC = "docs/pasika-adoption-guide/rules/with-response-helper-rule.md";
 
 const DECLARED = `A repository must not declare its own ${HELPER}; import it from ${ENTRY}. See ${DOC}`;
 const IMPORTED = `${HELPER} must be imported from ${ENTRY}. See ${DOC}`;
-const INLINE = `Pass a named handler to ${HELPER} instead of an inline callback. See ${DOC}`;
 
 /** True for a node written as this identifier — a declaration's name, or a specifier's local binding. */
 function isNamed(node: { type: string; name?: string } | null | undefined, name: string): boolean {
   return node?.type === "Identifier" && node.name === name;
-}
-
-/** Detect direct and TS-cast inline callbacks without trusting unknown AST shapes. */
-function isInlineCallback(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || !("type" in node)) return false;
-  if (node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression") return true;
-  if (
-    (node.type === "TSAsExpression" || node.type === "TSSatisfiesExpression" || node.type === "TSNonNullExpression") &&
-    "expression" in node
-  ) {
-    return isInlineCallback(node.expression);
-  }
-  return false;
 }
 
 export const withResponseHelperRule: Rule.RuleModule = {
@@ -45,11 +31,10 @@ export const withResponseHelperRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: `Require ${HELPER} from ${ENTRY} and reject inline handler callbacks.`,
+      description: `Require ${HELPER} to be imported from ${ENTRY} rather than declared in the repository.`,
     },
   },
   create(context) {
-    const wrapperNames = new Set([HELPER]);
     /**
      * The names an import or a re-export binds, so a binding of the helper's
      * name to a source that is not the package entry is reported at the
@@ -64,21 +49,6 @@ export const withResponseHelperRule: Rule.RuleModule = {
     };
 
     return {
-      Program(node) {
-        for (const statement of node.body) {
-          if (statement.type !== "ImportDeclaration" || statement.source.value !== ENTRY) continue;
-          for (const specifier of statement.specifiers) {
-            if (specifier.type === "ImportSpecifier" && isNamed(specifier.imported, HELPER)) {
-              wrapperNames.add(specifier.local.name);
-            }
-          }
-        }
-      },
-      CallExpression(node) {
-        if (node.callee.type !== "Identifier" || !wrapperNames.has(node.callee.name)) return;
-        const handler = node.arguments[node.arguments.length - 1];
-        if (isInlineCallback(handler)) context.report({ node, message: INLINE });
-      },
       FunctionDeclaration(node) {
         if (isNamed(node.id, HELPER)) context.report({ node, message: DECLARED });
       },

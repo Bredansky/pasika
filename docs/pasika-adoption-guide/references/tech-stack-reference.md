@@ -70,28 +70,24 @@ type HandlerResult<TData> =
 A handler returns `{ data }`, plus optional `status` and `headers` when the response needs them. The response schema validates `data`, and that parsed value is the successful JSON body directly. A failure is `{ message }`, built from the caught `HttpError` and answered at its status with `Cache-Control: no-store`, so HTTP status carries success or failure instead of duplicating that state in the body. A non-JSON response is the handler's own `{ body, status, headers }`, which the wrapper passes through unread:
 
 ```ts
-async function handleGet(request: NextRequest) {
+export const GET = withResponse(async (request: NextRequest) => {
   const file = await readUpstreamFile(request);
 
   return { body: file.stream, status: file.status, headers: file.headers };
-}
-
-export const GET = withResponse(handleGet);
+});
 ```
 
 A thrown `HttpError` is already the response, so the handler needs no `try`, branch, or loop, and reads as the steps it takes:
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-async function handlePost(request: NextRequest) {
+export const POST = withResponse(renderInstagramApiContract, async (request: NextRequest) => {
   const userId = await getUserId();
   const orders = await parseRenderPayload(request, instagramRenderOrderSchema);
   const ordersWithJobIds = await createPublicationsForOrders(userId, orders);
   const { jobIds } = await dispatchRenderJobs(userId, ordersWithJobIds);
   return { data: jobIds };
-}
-
-export const POST = withResponse(renderInstagramApiContract, handlePost);
+});
 ```
 
 The handler is written where the route is, so a reader of `route.ts` sees the workflow itself, not one call that hides it. Each step is one awaited call to a module of its own, because a step branches, loops, or catches and a handler may do none of that. A module's name is what separates the two: `readPostSubmission` names one action, so its call is one step, while `submitPosts` on `/api/post` only repeats the route's own subject — and a name no more specific than the route is a workflow hiding behind one await. Give each significant step its own name and await it here.

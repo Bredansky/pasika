@@ -776,8 +776,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A handler wrapped in `withResponse` MUST be declared as a named function in `route.ts` and passed by reference, not written inline or imported from elsewhere.",
-      "hash": "0af9c0df40",
+      "text": "A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.",
+      "hash": "f929a31fd9",
       "ref": "pasika/route-handler-shape"
     },
     {
@@ -791,6 +791,12 @@
       "text": "A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.",
       "hash": "17a3f78e7c",
       "note": "Judgment: a reviewer reads the module the handler's single call names. If that name restates the route's own subject, the call holds a sequence of steps and they belong in the handler. No syntax tells one honest step from a workflow wearing a step's name, which is why no rule governs this bullet."
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A one-step `withResponse` handler MUST NOT delegate its entire response to a single-use imported utility.",
+      "hash": "344c4b2dae",
+      "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
@@ -1438,12 +1444,6 @@
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
       "text": "A repository MUST NOT declare a `withResponse` of its own.",
       "hash": "89dfaae587",
-      "ref": "pasika/with-response-helper"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
-      "text": "A call to `withResponse` MUST receive a named handler rather than an inline arrow or function expression.",
-      "hash": "0939f20350",
       "ref": "pasika/with-response-helper"
     },
     {

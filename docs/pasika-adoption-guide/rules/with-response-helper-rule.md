@@ -4,7 +4,6 @@ A route that fails has to answer with a status and a message instead of an unhan
 
 - The `withResponse` a route handler is wrapped in MUST be imported from `pasika/with-response`.
 - A repository MUST NOT declare a `withResponse` of its own.
-- A call to `withResponse` MUST receive a named handler rather than an inline arrow or function expression.
 
 ## Incorrect — A Wrapper The Repository Maintains
 
@@ -30,38 +29,11 @@ Why: every failure leaves at the same status, so the status a delegated module r
 ```ts
 import { withResponse } from "pasika/with-response";
 
-async function handleCreateOrder(request: NextRequest) {
+export const POST = withResponse(createOrderApiContract, async (request: NextRequest) => {
   const order = await createOrder(request);
+
   return { data: order, status: 201 };
-}
-
-export const POST = withResponse(createOrderApiContract, handleCreateOrder);
+});
 ```
 
-Why: the framework controls successful and failed responses, and the route passes a named handler instead of hiding the callback body in the wrapper invocation.
-
-## Incorrect — Anonymous Handler Passed Inline
-
-```ts
-import { withResponse } from "pasika/with-response";
-
-export const GET = withResponse(streamStatusApiContract, async () => ({
-  data: await getLiveStream(),
-}));
-```
-
-Why: the route hides the handler inside an argument expression, so the workflow is harder to locate, name, and review.
-
-## Correct — Named Handler Passed By Reference
-
-```ts
-import { withResponse } from "pasika/with-response";
-
-async function handleGet() {
-  return { data: await getLiveStream() };
-}
-
-export const GET = withResponse(streamStatusApiContract, handleGet);
-```
-
-Why: the call declares the HTTP boundary and names the handler, whose implementation remains visible in `route.ts`.
+Why: the validated response body, the failure body, and the status a failure carries are the framework's, and the route names no wrapper of its own.

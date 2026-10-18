@@ -6,12 +6,11 @@ const ROUTE = "src/app/api/orders/route.ts";
 
 const WRAPPED_HANDLER = `import { withResponse } from "pasika/with-response";
 
-async function handleCreateOrder(request: NextRequest) {
+export const POST = withResponse(createOrderResponseSchema, async (request: NextRequest) => {
   const order = await createOrder(request);
-  return { data: order, status: 201 };
-}
 
-export const POST = withResponse(createOrderResponseSchema, handleCreateOrder);
+  return { message: "Order created.", data: order, status: 201 };
+});
 `;
 
 void describe("The withResponse a route handler is wrapped in MUST be imported from pasika/with-response.", () => {
@@ -66,51 +65,6 @@ void describe("A repository MUST NOT declare a withResponse of its own.", () => 
             message: `A repository must not declare its own withResponse; import it from pasika/with-response. ${DOC}`,
           },
         ],
-      },
-    ],
-  });
-});
-
-void describe("A call to `withResponse` MUST receive a named handler rather than an inline arrow or function expression.", () => {
-  const MESSAGE = `Pass a named handler to withResponse instead of an inline callback. ${DOC}`;
-  ruleTester.run("with-response-helper", withResponseHelperRule, {
-    valid: [
-      { filename: ROUTE, code: WRAPPED_HANDLER },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse } from "pasika/with-response"; export const GET = withResponse(contract, handleGet);',
-      },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse as wrap } from "pasika/with-response"; export const GET = wrap(handleGet);',
-      },
-      { filename: ROUTE, code: "const anotherWrapper = (callback) => callback(); anotherWrapper(async () => 1);" },
-    ],
-    invalid: [
-      {
-        filename: ROUTE,
-        code: 'import { withResponse } from "pasika/with-response"; export const GET = withResponse(contract, async () => ({ data: 1 }));',
-        errors: [{ message: MESSAGE }],
-      },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse } from "pasika/with-response"; export const GET = withResponse(async (request: Request) => ({ body: request.body, status: 200 }));',
-        errors: [{ message: MESSAGE }],
-      },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse } from "pasika/with-response"; export const GET = withResponse(contract, async function handleGet() { return { data: 1 }; });',
-        errors: [{ message: MESSAGE }],
-      },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse as wrap } from "pasika/with-response"; export const GET = wrap(contract, async () => ({ data: 1 }));',
-        errors: [{ message: MESSAGE }],
-      },
-      {
-        filename: ROUTE,
-        code: 'import { withResponse } from "pasika/with-response"; export const GET = withResponse(contract, (async () => ({ data: 1 })) as Handler);',
-        errors: [{ message: MESSAGE }],
       },
     ],
   });
