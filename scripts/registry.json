@@ -1286,8 +1286,38 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.",
-      "hash": "2638d579e3",
+      "text": "A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`.",
+      "hash": "0890baa2ac",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "After coverage, the hook MUST fail on unstaged `vitest.config.ts` changes so contributors explicitly review and stage them.",
+      "hash": "df8271052c",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "The hook MUST NOT automatically stage `vitest.config.ts`.",
+      "hash": "bf4425d855",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository with `vulyk.config.ts` MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.",
+      "hash": "083aeb973d",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "After Vulyk generation, the hook MUST fail on unstaged modifications or untracked files in `AGENTS.md`, `CLAUDE.md`, and `docs/managed`.",
+      "hash": "de835ec835",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "The hook MUST NOT automatically stage Vulyk-generated agent or managed documentation files.",
+      "hash": "924fe0a314",
       "ref": "pasika/husky-hook"
     },
     {

@@ -33,11 +33,24 @@ function buildFixture(preCommit: string, suppressions?: string): string {
 }
 
 const COVERAGE_CHECK = "npm run test:unit:coverage";
+const VITEST_GUARD = `if ! git diff --quiet -- vitest.config.ts; then
+  echo "Review Vitest configuration"
+  exit 1
+fi`;
+const COVERAGE_STEP = `${COVERAGE_CHECK}
+${VITEST_GUARD}`;
+const VULYK_GUARD = `npx vulyk sync
+npx vulyk agents
+if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
+  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed)" ]; then
+  exit 1
+fi
+`;
 
 // Has lint-staged, typecheck, coverage, and libyear — everything but lint:prune.
 const BASE_HOOK = `npx lint-staged
 npm run typecheck
-${COVERAGE_CHECK}
+${COVERAGE_STEP}
 npx libyear --limit-major-individual=1
 `;
 // Every named script the rule can require.
@@ -45,12 +58,12 @@ const FULL_HOOK = `npx lint-staged
 npm run typecheck
 npm run lint:prune
 git add eslint-suppressions.json
-${COVERAGE_CHECK}
+${COVERAGE_STEP}
 npx libyear --limit-major-individual=1
 `;
 // Missing typecheck while retaining the coverage check.
 const NO_TYPECHECK_HOOK = `npx lint-staged
-${COVERAGE_CHECK}
+${COVERAGE_STEP}
 npx libyear --limit-major-individual=1
 `;
 
@@ -76,7 +89,7 @@ void describe("A repository MUST configure .husky/pre-commit to run lint-staged.
 
   // lint-staged is absent from the hook entirely
   const withoutLintStaged = buildFixture(
-    `npm run typecheck\n${COVERAGE_CHECK}\nnpx libyear --limit-major-individual=1\n`,
+    `npm run typecheck\n${COVERAGE_STEP}\nnpx libyear --limit-major-individual=1\n`,
   );
   process.chdir(path.dirname(withoutLintStaged));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
@@ -100,7 +113,7 @@ void describe("A repository MUST configure .husky/pre-commit to run npx libyear 
   });
 
   // libyear is absent from the hook entirely
-  const withoutLibyear = buildFixture(`npx lint-staged\nnpm run typecheck\n${COVERAGE_CHECK}\n`);
+  const withoutLibyear = buildFixture(`npx lint-staged\nnpm run typecheck\n${COVERAGE_STEP}\n`);
   process.chdir(path.dirname(withoutLibyear));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
     valid: [],
@@ -114,7 +127,7 @@ void describe("A repository MUST configure .husky/pre-commit to run npx libyear 
   });
 });
 
-void describe("A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.", () => {
+void describe("A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`.", () => {
   const withCoverage = buildFixture(BASE_HOOK);
   process.chdir(path.dirname(withCoverage));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
@@ -201,7 +214,7 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
   });
 
   const withoutSuppressionRatchet = buildFixture(
-    `npx lint-staged\nnpm run typecheck\nnpm run lint:prune\n${COVERAGE_CHECK}\nnpx libyear --limit-major-individual=1\n`,
+    `npx lint-staged\nnpm run typecheck\nnpm run lint:prune\n${COVERAGE_STEP}\nnpx libyear --limit-major-individual=1\n`,
     "{}",
   );
   process.chdir(path.dirname(withoutSuppressionRatchet));
@@ -212,6 +225,147 @@ void describe("A repository that tracks eslint-suppressions.json MUST declare a 
         code: JSON.stringify({ scripts: COMPLETE_SCRIPTS }),
         filename: withoutSuppressionRatchet,
         errors: [{ message: ".husky/pre-commit must stage eslint-suppressions.json after pruning suppressions." }],
+      },
+    ],
+  });
+});
+
+void describe("A repository with `vulyk.config.ts` MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.", () => {
+  const fixture = buildFixture(VULYK_GUARD + BASE_HOOK);
+  writeFileSync(path.join(path.dirname(fixture), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(fixture));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: fixture }],
+    invalid: [],
+  });
+
+  const missing = buildFixture(BASE_HOOK);
+  writeFileSync(path.join(path.dirname(missing), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(missing));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: missing,
+        errors: [
+          { message: ".husky/pre-commit must run npx vulyk sync and npx vulyk agents before lint-staged." },
+          { message: ".husky/pre-commit must reject unstaged and untracked Vulyk-generated files before lint-staged." },
+        ],
+      },
+    ],
+  });
+
+  const autoStaged = buildFixture(`${VULYK_GUARD}git add AGENTS.md\n${BASE_HOOK}`);
+  writeFileSync(path.join(path.dirname(autoStaged), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(autoStaged));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: autoStaged,
+        errors: [{ message: ".husky/pre-commit must not auto-stage Vulyk-generated files." }],
+      },
+    ],
+  });
+});
+
+void describe("After coverage, the hook MUST fail on unstaged `vitest.config.ts` changes so contributors explicitly review and stage them.", () => {
+  const missingGuard = buildFixture(BASE_HOOK.replace(VITEST_GUARD, ""));
+  process.chdir(path.dirname(missingGuard));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: missingGuard,
+        errors: [{ message: ".husky/pre-commit must reject unstaged vitest.config.ts changes after coverage." }],
+      },
+    ],
+  });
+
+  const autoStaged = buildFixture(`${BASE_HOOK}git add vitest.config.ts\n`);
+  process.chdir(path.dirname(autoStaged));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: autoStaged,
+        errors: [{ message: ".husky/pre-commit must not auto-stage vitest.config.ts." }],
+      },
+    ],
+  });
+});
+
+void describe("The hook MUST NOT automatically stage `vitest.config.ts`.", () => {
+  const file = buildFixture(`${BASE_HOOK}git add vitest.config.ts\n`);
+  process.chdir(path.dirname(file));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: file,
+        errors: [{ message: ".husky/pre-commit must not auto-stage vitest.config.ts." }],
+      },
+    ],
+  });
+});
+
+void describe("After Vulyk generation, the hook MUST fail on unstaged modifications or untracked files in `AGENTS.md`, `CLAUDE.md`, and `docs/managed`.", () => {
+  const hook = VULYK_GUARD.replace(
+    "git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed",
+    "git ls-files --others --exclude-standard -- src",
+  );
+  const file = buildFixture(hook + BASE_HOOK);
+  writeFileSync(path.join(path.dirname(file), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(file));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: file,
+        errors: [
+          { message: ".husky/pre-commit must reject unstaged and untracked Vulyk-generated files before lint-staged." },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("The hook MUST NOT automatically stage Vulyk-generated agent or managed documentation files.", () => {
+  const file = buildFixture(`${VULYK_GUARD}git add AGENTS.md\n${BASE_HOOK}`);
+  writeFileSync(path.join(path.dirname(file), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(file));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: file,
+        errors: [{ message: ".husky/pre-commit must not auto-stage Vulyk-generated files." }],
+      },
+    ],
+  });
+});
+
+void describe("Bulk staging cannot silently include generated outputs.", () => {
+  const file = buildFixture(`${VULYK_GUARD}${BASE_HOOK}git add -A\n`);
+  writeFileSync(path.join(path.dirname(file), "vulyk.config.ts"), "export default {};");
+  process.chdir(path.dirname(file));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: file,
+        errors: [
+          { message: ".husky/pre-commit must not auto-stage vitest.config.ts." },
+          { message: ".husky/pre-commit must not auto-stage Vulyk-generated files." },
+        ],
       },
     ],
   });
