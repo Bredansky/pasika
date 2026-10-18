@@ -9,7 +9,6 @@ Checks that land before a commit only protect the repository if the hook runs th
 - A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit`. After coverage completes, the hook MUST fail if `vitest.config.ts` has unstaged changes; contributors MUST review and explicitly stage those changes. The hook MUST NOT automatically `git add` the Vitest config.
 - A repository that consumes tracked documentation through Vulyk MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.
 - After Vulyk generation, the hook MUST fail if generated `AGENTS.md`, `CLAUDE.md`, or `docs/managed` files have unstaged changes or newly untracked files; contributors MUST review and explicitly stage the generated output. The hook MUST NOT silently `git add` these files.
-- A repository SHOULD invoke `lint-staged` with `--concurrent 1` to avoid overlapping staged-file fixers.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.
 
 ## Incorrect — Hook Calls Tools Directly Instead of Named Scripts
@@ -80,7 +79,7 @@ if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
   exit 1
 fi
 
-npx lint-staged --concurrent 1
+npx lint-staged
 ```
 
 Why: commits must not silently omit newly generated tracked documentation or agent instructions. Developers explicitly review and stage generated changes before committing. This complements, rather than replaces, the existing typecheck, coverage, suppression-pruning (when applicable), and `libyear` checks.
