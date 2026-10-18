@@ -776,8 +776,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.",
-      "hash": "f929a31fd9",
+      "text": "A handler wrapped in `withResponse` MUST be declared as a named function in `route.ts` and passed by reference, not written inline or imported from elsewhere.",
+      "hash": "0af9c0df40",
       "ref": "pasika/route-handler-shape"
     },
     {
@@ -1438,6 +1438,12 @@
       "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
       "text": "A repository MUST NOT declare a `withResponse` of its own.",
       "hash": "89dfaae587",
+      "ref": "pasika/with-response-helper"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/with-response-helper-rule.md",
+      "text": "A call to `withResponse` MUST receive a named handler rather than an inline arrow or function expression.",
+      "hash": "0939f20350",
       "ref": "pasika/with-response-helper"
     },
     {

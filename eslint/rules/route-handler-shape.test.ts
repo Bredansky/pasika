@@ -1,113 +1,94 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { routeHandlerShapeRule } from "./route-handler-shape";
 
-const MUST_BE_WRAPPED = (name: string): string =>
-  `Handler "${name}" must be wrapped in withResponse. See docs/next-codebase-guide/rules/route-handler-rule.md`;
-const NO_TRY = (name: string): string =>
-  `Handler "${name}" contains a try statement of its own; delegate that to a function it calls. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NO_LOOP = (name: string): string =>
-  `Handler "${name}" contains a loop of its own; delegate that to a function it calls. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NO_IF = (name: string): string =>
-  `Handler "${name}" contains an if statement of its own; delegate that to a function it calls. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NO_MAP = (name: string): string =>
-  `Handler "${name}" contains a map operation of its own; delegate that to a function it calls. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NOT_IMPORTED = (name: string, calledName: string): string =>
-  `Handler "${name}" calls "${calledName}", which is declared in route.ts instead of imported. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
-const NOT_INLINE = (name: string): string =>
-  `Handler "${name}" must be written as a function inside withResponse, not passed as a reference. ` +
-  "See docs/next-codebase-guide/rules/route-handler-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/route-handler-rule.md";
+const ROUTE = srcFile("app/api/orders/route.ts");
+const NAMED_HANDLER_ERROR =
+  `Handler "POST" must be a named function declared in route.ts and passed by reference to withResponse; ` +
+  `inline callbacks and imported handlers are not allowed. ${DOC}`;
+
+const NAMED_HANDLER = `
+async function handlePost(request: NextRequest) {
+  const userId = await getUserId();
+  const orders = await parseRenderPayload(request, orderSchema);
+  const result = await dispatchRenderJobs(userId, orders);
+  return { data: result };
+}
+export const POST = withResponse(apiContract, handlePost);
+`;
+
+const NAMED_HANDLER_CONST = `
+const handlePost = async (request: NextRequest) => {
+  const result = await dispatchRenderJobs(request);
+  return { data: result };
+};
+export const POST = withResponse(apiContract, handlePost);
+`;
+
+function controlFlowError(phrase: string): string {
+  return `Handler "POST" contains ${phrase} of its own; delegate that to a function it calls. ${DOC}`;
+}
 
 void describe("An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // The canonical handler: every step, including the caller lookup, is an awaited call.
+      { filename: ROUTE, code: NAMED_HANDLER },
       {
-        code: `export const POST = withResponse(renderApiResponseDataSchema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          const orders = await parseRenderPayload(request, orderSchema);
-          const { jobIds } = await dispatchRenderJobs(userId, orders);
-          return { message: "Dispatched.", data: jobIds };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // A route.ts export that is not an HTTP method is not this rule's concern.
-      {
-        code: `export function absolutizeMediaUrls(order) {
-          return order;
-        }`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // Code outside route.ts is not this rule's concern.
-      {
-        code: `export async function GET(request: NextRequest) {
-          return NextResponse.json({ status: "ok" });
-        }`,
-        filename: srcFile("utils/instagram.ts"),
+        filename: srcFile("utils/orders.ts"),
+        code: "export async function POST() { return Response.json({}); }",
       },
     ],
     invalid: [
-      // A bare function declaration, never wrapped by any call.
       {
-        code: `export async function GET(request: NextRequest) {
-          const result = await getStatus();
-          return NextResponse.json({ status: result });
-        }`,
-        filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: MUST_BE_WRAPPED("GET") }],
+        filename: ROUTE,
+        code: "export async function GET() { return Response.json({}); }",
+        errors: [{ message: `Handler "GET" must be wrapped in withResponse. ${DOC}` }],
       },
-      // A bare arrow function, never wrapped by any call.
       {
-        code: `export const GET = async (request: NextRequest) => {
-          return NextResponse.json({ status: "ok" });
-        };`,
-        filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: MUST_BE_WRAPPED("GET") }],
-      },
-      // Wrapped by a call, but not withResponse.
-      {
-        code: `export const GET = withErrors(async (request: NextRequest) => {
-          return NextResponse.json({ status: "ok" });
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: MUST_BE_WRAPPED("GET") }],
-      },
-      // withErrors alone no longer satisfies the boundary requirement.
-      {
-        code: `export const GET = withErrors(async (request: NextRequest) => {
-          const storedCredentials = await listCredentials();
-          return NextResponse.json(storedCredentials);
-        });`,
-        filename: srcFile("app/api/credentials/route.ts"),
-        errors: [{ message: MUST_BE_WRAPPED("GET") }],
+        filename: ROUTE,
+        code: "export const GET = withErrors(async () => Response.json({}));",
+        errors: [{ message: `Handler "GET" must be wrapped in withResponse. ${DOC}` }],
       },
     ],
   });
 });
 
-void describe("A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.", () => {
+void describe("A handler wrapped in `withResponse` MUST be declared as a named function in `route.ts` and passed by reference, not written inline or imported from elsewhere.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // The handler is the function the wrapper receives.
+      { filename: ROUTE, code: NAMED_HANDLER },
+      { filename: ROUTE, code: NAMED_HANDLER_CONST },
       {
-        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
-          const status = await getStatus();
-          return { message: "OK.", data: status };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
+        filename: ROUTE,
+        code: `export const POST = withResponse(apiContract, handlePost);
+async function handlePost() { return { data: await submitPost() }; }`,
       },
     ],
     invalid: [
-      // The workflow lives in another file, behind a reference to it.
       {
-        code: `import { submitPosts } from "@/utils/submit-posts";
-export const POST = withResponse(schema, submitPosts);`,
-        filename: srcFile("app/api/post/route.ts"),
-        errors: [{ message: NOT_INLINE("POST") }],
+        filename: ROUTE,
+        code: "export const POST = withResponse(apiContract, async () => ({ data: await submitPost() }));",
+        errors: [{ message: NAMED_HANDLER_ERROR }],
+      },
+      {
+        filename: ROUTE,
+        code: 'import { dispatchPost } from "@/features/orders"; export const POST = withResponse(apiContract, dispatchPost);',
+        errors: [{ message: NAMED_HANDLER_ERROR }],
+      },
+      {
+        filename: ROUTE,
+        code: "export const POST = withResponse(apiContract, missingHandler);",
+        errors: [{ message: NAMED_HANDLER_ERROR }],
+      },
+      {
+        filename: ROUTE,
+        code: "export const POST = withResponse(async function handlePost() { return { body: stream, status: 200 }; });",
+        errors: [{ message: NAMED_HANDLER_ERROR }],
+      },
+      {
+        filename: ROUTE,
+        code: "const handlePost = 42; export const POST = withResponse(apiContract, handlePost);",
+        errors: [{ message: NAMED_HANDLER_ERROR }],
       },
     ],
   });
@@ -116,15 +97,13 @@ export const POST = withResponse(schema, submitPosts);`,
 void describe("A handler `route.ts` only re-exports MAY stay unwrapped.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // A package's handler arrives as a reference the file did not write.
       {
-        code: `const handler = NextAuth({ providers: [] });\n\nexport const GET = handler;\nexport const POST = handler;`,
-        filename: srcFile("app/api/auth/[...nextauth]/route.ts"),
+        filename: ROUTE,
+        code: 'import { handler } from "./handler"; export { handler as GET, handler as POST };',
       },
-      // The same handler handed on as named re-exports, which no visitor reads.
       {
-        code: `import { handler } from "./handler";\n\nexport { handler as GET, handler as POST };`,
-        filename: srcFile("app/api/webhook/route.ts"),
+        filename: ROUTE,
+        code: "const handler = NextAuth({ providers: [] }); export const GET = handler;",
       },
     ],
     invalid: [],
@@ -133,40 +112,16 @@ void describe("A handler `route.ts` only re-exports MAY stay unwrapped.", () => 
 
 void describe("A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
-    valid: [
-      {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          const orders = await parseRenderPayload(request, orderSchema);
-          const { jobIds } = await dispatchRenderJobs(userId, orders);
-          return { message: "Dispatched.", data: jobIds };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // A try/catch in a callback passed to another call is that
-      // callback's own try, not the handler's.
-      {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const body = await request.json();
-          const ids = await getIds(body);
-          return { message: "OK.", data: ids };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-    ],
+    valid: [{ filename: ROUTE, code: NAMED_HANDLER }],
     invalid: [
       {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          try {
-            const { jobIds } = await dispatchRenderJobs(userId, request);
-            return { message: "Dispatched.", data: jobIds };
-          } catch (error) {
-            throw new HttpError(String(error), 500);
-          }
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NO_TRY("POST") }],
+        filename: ROUTE,
+        code: `async function handlePost() {
+          try { return { data: await createPost() }; }
+          catch { return { data: null }; }
+        }
+        export const POST = withResponse(apiContract, handlePost);`,
+        errors: [{ message: controlFlowError("a try statement") }],
       },
     ],
   });
@@ -174,38 +129,17 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain a `try` stat
 
 void describe("A handler wrapped in `withResponse` MUST NOT contain a loop in its body.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
-    valid: [
-      {
-        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
-          const status = await getStatus();
-          return { message: "OK.", data: status };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
-      },
-      // A loop in a callback passed to another call is that callback's
-      // own loop, not the handler's.
-      {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const body = await request.json();
-          const ids = await getIds(body);
-          return { message: "OK.", data: ids };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-    ],
+    valid: [{ filename: ROUTE, code: NAMED_HANDLER_CONST }],
     invalid: [
       {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          const body = await request.json();
-          const jobIds: string[] = [];
-          for (const order of body.orders) {
-            jobIds.push(await createLegacyPublication(order));
-          }
-          return { message: "OK.", data: jobIds };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NO_LOOP("POST") }],
+        filename: ROUTE,
+        code: `async function handlePost(request: NextRequest) {
+          const ids = [];
+          for (const item of request.items) { ids.push(item.id); }
+          return { data: ids };
+        }
+        export const POST = withResponse(apiContract, handlePost);`,
+        errors: [{ message: controlFlowError("a loop") }],
       },
     ],
   });
@@ -214,35 +148,28 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain a loop in it
 void describe("A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // A concise arrow body has no block to scan for control flow.
+      { filename: ROUTE, code: NAMED_HANDLER },
       {
-        code: `export const GET = withResponse(schema, async () => ({ message: "OK.", data: true }));`,
-        filename: srcFile("app/api/health/route.ts"),
-      },
-      // An if in a callback passed to another call is that callback's
-      // own branch, not the handler's.
-      {
-        code: `export const POST = withResponse(schema, async (request: NextRequest) => {
-          const body = await request.json();
-          const ids = await getIds(body);
-          return { message: "OK.", data: ids };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
+        filename: ROUTE,
+        code: `async function handlePost() {
+          const ids = await processItems((item) => {
+            if (item.valid) return item.id;
+            return null;
+          });
+          return { data: ids };
+        }
+        export const POST = withResponse(apiContract, handlePost);`,
       },
     ],
     invalid: [
       {
-        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
-          const account = await getUserAccount();
-          const id = request.nextUrl.searchParams.get("id");
-          if (!id) {
-            throw new HttpError("Missing id", 400);
-          }
-          const publication = await getPublicationById(id);
-          return { message: "Found.", data: publication.status };
-        });`,
-        filename: srcFile("app/api/post-status/route.ts"),
-        errors: [{ message: NO_IF("GET") }],
+        filename: ROUTE,
+        code: `const handlePost = async (request: NextRequest) => {
+          if (!request) throw new HttpError("Bad request", 400);
+          return { data: await createPost(request) };
+        };
+        export const POST = withResponse(apiContract, handlePost);`,
+        errors: [{ message: controlFlowError("an if statement") }],
       },
     ],
   });
@@ -251,59 +178,22 @@ void describe("A handler wrapped in `withResponse` MUST NOT contain an `if` stat
 void describe("A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      // dispatchRenderJobs is imported, not declared in this file.
       {
-        code: `import { dispatchRenderJobs } from "@/utils/instagram";
-        export const POST = withResponse(schema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          const { jobIds } = await dispatchRenderJobs(userId, request);
-          return { message: "Dispatched.", data: jobIds };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-      },
-      // A locally declared function that the handler never calls is not this rule's concern.
-      {
-        code: `function unusedHelper() {
-          return null;
-        }
-        export const GET = withResponse(schema, async () => {
-          const status = await getStatus();
-          return { message: "OK.", data: status };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
+        filename: ROUTE,
+        code: `import { createPost } from "@/features/orders";
+        async function handlePost() { return { data: await createPost() }; }
+        export const POST = withResponse(apiContract, handlePost);`,
       },
     ],
     invalid: [
-      // A function declared in route.ts itself, called from the handler.
       {
-        code: `async function dispatchWithRetry(orders) {
-          try {
-            return await dispatchGithubWorkflowRequest(orders);
-          } catch (error) {
-            throw new HttpError("Failed to dispatch.", 500);
-          }
-        }
-        export const POST = withResponse(schema, async (request: NextRequest) => {
-          const userId = await getUserId();
-          const orders = await parseRenderPayload(request, orderSchema);
-          const result = await dispatchWithRetry(orders);
-          return { message: "Dispatched.", data: result };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NOT_IMPORTED("POST", "dispatchWithRetry") }],
-      },
-      // A const arrow function declared in route.ts itself, called from the handler.
-      {
-        code: `const dispatchWithRetry = async (orders) => {
-          return await dispatchGithubWorkflowRequest(orders);
-        };
-        export const POST = withResponse(schema, async (request: NextRequest) => {
-          const orders = await parseRenderPayload(request, orderSchema);
-          const result = await dispatchWithRetry(orders);
-          return { message: "Dispatched.", data: result };
-        });`,
-        filename: srcFile("app/api/render-instagram-content/route.ts"),
-        errors: [{ message: NOT_IMPORTED("POST", "dispatchWithRetry") }],
+        filename: ROUTE,
+        code: `async function createPost() { return null; }
+        async function handlePost() { return { data: await createPost() }; }
+        export const POST = withResponse(apiContract, handlePost);`,
+        errors: [
+          { message: `Handler "POST" calls "createPost", which is declared in route.ts instead of imported. ${DOC}` },
+        ],
       },
     ],
   });
@@ -311,24 +201,15 @@ void describe("A function that a handler wrapped in `withResponse` calls MUST be
 
 void describe("A handler wrapped in `withResponse` MUST NOT contain a `map` operation in its body.", () => {
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
-    valid: [
-      {
-        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
-          const values = await getMappedValues(request);
-          return { message: "OK.", data: values };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
-      },
-    ],
+    valid: [{ filename: ROUTE, code: NAMED_HANDLER }],
     invalid: [
       {
-        code: `export const GET = withResponse(schema, async (request: NextRequest) => {
-          const body = await request.json();
-          const values = body.items.map((item) => item.id);
-          return { message: "OK.", data: values };
-        });`,
-        filename: srcFile("app/api/health/route.ts"),
-        errors: [{ message: NO_MAP("GET") }],
+        filename: ROUTE,
+        code: `async function handlePost(request: NextRequest) {
+          return { data: request.items.map((item) => item.id) };
+        }
+        export const POST = withResponse(apiContract, handlePost);`,
+        errors: [{ message: controlFlowError("a map operation") }],
       },
     ],
   });

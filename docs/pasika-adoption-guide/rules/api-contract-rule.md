@@ -12,9 +12,11 @@ Schema-validated JSON endpoints drift when routes and clients restate paths, met
 ## Incorrect — Route Restates Only The Response Schema
 
 ```ts
-export const GET = withResponse(ordersResponseSchema, async () => {
+async function handleGet() {
   return { data: await listOrders() };
-});
+}
+
+export const GET = withResponse(ordersResponseSchema, handleGet);
 ```
 
 Why: the route validates one response schema, but nothing ties that schema to the path and method a client uses.
@@ -24,9 +26,11 @@ Why: the route validates one response schema, but nothing ties that schema to th
 ```ts
 import { ordersApiContract } from "@/constants";
 
-export const GET = withResponse(ordersApiContract, async () => {
+async function handleGet() {
   return { data: await listOrders() };
-});
+}
+
+export const GET = withResponse(ordersApiContract, handleGet);
 ```
 
 Why: the route consumes the same named contract that other endpoint participants can import.

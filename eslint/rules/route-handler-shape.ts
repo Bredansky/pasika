@@ -9,9 +9,8 @@
  * and every function it calls MUST be imported rather than declared in
  * route.ts — otherwise the same logic this rule bans from the handler's own
  * body can reappear one function away, in the same file. The handler itself
- * MUST be a function written at that call, not a reference to one declared
- * elsewhere, so the workflow it composes is visible in route.ts and the bans
- * above have something to read.
+ * MUST be a named function declared locally and passed to withResponse by
+ * reference, so the workflow stays visible in route.ts without an inline callback.
  *
  * @see docs/next-codebase-guide/rules/route-handler-rule.md
  */
@@ -25,20 +24,28 @@ import type { FunctionDeclarationNode } from "../ast-types";
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const REQUIRED_BOUNDARY = "withResponse";
 
-type FunctionLike = ESTree.ArrowFunctionExpression | ESTree.FunctionExpression;
+type FunctionLike = ESTree.ArrowFunctionExpression | ESTree.FunctionExpression | ESTree.FunctionDeclaration;
 
-function isFunctionLike(node: ESTree.Node): node is FunctionLike {
-  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression";
+function isFunctionLikeInit(node: ESTree.Expression | null | undefined): boolean {
+  return node?.type === "ArrowFunctionExpression" || node?.type === "FunctionExpression";
 }
 
-/** Finds the function that actually runs, which may sit behind one or more wrapping calls. */
-function findHandler(node: ESTree.Expression): FunctionLike | undefined {
-  if (isFunctionLike(node)) return node;
-  if (node.type === "CallExpression") {
-    for (const arg of node.arguments) {
-      if (arg.type === "SpreadElement") continue;
-      const found = findHandler(arg);
-      if (found) return found;
+/** Resolve a named function declared in route.ts instead of an imported implementation. */
+function findLocalHandler(name: string, body: ESTree.Program["body"]): FunctionLike | undefined {
+  for (const statement of body) {
+    const declaration =
+      statement.type === "ExportNamedDeclaration" && statement.declaration ? statement.declaration : statement;
+    if (declaration.type === "FunctionDeclaration" && declaration.id.name === name) return declaration;
+    if (declaration.type !== "VariableDeclaration") continue;
+    for (const declarator of declaration.declarations) {
+      if (
+        declarator.id.type === "Identifier" &&
+        declarator.id.name === name &&
+        declarator.init &&
+        (declarator.init.type === "ArrowFunctionExpression" || declarator.init.type === "FunctionExpression")
+      ) {
+        return declarator.init;
+      }
     }
   }
   return undefined;
@@ -113,10 +120,6 @@ const CONTROL_FLOW_MESSAGES: Record<ControlFlowKind, string> = {
   map: "a map operation",
 };
 
-function isFunctionLikeInit(node: ESTree.Expression | null | undefined): boolean {
-  return node?.type === "ArrowFunctionExpression" || node?.type === "FunctionExpression";
-}
-
 /** Names of functions declared at the top level of this file, whether exported or not. */
 function collectLocallyDeclaredNames(programBody: ESTree.Program["body"]): Set<string> {
   const names = new Set<string>();
@@ -144,7 +147,7 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
     type: "problem",
     docs: {
       description:
-        "Require a route.ts handler to be wrapped in withResponse, written there as a function, with no try, loop, or if of its own, and every function it calls imported rather than declared in route.ts.",
+        "Require a named local route.ts handler referenced in withResponse, with no try, loop, or if of its own and only imported helper calls.",
     },
   },
   create(context) {
@@ -166,20 +169,24 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
       // isn't a recognizable call or function, so there is nothing to check.
       if (init.type === "Identifier") return;
 
-      const boundary =
-        init.type === "CallExpression" && init.callee.type === "Identifier" ? init.callee.name : undefined;
-
-      if (boundary !== REQUIRED_BOUNDARY) {
+      if (
+        init.type !== "CallExpression" ||
+        init.callee.type !== "Identifier" ||
+        init.callee.name !== REQUIRED_BOUNDARY
+      ) {
         reportUnwrapped(node, name);
         return;
       }
 
-      const handler = findHandler(init);
-      if (!handler?.body) {
+      const handlerArg = init.arguments[init.arguments.length - 1];
+      const handler =
+        handlerArg?.type === "Identifier" ? findLocalHandler(handlerArg.name, context.sourceCode.ast.body) : undefined;
+      if (!handler) {
         context.report({
           node,
           message:
-            `Handler "${name}" must be written as a function inside withResponse, not passed as a reference. ` +
+            `Handler "${name}" must be a named function declared in route.ts and passed by reference to withResponse; ` +
+            "inline callbacks and imported handlers are not allowed. " +
             "See docs/next-codebase-guide/rules/route-handler-rule.md",
         });
         return;
