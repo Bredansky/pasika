@@ -8,7 +8,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import { getProjectIndex, resolveSpecifier, symbolKey } from "../project/index";
+import { getProjectIndex, resolveSpecifier, symbolKey, type ProjectIndex } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 type Handler = ESTree.ArrowFunctionExpression | ESTree.FunctionExpression;
@@ -78,6 +78,36 @@ function isTestFile(file: string): boolean {
   return /(?:\.test|\.spec)\.[cm]?[jt]sx?$/.test(file) || path.normalize(file).split(path.sep).includes("__tests__");
 }
 
+/** Resolve a function through re-export barrels without counting the barrels as reuse. */
+function functionSource(
+  index: ProjectIndex,
+  file: string,
+  name: string,
+  sourceRoot: string,
+  visited = new Set<string>(),
+): string | undefined {
+  if (visited.has(file)) return undefined;
+  visited.add(file);
+  const module = index.modules.get(file);
+  if (!module) return undefined;
+  if (module.exports.some((entry) => entry.name === name && entry.kind === "function")) return file;
+  if (
+    !module.exports.some((entry) => entry.name === name) &&
+    !module.reexports.some((entry) => entry.names.length === 0)
+  ) {
+    return undefined;
+  }
+
+  for (const entry of module.reexports) {
+    if (entry.names.length > 0 && !entry.names.includes(name)) continue;
+    const target = resolveSpecifier(file, entry.specifier, sourceRoot);
+    if (!target) continue;
+    const original = functionSource(index, target, name, sourceRoot, visited);
+    if (original) return original;
+  }
+  return undefined;
+}
+
 /**
  * Find an imported utility whose only production consumer is this route and
  * whose local import binding is referenced exactly once.
@@ -97,25 +127,28 @@ export function singleUseResponseDelegate(context: Rule.RuleContext, handler: Ha
     if (statement.type !== "ImportDeclaration" || typeof statement.source.value !== "string") continue;
     const target = resolveSpecifier(context.filename, statement.source.value, sourceRoot);
     if (target === undefined || target === context.filename) continue;
-    const importedModule = index.modules.get(target);
-    if (!importedModule) continue;
-
     for (const specifier of statement.specifiers) {
       if (specifier.type !== "ImportSpecifier" || specifier.local.name !== name) continue;
       const original =
         specifier.imported.type === "Identifier" ? specifier.imported.name : String(specifier.imported.value);
-      if (!importedModule.exports.some((entry) => entry.name === original && entry.kind === "function")) continue;
+      const source = functionSource(index, target, original, sourceRoot);
+      if (!source) continue;
 
       const bindings = context.sourceCode.getDeclaredVariables(specifier);
       if (!bindings.some((binding) => binding.references.length === 1)) continue;
 
-      const consumers = index.symbolConsumers.get(symbolKey(target, original));
+      const consumers = index.symbolConsumers.get(symbolKey(source, original));
       if (!consumers?.has(context.filename)) continue;
       const activeConsumers = [...consumers].filter((consumer) => {
         if (isTestFile(consumer)) return false;
         const module = index.modules.get(consumer);
-        // A re-exporting barrel is not an additional function invocation.
-        return !module?.reexports.some((entry) => resolveSpecifier(consumer, entry.specifier, sourceRoot) === target);
+        // A pure re-export barrel is not an additional production call, even through nested barrels.
+        return !(
+          module &&
+          module.reexports.length > 0 &&
+          module.imports.length === module.reexports.length &&
+          module.exports.every((entry) => entry.kind === "other")
+        );
       });
       if (activeConsumers.length === 1 && activeConsumers[0] === context.filename) return original;
     }

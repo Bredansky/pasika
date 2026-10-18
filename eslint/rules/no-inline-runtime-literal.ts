@@ -16,7 +16,7 @@ import { isProductionSource } from "../project/semantic-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -84,8 +84,9 @@ function isStaticMatcherValue(node: AncestorNode, root: string, file: string): b
     if (parent.type !== "Property" || parent.value !== current || parent.computed) return false;
 
     const key = parent.key;
-    if (typeof key !== "object" || key === null || !("name" in key)) return false;
-    if (key.name !== "matcher") {
+    if (typeof key !== "object" || key === null) return false;
+    const isMatcher = ("name" in key && key.name === "matcher") || ("value" in key && key.value === "matcher");
+    if (!isMatcher) {
       current = parent;
       continue;
     }

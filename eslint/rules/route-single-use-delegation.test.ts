@@ -1,9 +1,11 @@
-import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { afterAll } from "vitest";
 import { describe, ruleTester } from "../rule-tester";
 import { routeHandlerShapeRule } from "./route-handler-shape";
 
+const originalCwd = process.cwd();
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-single-route-")));
 const file = (relative: string): string => path.join(root, "src", relative);
 
@@ -12,12 +14,13 @@ const files: Record<string, string> = {
   "features/stream/utils/get-shared.ts": "export async function getShared() { return { status: 'ok' }; }",
   "features/stream/utils/get-route-shared.ts": "export async function getRouteShared() { return { status: 'ok' }; }",
   "features/stream/utils/index.ts": 'export { getOnly } from "./get-only";',
+  "features/stream/index.ts": 'export { getOnly } from "./utils";',
   "compositions/highlights.tsx":
     'import { getShared } from "../features/stream/utils/get-shared"; export function Highlights() { return getShared(); }',
   "app/api/second/route.ts":
     'import { getRouteShared } from "../../../features/stream/utils/get-route-shared"; export const GET = withResponse(contract, async () => ({data: await getRouteShared()}));',
   "app/api/main/route.ts": [
-    'import { getOnly } from "../../../features/stream/utils/get-only";',
+    'import { getOnly } from "../../../features/stream/index";',
     'import { getShared } from "../../../features/stream/utils/get-shared";',
     'import { getRouteShared } from "../../../features/stream/utils/get-route-shared";',
     "export const GET = withResponse(contract, async () => ({data: await getOnly()}));",
@@ -36,6 +39,11 @@ const SINGLE_USE =
   'Handler "GET" delegates its entire response to single-use utility "getOnly"; inline its workflow in route.ts. See docs/next-codebase-guide/rules/route-handler-rule.md';
 
 void describe("A one-step `withResponse` handler MUST NOT delegate its entire response to a single-use imported utility.", () => {
+  afterAll(() => {
+    process.chdir(originalCwd);
+    rmSync(root, { recursive: true, force: true });
+  });
+
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
       {
@@ -64,6 +72,16 @@ void describe("A one-step `withResponse` handler MUST NOT delegate its entire re
       },
     ],
     invalid: [
+      {
+        filename: ROUTE,
+        code: 'import { getOnly } from "../../../features/stream/utils"; export const GET = withResponse(contract, async () => ({ data: await getOnly() }));',
+        errors: [{ message: SINGLE_USE }],
+      },
+      {
+        filename: ROUTE,
+        code: 'import { getOnly } from "../../../features/stream"; export const GET = withResponse(contract, async () => ({ data: await getOnly() }));',
+        errors: [{ message: SINGLE_USE }],
+      },
       {
         filename: ROUTE,
         code: 'import { getOnly } from "../../../features/stream/utils/get-only"; export const GET = withResponse(contract, async () => ({ data: await getOnly() }));',

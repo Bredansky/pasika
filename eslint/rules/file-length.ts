@@ -12,6 +12,34 @@ import { sourceRootOf } from "./project-root";
 
 const MAX_SOURCE_FILE_LINES = 300;
 
+/** Canonical locales contain only static strings and one level of namespaces. */
+function isLocaleContent(node: unknown, depth = 0): boolean {
+  if (typeof node !== "object" || node === null || !("type" in node)) return false;
+  if ((node.type === "TSAsExpression" || node.type === "TSSatisfiesExpression") && "expression" in node) {
+    return isLocaleContent(node.expression, depth);
+  }
+  if (node.type === "Literal") return depth > 0 && "value" in node && typeof node.value === "string";
+  if (node.type === "TemplateLiteral") {
+    return depth > 0 && "expressions" in node && Array.isArray(node.expressions) && node.expressions.length === 0;
+  }
+  if (node.type !== "ObjectExpression" || depth > 1 || !("properties" in node) || !Array.isArray(node.properties)) {
+    return false;
+  }
+  return node.properties.every(
+    (entry: unknown) =>
+      typeof entry === "object" &&
+      entry !== null &&
+      "type" in entry &&
+      entry.type === "Property" &&
+      "kind" in entry &&
+      entry.kind === "init" &&
+      "computed" in entry &&
+      !entry.computed &&
+      "value" in entry &&
+      isLocaleContent(entry.value, depth + 1),
+  );
+}
+
 /**
  * Locale entries are declarative content required to stay in one exported
  * dictionary. Only exempt the canonical module when it contains that
@@ -32,17 +60,7 @@ function isCanonicalLocalesModule(context: Rule.RuleContext): boolean {
   const variable = declaration.declarations[0];
   if (variable?.id.type !== "Identifier" || variable.id.name !== "locales") return false;
 
-  let value: unknown = variable.init;
-  while (
-    typeof value === "object" &&
-    value !== null &&
-    "type" in value &&
-    (value.type === "TSAsExpression" || value.type === "TSSatisfiesExpression") &&
-    "expression" in value
-  ) {
-    value = value.expression;
-  }
-  return typeof value === "object" && value !== null && "type" in value && value.type === "ObjectExpression";
+  return isLocaleContent(variable.init);
 }
 
 export const fileLengthRule: Rule.RuleModule = {

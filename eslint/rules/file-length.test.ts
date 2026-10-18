@@ -21,6 +21,16 @@ void describe("A TypeScript file anywhere in the repository, or a JavaScript fil
     ],
     invalid: [
       {
+        code: localeSourceWithLines(301).replace("} as const;", "  nonLocale: doWork(),\n} as const;"),
+        filename: srcFile("locales/index.ts"),
+        errors: [
+          {
+            message:
+              "Source file has 304 lines; split it so no source file exceeds 300 lines. See docs/next-codebase-guide/rules/application-structure-rule.md",
+          },
+        ],
+      },
+      {
         code: sourceWithLines(301),
         filename: srcFile("locales/index.ts"),
         errors: [
