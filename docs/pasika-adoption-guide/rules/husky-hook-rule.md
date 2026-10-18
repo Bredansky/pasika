@@ -7,6 +7,9 @@ Checks that land before a commit only protect the repository if the hook runs th
 - A repository MUST configure `.husky/pre-commit` to run `npx libyear --limit-major-individual=1`.
 - A repository MUST declare a `typecheck` script in package.json and run it (`npm run typecheck`) in `.husky/pre-commit`.
 - A repository MUST run `npm run test:unit:coverage` in `.husky/pre-commit` and MUST NOT auto-stage the Vitest config that coverage may update.
+- A repository that consumes tracked documentation through Vulyk MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.
+- After Vulyk generation, the hook MUST fail if generated `AGENTS.md`, `CLAUDE.md`, or `docs/managed` files have unstaged changes or newly untracked files; contributors MUST review and explicitly stage the generated output. The hook MUST NOT silently `git add` these files.
+- A repository SHOULD invoke `lint-staged` with `--concurrent 1` to avoid overlapping staged-file fixers.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.
 
 ## Incorrect — Hook Calls Tools Directly Instead of Named Scripts
@@ -56,3 +59,25 @@ npx libyear --limit-major-individual=1
 ```
 
 Why: each check's implementation lives behind one name. The hook stages deterministic suppression pruning, while a Vitest threshold raised on one OS remains an explicit working-tree change instead of being silently committed and potentially failing on another OS.
+
+## Vulyk — Generated Documentation Must Be Reviewed
+
+When the repository adopts Vulyk, put this guard before `lint-staged` in `.husky/pre-commit`:
+
+```sh
+npx vulyk sync
+npx vulyk agents
+
+if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/managed ||
+  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/managed)" ]; then
+  echo "Vulyk generated unstaged changes. Review and stage them before committing."
+  git status --short -- AGENTS.md CLAUDE.md docs/managed
+  exit 1
+fi
+
+npx lint-staged --concurrent 1
+```
+
+Why: commits must not silently omit newly generated tracked documentation or agent instructions. Developers explicitly review and stage generated changes before committing. This complements, rather than replaces, the existing typecheck, coverage, suppression-pruning (when applicable), and `libyear` checks.
+
+The guard detects unstaged modifications to tracked files and untracked generated paths. It does **not** prove that a partially staged file is consistent with the index, nor does it detect every staged deletion or every output path if a repository customizes Vulyk targets. Repositories with custom agent/documentation paths MUST include them in the guard. A stronger index-to-generated-output consistency check can be added separately.
