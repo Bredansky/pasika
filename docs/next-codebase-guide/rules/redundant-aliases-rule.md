@@ -4,6 +4,7 @@ Aliases give one value several names, making code harder to follow. Keep field n
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
 - An import MUST NOT rename an imported symbol.
+
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
 - Destructuring MUST keep property names unchanged.
 - When an object property uses an existing variable under the same name, it MUST use shorthand form.
@@ -192,3 +193,5 @@ function layerOf(file: File): MediaLayer {
 ```
 
 Why: `fileId` clearly comes from `file.id`. Differences such as `user_account_id` versus `userAccountId` are just naming styles, not new meanings.
+
+The narrowly scoped exception is a camelCase local alias for an underscore-containing named font loader from `next/font/google`, such as `Roboto_Mono as robotoMonoFont`. Turbopack requires named font imports, while the exported names otherwise conflict with camelcase lint rules. Other modules and normally named imports remain covered by the general requirement.

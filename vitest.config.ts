@@ -3,15 +3,15 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     include: ["eslint/**/*.test.ts", "scripts/**/*.test.ts", "helpers/**/*.test.ts", "utils/**/*.test.ts"],
-    maxWorkers: 8,
+    maxWorkers: 4,
     coverage: {
       provider: "v8",
       include: ["eslint/**/*.ts", "scripts/**/*.ts", "helpers/**/*.ts", "utils/**/*.ts"],
       exclude: ["**/*.test.ts"],
       thresholds: {
-        lines: 93.6,
-        functions: 96.7,
-        branches: 83.4,
+        lines: 93.7,
+        functions: 96.8,
+        branches: 83.5,
         statements: 88.9,
         autoUpdate: (newThreshold, previousThreshold) =>
           Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),

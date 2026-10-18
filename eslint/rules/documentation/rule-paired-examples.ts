@@ -36,6 +36,22 @@ export const rulePairedExamplesRule: MarkdownRuleDefinition = {
           });
         }
 
+        // Rule template: title, overview, requirements list, then example
+        // sections. A loose paragraph after the bullets violates that shape,
+        // even when it avoids RFC vocabulary and all example headings are valid.
+        const firstExampleIndex = node.children.findIndex((child) => child.type === "heading" && child.depth === 2);
+        const requirementsIndex = node.children.findIndex(
+          (child, index) => index < firstExampleIndex && child.type === "list" && !child.ordered,
+        );
+        if (requirementsIndex !== -1) {
+          for (const child of node.children.slice(requirementsIndex + 1, firstExampleIndex)) {
+            context.report({
+              node: child,
+              message: "Rule requirements must be followed directly by the first Incorrect/Correct example",
+            });
+          }
+        }
+
         const incorrect = exampleHeadings.filter((h) => h.text.startsWith("Incorrect"));
         const correct = exampleHeadings.filter((h) => h.text.startsWith("Correct"));
 

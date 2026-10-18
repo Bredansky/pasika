@@ -5,7 +5,7 @@ const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static JSX `data-component` marker strings, string entries in the exported `locales` object at `src/locales/index.ts`, and statically analyzable `config.matcher` literals in the root `src/middleware.ts` or `src/proxy.ts` are exempt. Ambient TypeScript `declare module` specifiers are syntax, not runtime values.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -13,6 +13,21 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'enum ApiRoute { Post = "/api/post" }; send(ApiRoute.Post);' },
       { filename: file, code: "const post = ApiRoute.Post; fetch(post);" },
       { filename: file, code: 'export function Card({ active }) { return <div className="text-sm" />; }' },
+      { filename: file, code: 'export function Card() { return <div data-component="Card" />; }' },
+      { filename: file, code: 'declare module "next-auth" { interface Session { user: User } }' },
+      { filename: file, code: 'declare module "next-auth/jwt" { interface JWT { sub: string } }' },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { matcher: "/api/:path*" };',
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { matcher: ["/api/:path*"] } satisfies MiddlewareConfig;',
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const config = { matcher: ["/api/:path*", { source: "/admin/:path*", has: [{ type: "header", key: "x-auth", value: "yes" }] }] };',
+      },
       {
         filename: file,
         code: 'export function Card({ active }) { return <div className={active ? "block" : "hidden"} />; }',
@@ -109,6 +124,41 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       {
         filename: srcFile("features/editor/screen.tsx"),
         code: 'export const locales = { save: "Save" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export function Card() { return <div data-component={"Card"} />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export function Card() { return <div data-test="Card" />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export const config = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'const config = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const other = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { path: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const config = { matcher: matcherFor("/api/:path*") };',
         errors: [{ message: MESSAGE }],
       },
       { filename: file, code: 'fetch("/api/post");', errors: [{ message: MESSAGE }] },

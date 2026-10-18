@@ -41,3 +41,31 @@ void describe("Every level-2 heading in a Rule MUST be an `Incorrect — ...` or
     ],
   });
 });
+
+void describe("A Rule MUST place its first Incorrect/Correct example immediately after the requirement bullet list, without intervening prose or other blocks.", () => {
+  const heading = "# Foo Rule\n\nThis rule keeps helpers named.\n\n- A helper MUST be exported.\n";
+  const examples =
+    "\n## Incorrect — Default Export\n\n```ts\nexport default 1;\n```\n\nWhy: default exports hide names.\n\n## Correct — Named Export\n\n```ts\nexport const one = 1;\n```\n\nWhy: named exports are visible.\n";
+  const MESSAGE = "Rule requirements must be followed directly by the first Incorrect/Correct example";
+
+  documentationRuleTester.run("rule-paired-examples", rulePairedExamplesRule, {
+    valid: [{ filename: "foo-rule.md", code: `${heading}${examples}` }],
+    invalid: [
+      {
+        filename: "foo-rule.md",
+        code: `${heading}\nExtra explanation of the rule.\n${examples}`,
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: "foo-rule.md",
+        code: `${heading}\n> Side note after requirements.\n${examples}`,
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: "foo-rule.md",
+        code: `${heading}\n\`\`\`ts\nconst extra = true;\n\`\`\`\n${examples}`,
+        errors: [{ message: MESSAGE }],
+      },
+    ],
+  });
+});

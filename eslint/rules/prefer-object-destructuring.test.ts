@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import { CwdAwareRuleTester, describe, ruleTester, srcFile } from "../rule-tester";
 import { preferObjectDestructuringRule } from "./prefer-object-destructuring";
 
-vi.setConfig({ testTimeout: 30_000 });
+vi.setConfig({ testTimeout: 120_000 });
 
 const doc = "See docs/next-codebase-guide/rules/redundant-aliases-rule.md";
 

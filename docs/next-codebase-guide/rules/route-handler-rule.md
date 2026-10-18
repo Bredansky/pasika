@@ -13,8 +13,6 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 - A handler wrapped in `withResponse` MUST NOT contain a `map` operation in its body.
 - A handler wrapped in `withResponse` MUST NOT contain an `if` statement in its body.
 
-The workflow-visibility requirement is partially enforced by `pasika/route-handler-shape`: it detects a one-step handler that forwards its entire response through a single-use imported utility. Other cases where an imported call conceals multiple workflow steps still require review.
-
 ## Incorrect — Handler Not Wrapped In `withResponse`
 
 ```ts
@@ -107,7 +105,7 @@ import { fetchStreamStatusResponse } from "@/features/stream/utils/fetch-stream-
 export const GET = withResponse(streamStatusApiContract, async () => fetchStreamStatusResponse());
 ```
 
-Why: `fetchStreamStatusResponse` has no other production consumer and only moves the response construction into another file, so the route's entire algorithm is hidden behind one call.
+Why: `fetchStreamStatusResponse` has no other production consumer and only moves the response construction into another file, so the route's entire algorithm is hidden behind one call. `pasika/route-handler-shape` detects this case automatically; other hidden multi-step workflows still require review.
 
 ## Correct — One-Time Response Construction Stays In The Handler
 

@@ -248,6 +248,12 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A Rule MUST place its first Incorrect/Correct example immediately after the requirement bullet list, without intervening prose or other blocks.",
+      "hash": "9189936531",
+      "ref": "pasika/rule-paired-examples"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.",
       "hash": "d59a80ca7c",
       "ref": "pasika/rule-paired-examples"
@@ -302,8 +308,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines.",
-      "hash": "3e2dd1d91e",
+      "text": "A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines. The canonical `src/locales/index.ts` file MAY exceed 300 lines only when its sole declaration is the exported `locales` dictionary required by the Locales Rule.",
+      "hash": "e6e650b0f9",
       "ref": "pasika/file-length"
     },
     {
@@ -416,8 +422,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.",
-      "hash": "24a5215f22",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static JSX `data-component` marker strings, string entries in the exported `locales` object at `src/locales/index.ts`, and statically analyzable `config.matcher` literals in the root `src/middleware.ts` or `src/proxy.ts` are exempt. Ambient TypeScript `declare module` specifiers are syntax, not runtime values.",
+      "hash": "0c04f39d12",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {

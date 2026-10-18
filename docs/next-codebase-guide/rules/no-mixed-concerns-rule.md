@@ -98,3 +98,5 @@ export function Preview() {
 ```
 
 Why: the exported styling helper remains coupled to the component that owns it.
+
+For Next.js dynamic routes, `page.tsx` and `layout.tsx` can also export the framework-required `generateStaticParams` entry point. This exception does not apply to static routes or arbitrary supporting values.

@@ -2,8 +2,10 @@
  * ESLint rule: pasika/no-inline-runtime-literal
  *
  * Runtime string and numeric values must be named constants or enum members.
- * Inline JSX className values and canonical locale dictionary strings are exempt.
- * Module specifiers, directives, property keys and TypeScript structural keys are syntax.
+ * Static JSX data-component markers, framework matcher declarations, inline JSX
+ * className values, and canonical locale dictionary strings are exempt.
+ * Module specifiers, ambient module names, directives, property keys and
+ * TypeScript structural keys are syntax.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -35,6 +37,8 @@ interface AncestorNode {
   left?: unknown;
   right?: unknown;
   expression?: unknown;
+  elements?: unknown;
+  properties?: unknown;
 }
 
 function isClassNameProp(node: AncestorNode): boolean {
@@ -46,6 +50,68 @@ function isClassNameProp(node: AncestorNode): boolean {
       return typeof name === "object" && name !== null && "name" in name && name.name === "className";
     }
     if (current.type === "Program") return false;
+  }
+  return false;
+}
+
+function isStaticDataComponentMarker(node: AncestorNode): boolean {
+  const parent = node.parent;
+  if (parent?.type !== "JSXAttribute" || parent.value !== node) return false;
+  const name = parent.name;
+  return typeof name === "object" && name !== null && "name" in name && name.name === "data-component";
+}
+
+/**
+ * Next.js extracts the exported config.matcher from syntax rather than executing
+ * module constants. Permit literal matcher data in its AST, not arbitrary
+ * expressions or values from unrelated config objects.
+ */
+function isStaticMatcherValue(node: AncestorNode, root: string, file: string): boolean {
+  const relativeFile = path.relative(root, file);
+  if (relativeFile !== "middleware.ts" && relativeFile !== "proxy.ts") return false;
+
+  let current = node;
+  while (current.parent) {
+    const parent = current.parent;
+    if (parent.type === "ArrayExpression" && Array.isArray(parent.elements) && parent.elements.includes(current)) {
+      current = parent;
+      continue;
+    }
+    if (parent.type === "ObjectExpression" && Array.isArray(parent.properties) && parent.properties.includes(current)) {
+      current = parent;
+      continue;
+    }
+    if (parent.type !== "Property" || parent.value !== current || parent.computed) return false;
+
+    const key = parent.key;
+    if (typeof key !== "object" || key === null || !("name" in key)) return false;
+    if (key.name !== "matcher") {
+      current = parent;
+      continue;
+    }
+
+    const object = parent.parent;
+    if (object?.type !== "ObjectExpression") return false;
+    let configValue = object;
+    while (
+      (configValue.parent?.type === "TSAsExpression" || configValue.parent?.type === "TSSatisfiesExpression") &&
+      configValue.parent.expression === configValue
+    ) {
+      configValue = configValue.parent;
+    }
+    const declaration = configValue.parent;
+    const id = declaration?.id;
+    return (
+      declaration?.type === "VariableDeclarator" &&
+      declaration.init === configValue &&
+      typeof id === "object" &&
+      id !== null &&
+      "name" in id &&
+      id.name === "config" &&
+      declaration.parent?.type === "VariableDeclaration" &&
+      declaration.parent.kind === "const" &&
+      declaration.parent.parent?.type === "ExportNamedDeclaration"
+    );
   }
   return false;
 }
@@ -102,6 +168,8 @@ function isNamedValue(node: AncestorNode): boolean {
 function isSyntacticString(node: AncestorNode): boolean {
   const parent = node.parent;
   if (!parent) return false;
+  // Ambient module specifiers cannot be replaced by identifiers.
+  if (parent.type === "TSModuleDeclaration" && parent.id === node) return true;
   // These tokens cannot be replaced with constants in the relevant syntax.
   if (
     parent.type === "ImportDeclaration" ||
@@ -202,7 +270,11 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
           return;
         }
         if (
-          (typeof node.value === "string" && (isClassNameProp(node) || isCanonicalLocaleString(node, root, file))) ||
+          (typeof node.value === "string" &&
+            (isClassNameProp(node) ||
+              isStaticDataComponentMarker(node) ||
+              isCanonicalLocaleString(node, root, file))) ||
+          isStaticMatcherValue(node, root, file) ||
           isNamedValue(node) ||
           isSyntacticString(node)
         ) {

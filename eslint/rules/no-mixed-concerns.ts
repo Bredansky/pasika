@@ -55,6 +55,8 @@ export const noMixedConcernsRule: Rule.RuleModule = {
           if (name === componentName) return;
           if (isNextPageOrLayout) {
             if (["metadata", "viewport", "generateMetadata", "generateViewport"].includes(name)) return;
+            // Next.js requires this framework export for dynamic route prerendering.
+            if (name === "generateStaticParams" && /\[[^\]]+\]/.test(context.filename)) return;
             context.report({
               loc,
               message: `Next.js page/layout files cannot export "${name}". Use a separate module for supporting values.`,

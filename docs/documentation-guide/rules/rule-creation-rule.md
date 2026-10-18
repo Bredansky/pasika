@@ -11,6 +11,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - A bullet MUST use `MUST` or `MUST NOT` only when the requirement admits no exception, `SHOULD` or `SHOULD NOT` only when exceptions are possible, and `MAY` only when the behavior is optional.
 - Prose outside bullet points — intros, `Why:` explanations, table cells, and code comments — MUST restate a requirement in plain language instead of repeating RFC 2119 vocabulary.
 - A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
+- A Rule MUST place its first Incorrect/Correct example immediately after the requirement bullet list, without intervening prose or other blocks.
 - A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.
 - Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.
 - An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
@@ -96,3 +97,41 @@ Why: helper files use named exports only, so `export default` does not belong he
 ```
 
 Why: the bullet is the only place the requirement is stated, and the explanation describes the example in plain language.
+
+## Incorrect — Free-Floating Explanation Between Requirements And Examples
+
+```markdown
+# Helper Rule
+
+This rule keeps helper exports predictable.
+
+- A helper MUST use a named export.
+
+Additional enforcement details belong below.
+
+## Incorrect — Default Export
+
+// helper.ts
+export default function sum() {}
+```
+
+Why: the explanation appears between the requirement bullets and the first example instead of in an example's explanation.
+
+## Correct — Explanation Attached To The Example
+
+```markdown
+# Helper Rule
+
+This rule keeps helper exports predictable.
+
+- A helper MUST use a named export.
+
+## Incorrect — Default Export
+
+// helper.ts
+export default function sum() {}
+
+Why: default exports obscure helper names; the export checker rejects them.
+```
+
+Why: the requirement list leads directly into the example, and its supporting explanation belongs to the example.
