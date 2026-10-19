@@ -422,7 +422,7 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js `config.matcher` values are exempt.",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.",
       "hash": "8af5d01241",
       "ref": "pasika/no-inline-runtime-literal"
     },
@@ -626,57 +626,27 @@
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "All locales MUST be defined in named string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, imported into and exposed by the exported `locales` object in `src/locales/index.ts`.",
-      "hash": "005c3c2828",
+      "text": "All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.",
+      "hash": "e12d965c19",
+      "ref": "pasika/locale-placement, pasika/locale-key-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/locales-rule.md",
+      "text": "Dictionary ownership MUST match its consumers: `compositions` for composition-only strings, the feature's camelCase name for feature-only strings (e.g., `user-settings` → `userSettings`), and `shared` for cross-scope strings or consumers in `src/shared/`, `src/app/`, `src/config/`, or root support folders.",
+      "hash": "3939a66f1b",
       "ref": "pasika/locale-placement"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "The `locales` object MUST expose `shared` and `compositions` as distinct namespaces, and MUST NOT spread their entries into the top level.",
-      "hash": "1290a1eb67",
+      "text": "`src/locales/index.ts` MUST assemble and export these dictionaries through one `locales` object, keeping `shared`, `compositions`, and feature namespaces separate without flattening entries or defining strings inline.",
+      "hash": "0f0cd3a965",
       "ref": "pasika/locale-placement"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Locales read only by files in one feature folder MUST live in a dictionary named after the camelCase form of that feature folder (for example, `user-settings` becomes `userSettings`).",
-      "hash": "1111fb103c",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Locales read only by files under `src/compositions/` MUST live in the `compositions` dictionary.",
-      "hash": "41ac60c19e",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Locales read by files in more than one consumer scope or by `src/shared/`, `src/app/`, `src/config/`, or root support folders MUST live in the `shared` dictionary.",
-      "hash": "be87659d6a",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "A namespaced locale MUST be read through its full dotted path (`locales.<namespace>.<key>`).",
-      "hash": "1f3cd539a2",
-      "ref": "pasika/locale-dotted-path"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Consumers MUST import translations through `src/locales/index.ts`, not directly from dictionary modules.",
-      "hash": "a415e331eb",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "A locale dictionary MUST contain only direct static string entries, with no nested locale objects, dynamic expressions, or unrelated declarations.",
-      "hash": "4952020822",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "User-facing strings outside `src/locales/` MUST be read from the public `locales` object instead of defined inline in JSX, props, toast calls, or component dictionaries.",
-      "hash": "0865584947",
-      "ref": "pasika/locales-location"
+      "text": "Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.",
+      "hash": "bee8e8b0ee",
+      "ref": "pasika/locale-placement, pasika/locale-dotted-path, pasika/locales-location"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",

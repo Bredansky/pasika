@@ -2,15 +2,10 @@
 
 Scattered translations obscure ownership and make reuse inconsistent. Keep translations in ownership-based dictionaries, exposed through a single public `locales` object.
 
-- All locales MUST be defined in named string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, imported into and exposed by the exported `locales` object in `src/locales/index.ts`.
-- The `locales` object MUST expose `shared` and `compositions` as distinct namespaces, and MUST NOT spread their entries into the top level.
-- Locales read only by files in one feature folder MUST live in a dictionary named after the camelCase form of that feature folder (for example, `user-settings` becomes `userSettings`).
-- Locales read only by files under `src/compositions/` MUST live in the `compositions` dictionary.
-- Locales read by files in more than one consumer scope or by `src/shared/`, `src/app/`, `src/config/`, or root support folders MUST live in the `shared` dictionary.
-- A namespaced locale MUST be read through its full dotted path (`locales.<namespace>.<key>`).
-- Consumers MUST import translations through `src/locales/index.ts`, not directly from dictionary modules.
-- A locale dictionary MUST contain only direct static string entries, with no nested locale objects, dynamic expressions, or unrelated declarations.
-- User-facing strings outside `src/locales/` MUST be read from the public `locales` object instead of defined inline in JSX, props, toast calls, or component dictionaries.
+- All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.
+- Dictionary ownership MUST match its consumers: `compositions` for composition-only strings, the feature's camelCase name for feature-only strings (e.g., `user-settings` → `userSettings`), and `shared` for cross-scope strings or consumers in `src/shared/`, `src/app/`, `src/config/`, or root support folders.
+- `src/locales/index.ts` MUST assemble and export these dictionaries through one `locales` object, keeping `shared`, `compositions`, and feature namespaces separate without flattening entries or defining strings inline.
+- Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.
 - A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.
 
 ## Incorrect — Flattened Translations

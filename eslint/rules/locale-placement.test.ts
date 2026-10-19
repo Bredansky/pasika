@@ -49,7 +49,7 @@ function verify(overrides: Record<string, string> = {}, messages: RegExp[] = [])
   });
 }
 
-void describe("All locales MUST be defined in named string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, imported into and exposed by the exported `locales` object in `src/locales/index.ts`.", () => {
+void describe("All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.", () => {
   verify();
   verify({ "locales/shared.ts": 'export const shared = { cancel: { nested: "Bad" } };' }, [
     /Locale dictionary shared has an invalid/,
@@ -57,7 +57,7 @@ void describe("All locales MUST be defined in named string dictionaries at `src/
   ]);
 });
 
-void describe("The `locales` object MUST expose `shared` and `compositions` as distinct namespaces, and MUST NOT spread their entries into the top level.", () => {
+void describe("`src/locales/index.ts` MUST assemble and export these dictionaries through one `locales` object, keeping `shared`, `compositions`, and feature namespaces separate without flattening entries or defining strings inline.", () => {
   verify(
     { "locales/index.ts": INDEX.replace("{ shared, compositions, stream }", "{ ...shared, compositions, stream }") },
     [
@@ -69,7 +69,7 @@ void describe("The `locales` object MUST expose `shared` and `compositions` as d
   );
 });
 
-void describe("Locales read only by files in one feature folder MUST live in a dictionary named after the camelCase form of that feature folder (for example, `user-settings` becomes `userSettings`).", () => {
+void describe("Dictionary ownership MUST match its consumers: `compositions` for composition-only strings, the feature's camelCase name for feature-only strings (e.g., `user-settings` → `userSettings`), and `shared` for cross-scope strings or consumers in `src/shared/`, `src/app/`, `src/config/`, or root support folders.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
       "export const locales = { shared, compositions, stream } as const;",
@@ -88,7 +88,7 @@ void describe("Locales read only by files in one feature folder MUST live in a d
   );
 });
 
-void describe("Locales read only by files under `src/compositions/` MUST live in the `compositions` dictionary.", () => {
+void describe("Composition-only locale ownership", () => {
   verify(
     {
       "shared/button.tsx": "",
@@ -98,7 +98,7 @@ void describe("Locales read only by files under `src/compositions/` MUST live in
   );
 });
 
-void describe("Locales read by files in more than one consumer scope or by `src/shared/`, `src/app/`, `src/config/`, or root support folders MUST live in the `shared` dictionary.", () => {
+void describe("Shared and cross-scope locale ownership", () => {
   verify(
     {
       "features/other/feed.tsx":
@@ -108,7 +108,7 @@ void describe("Locales read by files in more than one consumer scope or by `src/
   );
 });
 
-void describe("A namespaced locale MUST be read through its full dotted path (`locales.<namespace>.<key>`).", () => {
+void describe("Full dotted locale paths", () => {
   verify(
     {
       "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.cancel;',
@@ -117,7 +117,7 @@ void describe("A namespaced locale MUST be read through its full dotted path (`l
   );
 });
 
-void describe("Consumers MUST import translations through `src/locales/index.ts`, not directly from dictionary modules.", () => {
+void describe("Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
   verify(
     {
       "features/stream/player.tsx":
@@ -127,7 +127,7 @@ void describe("Consumers MUST import translations through `src/locales/index.ts`
   );
 });
 
-void describe("A locale dictionary MUST contain only direct static string entries, with no nested locale objects, dynamic expressions, or unrelated declarations.", () => {
+void describe("Static dictionary-only locale modules", () => {
   verify(
     {
       "locales/compositions.ts": "export const compositions = { confirmDelete: getText() };",

@@ -6,7 +6,7 @@ const compositionsFile = srcFile("locales/compositions.ts");
 const featureFile = srcFile("locales/features/editor.ts");
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("A locale dictionary MUST contain only direct static string entries, with no nested locale objects, dynamic expressions, or unrelated declarations.", () => {
+void describe("All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
       { filename: sharedFile, code: 'export const shared = { cancel: "Cancel", save: "Save" } as const;' },

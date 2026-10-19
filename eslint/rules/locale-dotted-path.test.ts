@@ -1,7 +1,7 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localeDottedPathRule } from "./locale-dotted-path";
 
-void describe("A namespaced locale MUST be read through its full dotted path (`locales.<namespace>.<key>`).", () => {
+void describe("Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
   ruleTester.run("locale-dotted-path", localeDottedPathRule, {
     valid: [
       {
