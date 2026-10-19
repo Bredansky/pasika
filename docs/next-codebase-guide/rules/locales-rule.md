@@ -1,6 +1,6 @@
 # Locales Rule
 
-Translations are organized by ownership in separate dictionaries and exposed through one public `locales` object. No translation strings belong directly in `src/locales/index.ts`.
+Scattered translations obscure ownership and make reuse inconsistent. Keep translations in ownership-based dictionaries, exposed through a single public `locales` object.
 
 - All locales MUST be defined in named string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, imported into and exposed by the exported `locales` object in `src/locales/index.ts`.
 - The `locales` object MUST expose `shared` and `compositions` as distinct namespaces, and MUST NOT spread their entries into the top level.
