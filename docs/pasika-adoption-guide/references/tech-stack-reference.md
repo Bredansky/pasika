@@ -209,7 +209,7 @@ publish:
     id-token: write
 ```
 
-The shared job checks Vulyk output, formatting, lint, types, unit coverage, coverage configuration, requirements, and the build. Vulyk generates files only in an isolated temporary worktree, and coverage runs with `--coverage.thresholds.autoUpdate=false`, so CI does not rewrite the primary checkout.
+The shared job checks formatting, lint, types, unit coverage, coverage configuration, requirements, and the build. Vulyk sync and agent-file generation stay in Husky only; CI does not independently verify generated Vulyk files, so bypassing the local hook can leave stale generated output in a commit. Coverage runs with `--coverage.thresholds.autoUpdate=false`, keeping CI validation non-mutating.
 
 The separate publishing job checks out the release tag, installs dependencies, and runs `npm publish`; the package's `prepack` script builds the publishable output. A GitHub Release is created only after publication succeeds. Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. This CI layout is a recommended pattern for adopters, not a new framework requirement.
 
