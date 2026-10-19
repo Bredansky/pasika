@@ -56,19 +56,19 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'const View = () => <Canvas className={active ? "mt-2" : "mt-4"} />;' },
       { filename: srcFile("features/editor/screen.test.tsx"), code: 'const value = ["inline-in-tests"];' },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: 'export const shared = { welcome: "Ласкаво просимо" };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { welcome: "Ласкаво просимо" };',
       },
       {
-        filename: srcFile("locales/compositions.ts"),
-        code: 'export const compositions = { cancel: "Cancel", save: "Save" } as const;',
+        filename: srcFile("locales/editor.ts"),
+        code: 'export const editor = { cancel: "Cancel", save: "Save" } as const;',
       },
       {
-        filename: srcFile("locales/features/stream.ts"),
+        filename: srcFile("locales/stream.ts"),
         code: 'export const stream = { save: "Save" } satisfies Record<string, string>;',
       },
       {
-        filename: srcFile("locales/features/user-settings.ts"),
+        filename: srcFile("locales/user-settings.ts"),
         code: 'export const userSettings = { saveChanges: "Save changes" } as const;',
       },
       {
@@ -84,14 +84,14 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: 'const mock = new Headers({ "Content-Type": "image/png" });',
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: "export const shared = { greeting: `Hello` };",
+        filename: srcFile("locales/global.ts"),
+        code: "export const global = { greeting: `Hello` };",
       },
     ],
     invalid: [
       {
-        filename: srcFile("locales/shared.ts"),
-        code: `export const shared = { greeting: \`Hello \${name}\` };`,
+        filename: srcFile("locales/global.ts"),
+        code: `export const global = { greeting: \`Hello \${name}\` };`,
         errors: [{ message: MESSAGE }],
       },
       {
@@ -105,28 +105,28 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: 'export const shared = { save: "Save" }; send("not a translation");',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { save: "Save" }; send("not a translation");',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: 'const shared = { save: "Save" };',
+        filename: srcFile("locales/global.ts"),
+        code: 'const global = { save: "Save" };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: 'export const shared = { nested: { deeper: { invalid: "too deep" } } };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { nested: { deeper: { invalid: "too deep" } } };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: "export const shared = { retries: 3 };",
+        filename: srcFile("locales/global.ts"),
+        code: "export const global = { retries: 3 };",
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/shared.ts"),
-        code: 'export const shared = { good: "Saved", bad: format("inline") };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { good: "Saved", bad: format("inline") };',
         errors: [{ message: MESSAGE }],
       },
       {

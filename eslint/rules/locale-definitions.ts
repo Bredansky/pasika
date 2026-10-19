@@ -55,9 +55,8 @@ function propertyName(property: ts.PropertyName): string | undefined {
 }
 
 function expectedPath(localesRoot: string, namespace: string): string {
-  if (namespace === "shared" || namespace === "compositions") return path.join(localesRoot, `${namespace}.ts`);
   const kebab = namespace.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-  return path.join(localesRoot, "features", `${kebab}.ts`);
+  return path.join(localesRoot, `${kebab}.ts`);
 }
 
 function validateDictionary(file: string, namespace: string, errors: string[]): Set<string> {
@@ -133,7 +132,14 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
   for (const property of dictionary.properties) {
     let name: string | undefined;
     let value: string | undefined;
-    if (ts.isShorthandPropertyAssignment(property)) {
+    if (ts.isSpreadAssignment(property)) {
+      if (!ts.isIdentifier(property.expression) || property.expression.text !== "global") {
+        errors.push("Locale index may only spread the global dictionary.");
+        continue;
+      }
+      name = "global";
+      value = "global";
+    } else if (ts.isShorthandPropertyAssignment(property)) {
       name = property.name.text;
       value = name;
     } else if (ts.isPropertyAssignment(property)) {
@@ -141,9 +147,21 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
       const initial = unwrap(property.initializer);
       if (ts.isIdentifier(initial)) value = initial.text;
     }
+
     if (!name || !value || name !== value || definitions.has(name) || !/^[a-z][a-zA-Z0-9]*$/.test(name)) {
-      errors.push("Locale index must use one named imported dictionary per namespace, without spreads or aliases.");
+      errors.push("Locale index must expose feature dictionaries by name and spread only global, without aliases.");
       continue;
+    }
+    if (name === "global" && !ts.isSpreadAssignment(property)) {
+      errors.push("Locale index must spread global keys into the top level.");
+      continue;
+    }
+    if (name !== "global") {
+      const folder = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+      if (!existsSync(path.join(root, "..", "features", folder))) {
+        errors.push(`Locale namespace ${name} must belong to a feature at src/features/${folder}/.`);
+        continue;
+      }
     }
     const expected = expectedPath(root, name);
     const actualImport = imports.get(name);
@@ -154,22 +172,37 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
     definitions.set(name, { namespace: name, file: expected, keys: validateDictionary(expected, name, errors) });
   }
 
-  for (const name of ["shared", "compositions"]) {
-    if (!definitions.has(name)) errors.push(`Locale index must expose the ${name} namespace.`);
-  }
   for (const imported of imports.keys()) {
     if (!definitions.has(imported)) {
       errors.push(`Imported locale dictionary ${imported} is not exposed in locales.`);
     }
   }
 
-  const featuresDir = path.join(root, "features");
-  if (existsSync(featuresDir)) {
-    for (const filename of readdirSync(featuresDir).filter(
-      (name) => name.endsWith(".ts") && !name.endsWith(".test.ts"),
-    )) {
-      const name = camelCase(filename.slice(0, -3));
-      if (!definitions.has(name)) errors.push(`Locale feature module ${filename} is not exposed in locales.`);
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      errors.push(
+        `Locale dictionaries must live directly in src/locales/; nested folder ${entry.name} is not allowed.`,
+      );
+    } else if (
+      entry.isFile() &&
+      entry.name.endsWith(".ts") &&
+      entry.name !== "index.ts" &&
+      !entry.name.endsWith(".test.ts") &&
+      !entry.name.endsWith(".d.ts")
+    ) {
+      const name = camelCase(entry.name.slice(0, -3));
+      if (!definitions.has(name) && !imports.has(name)) {
+        errors.push(`Locale module ${entry.name} is not exposed in locales.`);
+      }
+    }
+  }
+
+  const global = definitions.get("global");
+  if (global) {
+    for (const key of global.keys) {
+      if (definitions.has(key)) {
+        errors.push(`Global locale key ${key} conflicts with a feature namespace.`);
+      }
     }
   }
   return { definitions, errors };

@@ -216,16 +216,10 @@ function isCanonicalLocaleString(node: AncestorNode, root: string, file: string)
   if (
     relative.length === 2 &&
     relative[0] === "locales" &&
-    (relative[1] === "shared.ts" || relative[1] === "compositions.ts")
+    relative[1] !== "index.ts" &&
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.ts$/.test(relative[1] ?? "")
   ) {
-    namespace = relative[1].slice(0, -3);
-  } else if (
-    relative.length === 3 &&
-    relative[0] === "locales" &&
-    relative[1] === "features" &&
-    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.ts$/.test(relative[2] ?? "")
-  ) {
-    namespace = (relative[2] ?? "").slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
+    namespace = (relative[1] ?? "").slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
   }
   if (!namespace) return false;
   if (node.parent?.type !== "Property" || node.parent.value !== node) return false;

@@ -1,16 +1,16 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { localeKeyShapeRule } from "./locale-key-shape";
 
-const sharedFile = srcFile("locales/shared.ts");
-const compositionsFile = srcFile("locales/compositions.ts");
-const featureFile = srcFile("locales/features/editor.ts");
+const globalFile = srcFile("locales/global.ts");
+const navigationFile = srcFile("locales/navigation.ts");
+const featureFile = srcFile("locales/editor.ts");
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.", () => {
+void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for context-independent UI labels and `<feature-name>.ts` for feature-owned text, with no nested objects, dynamic values, or unrelated declarations.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
-      { filename: sharedFile, code: 'export const shared = { cancel: "Cancel", save: "Save" } as const;' },
-      { filename: compositionsFile, code: 'export const compositions = { confirmDelete: "Delete?" } as const;' },
+      { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" } as const;' },
+      { filename: navigationFile, code: 'export const navigation = { confirmDelete: "Delete?" } as const;' },
       { filename: featureFile, code: 'export const editor = { drafts: "Drafts" } as const;' },
     ],
     invalid: [
@@ -32,8 +32,8 @@ void describe("All locales MUST live in flat, static string dictionaries at `src
 void describe("A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.", () => {
   ruleTester.run("locale-key-shape", localeKeyShapeRule, {
     valid: [
-      { filename: sharedFile, code: 'export const shared = { cancel: "Cancel", acceptAllCookies: "Accept" };' },
-      { filename: compositionsFile, code: 'export const compositions = { confirmationDialog: "Continue?" };' },
+      { filename: globalFile, code: 'export const global = { cancel: "Cancel", acceptAllCookies: "Accept" };' },
+      { filename: navigationFile, code: 'export const navigation = { confirmationDialog: "Continue?" };' },
       { filename: featureFile, code: 'export const editor = { accountDeletionConfirmationDialog: "Confirm" };' },
       {
         filename: featureFile,
@@ -41,7 +41,7 @@ void describe("A locale key MUST be English camelCase. A direct translation long
       },
       { filename: featureFile, code: "export const editor = { greeting: `Hello` };" },
       {
-        filename: srcFile("locales/features/user-settings.ts"),
+        filename: srcFile("locales/user-settings.ts"),
         code: 'export const userSettings = { saveChanges: "Save changes" };',
       },
     ],
@@ -57,13 +57,13 @@ void describe("A locale key MUST be English camelCase. A direct translation long
         errors: [{ message: `Locale key "watch_live_stream" must be camelCase English based on the text. ${DOC}` }],
       },
       {
-        filename: sharedFile,
-        code: 'export const shared = { Bad_Key: "Bad" };',
+        filename: globalFile,
+        code: 'export const global = { Bad_Key: "Bad" };',
         errors: [{ message: `Locale key "Bad_Key" must be camelCase English based on the text. ${DOC}` }],
       },
       {
-        filename: compositionsFile,
-        code: 'export const compositions = { youSuccessfullySubscribedToUpdates: "Subscribed" };',
+        filename: navigationFile,
+        code: 'export const navigation = { youSuccessfullySubscribedToUpdates: "Subscribed" };',
         errors: [
           {
             message:

@@ -626,26 +626,26 @@
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.",
-      "hash": "e12d965c19",
+      "text": "User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for context-independent UI labels and `<feature-name>.ts` for feature-owned text, with no nested objects, dynamic values, or unrelated declarations.",
+      "hash": "62246724bc",
       "ref": "pasika/locale-placement, pasika/locale-key-shape"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Dictionary ownership MUST match its consumers: `compositions` for composition-only strings, the feature's camelCase name for feature-only strings (e.g., `user-settings` → `userSettings`), and `shared` for cross-scope strings or consumers in `src/shared/`, `src/app/`, `src/config/`, or root support folders.",
-      "hash": "3939a66f1b",
+      "text": "Feature-specific copy MUST remain in its owning feature namespace regardless of where it is consumed; only context-independent UI labels MAY be global. Identical strings with independent meanings MUST remain separate.",
+      "hash": "6acd965007",
+      "note": "semantic ownership of UI copy requires code review; namespace structure checked by pasika/locale-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/locales-rule.md",
+      "text": "`src/locales/index.ts` MUST assemble and export one `locales` object, spreading the `global` dictionary into top-level keys and exposing feature dictionaries by their camelCase names (e.g., `user-settings` → `userSettings`), without defining translation strings inline.",
+      "hash": "9af44325f0",
       "ref": "pasika/locale-placement"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "`src/locales/index.ts` MUST assemble and export these dictionaries through one `locales` object, keeping `shared`, `compositions`, and feature namespaces separate without flattening entries or defining strings inline.",
-      "hash": "0f0cd3a965",
-      "ref": "pasika/locale-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.",
-      "hash": "bee8e8b0ee",
+      "text": "Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.",
+      "hash": "449c52df18",
       "ref": "pasika/locale-placement, pasika/locale-dotted-path, pasika/locales-location"
     },
     {

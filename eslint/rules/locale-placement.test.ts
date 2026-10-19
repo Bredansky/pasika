@@ -5,28 +5,27 @@ import { describe, ruleTester } from "../rule-tester";
 import { localePlacementRule } from "./locale-placement";
 
 const INDEX = [
-  'import { shared } from "./shared";',
-  'import { compositions } from "./compositions";',
-  'import { stream } from "./features/stream";',
-  "export const locales = { shared, compositions, stream } as const;",
-].join("\n");
+  'import { global } from "./global";',
+  'import { stream } from "./stream";',
+  "export const locales = { ...global, stream } as const;",
+].join(String.fromCharCode(10));
 
 const FIXTURE: Record<string, string> = {
   "locales/index.ts": INDEX,
-  "locales/shared.ts": 'export const shared = { cancel: "Cancel" } as const;',
-  "locales/compositions.ts": 'export const compositions = { confirmDelete: "Delete this item?" } as const;',
-  "locales/features/stream.ts": 'export const stream = { watchLiveStream: "Watch Live" } as const;',
-  "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.shared.cancel;',
-  "compositions/dialog.tsx":
-    'import { locales } from "@/locales"; export const dialog = locales.compositions.confirmDelete;',
+  "locales/global.ts": 'export const global = { cancel: "Cancel" } as const;',
+  "locales/stream.ts": 'export const stream = { watchLiveStream: "Watch Live" } as const;',
+  "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.cancel;',
+  "compositions/stream-page-content.tsx":
+    'import { locales } from "@/locales"; export const content = locales.stream.watchLiveStream;',
   "features/stream/player.tsx":
     'import { locales } from "@/locales"; export const player = locales.stream.watchLiveStream;',
 };
 
-function verify(overrides: Record<string, string> = {}, messages: RegExp[] = []): void {
-  const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-locale-namespace-")));
+function verify(overrides: Record<string, string | null> = {}, messages: RegExp[] = []): void {
+  const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-locale-flat-")));
   const files = { ...FIXTURE, ...overrides };
   for (const [name, contents] of Object.entries(files)) {
+    if (contents === null) continue;
     const filePath = path.join(root, "src", name);
     mkdirSync(path.dirname(filePath), { recursive: true });
     writeFileSync(filePath, contents);
@@ -49,121 +48,130 @@ function verify(overrides: Record<string, string> = {}, messages: RegExp[] = [])
   });
 }
 
-void describe("All locales MUST live in flat, static string dictionaries at `src/locales/shared.ts`, `src/locales/compositions.ts`, or `src/locales/features/<feature-name>.ts`, with no nested objects, dynamic values, or unrelated declarations.", () => {
+void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for context-independent UI labels and `<feature-name>.ts` for feature-owned text, with no nested objects, dynamic values, or unrelated declarations.", () => {
   verify();
-  verify({ "locales/shared.ts": 'export const shared = { cancel: { nested: "Bad" } };' }, [
-    /Locale dictionary shared has an invalid/,
-    /Locale locales.shared.cancel is not defined/,
+  verify({ "locales/global.ts": 'export const global = { cancel: { nested: "Bad" } };' }, [
+    /Locale dictionary global has an invalid/,
+    /Locale locales.cancel is not defined in the global dictionary/,
+  ]);
+  verify({ "locales/stream.ts": "export const stream = { watchLiveStream: getText() };" }, [
+    /Locale dictionary stream has an invalid/,
+    /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+    /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+  ]);
+  verify({ "locales/global.ts": 'export const global = { cancel: "Cancel" }, unrelated = "Unsafe";' }, [
+    /Locale module .* must contain only an exported const global string dictionary/,
+    /Locale locales.cancel is not defined/,
+  ]);
+  verify({ "locales/features/legacy.ts": 'export const legacy = { label: "Old" };' }, [
+    /Locale dictionaries must live directly in src\/locales\/; nested folder features is not allowed/,
   ]);
 });
 
-void describe("`src/locales/index.ts` MUST assemble and export these dictionaries through one `locales` object, keeping `shared`, `compositions`, and feature namespaces separate without flattening entries or defining strings inline.", () => {
-  verify(
-    { "locales/index.ts": INDEX.replace("{ shared, compositions, stream }", "{ ...shared, compositions, stream }") },
-    [
-      /without spreads or aliases/,
-      /Locale index must expose the shared namespace/,
-      /Imported locale dictionary shared is not exposed/,
-      /Locale locales.shared.cancel is not defined/,
-    ],
-  );
-});
-
-void describe("Dictionary ownership MUST match its consumers: `compositions` for composition-only strings, the feature's camelCase name for feature-only strings (e.g., `user-settings` → `userSettings`), and `shared` for cross-scope strings or consumers in `src/shared/`, `src/app/`, `src/config/`, or root support folders.", () => {
+void describe("Feature-specific copy MUST remain in its owning feature namespace regardless of where it is consumed; only context-independent UI labels MAY be global. Identical strings with independent meanings MUST remain separate.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
-      "export const locales = { shared, compositions, stream } as const;",
-      'import { userSettings } from "./features/user-settings";\nexport const locales = { shared, compositions, stream, userSettings } as const;',
+      "export const locales = { ...global, stream } as const;",
+      `import { userSettings } from "./user-settings";
+export const locales = { ...global, stream, userSettings } as const;`,
     ),
-    "locales/features/user-settings.ts": 'export const userSettings = { saveChanges: "Save changes" } as const;',
+    "locales/user-settings.ts": 'export const userSettings = { saveChanges: "Save changes" } as const;',
     "features/user-settings/page.tsx":
       'import { locales } from "@/locales"; export const save = locales.userSettings.saveChanges;',
+    "features/user-settings/another.tsx": 'import { locales } from "@/locales"; export const cancel = locales.cancel;',
   });
-  verify(
-    {
-      "shared/button.tsx": "",
-      "features/stream/cancel.tsx": 'import { locales } from "@/locales"; export const cancel = locales.shared.cancel;',
-    },
-    [/Locale shared.cancel is read by .* and must live in the stream namespace/],
-  );
+  verify({
+    "features/other/feed.tsx":
+      'import { locales } from "@/locales"; export const feed = locales.stream.watchLiveStream;',
+    "app/streams/page.tsx":
+      'import { locales } from "@/locales"; export const metadata = { title: locales.stream.watchLiveStream };',
+  });
+  verify({
+    "locales/index.ts": INDEX.replace(
+      "export const locales = { ...global, stream } as const;",
+      `import { credentials } from "./credentials";
+export const locales = { ...global, stream, credentials } as const;`,
+    ),
+    "locales/credentials.ts": 'export const credentials = { delete: "Delete" } as const;',
+    "features/credentials/delete.tsx":
+      'import { locales } from "@/locales"; export const action = locales.credentials.delete;',
+  });
 });
 
-void describe("Composition-only locale ownership", () => {
+void describe("`src/locales/index.ts` MUST assemble and export one `locales` object, spreading the `global` dictionary into top-level keys and exposing feature dictionaries by their camelCase names (e.g., `user-settings` → `userSettings`), without defining translation strings inline.", () => {
   verify(
     {
-      "shared/button.tsx": "",
-      "compositions/cancel.tsx": 'import { locales } from "@/locales"; export const cancel = locales.shared.cancel;',
-    },
-    [/Locale shared.cancel is read by .* and must live in the compositions namespace/],
-  );
-});
-
-void describe("Shared and cross-scope locale ownership", () => {
-  verify(
-    {
-      "features/other/feed.tsx":
-        'import { locales } from "@/locales"; export const feed = locales.stream.watchLiveStream;',
-    },
-    [/Locale stream.watchLiveStream is read by .* and must live in the shared namespace/],
-  );
-});
-
-void describe("Full dotted locale paths", () => {
-  verify(
-    {
-      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.cancel;',
-    },
-    [/Locale access locales.cancel must use a namespace and key/],
-  );
-});
-
-void describe("Consumers MUST import through `src/locales/index.ts` and use full `locales.<namespace>.<key>` paths. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
-  verify(
-    {
-      "features/stream/player.tsx":
-        'import { stream } from "@/locales/features/stream"; export const player = stream.watchLiveStream;',
-    },
-    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
-  );
-});
-
-void describe("Static dictionary-only locale modules", () => {
-  verify(
-    {
-      "locales/compositions.ts": "export const compositions = { confirmDelete: getText() };",
-    },
-    [/Locale dictionary compositions has an invalid/, /Locale locales.compositions.confirmDelete is not defined/],
-  );
-  verify(
-    {
-      "locales/shared.ts": 'export const shared = { cancel: "Cancel" }, unrelated = "Unsafe";',
+      "locales/index.ts": INDEX.replace("{ ...global, stream }", '{ cancel: "Cancel", stream }'),
     },
     [
-      /Locale module .* must contain only an exported const shared string dictionary/,
-      /Locale locales.shared.cancel is not defined/,
+      /Locale index must expose feature dictionaries by name and spread only global/,
+      /Imported locale dictionary global is not exposed/,
+      /Locale locales.cancel is not defined in the global dictionary/,
     ],
   );
+  verify({ "locales/index.ts": INDEX.replace("{ ...global, stream }", "{ global, stream }") }, [
+    /Locale index must spread global keys into the top level/,
+    /Imported locale dictionary global is not exposed/,
+    /Locale locales.cancel is not defined in the global dictionary/,
+  ]);
+  verify({ "locales/index.ts": INDEX.replace("{ ...global, stream }", "{ ...stream, ...global }") }, [
+    /Locale index may only spread the global dictionary/,
+    /Imported locale dictionary stream is not exposed/,
+    /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+    /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+  ]);
+  verify({ "locales/global.ts": 'export const global = { cancel: "Cancel", stream: "Wrong" };' }, [
+    /Global locale key stream conflicts with a feature namespace/,
+  ]);
   verify(
     {
       "locales/index.ts": INDEX.replace(
-        "export const locales = { shared, compositions, stream } as const;",
-        "export const locales = { shared, compositions, stream } as const, unrelated = 1;",
+        "export const locales = { ...global, stream } as const;",
+        "export const locales = { ...global, stream } as const, unrelated = 1;",
       ),
     },
     [
       /Locale index must export a single const locales dictionary/,
-      /Locale locales.compositions.confirmDelete is not defined/,
-      /Locale locales.stream.watchLiveStream is not defined/,
-      /Locale locales.shared.cancel is not defined/,
+      /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+      /Locale locales.stream.watchLiveStream is not defined in a feature dictionary/,
+      /Locale locales.cancel is not defined in the global dictionary/,
     ],
+  );
+  verify({
+    "locales/global.ts": null,
+    "shared/button.tsx": "",
+    "locales/index.ts": `import { stream } from "./stream";
+export const locales = { stream } as const;`,
+  });
+  verify({ "locales/editor.ts": 'export const editor = { title: "Editor" };' }, [
+    /Locale module editor.ts is not exposed in locales/,
+  ]);
+});
+
+void describe("Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
+  verify(
+    {
+      "features/stream/player.tsx":
+        'import { stream } from "@/locales/stream"; export const player = stream.watchLiveStream;',
+    },
+    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
+  );
+  verify(
+    {
+      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.missing;',
+    },
+    [/Locale locales.missing is not defined in the global dictionary/],
+  );
+  verify(
+    {
+      "features/stream/player.tsx": 'import { locales } from "@/locales"; export const player = locales.stream;',
+    },
+    [/Locale access locales.stream must include a feature key/],
   );
 });
 
 void describe("A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.", () => {
-  verify(
-    {
-      "locales/shared.ts": 'export const shared = { "invalid-key": "Cancel", cancel: "Cancel" };',
-    },
-    [/Locale dictionary shared has an invalid/],
-  );
+  verify({ "locales/global.ts": 'export const global = { "invalid-key": "Cancel", cancel: "Cancel" };' }, [
+    /Locale dictionary global has an invalid/,
+  ]);
 });

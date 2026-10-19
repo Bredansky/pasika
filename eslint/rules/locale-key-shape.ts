@@ -78,11 +78,12 @@ function dictionaryName(filename: string): string | undefined {
   const srcIdx = segments.lastIndexOf("src");
   if (srcIdx < 0 || segments[srcIdx + 1] !== "locales") return undefined;
   const remaining = segments.slice(srcIdx + 2);
-  if (remaining.length === 1 && ["shared.ts", "compositions.ts"].includes(remaining[0] ?? "")) {
-    return remaining[0]?.slice(0, -3);
-  }
-  if (remaining.length === 2 && remaining[0] === "features" && /^[a-z][a-z0-9-]*\.ts$/.test(remaining[1] ?? "")) {
-    return remaining[1]?.slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
+  if (
+    remaining.length === 1 &&
+    remaining[0] !== "index.ts" &&
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.ts$/.test(remaining[0] ?? "")
+  ) {
+    return remaining[0]?.slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
   }
   return undefined;
 }
