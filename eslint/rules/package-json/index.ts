@@ -4,6 +4,7 @@
  * subset (`repoPackageJsonRules`); `nextjs-stack` is specific to a Next.js
  * (or React) application.
  */
+import { ciChecksRule } from "./ci-checks";
 import { exactVersionRule } from "./exact-version";
 import { lintSetupRule } from "./lint-setup";
 import { nextjsStackRule } from "./nextjs-stack";
@@ -11,6 +12,7 @@ import { vitestCoverageRule } from "./vitest-coverage";
 
 /** Framework-agnostic package.json rules any repository should follow. */
 export const repoPackageJsonRules = {
+  "ci-checks": ciChecksRule,
   "exact-version": exactVersionRule,
   "lint-setup": lintSetupRule,
   "vitest-coverage": vitestCoverageRule,

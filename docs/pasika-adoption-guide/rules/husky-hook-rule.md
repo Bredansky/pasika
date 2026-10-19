@@ -12,6 +12,7 @@ A pre-commit hook only protects a repository when its checks run and generated c
 - A repository with `vulyk.config.ts` MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.
 - A repository with `vulyk.config.ts` MUST run `npx vulyk stage` after `npx vulyk agents` and before `lint-staged` in `.husky/pre-commit`.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.
+- A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.
 
 ## Incorrect — Direct Commands Bypass Named Scripts
 
@@ -67,7 +68,7 @@ npx vulyk stage
 npx lint-staged
 ```
 
-Why: Vulyk stages only its Git-trackable managed outputs, including deleted files, using its generated-file state instead of hardcoded paths. Ignored, untracked files and unrelated source changes stay unstaged; contributors can review generated changes with `git diff --cached`.
+Why: Vulyk stages only its Git-trackable managed outputs, including deleted files, using its generated-file state instead of hardcoded paths. Ignored, untracked files and unrelated source changes stay unstaged; contributors can review generated changes with `git diff --cached`. GitHub Actions runs its separate verification-only checks according to the CI Checks Rule.
 
 ## Incorrect — Coverage Changes Are Added Automatically
 

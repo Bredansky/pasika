@@ -76,6 +76,29 @@ const BASE_SCRIPTS = {
   "test:unit:coverage": "vitest run --coverage",
 };
 
+void describe("A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.", () => {
+  const scripts = { ...BASE_SCRIPTS, "test:requirements": "tsx scripts/coverage.ts" };
+  const missing = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(missing));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts }),
+        filename: missing,
+        errors: [{ message: ".husky/pre-commit must run npm run test:requirements." }],
+      },
+    ],
+  });
+
+  const present = buildFixture(BASE_HOOK.replace("npm run typecheck", "npm run typecheck\nnpm run test:requirements"));
+  process.chdir(path.dirname(present));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: JSON.stringify({ scripts }), filename: present }],
+    invalid: [],
+  });
+});
+
 void describe("A repository MUST configure .husky/pre-commit to run lint-staged.", () => {
   const withLintStaged = buildFixture(BASE_HOOK);
   process.chdir(path.dirname(withLintStaged));

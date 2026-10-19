@@ -60,6 +60,7 @@ export const huskyHookRule: JSONRuleDefinition = {
           context.report({ node, message: ".husky/pre-commit must run lint-staged." });
         }
         requireNamedScript("typecheck");
+        if (scriptNames.has("test:requirements")) requireNamedScript("test:requirements");
         requireNamedScript("test:unit:coverage");
 
         const autoStageAll = /^\s*git\s+add\s+(?:--\s+)?(?:-A|--all|-u|\.)(?:\s*(?:#.*)?)?$/m.test(commands);

@@ -1243,6 +1243,36 @@
       "ref": "pasika/api-contract"
     },
     {
+      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
+      "text": "A repository using GitHub Actions MUST run validation for pull requests and pushes to a named branch.",
+      "hash": "c34f0646f5",
+      "ref": "pasika/ci-checks"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
+      "text": "A repository using GitHub Actions MUST check out the source and install dependencies with `npm ci` before validation.",
+      "hash": "cdd5bb5323",
+      "ref": "pasika/ci-checks"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
+      "text": "A repository using GitHub Actions MUST run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run test:unit:coverage:check`; when `build` or `test:requirements` scripts exist, CI MUST run those too.",
+      "hash": "a68c4cb790",
+      "ref": "pasika/ci-checks"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
+      "text": "A repository using GitHub Actions MUST declare `test:unit:coverage:check` as a script that disables coverage threshold auto-updates and checks the Git diff after running aggregate coverage.",
+      "hash": "0ea65a0126",
+      "ref": "pasika/ci-checks"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
+      "text": "A repository that publishes through GitHub Actions MUST expose the checks as a reusable `workflow_call` and make its publishing job depend on a job that invokes those checks.",
+      "hash": "b0b78e43cc",
+      "ref": "pasika/ci-checks"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
       "text": "A file that merges class names MUST import `cn` from `pasika/cn`.",
       "hash": "18d2dba9f3",
@@ -1324,6 +1354,12 @@
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
       "text": "A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.",
       "hash": "ee5eb3acbd",
+      "ref": "pasika/husky-hook"
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
+      "text": "A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.",
+      "hash": "0fa6974c4b",
       "ref": "pasika/husky-hook"
     },
     {
