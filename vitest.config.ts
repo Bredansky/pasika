@@ -11,7 +11,7 @@ export default defineConfig({
       thresholds: {
         lines: 93.7,
         functions: 96.8,
-        branches: 83.5,
+        branches: 83.6,
         statements: 88.9,
         autoUpdate: (newThreshold, previousThreshold) =>
           Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),

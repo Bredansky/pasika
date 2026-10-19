@@ -6,7 +6,7 @@ const navigationFile = srcFile("locales/navigation.ts");
 const featureFile = srcFile("locales/editor.ts");
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for context-independent UI labels and `<feature-name>.ts` for feature-owned text, with no nested objects, dynamic values, or unrelated declarations.", () => {
+void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for shared or non-feature consumers and `<feature-name>.ts` for feature-only consumers, with no nested objects, dynamic values, or unrelated declarations.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
       { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" } as const;' },

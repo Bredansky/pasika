@@ -10,6 +10,7 @@ export interface LocaleDefinition {
   namespace: string;
   file: string;
   keys: Set<string>;
+  values: Map<string, string>;
 }
 export interface LocaleDefinitions {
   definitions: Map<string, LocaleDefinition>;
@@ -59,17 +60,17 @@ function expectedPath(localesRoot: string, namespace: string): string {
   return path.join(localesRoot, `${kebab}.ts`);
 }
 
-function validateDictionary(file: string, namespace: string, errors: string[]): Set<string> {
-  const keys = new Set<string>();
+function validateDictionary(file: string, namespace: string, errors: string[]): Map<string, string> {
+  const values = new Map<string, string>();
   if (!existsSync(file)) {
     errors.push(`Missing locale dictionary for ${namespace}.`);
-    return keys;
+    return values;
   }
   const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const dictionary = exportedDictionary(source, namespace);
   if (!dictionary || source.statements.length !== 1) {
     errors.push(`Locale module ${file} must contain only an exported const ${namespace} string dictionary.`);
-    return keys;
+    return values;
   }
   for (const property of dictionary.properties) {
     if (!ts.isPropertyAssignment(property)) {
@@ -81,15 +82,15 @@ function validateDictionary(file: string, namespace: string, errors: string[]): 
     if (
       !name ||
       !/^[a-z][a-zA-Z0-9]*$/.test(name) ||
-      keys.has(name) ||
+      values.has(name) ||
       (!ts.isStringLiteral(value) && !ts.isNoSubstitutionTemplateLiteral(value))
     ) {
       errors.push(`Locale dictionary ${namespace} has an invalid, duplicate, or non-string key.`);
       continue;
     }
-    keys.add(name);
+    values.set(name, value.text);
   }
-  return keys;
+  return values;
 }
 
 export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
@@ -166,7 +167,8 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
       errors.push(`Locale namespace ${name} must import its dictionary from ${path.relative(root, expected)}.`);
       continue;
     }
-    definitions.set(name, { namespace: name, file: expected, keys: validateDictionary(expected, name, errors) });
+    const values = validateDictionary(expected, name, errors);
+    definitions.set(name, { namespace: name, file: expected, keys: new Set(values.keys()), values });
   }
 
   if (!definitions.has("global")) {

@@ -626,15 +626,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for context-independent UI labels and `<feature-name>.ts` for feature-owned text, with no nested objects, dynamic values, or unrelated declarations.",
-      "hash": "62246724bc",
+      "text": "User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for shared or non-feature consumers and `<feature-name>.ts` for feature-only consumers, with no nested objects, dynamic values, or unrelated declarations.",
+      "hash": "411ac0cf54",
       "ref": "pasika/locale-placement, pasika/locale-key-shape"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
-      "text": "Feature-specific copy MUST remain in its owning feature namespace regardless of where it is consumed; only context-independent UI labels MAY be global. Identical strings with independent meanings MUST remain separate.",
-      "hash": "6acd965007",
-      "note": "semantic ownership of UI copy requires code review; namespace structure checked by pasika/locale-placement"
+      "text": "A locale used only under one `src/features/<feature-name>/` folder MUST belong to that feature namespace, even when used in multiple files. A locale used across features or anywhere outside that folder MUST be global. Identical text in different dictionaries MUST be consolidated into one global key rather than duplicated.",
+      "hash": "781e9d6e4f",
+      "ref": "pasika/locale-placement"
     },
     {
       "doc": "next-codebase-guide/rules/locales-rule.md",
