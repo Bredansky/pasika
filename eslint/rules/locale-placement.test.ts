@@ -48,7 +48,7 @@ function verify(overrides: Record<string, string | null> = {}, messages: RegExp[
   });
 }
 
-void describe("User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
+void describe("User-facing text MUST be stored as static strings in flat dictionaries under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Text used only in one feature MUST go in that feature's dictionary; all other text MUST go in `global.ts`, with no duplicate strings across dictionaries. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
   verify();
   verify({
     "compositions/stream-page-content.tsx":
@@ -89,9 +89,6 @@ void describe("User-facing text MUST be stored as static strings in flat diction
     },
     [/Locale access locales.stream must include a feature key/],
   );
-});
-
-void describe("Text used only in one feature MUST go in that feature's dictionary. Text used outside that feature MUST go in `global.ts`. Identical text MUST NOT appear in multiple dictionaries.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
       "export const locales = { ...global, stream } as const;",

@@ -2,8 +2,7 @@
 
 Keep user-facing text in `src/locales/` and use one `locales` object to access it. Choose the dictionary based on where the text is used.
 
-- User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.
-- Text used only in one feature MUST go in that feature's dictionary. Text used outside that feature MUST go in `global.ts`. Identical text MUST NOT appear in multiple dictionaries.
+- User-facing text MUST be stored as static strings in flat dictionaries under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Text used only in one feature MUST go in that feature's dictionary; all other text MUST go in `global.ts`, with no duplicate strings across dictionaries. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.
 - `src/locales/index.ts` MUST import the dictionaries and export one `locales` object, with global keys at the top level and feature dictionaries under their camelCase names. It MUST NOT define translation strings directly.
 - Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.
 
