@@ -208,40 +208,46 @@ function isRuntimeMockSource(file: string, root: string): boolean {
 }
 
 /**
- * Locale entries are content, not standalone runtime constants. Only allow
- * direct string values and one level of feature namespaces inside the exported
- * canonical `locales` object, never arbitrary expressions in the same file.
+ * Locale values are exempt only within named, exported dictionary modules.
  */
 function isCanonicalLocaleString(node: AncestorNode, root: string, file: string): boolean {
-  if (path.relative(root, file) !== path.join("locales", "index.ts")) return false;
-
-  let current = node;
-  let depth = 0;
-  while (current.parent?.type === "Property" && current.parent.value === current) {
-    const object = current.parent.parent;
-    if (object?.type !== "ObjectExpression") return false;
-    current = object;
-    depth += 1;
+  const relative = path.relative(root, file).split(path.sep);
+  let namespace: string | undefined;
+  if (
+    relative.length === 2 &&
+    relative[0] === "locales" &&
+    (relative[1] === "shared.ts" || relative[1] === "compositions.ts")
+  ) {
+    namespace = relative[1].slice(0, -3);
+  } else if (
+    relative.length === 3 &&
+    relative[0] === "locales" &&
+    relative[1] === "features" &&
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.ts$/.test(relative[2] ?? "")
+  ) {
+    namespace = (relative[2] ?? "").slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
   }
-  if (depth < 1 || depth > 2) return false;
-
+  if (!namespace) return false;
+  if (node.parent?.type !== "Property" || node.parent.value !== node) return false;
+  let current = node.parent.parent;
+  if (current?.type !== "ObjectExpression") return false;
   while (
     (current.parent?.type === "TSAsExpression" || current.parent?.type === "TSSatisfiesExpression") &&
     current.parent.expression === current
   ) {
     current = current.parent;
   }
-
   const declaration = current.parent;
-  if (declaration?.type !== "VariableDeclarator" || declaration.init !== current) return false;
-  const id = declaration.id;
+  const id = declaration?.id;
   return (
+    declaration?.type === "VariableDeclarator" &&
+    declaration.init === current &&
     typeof id === "object" &&
     id !== null &&
     "type" in id &&
     id.type === "Identifier" &&
     "name" in id &&
-    id.name === "locales" &&
+    id.name === namespace &&
     declaration.parent?.type === "VariableDeclaration" &&
     declaration.parent.kind === "const" &&
     declaration.parent.parent?.type === "ExportNamedDeclaration"

@@ -1,72 +1,39 @@
 /**
  * ESLint rule: pasika/locale-placement
  *
- * Locales read by files in more than one feature folder or by src/shared/,
- * src/compositions/, src/app/, or root support folders MUST live at the top
- * level of locales. Locales read only by files in one feature folder MUST live
- * in an object with the camelCase form of its feature folder name. The rule
- * reads which keys the tree uses, because a single file cannot see them.
+ * Enforces imported shared/compositions/feature dictionaries, namespace
+ * ownership, and one public locales entry point.
  *
  * @see docs/next-codebase-guide/rules/locales-rule.md
  */
-
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import ts from "typescript";
 import { describeConsumers, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 import { getProjectIndex, resolveSpecifier } from "../project/index";
+import { readLocaleDefinitions } from "./locale-definitions";
 import { sourceRootOf } from "./project-root";
 
-/** The first segment of a `locales.<key>` read. */
-const LOCALE_ACCESS = /\blocales\.(?<key>[A-Za-z_$][\w$]*)/g;
+const LOCALE_ACCESS = /\blocales\.(?<namespace>[A-Za-z_$][\w$]*)(?:\.(?<key>[A-Za-z_$][\w$]*))?/g;
+const SHARED_FOLDERS = new Set(["shared", "app", "config"]);
+const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-const camelCase = (name: string): string => name.replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
-
-const FORCED_TOP_LEVEL = new Set(["app", "shared", "compositions", "config"]);
-
-/** A file whose own folder decides the locale scope: app/shared/compositions/config or a root support folder. */
-function forcesTopLevel(segments: string[]): boolean {
-  return FORCED_TOP_LEVEL.has(segments[0] ?? "") || SUPPORT_FOLDERS.has(segments[0] ?? "");
+interface Reader {
+  file: string;
+  segments: string[];
 }
 
-interface Placement {
-  kind: "top" | "nested";
-  line: number;
-}
-
-/**
- * Where each top-level key of the exported `locales` object lives: directly on
- * the object ("top") or as a namespaced object ("nested").
- */
-function localePlacement(text: string): Map<string, Placement> | undefined {
-  const sourceFile = ts.createSourceFile("locales.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  for (const statement of sourceFile.statements) {
-    if (!ts.isVariableStatement(statement)) continue;
-    const isExported = (ts.getModifiers(statement) ?? []).some(
-      (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-    );
-    if (!isExported) continue;
-    for (const declaration of statement.declarationList.declarations) {
-      if (!ts.isIdentifier(declaration.name) || declaration.name.text !== "locales") continue;
-      if (!declaration.initializer || !ts.isObjectLiteralExpression(declaration.initializer)) continue;
-      const placement = new Map<string, Placement>();
-      for (const property of declaration.initializer.properties) {
-        if (!ts.isPropertyAssignment(property)) continue;
-        let name: string | undefined;
-        if (ts.isIdentifier(property.name)) name = property.name.text;
-        else if (ts.isStringLiteral(property.name)) name = property.name.text;
-        if (name === undefined) continue;
-        const line = sourceFile.getLineAndCharacterOfPosition(property.getStart(sourceFile)).line + 1;
-        placement.set(name, {
-          kind: ts.isObjectLiteralExpression(property.initializer) ? "nested" : "top",
-          line,
-        });
-      }
-      return placement;
-    }
+function expectedNamespace(readers: Reader[]): string {
+  const scopes = new Set<string>();
+  for (const reader of readers) {
+    const [folder, feature] = reader.segments;
+    if (folder === "features" && feature) {
+      scopes.add(feature.replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase()));
+    } else if (folder === "compositions") scopes.add("compositions");
+    else if (SHARED_FOLDERS.has(folder ?? "") || SUPPORT_FOLDERS.has(folder ?? "")) scopes.add("shared");
+    else scopes.add("shared");
   }
-  return undefined;
+  return scopes.size === 1 ? ([...scopes][0] ?? "shared") : "shared";
 }
 
 export const localePlacementRule: Rule.RuleModule = {
@@ -74,7 +41,7 @@ export const localePlacementRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require shared locales at the top level and single-feature locales in a namespaced object.",
+      description: "Enforce imported locale dictionaries and shared, compositions, and feature namespace ownership.",
     },
   },
   create(context) {
@@ -85,98 +52,69 @@ export const localePlacementRule: Rule.RuleModule = {
 
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
-
-    // The named locales object lives in src/locales/index.ts; the rule reports
-    // on that file, because the fix is in the definition.
     const localesFile = [...index.modules.keys()].find((candidate) => {
-      const candidateSegments = segmentsOf(candidate, sourceRoot);
-      return (
-        candidateSegments.length === 2 &&
-        candidateSegments[0] === "locales" &&
-        candidateSegments[1]?.startsWith("index.")
-      );
+      const parts = segmentsOf(candidate, sourceRoot);
+      return parts.length === 2 && parts[0] === "locales" && parts[1] === "index.ts";
     });
     if (!localesFile || file !== localesFile) return {};
 
-    const placement = localePlacement(readFileSync(localesFile, "utf8"));
-    if (!placement) return {};
-
-    const keyReaders = new Map<string, Set<string>>();
-    const keyFeatures = new Map<string, Set<string>>();
-    const keyForcedTopLevel = new Set<string>();
+    const { definitions, errors } = readLocaleDefinitions(localesFile);
+    const findings = [...errors];
+    const consumers = new Map<string, Reader[]>();
 
     for (const [candidateFile, module] of index.modules) {
       if (candidateFile === localesFile) continue;
+      const candidateSegments = segmentsOf(candidateFile, sourceRoot);
+      if (candidateSegments[0] !== "locales") {
+        const bypassesIndex = module.imports.some((moduleImport) => {
+          const resolved = resolveSpecifier(candidateFile, moduleImport.specifier, sourceRoot);
+          if (!resolved) return false;
+          const target = segmentsOf(resolved, sourceRoot);
+          return target[0] === "locales" && target.length > 1 && target[1] !== "index.ts";
+        });
+        if (bypassesIndex) findings.push(`Locale dictionaries must be imported through src/locales/index.ts. ${DOC}`);
+      }
       const importsLocales = module.imports.some(
         (moduleImport) => resolveSpecifier(candidateFile, moduleImport.specifier, sourceRoot) === localesFile,
       );
       if (!importsLocales) continue;
 
-      const candidateSegments = segmentsOf(candidateFile, sourceRoot);
       for (const match of readFileSync(candidateFile, "utf8").matchAll(LOCALE_ACCESS)) {
+        const namespace = match.groups?.namespace;
         const key = match.groups?.key;
-        if (key === undefined) continue;
-        const readers = keyReaders.get(key) ?? new Set<string>();
-        readers.add(candidateFile);
-        keyReaders.set(key, readers);
-
-        if (candidateSegments[0] === "features" && candidateSegments.length >= 2) {
-          const features = keyFeatures.get(key) ?? new Set<string>();
-          features.add(candidateSegments[1] ?? "");
-          keyFeatures.set(key, features);
-        } else if (forcesTopLevel(candidateSegments)) {
-          keyForcedTopLevel.add(key);
+        if (!namespace) continue;
+        if (!key) {
+          findings.push(`Locale access locales.${namespace} must use a namespace and key. ${DOC}`);
+          continue;
         }
+        if (!definitions.get(namespace)?.keys.has(key)) {
+          findings.push(`Locale locales.${namespace}.${key} is not defined in a registered dictionary. ${DOC}`);
+          continue;
+        }
+
+        const name = `${namespace}.${key}`;
+        const entries = consumers.get(name) ?? [];
+        entries.push({ file: candidateFile, segments: segmentsOf(candidateFile, sourceRoot) });
+        consumers.set(name, entries);
       }
     }
 
-    const findings: { line: number; message: string }[] = [];
-
-    for (const [key, readers] of keyReaders) {
-      const features = keyFeatures.get(key) ?? new Set<string>();
-      const shared = features.size > 1 || keyForcedTopLevel.has(key);
-      const current = placement.get(key);
-
-      if (shared) {
-        if (current?.kind === "nested") {
-          findings.push({
-            line: current.line,
-            message:
-              `Locale "${key}" is read by ${describeConsumers([...readers], sourceRoot)} and must live ` +
-              "at the top level of locales. See docs/next-codebase-guide/rules/locales-rule.md",
-          });
-        }
-        continue;
-      }
-
-      if (features.size !== 1) continue;
-      const featureName = [...features][0] ?? "";
-      const expected = camelCase(featureName);
-
-      if (current?.kind === "top") {
-        findings.push({
-          line: current.line,
-          message:
-            `Locale "${key}" is read only by the ${featureName} feature; it must live in an object ` +
-            `named "${expected}". See docs/next-codebase-guide/rules/locales-rule.md`,
-        });
-      } else if (current?.kind === "nested" && key !== expected) {
-        findings.push({
-          line: current.line,
-          message:
-            `Locale "${key}" is read only by the ${featureName} feature; it must live in an object ` +
-            `named "${expected}", not "${key}". See docs/next-codebase-guide/rules/locales-rule.md`,
-        });
-      }
+    for (const [name, readers] of consumers) {
+      const currentNamespace = name.split(".")[0] ?? "";
+      const expected = expectedNamespace(readers);
+      if (currentNamespace === expected) continue;
+      findings.push(
+        `Locale ${name} is read by ${describeConsumers(
+          readers.map((reader) => reader.file),
+          sourceRoot,
+        )} and must live in the ${expected} namespace. ${DOC}`,
+      );
     }
 
     if (findings.length === 0) return {};
-
     return {
       Program(node) {
-        for (const finding of findings) {
-          context.report({ node, loc: { line: finding.line, column: 0 }, message: finding.message });
-        }
+        for (const message of findings) context.report({ node, message });
       },
     };
   },

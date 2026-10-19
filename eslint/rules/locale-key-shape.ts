@@ -73,10 +73,18 @@ const CAMEL_CASE = /^[a-z][a-zA-Z0-9]*$/;
 /** A key uses the Latin alphabet only (English). ASCII separators pass through to the camelCase check. */
 const ENGLISH = /^[A-Za-z0-9_]*$/;
 
-function isLocalesFile(filename: string): boolean {
+function dictionaryName(filename: string): string | undefined {
   const segments = path.resolve(filename).split(path.sep);
   const srcIdx = segments.lastIndexOf("src");
-  return srcIdx !== -1 && segments[srcIdx + 1] === "locales";
+  if (srcIdx < 0 || segments[srcIdx + 1] !== "locales") return undefined;
+  const remaining = segments.slice(srcIdx + 2);
+  if (remaining.length === 1 && ["shared.ts", "compositions.ts"].includes(remaining[0] ?? "")) {
+    return remaining[0]?.slice(0, -3);
+  }
+  if (remaining.length === 2 && remaining[0] === "features" && /^[a-z][a-z0-9-]*\.ts$/.test(remaining[1] ?? "")) {
+    return remaining[1]?.slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
+  }
+  return undefined;
 }
 
 function keyName(key: ESTree.Property["key"]): string | undefined {
@@ -152,9 +160,10 @@ export const localeKeyShapeRule: Rule.RuleModule = {
     },
   },
   create(context) {
-    if (!isLocalesFile(context.filename)) return {};
+    const dictionary = dictionaryName(context.filename) ?? "";
+    if (!dictionary) return {};
 
-    function visitObject(node: ESTree.ObjectExpression, namespace?: string): void {
+    function visitObject(node: ESTree.ObjectExpression): void {
       for (const property of node.properties) {
         if (property.type !== "Property") continue;
         const name = keyName(property.key);
@@ -162,16 +171,15 @@ export const localeKeyShapeRule: Rule.RuleModule = {
 
         const nested = localeObject(property.value);
         if (nested) {
-          if (namespace !== undefined) {
-            reportFor(
-              context,
-              property,
-              `Locale "${namespace}.${name}" must not be a nested object. Keep string keys directly inside the "${namespace}" feature namespace. See docs/next-codebase-guide/rules/locales-rule.md`,
-            );
-          } else {
-            visitObject(nested, name);
-          }
-        } else if (property.value.type === "Literal" && typeof property.value.value === "string") {
+          reportFor(
+            context,
+            property,
+            `Locale "${dictionary}.${name}" must not be a nested object. Keep string keys directly inside the "${dictionary}" namespace. See docs/next-codebase-guide/rules/locales-rule.md`,
+          );
+        } else if (
+          (property.value.type === "Literal" && typeof property.value.value === "string") ||
+          (property.value.type === "TemplateLiteral" && property.value.expressions.length === 0)
+        ) {
           checkKey(context, property, name);
         }
       }
@@ -179,7 +187,7 @@ export const localeKeyShapeRule: Rule.RuleModule = {
 
     return {
       VariableDeclarator(node) {
-        if (node.id.type !== "Identifier" || node.id.name !== "locales") return;
+        if (node.id.type !== "Identifier" || node.id.name !== dictionary) return;
         const root = localeObject(node.init);
         if (!root) return;
         visitObject(root);

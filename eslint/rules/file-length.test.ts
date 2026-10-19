@@ -7,11 +7,11 @@ const sourceWithLines = (lineCount: number): string =>
 const localeSourceWithLines = (lineCount: number): string =>
   `export const locales = {\n${Array.from({ length: lineCount }, (_, index) => `  key${String(index)}: "text",`).join("\n")}\n} as const;`;
 
-void describe("A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines. The canonical `src/locales/index.ts` file MAY exceed 300 lines only when its sole declaration is the exported `locales` dictionary required by the Locales Rule.", () => {
+void describe("A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines, including every file in `src/locales/`.", () => {
   ruleTester.run("file-length", fileLengthRule, {
     valid: [
       {
-        code: localeSourceWithLines(301),
+        code: localeSourceWithLines(298),
         filename: srcFile("locales/index.ts"),
       },
       {

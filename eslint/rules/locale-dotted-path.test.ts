@@ -1,12 +1,16 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localeDottedPathRule } from "./locale-dotted-path";
 
-void describe("A namespaced locale MUST be read through its full dotted path (locales.<feature>.<key>).", () => {
+void describe("A namespaced locale MUST be read through its full dotted path (`locales.<namespace>.<key>`).", () => {
   ruleTester.run("locale-dotted-path", localeDottedPathRule, {
     valid: [
       {
         code: "const title = locales.stream.watchLiveStream;",
         filename: "/project/src/features/stream/component.tsx",
+      },
+      {
+        code: "const cancel = locales.shared.cancel; const confirm = locales.compositions.confirmDelete;",
+        filename: "/project/src/compositions/delete-dialog.tsx",
       },
       {
         code: "const { stream } = locales;",

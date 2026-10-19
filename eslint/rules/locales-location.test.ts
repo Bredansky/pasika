@@ -1,7 +1,7 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localesLocationRule } from "./locales-location";
 
-void describe("All locales MUST live in the named locales object exported from src/locales/index.ts.", () => {
+void describe("User-facing strings outside `src/locales/` MUST be read from the public `locales` object instead of defined inline in JSX, props, toast calls, or component dictionaries.", () => {
   ruleTester.run("locales-location", localesLocationRule, {
     valid: [
       {

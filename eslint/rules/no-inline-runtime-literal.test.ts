@@ -5,7 +5,7 @@ const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static JSX `data-component` marker strings, string entries in the exported `locales` object at `src/locales/index.ts`, and statically analyzable `config.matcher` literals in the root `src/middleware.ts` or `src/proxy.ts` are exempt. Ambient TypeScript `declare module` specifiers are syntax, not runtime values.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static JSX `data-component` marker strings, direct string entries in named locale dictionaries under `src/locales/`, and statically analyzable `config.matcher` literals in the root `src/middleware.ts` or `src/proxy.ts` are exempt. Ambient TypeScript `declare module` specifiers are syntax, not runtime values.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -56,16 +56,20 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'const View = () => <Canvas className={active ? "mt-2" : "mt-4"} />;' },
       { filename: srcFile("features/editor/screen.test.tsx"), code: 'const value = ["inline-in-tests"];' },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { welcome: "Ласкаво просимо", settings: { save: "Зберегти" } };',
+        filename: srcFile("locales/shared.ts"),
+        code: 'export const shared = { welcome: "Ласкаво просимо" };',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { common: { cancel: "Cancel" }, save: "Save" } as const;',
+        filename: srcFile("locales/compositions.ts"),
+        code: 'export const compositions = { cancel: "Cancel", save: "Save" } as const;',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { save: "Save" } satisfies Record<string, string>;',
+        filename: srcFile("locales/features/stream.ts"),
+        code: 'export const stream = { save: "Save" } satisfies Record<string, string>;',
+      },
+      {
+        filename: srcFile("locales/features/user-settings.ts"),
+        code: 'export const userSettings = { saveChanges: "Save changes" } as const;',
       },
       {
         filename: srcFile("features/mocks/utils/draft-preview-mock.test.ts"),
@@ -80,14 +84,14 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: 'const mock = new Headers({ "Content-Type": "image/png" });',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: "export const locales = { greeting: `Hello` };",
+        filename: srcFile("locales/shared.ts"),
+        code: "export const shared = { greeting: `Hello` };",
       },
     ],
     invalid: [
       {
-        filename: srcFile("locales/index.ts"),
-        code: `export const locales = { greeting: \`Hello \${name}\` };`,
+        filename: srcFile("locales/shared.ts"),
+        code: `export const shared = { greeting: \`Hello \${name}\` };`,
         errors: [{ message: MESSAGE }],
       },
       {
@@ -101,28 +105,28 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { save: "Save" }; send("not a translation");',
+        filename: srcFile("locales/shared.ts"),
+        code: 'export const shared = { save: "Save" }; send("not a translation");',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'const locales = { save: "Save" };',
+        filename: srcFile("locales/shared.ts"),
+        code: 'const shared = { save: "Save" };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { nested: { deeper: { invalid: "too deep" } } };',
+        filename: srcFile("locales/shared.ts"),
+        code: 'export const shared = { nested: { deeper: { invalid: "too deep" } } };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: "export const locales = { retries: 3 };",
+        filename: srcFile("locales/shared.ts"),
+        code: "export const shared = { retries: 3 };",
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { good: "Saved", bad: format("inline") };',
+        filename: srcFile("locales/shared.ts"),
+        code: 'export const shared = { good: "Saved", bad: format("inline") };',
         errors: [{ message: MESSAGE }],
       },
       {

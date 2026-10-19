@@ -41,7 +41,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, user-settings becomes userSettings).", () => {
+void describe("Legacy inline and flattened locale declarations are rejected in favor of imported namespaces.", () => {
   ruleTester.run("locale-placement", localePlacementRule, {
     valid: [
       // A correctly namespaced key produces no report; the consumer file is
@@ -57,17 +57,21 @@ void describe("Locales read only by files in one feature folder MUST live in an 
         filename: file("locales/index.ts"),
         errors: [
           {
-            message: `Locale "watchLiveStream" is read only by the stream feature; it must live in an object named "stream". ${DOC}`,
+            message: "Locale index may contain only imports and the exported locales dictionary.",
           },
           {
-            message: `Locale "wrongNamespace" is read only by the user-settings feature; it must live in an object named "userSettings", not "wrongNamespace". ${DOC}`,
+            message: "Locale index must export a single const locales dictionary.",
           },
           {
-            message: `Locale "sharedLabels" is read by src/shared/save-button.tsx and must live at the top level of locales. ${DOC}`,
+            message: `Locale locales.stream.chatInput is not defined in a registered dictionary. ${DOC}`,
           },
           {
-            message: `Locale "supportLabels" is read by src/hooks/use-retry.ts and must live at the top level of locales. ${DOC}`,
+            message: `Locale access locales.watchLiveStream must use a namespace and key. ${DOC}`,
           },
+          { message: `Locale locales.wrongNamespace.title is not defined in a registered dictionary. ${DOC}` },
+          { message: `Locale locales.supportLabels.retry is not defined in a registered dictionary. ${DOC}` },
+          { message: `Locale access locales.orphan must use a namespace and key. ${DOC}` },
+          { message: `Locale locales.sharedLabels.save is not defined in a registered dictionary. ${DOC}` },
         ],
       },
     ],
