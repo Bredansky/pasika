@@ -1,12 +1,6 @@
 npx vulyk sync
 npx vulyk agents
-
-if ! git diff --quiet -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed ||
-  [ -n "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)" ]; then
-  echo "Vulyk generated unstaged changes. Review and stage them before committing."
-  git status --short -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
-  exit 1
-fi
+npx vulyk stage
 
 npx lint-staged
 npm run typecheck

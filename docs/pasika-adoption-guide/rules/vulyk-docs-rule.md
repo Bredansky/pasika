@@ -25,7 +25,7 @@ Why: the TypeScript project cannot resolve the type imported by `vulyk.config.ts
 {
   "devDependencies": {
     "typescript": "6.0.3",
-    "vulyk": "0.15.0"
+    "vulyk": "0.15.2"
   }
 }
 ```

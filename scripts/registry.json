@@ -1316,14 +1316,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "After Vulyk generation, the hook MUST fail on unstaged modifications or untracked files in `AGENTS.md`, `CLAUDE.md`, and `docs/managed`.",
-      "hash": "de835ec835",
-      "ref": "pasika/husky-hook"
-    },
-    {
-      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "The hook MUST NOT automatically stage Vulyk-generated agent or managed documentation files.",
-      "hash": "924fe0a314",
+      "text": "A repository with `vulyk.config.ts` MUST run `npx vulyk stage` after `npx vulyk agents` and before `lint-staged` in `.husky/pre-commit`.",
+      "hash": "185931d6aa",
       "ref": "pasika/husky-hook"
     },
     {

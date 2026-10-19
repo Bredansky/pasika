@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/husky-hook
  *
- * Enforces named pre-commit checks and explicit review of generated Vulyk
- * documentation and Vitest coverage configuration changes.
+ * Enforces named pre-commit checks, Vulyk-owned staging, and explicit
+ * review of Vitest coverage configuration changes.
  *
  * @see docs/pasika-adoption-guide/rules/husky-hook-rule.md
  */
@@ -89,29 +89,11 @@ export const huskyHookRule: JSONRuleDefinition = {
             });
           }
 
-          const vulykGuard =
-            /if\s+!\s+git\s+diff\s+--quiet\s+--[\s\S]*?git\s+ls-files\s+--others\s+--exclude-standard\s+--[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.exec(
-              commands,
-            );
-          const tracked = /git diff --quiet -- (?<paths>[^\r\n]*)/.exec(vulykGuard?.[0] ?? "")?.groups?.paths;
-          const untracked = /git ls-files --others --exclude-standard -- (?<paths>[^\r\n)]*)/.exec(
-            vulykGuard?.[0] ?? "",
-          )?.groups?.paths;
-          const outputPaths = ["AGENTS.md", "CLAUDE.md", "docs/managed"];
-          const hasPaths = outputPaths.every((output) => tracked?.includes(output) && untracked?.includes(output));
-          if (!hasPaths || !vulykGuard || vulykGuard.index <= agentsIndex || vulykGuard.index >= stagedIndex) {
+          const stageIndex = commands.search(/\bnpx\s+vulyk\s+stage\b/);
+          if (stageIndex <= agentsIndex || stageIndex >= stagedIndex) {
             context.report({
               node,
-              message: ".husky/pre-commit must reject unstaged and untracked Vulyk-generated files before lint-staged.",
-            });
-          }
-          if (
-            autoStageAll ||
-            /\bgit\s+add\s+(?:-A\s+|--all\s+|--\s+)?(?:AGENTS\.md|CLAUDE\.md|docs\/managed)\b/.test(commands)
-          ) {
-            context.report({
-              node,
-              message: ".husky/pre-commit must not auto-stage Vulyk-generated files.",
+              message: ".husky/pre-commit must run npx vulyk stage after agents and before lint-staged.",
             });
           }
         }

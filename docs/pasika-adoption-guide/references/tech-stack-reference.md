@@ -155,9 +155,9 @@ Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package
 
 ## Husky Configuration
 
-Husky runs local checks and may rewrite generated documentation, staged source files, and coverage thresholds. Contributors explicitly review and stage Vulyk-generated files and coverage updates; repositories tracking `eslint-suppressions.json` also prune and stage that suppression file.
+Husky runs local checks and may rewrite generated documentation, staged source files, and coverage thresholds. `npx vulyk stage` stages only Vulyk-owned output; coverage updates remain subject to explicit review, and repositories tracking `eslint-suppressions.json` also prune and stage that suppression file.
 
-Pasika's own `.husky/pre-commit` first runs `npx vulyk sync` and `npx vulyk agents`, then rejects unstaged or untracked generated files (`AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/managed`). It runs `npx lint-staged`, `npm run typecheck`, `npm run test:requirements`, and `npm run test:unit:coverage`, rejects unstaged changes to `vitest.config.ts`, then runs `npx libyear --limit-major-individual=1 --no-pre-releases` **on every commit**. Other repositories should check their own generated output paths.
+Pasika's own `.husky/pre-commit` runs `npx vulyk sync`, `npx vulyk agents`, and `npx vulyk stage`, then `npx lint-staged`, `npm run typecheck`, `npm run test:requirements`, and `npm run test:unit:coverage`. It rejects unstaged changes to `vitest.config.ts` and runs `npx libyear --limit-major-individual=1 --no-pre-releases` **on every commit**. The Vulyk command derives generated paths from its own state; no repository-specific path list is needed.
 
 ## lint-staged Wiring
 

@@ -18,7 +18,7 @@ Run this once, when a repository starts using the framework. The Next.js steps â
 10. Configure repository-wide and staged-file linting per the [Lint Setup Rule](rules/lint-setup-rule.md) so `npm run lint` checks the full repository while lint-staged passes only changed lintable files to ESLint.
 11. Configure the git hook per the [Husky Hook Rule](rules/husky-hook-rule.md) so the staged-file, typecheck, suppression-ratchet, coverage-gated test, and drift checks run before every commit.
 12. Declare and configure the test runner per the [Vitest Coverage Rule](rules/vitest-coverage-rule.md) so the unit-test scripts, coverage packages, and thresholds actually gate the test run.
-13. Run `npx vulyk init`, `npx vulyk add`, and `npx vulyk agents` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's required tracked docs from `pasika` and the agent files that route to them are generated.
+13. Run `npx vulyk init`, `npx vulyk add`, `npx vulyk agents`, and `npx vulyk stage` per the [Vulyk Docs Rule](rules/vulyk-docs-rule.md) so the repository's `vulyk.config.ts` tracks the framework's required tracked docs from `pasika` and the agent files that route to them are generated.
 14. Run `npm run lint -- --fix --suppress-all` so fixable violations are fixed and the remaining ones are suppressed until the repository is ready for them, keeping every rule enforced for new code.
 
 ## How To Update a Repository to the Latest Framework Release
