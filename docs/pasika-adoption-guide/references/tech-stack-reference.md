@@ -180,30 +180,38 @@ Every named `*:staged` script is wired into `lint-staged` against the glob it ap
 
 ## CI (Recommended, Not Enforced)
 
-No pasika rule checks CI workflow files today; CI verifies committed output without fixing or staging files. Pasika uses GitHub Actions `Checks` for pull requests and `main`, and `Publish Package` for release tags.
+No pasika rule checks CI workflow files today; CI verifies committed output without fixing or staging files. Pasika declares validation once in `.github/workflows/checks.yml`, which runs for pull requests and pushes to `main` and can be called by the release workflow.
 
-After checkout, Node setup, and `npm ci`, both workflows run these checks (the generated paths are specific to this repository):
+The shared checks workflow enables reuse through `workflow_call`:
 
 ```yaml
-- name: Verify generated Vulyk files
-  run: |
-    git worktree add --detach "$RUNNER_TEMP/pasika-vulyk-check" HEAD
-    ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/pasika-vulyk-check/node_modules"
-    cd "$RUNNER_TEMP/pasika-vulyk-check"
-    npx --no-install vulyk sync
-    npx --no-install vulyk agents
-    git diff --exit-code -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
-    test -z "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)"
-- run: npm run format
-- run: npm run lint
-- run: npm run typecheck
-- run: npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false
-- run: git diff --exit-code -- vitest.config.ts
-- run: npm run test:requirements
-- run: npm run build
+# .github/workflows/checks.yml
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
 ```
 
-Vulyk generation runs in an isolated temporary worktree, leaving the checked-out source unchanged; coverage thresholds are checked without updating `vitest.config.ts`. The publishing workflow also runs `npm publish` on release tags and creates a GitHub Release after successful publication. Dependency drift (`libyear`) and suppression pruning belong to the local hook, not the CI checks. This division is a recommended pattern for adopters, not a new framework requirement.
+The tag-triggered `.github/workflows/publish.yml` calls that workflow and makes publishing depend on successful validation:
+
+```yaml
+# jobs in .github/workflows/publish.yml
+checks:
+  uses: ./.github/workflows/checks.yml
+  permissions:
+    contents: read
+publish:
+  needs: checks
+  runs-on: ubuntu-latest
+  permissions:
+    contents: read
+    id-token: write
+```
+
+The shared job checks Vulyk output, formatting, lint, types, unit coverage, coverage configuration, requirements, and the build. Vulyk generates files only in an isolated temporary worktree, and coverage runs with `--coverage.thresholds.autoUpdate=false`, so CI does not rewrite the primary checkout.
+
+The separate publishing job checks out the release tag, installs dependencies, and runs `npm publish`; the package's `prepack` script builds the publishable output. A GitHub Release is created only after publication succeeds. Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. This CI layout is a recommended pattern for adopters, not a new framework requirement.
 
 ## Not Declared
 

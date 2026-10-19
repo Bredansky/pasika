@@ -6,12 +6,20 @@ on:
       - "v*"
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+
   publish:
+    needs: checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Check out repository
@@ -34,37 +42,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Verify generated Vulyk files
-        run: |
-          git worktree add --detach "$RUNNER_TEMP/pasika-vulyk-check" HEAD
-          ln -s "$GITHUB_WORKSPACE/node_modules" "$RUNNER_TEMP/pasika-vulyk-check/node_modules"
-          cd "$RUNNER_TEMP/pasika-vulyk-check"
-          npx --no-install vulyk sync
-          npx --no-install vulyk agents
-          git diff --exit-code -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed
-          test -z "$(git ls-files --others --exclude-standard -- AGENTS.md CLAUDE.md docs/AGENTS.md docs/managed)"
-
-      - name: Format
-        run: npm run format
-
-      - name: Build package
-        run: npm run build
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Verify unit coverage
-        run: npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false
-
-      - name: Verify coverage thresholds are committed
-        run: git diff --exit-code -- vitest.config.ts
-
-      - name: Verify requirements
-        run: npm run test:requirements
 
       - name: Publish to npm
         env:
