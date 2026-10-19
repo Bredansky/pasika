@@ -308,8 +308,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines, including every file in `src/locales/`.",
-      "hash": "9d66e22314",
+      "text": "A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines.",
+      "hash": "3e2dd1d91e",
       "ref": "pasika/file-length"
     },
     {
