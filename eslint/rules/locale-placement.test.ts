@@ -48,7 +48,7 @@ function verify(overrides: Record<string, string | null> = {}, messages: RegExp[
   });
 }
 
-void describe("User-facing text MUST be stored as static strings in flat dictionaries under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Text used only in one feature MUST go in that feature's dictionary; all other text MUST go in `global.ts`, with no duplicate strings across dictionaries. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
+void describe("User-facing text MUST be defined as static strings in flat dictionaries, each in its own file directly under `src/locales/`: `global.ts` or `<feature-name>.ts`. Nested objects, dynamic values, and unrelated declarations are not allowed.", () => {
   verify();
   verify({
     "compositions/stream-page-content.tsx":
@@ -70,25 +70,9 @@ void describe("User-facing text MUST be stored as static strings in flat diction
   verify({ "locales/features/legacy.ts": 'export const legacy = { label: "Old" };' }, [
     /Locale dictionaries must live directly in src\/locales\/; nested folder features is not allowed/,
   ]);
-  verify(
-    {
-      "features/stream/player.tsx":
-        'import { stream } from "@/locales/stream"; export const player = stream.watchLiveStream;',
-    },
-    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
-  );
-  verify(
-    {
-      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.missing;',
-    },
-    [/Locale locales.missing is not defined in the global dictionary/],
-  );
-  verify(
-    {
-      "features/stream/player.tsx": 'import { locales } from "@/locales"; export const player = locales.stream;',
-    },
-    [/Locale access locales.stream must include a feature key/],
-  );
+});
+
+void describe("Text used only within one feature MUST go in that feature's `<feature-name>.ts` dictionary. Text used outside that feature MUST go in `global.ts`. Identical strings MUST NOT appear in different dictionaries.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
       "export const locales = { ...global, stream } as const;",
@@ -257,6 +241,28 @@ export const locales = { ...global, stream, shared, compositions } as const;`,
       /Imported locale dictionary shared is not exposed in locales/,
       /Imported locale dictionary compositions is not exposed in locales/,
     ],
+  );
+});
+
+void describe("Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` directly. User-facing text MUST NOT appear inline in JSX, props, toasts, or component dictionaries.", () => {
+  verify(
+    {
+      "features/stream/player.tsx":
+        'import { stream } from "@/locales/stream"; export const player = stream.watchLiveStream;',
+    },
+    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
+  );
+  verify(
+    {
+      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.missing;',
+    },
+    [/Locale locales.missing is not defined in the global dictionary/],
+  );
+  verify(
+    {
+      "features/stream/player.tsx": 'import { locales } from "@/locales"; export const player = locales.stream;',
+    },
+    [/Locale access locales.stream must include a feature key/],
   );
 });
 

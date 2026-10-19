@@ -6,7 +6,7 @@ const navigationFile = srcFile("locales/navigation.ts");
 const featureFile = srcFile("locales/editor.ts");
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("User-facing text MUST be stored as static strings in flat dictionaries under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Text used only in one feature MUST go in that feature's dictionary; all other text MUST go in `global.ts`, with no duplicate strings across dictionaries. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
+void describe("User-facing text MUST be defined as static strings in flat dictionaries, each in its own file directly under `src/locales/`: `global.ts` or `<feature-name>.ts`. Nested objects, dynamic values, and unrelated declarations are not allowed.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
       { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" } as const;' },

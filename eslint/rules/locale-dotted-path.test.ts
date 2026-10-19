@@ -1,7 +1,7 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localeDottedPathRule } from "./locale-dotted-path";
 
-void describe("User-facing text MUST be stored as static strings in flat dictionaries under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Text used only in one feature MUST go in that feature's dictionary; all other text MUST go in `global.ts`, with no duplicate strings across dictionaries. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
+void describe("Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` directly. User-facing text MUST NOT appear inline in JSX, props, toasts, or component dictionaries.", () => {
   ruleTester.run("locale-dotted-path", localeDottedPathRule, {
     valid: [
       {
