@@ -156,12 +156,9 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
       errors.push("Locale index must spread global keys into the top level.");
       continue;
     }
-    if (name !== "global") {
-      const folder = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-      if (!existsSync(path.join(root, "..", "features", folder))) {
-        errors.push(`Locale namespace ${name} must belong to a feature at src/features/${folder}/.`);
-        continue;
-      }
+    if (name === "shared" || name === "compositions") {
+      errors.push(`Locale namespace ${name} must not be used as a catch-all dictionary.`);
+      continue;
     }
     const expected = expectedPath(root, name);
     const actualImport = imports.get(name);
@@ -170,6 +167,10 @@ export function readLocaleDefinitions(indexFile: string): LocaleDefinitions {
       continue;
     }
     definitions.set(name, { namespace: name, file: expected, keys: validateDictionary(expected, name, errors) });
+  }
+
+  if (!definitions.has("global")) {
+    errors.push("Locale index must spread the global dictionary.");
   }
 
   for (const imported of imports.keys()) {

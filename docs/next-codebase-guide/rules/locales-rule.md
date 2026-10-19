@@ -52,4 +52,4 @@ locales.cancel;
 locales.stream.watchLiveStream;
 ```
 
-Why: global labels are accessible without a namespace, while feature ownership stays stable even when compositions consume the copy. Neither `shared` nor `compositions` needs a catch-all namespace.
+Why: global labels are accessible without a namespace, while feature ownership stays stable even when compositions consume the copy. Neither `shared` nor `compositions` needs a catch-all namespace. User-facing text includes accessibility labels and errors displayed in the UI; technical logs, API-only errors, and mock data are not translations unless shown to users. A feature namespace describes the meaning of its copy, not the location of its consumers or the existence of a matching feature directory.

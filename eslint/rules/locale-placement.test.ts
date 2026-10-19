@@ -96,6 +96,17 @@ export const locales = { ...global, stream, credentials } as const;`,
     "features/credentials/delete.tsx":
       'import { locales } from "@/locales"; export const action = locales.credentials.delete;',
   });
+  verify({
+    "locales/index.ts": INDEX.replace(
+      "export const locales = { ...global, stream } as const;",
+      `import { navigation } from "./navigation";
+export const locales = { ...global, stream, navigation } as const;`,
+    ),
+    "locales/navigation.ts": 'export const navigation = { menuButton: "Open menu" } as const;',
+    "app/dashboard/page.tsx":
+      'import { locales } from "@/locales"; export const title = locales.navigation.menuButton;',
+    "shared/navigation.tsx": 'import { locales } from "@/locales"; export const label = locales.navigation.menuButton;',
+  });
 });
 
 void describe("`src/locales/index.ts` MUST assemble and export one `locales` object, spreading the `global` dictionary into top-level keys and exposing feature dictionaries by their camelCase names (e.g., `user-settings` → `userSettings`), without defining translation strings inline.", () => {
@@ -105,12 +116,14 @@ void describe("`src/locales/index.ts` MUST assemble and export one `locales` obj
     },
     [
       /Locale index must expose feature dictionaries by name and spread only global/,
+      /Locale index must spread the global dictionary/,
       /Imported locale dictionary global is not exposed/,
       /Locale locales.cancel is not defined in the global dictionary/,
     ],
   );
   verify({ "locales/index.ts": INDEX.replace("{ ...global, stream }", "{ global, stream }") }, [
     /Locale index must spread global keys into the top level/,
+    /Locale index must spread the global dictionary/,
     /Imported locale dictionary global is not exposed/,
     /Locale locales.cancel is not defined in the global dictionary/,
   ]);
@@ -137,15 +150,36 @@ void describe("`src/locales/index.ts` MUST assemble and export one `locales` obj
       /Locale locales.cancel is not defined in the global dictionary/,
     ],
   );
-  verify({
-    "locales/global.ts": null,
-    "shared/button.tsx": "",
-    "locales/index.ts": `import { stream } from "./stream";
+  verify(
+    {
+      "locales/global.ts": null,
+      "shared/button.tsx": "",
+      "locales/index.ts": `import { stream } from "./stream";
 export const locales = { stream } as const;`,
-  });
+    },
+    [/Locale index must spread the global dictionary/],
+  );
   verify({ "locales/editor.ts": 'export const editor = { title: "Editor" };' }, [
     /Locale module editor.ts is not exposed in locales/,
   ]);
+  verify(
+    {
+      "locales/index.ts": INDEX.replace(
+        "export const locales = { ...global, stream } as const;",
+        `import { shared } from "./shared";
+import { compositions } from "./compositions";
+export const locales = { ...global, stream, shared, compositions } as const;`,
+      ),
+      "locales/shared.ts": 'export const shared = { save: "Save" } as const;',
+      "locales/compositions.ts": 'export const compositions = { save: "Save" } as const;',
+    },
+    [
+      /Locale namespace shared must not be used as a catch-all dictionary/,
+      /Locale namespace compositions must not be used as a catch-all dictionary/,
+      /Imported locale dictionary shared is not exposed in locales/,
+      /Imported locale dictionary compositions is not exposed in locales/,
+    ],
+  );
 });
 
 void describe("Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
