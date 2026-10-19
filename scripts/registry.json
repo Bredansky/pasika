@@ -422,8 +422,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values, static JSX `data-component` marker strings, direct string entries in named locale dictionaries under `src/locales/`, and statically analyzable `config.matcher` literals in the root `src/middleware.ts` or `src/proxy.ts` are exempt. Ambient TypeScript `declare module` specifiers are syntax, not runtime values.",
-      "hash": "bfd2804ff3",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js `config.matcher` values are exempt.",
+      "hash": "8af5d01241",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {
