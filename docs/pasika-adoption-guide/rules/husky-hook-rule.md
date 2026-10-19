@@ -68,7 +68,7 @@ npx vulyk stage
 npx lint-staged
 ```
 
-Why: Vulyk stages only its Git-trackable managed outputs, including deleted files, using its generated-file state instead of hardcoded paths. Ignored, untracked files and unrelated source changes stay unstaged; contributors can review generated changes with `git diff --cached`. GitHub Actions runs its separate verification-only checks according to the CI Checks Rule.
+Why: Vulyk stages only tracked managed outputs, including deletions, leaving ignored, untracked, and unrelated changes unstaged for review with `git diff --cached`. GitHub Actions runs separate verification checks under the CI Checks Rule.
 
 ## Incorrect — Coverage Changes Are Added Automatically
 

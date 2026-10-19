@@ -13,6 +13,7 @@ Rules without a consistent creation process invent their own structure and enfor
 - A bullet MUST NOT define a term, and a term a reader needs in order to apply the Rule MUST be defined in a Reference instead.
 - A Rule MUST place its first Incorrect/Correct example immediately after the requirement bullet list, without intervening prose or other blocks.
 - A Rule MUST contain at least one Incorrect/Correct pair and MAY contain more than one.
+- A `Why:` explanation MUST contain no more than two sentences.
 - Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.
 - An Incorrect/Correct pair MUST add a concise description after an em dash in both headings, so readers can scan the examples by decision.
 - A Rule MUST NOT link to References, Guides, or other Rules.
@@ -135,3 +136,19 @@ Why: default exports obscure helper names; the export checker rejects them.
 ```
 
 Why: the requirement list leads directly into the example, and its supporting explanation belongs to the example.
+
+## Incorrect — Long Why Explanation
+
+```markdown
+Why: the first sentence explains the failure. The second adds context. The third repeats it.
+```
+
+Why: a long explanation makes the example harder to scan.
+
+## Correct — Short Why Explanation
+
+```markdown
+Why: the example breaks the rule. The explanation names the problem.
+```
+
+Why: two sentences give enough context without repeating the requirement.

@@ -26,6 +26,7 @@ import { rfcOnlyInBulletsRule } from "./rfc-only-in-bullets";
 import { rulePairedExamplesRule } from "./rule-paired-examples";
 import { supportDocumentPlacementRule } from "./support-document-placement";
 import { titleMatchesFileNameRule } from "./title-matches-file-name";
+import { whySentenceLimitRule } from "./why-sentence-limit";
 
 export const documentationRules = {
   "doc-kind-suffix": docKindSuffixRule,
@@ -36,6 +37,7 @@ export const documentationRules = {
   "guide-states-no-requirement": guideStatesNoRequirementRule,
   "requirement-present": requirementPresentRule,
   "rule-paired-examples": rulePairedExamplesRule,
+  "why-sentence-limit": whySentenceLimitRule,
   "example-heading-description": exampleHeadingDescriptionRule,
   "policy-no-examples": policyNoExamplesRule,
   "no-cross-document-link": noCrossDocumentLinkRule,

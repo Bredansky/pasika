@@ -94,4 +94,4 @@ jobs:
       - run: npm publish
 ```
 
-Why: publishing cannot start until the reusable checks complete successfully. The referenced path names this repository's workflow, not a path required by Pasika; the rule resolves it from the workflows it finds. Husky still owns `vulyk sync`, `vulyk agents`, `vulyk stage`, autofixes, and local coverage ratcheting.
+Why: publishing waits for reusable checks, and the workflow path is resolved from this repository rather than required by Pasika. Husky still owns `vulyk sync`, `vulyk agents`, `vulyk stage`, autofixes, and local coverage updates.

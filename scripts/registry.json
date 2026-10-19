@@ -260,6 +260,12 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A `Why:` explanation MUST contain no more than two sentences.",
+      "hash": "42ab71fe50",
+      "ref": "pasika/why-sentence-limit"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.",
       "hash": "d5302643ce",
       "ref": "pasika/rule-paired-examples"

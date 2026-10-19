@@ -56,4 +56,4 @@ locales.nextStream;
 locales.stream.watchLiveStream;
 ```
 
-Why: consumer locations determine placement: stream-only strings stay in `stream`, while strings used in compositions or other scopes are global. No separate `shared` or `compositions` namespace is needed. User-facing text includes accessibility labels and UI errors; technical logs, API-only errors, and mock data do not need localization unless shown to users.
+Why: strings used only by one feature stay in its dictionary; all other strings go in `global.ts`. Only text shown to users, including accessibility labels and UI errors, needs localization.

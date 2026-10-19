@@ -76,7 +76,7 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 export const maxFileSize = 20 * 1024 * 1024;
 ```
 
-Why: numeric operands used to calculate a named constant or enum value are part of that named definition. The calculation is permitted here, but its literals are not permitted inline at call sites or inside unrelated object values. This exemption applies only to numeric arithmetic, not string concatenation such as `const path = "/api/" + segment`.
+Why: numeric operands may form a named constant or enum value, but the calculation's literals do not belong inline at call sites or in unrelated objects. This exception applies only to numeric arithmetic, not string concatenation such as `const path = "/api/" + segment`.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 
