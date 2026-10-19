@@ -7,13 +7,13 @@ import { localePlacementRule } from "./locale-placement";
 const INDEX = [
   'import { global } from "./global";',
   'import { stream } from "./stream";',
-  "export const locales = { ...global, stream } as const;",
+  "export const locales = { ...global, stream };",
 ].join(String.fromCharCode(10));
 
 const FIXTURE: Record<string, string> = {
   "locales/index.ts": INDEX,
-  "locales/global.ts": 'export const global = { cancel: "Cancel", nextStream: "Next stream" } as const;',
-  "locales/stream.ts": 'export const stream = { watchLiveStream: "Watch Live" } as const;',
+  "locales/global.ts": 'export const global = { cancel: "Cancel", nextStream: "Next stream" };',
+  "locales/stream.ts": 'export const stream = { watchLiveStream: "Watch Live" };',
   "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.cancel;',
   "compositions/stream-page-content.tsx":
     'import { locales } from "@/locales"; export const content = locales.nextStream;',
@@ -75,11 +75,11 @@ void describe("User-facing text MUST be defined as static strings in flat dictio
 void describe("Text used only within one feature MUST go in that feature's `<feature-name>.ts` dictionary. Text used outside that feature MUST go in `global.ts`. Identical strings MUST NOT appear in different dictionaries.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
-      "export const locales = { ...global, stream } as const;",
+      "export const locales = { ...global, stream };",
       `import { userSettings } from "./user-settings";
-export const locales = { ...global, stream, userSettings } as const;`,
+export const locales = { ...global, stream, userSettings };`,
     ),
-    "locales/user-settings.ts": 'export const userSettings = { saveChanges: "Save changes" } as const;',
+    "locales/user-settings.ts": 'export const userSettings = { saveChanges: "Save changes" };',
     "features/user-settings/page.tsx":
       'import { locales } from "@/locales"; export const save = locales.userSettings.saveChanges;',
     "features/user-settings/another.tsx": 'import { locales } from "@/locales"; export const cancel = locales.cancel;',
@@ -95,22 +95,22 @@ export const locales = { ...global, stream, userSettings } as const;`,
   );
   verify({
     "locales/index.ts": INDEX.replace(
-      "export const locales = { ...global, stream } as const;",
+      "export const locales = { ...global, stream };",
       `import { credentials } from "./credentials";
-export const locales = { ...global, stream, credentials } as const;`,
+export const locales = { ...global, stream, credentials };`,
     ),
-    "locales/credentials.ts": 'export const credentials = { delete: "Delete" } as const;',
+    "locales/credentials.ts": 'export const credentials = { delete: "Delete" };',
     "features/credentials/delete.tsx":
       'import { locales } from "@/locales"; export const action = locales.credentials.delete;',
   });
   verify(
     {
       "locales/index.ts": INDEX.replace(
-        "export const locales = { ...global, stream } as const;",
+        "export const locales = { ...global, stream };",
         `import { navigation } from "./navigation";
-export const locales = { ...global, stream, navigation } as const;`,
+export const locales = { ...global, stream, navigation };`,
       ),
-      "locales/navigation.ts": 'export const navigation = { menuButton: "Open menu" } as const;',
+      "locales/navigation.ts": 'export const navigation = { menuButton: "Open menu" };',
       "app/dashboard/page.tsx":
         'import { locales } from "@/locales"; export const title = locales.navigation.menuButton;',
       "shared/navigation.tsx":
@@ -145,11 +145,11 @@ export const locales = { ...global, stream, navigation } as const;`,
   verify(
     {
       "locales/index.ts": INDEX.replace(
-        "export const locales = { ...global, stream } as const;",
+        "export const locales = { ...global, stream };",
         `import { editor } from "./editor";
-export const locales = { ...global, stream, editor } as const;`,
+export const locales = { ...global, stream, editor };`,
       ),
-      "locales/editor.ts": 'export const editor = { watchLiveStream: "Watch Live" } as const;',
+      "locales/editor.ts": 'export const editor = { watchLiveStream: "Watch Live" };',
       "features/editor/display.tsx":
         'import { locales } from "@/locales"; export const label = locales.editor.watchLiveStream;',
     },
@@ -160,7 +160,7 @@ export const locales = { ...global, stream, editor } as const;`,
   verify(
     {
       "locales/global.ts":
-        'export const global = { cancel: "Cancel", nextStream: "Next stream", greeting: "Watch Live" } as const;',
+        'export const global = { cancel: "Cancel", nextStream: "Next stream", greeting: "Watch Live" };',
     },
     [
       /Locale text "Watch Live" is duplicated across dictionaries \(global.greeting, stream.watchLiveStream\); reuse one global key/,
@@ -200,8 +200,8 @@ void describe("`src/locales/index.ts` MUST import the dictionaries and export on
   verify(
     {
       "locales/index.ts": INDEX.replace(
-        "export const locales = { ...global, stream } as const;",
-        "export const locales = { ...global, stream } as const, unrelated = 1;",
+        "export const locales = { ...global, stream };",
+        "export const locales = { ...global, stream }, unrelated = 1;",
       ),
     },
     [
@@ -217,7 +217,7 @@ void describe("`src/locales/index.ts` MUST import the dictionaries and export on
       "shared/button.tsx": "",
       "compositions/stream-page-content.tsx": "",
       "locales/index.ts": `import { stream } from "./stream";
-export const locales = { stream } as const;`,
+export const locales = { stream };`,
     },
     [/Locale index must spread the global dictionary/],
   );
@@ -227,13 +227,13 @@ export const locales = { stream } as const;`,
   verify(
     {
       "locales/index.ts": INDEX.replace(
-        "export const locales = { ...global, stream } as const;",
+        "export const locales = { ...global, stream };",
         `import { shared } from "./shared";
 import { compositions } from "./compositions";
-export const locales = { ...global, stream, shared, compositions } as const;`,
+export const locales = { ...global, stream, shared, compositions };`,
       ),
-      "locales/shared.ts": 'export const shared = { save: "Save" } as const;',
-      "locales/compositions.ts": 'export const compositions = { save: "Save" } as const;',
+      "locales/shared.ts": 'export const shared = { save: "Save" };',
+      "locales/compositions.ts": 'export const compositions = { save: "Save" };',
     },
     [
       /Locale namespace shared must not be used as a catch-all dictionary/,

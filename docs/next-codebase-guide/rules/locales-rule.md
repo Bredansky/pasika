@@ -27,14 +27,14 @@ Why: the public index defines translations instead of importing dictionaries.
 export const global = {
   cancel: "Cancel",
   nextStream: "Next stream",
-} as const;
+};
 ```
 
 ```ts
 // src/locales/stream.ts
 export const stream = {
   watchLiveStream: "Watch live",
-} as const;
+};
 ```
 
 ```ts
@@ -42,7 +42,7 @@ export const stream = {
 import { global } from "./global";
 import { stream } from "./stream";
 
-export const locales = { ...global, stream } as const;
+export const locales = { ...global, stream };
 ```
 
 ```tsx

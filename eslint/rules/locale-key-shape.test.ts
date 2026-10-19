@@ -9,14 +9,14 @@ const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 void describe("User-facing text MUST be defined as static strings in flat dictionaries, each in its own file directly under `src/locales/`: `global.ts` or `<feature-name>.ts`. Nested objects, dynamic values, and unrelated declarations are not allowed.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
-      { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" } as const;' },
-      { filename: navigationFile, code: 'export const navigation = { confirmDelete: "Delete?" } as const;' },
-      { filename: featureFile, code: 'export const editor = { drafts: "Drafts" } as const;' },
+      { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" };' },
+      { filename: navigationFile, code: 'export const navigation = { confirmDelete: "Delete?" };' },
+      { filename: featureFile, code: 'export const editor = { drafts: "Drafts" };' },
     ],
     invalid: [
       {
         filename: featureFile,
-        code: 'export const editor = { draftStatuses: { new: "New" } } as const;',
+        code: 'export const editor = { draftStatuses: { new: "New" } };',
         errors: [
           {
             message: `Locale "editor.draftStatuses" must not be a nested object. Keep string keys directly inside the "editor" namespace. ${
