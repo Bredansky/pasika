@@ -48,7 +48,7 @@ function verify(overrides: Record<string, string | null> = {}, messages: RegExp[
   });
 }
 
-void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for shared or non-feature consumers and `<feature-name>.ts` for feature-only consumers, with no nested objects, dynamic values, or unrelated declarations.", () => {
+void describe("User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
   verify();
   verify({
     "compositions/stream-page-content.tsx":
@@ -70,9 +70,28 @@ void describe("User-facing locales MUST be defined as direct static string entri
   verify({ "locales/features/legacy.ts": 'export const legacy = { label: "Old" };' }, [
     /Locale dictionaries must live directly in src\/locales\/; nested folder features is not allowed/,
   ]);
+  verify(
+    {
+      "features/stream/player.tsx":
+        'import { stream } from "@/locales/stream"; export const player = stream.watchLiveStream;',
+    },
+    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
+  );
+  verify(
+    {
+      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.missing;',
+    },
+    [/Locale locales.missing is not defined in the global dictionary/],
+  );
+  verify(
+    {
+      "features/stream/player.tsx": 'import { locales } from "@/locales"; export const player = locales.stream;',
+    },
+    [/Locale access locales.stream must include a feature key/],
+  );
 });
 
-void describe("A locale used only under one `src/features/<feature-name>/` folder MUST belong to that feature namespace, even when used in multiple files. A locale used across features or anywhere outside that folder MUST be global. Identical text in different dictionaries MUST be consolidated into one global key rather than duplicated.", () => {
+void describe("Text used only in one feature MUST go in that feature's dictionary. Text used outside that feature MUST go in `global.ts`. Identical text MUST NOT appear in multiple dictionaries.", () => {
   verify({
     "locales/index.ts": INDEX.replace(
       "export const locales = { ...global, stream } as const;",
@@ -168,7 +187,7 @@ export const locales = { ...global, stream, editor } as const;`,
   );
 });
 
-void describe("`src/locales/index.ts` MUST assemble and export one `locales` object, spreading the `global` dictionary into top-level keys and exposing feature dictionaries by their camelCase names (e.g., `user-settings` → `userSettings`), without defining translation strings inline.", () => {
+void describe("`src/locales/index.ts` MUST import the dictionaries and export one `locales` object, with global keys at the top level and feature dictionaries under their camelCase names. It MUST NOT define translation strings directly.", () => {
   verify(
     {
       "locales/index.ts": INDEX.replace("{ ...global, stream }", '{ cancel: "Cancel", stream }'),
@@ -244,29 +263,7 @@ export const locales = { ...global, stream, shared, compositions } as const;`,
   );
 });
 
-void describe("Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
-  verify(
-    {
-      "features/stream/player.tsx":
-        'import { stream } from "@/locales/stream"; export const player = stream.watchLiveStream;',
-    },
-    [/Locale dictionaries must be imported through src\/locales\/index.ts/],
-  );
-  verify(
-    {
-      "shared/button.tsx": 'import { locales } from "@/locales"; export const button = locales.missing;',
-    },
-    [/Locale locales.missing is not defined in the global dictionary/],
-  );
-  verify(
-    {
-      "features/stream/player.tsx": 'import { locales } from "@/locales"; export const player = locales.stream;',
-    },
-    [/Locale access locales.stream must include a feature key/],
-  );
-});
-
-void describe("A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.", () => {
+void describe("Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.", () => {
   verify(
     {
       "locales/global.ts":

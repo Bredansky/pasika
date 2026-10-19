@@ -6,7 +6,7 @@ const navigationFile = srcFile("locales/navigation.ts");
 const featureFile = srcFile("locales/editor.ts");
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-void describe("User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for shared or non-feature consumers and `<feature-name>.ts` for feature-only consumers, with no nested objects, dynamic values, or unrelated declarations.", () => {
+void describe("User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
   ruleTester.run("locale-key-shape-namespace-depth", localeKeyShapeRule, {
     valid: [
       { filename: globalFile, code: 'export const global = { cancel: "Cancel", save: "Save" } as const;' },
@@ -29,7 +29,7 @@ void describe("User-facing locales MUST be defined as direct static string entri
   });
 });
 
-void describe("A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.", () => {
+void describe("Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.", () => {
   ruleTester.run("locale-key-shape", localeKeyShapeRule, {
     valid: [
       { filename: globalFile, code: 'export const global = { cancel: "Cancel", acceptAllCookies: "Accept" };' },

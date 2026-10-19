@@ -1,12 +1,11 @@
 # Locales Rule
 
-Scattered user-facing strings obscure reuse and make placement inconsistent. Keep strings used outside one feature flat and strings used only within one feature namespaced behind one public `locales` object.
+Keep user-facing text in `src/locales/` and use one `locales` object to access it. Choose the dictionary based on where the text is used.
 
-- User-facing locales MUST be defined as direct static string entries in named dictionaries under `src/locales/`: `global.ts` for shared or non-feature consumers and `<feature-name>.ts` for feature-only consumers, with no nested objects, dynamic values, or unrelated declarations.
-- A locale used only under one `src/features/<feature-name>/` folder MUST belong to that feature namespace, even when used in multiple files. A locale used across features or anywhere outside that folder MUST be global. Identical text in different dictionaries MUST be consolidated into one global key rather than duplicated.
-- `src/locales/index.ts` MUST assemble and export one `locales` object, spreading the `global` dictionary into top-level keys and exposing feature dictionaries by their camelCase names (e.g., `user-settings` → `userSettings`), without defining translation strings inline.
-- Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.
-- A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.
+- User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.
+- Text used only in one feature MUST go in that feature's dictionary. Text used outside that feature MUST go in `global.ts`. Identical text MUST NOT appear in multiple dictionaries.
+- `src/locales/index.ts` MUST import the dictionaries and export one `locales` object, with global keys at the top level and feature dictionaries under their camelCase names. It MUST NOT define translation strings directly.
+- Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.
 
 ## Incorrect — Inline Locale Definitions
 
@@ -20,7 +19,7 @@ export const locales = {
 
 Why: the public index defines translations instead of importing dictionaries.
 
-## Correct — Flat Global Labels And Feature Dictionaries
+## Correct — Global And Feature Dictionaries
 
 ```ts
 // src/locales/global.ts

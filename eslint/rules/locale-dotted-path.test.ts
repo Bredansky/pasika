@@ -1,7 +1,7 @@
 import { describe, ruleTester } from "../rule-tester";
 import { localeDottedPathRule } from "./locale-dotted-path";
 
-void describe("Consumers MUST import through `src/locales/index.ts` and read `locales.<key>` or `locales.<feature>.<key>` directly. User-facing strings outside `src/locales/` MUST use these paths instead of inline literals in JSX, props, toasts, or component dictionaries.", () => {
+void describe("User-facing text MUST be stored as static strings in flat dictionaries directly under `src/locales/`, with no nested objects, dynamic values, or unrelated declarations. Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` instead of inline text in JSX, props, toasts, or component dictionaries.", () => {
   ruleTester.run("locale-dotted-path", localeDottedPathRule, {
     valid: [
       {

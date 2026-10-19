@@ -90,5 +90,5 @@ Use this when adding or moving user-facing text.
 
 1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can tell whether the string belongs to one feature folder or to more than one.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
-3. Follow the [Locales Rule](rules/locales-rule.md) so the string is registered under the right key in `src/locales/index.ts`.
+3. Follow the [Locales Rule](rules/locales-rule.md) to put the string in the right dictionary under `src/locales/` and expose it through `index.ts`.
 4. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the locale module has predictable exports and import paths.
