@@ -54,6 +54,7 @@
     "test:requirements": "tsx scripts/coverage.ts",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage",
+    "test:unit:coverage:check": "npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false && git diff --exit-code -- vitest.config.ts",
     "test:unit:staged": "vitest related --run",
     "typecheck": "tsc --noEmit"
   },
