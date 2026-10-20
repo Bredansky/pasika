@@ -10,9 +10,12 @@ const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-single-route-"
 const file = (relative: string): string => path.join(root, "src", relative);
 
 const files: Record<string, string> = {
-  "features/stream/utils/get-only.ts": "export async function getOnly() { return { status: 'ok' }; }",
-  "features/stream/utils/get-shared.ts": "export async function getShared() { return { status: 'ok' }; }",
-  "features/stream/utils/get-route-shared.ts": "export async function getRouteShared() { return { status: 'ok' }; }",
+  "features/stream/utils/get-only.ts":
+    "export async function getOnly() { const auth = await getSession(); const status = await queryStatus(auth); return { status }; }",
+  "features/stream/utils/get-shared.ts":
+    "export async function getShared() { const auth = await getSession(); const status = await queryStatus(auth); return { status }; }",
+  "features/stream/utils/get-route-shared.ts":
+    "export async function getRouteShared() { const auth = await getSession(); const status = await queryStatus(auth); return { status }; }",
   "features/stream/utils/index.ts": 'export { getOnly } from "./get-only";',
   "features/stream/index.ts": 'export { getOnly } from "./utils";',
   "compositions/highlights.tsx":
@@ -46,14 +49,6 @@ void describe("A one-step `withResponse` handler MUST NOT delegate its entire re
 
   ruleTester.run("route-handler-shape", routeHandlerShapeRule, {
     valid: [
-      {
-        filename: ROUTE,
-        code: 'import { getShared } from "../../../features/stream/utils/get-shared"; export const GET = withResponse(contract, async () => ({ data: await getShared() }));',
-      },
-      {
-        filename: ROUTE,
-        code: 'import { getRouteShared } from "../../../features/stream/utils/get-route-shared"; export const GET = withResponse(contract, async () => ({ data: await getRouteShared() }));',
-      },
       {
         filename: ROUTE,
         code: 'import { getOnly } from "../../../features/stream/utils/get-only"; export const GET = withResponse(contract, async () => { const id = await getId(); return { data: await getOnly(id) }; });',
@@ -113,5 +108,21 @@ void describe("A one-step `withResponse` handler MUST NOT delegate its entire re
         errors: [{ message: SINGLE_USE }],
       },
     ],
+  });
+
+  void describe("A handler wrapped in `withResponse` MAY reuse a multi-step utility when it has another production consumer outside that handler.", () => {
+    ruleTester.run("route-handler-shape:shared-multi-step-utility", routeHandlerShapeRule, {
+      valid: [
+        {
+          filename: ROUTE,
+          code: 'import { getShared } from "../../../features/stream/utils/get-shared"; export const GET = withResponse(contract, async () => ({ data: await getShared() }));',
+        },
+        {
+          filename: ROUTE,
+          code: 'import { getRouteShared } from "../../../features/stream/utils/get-route-shared"; export const GET = withResponse(contract, async () => ({ data: await getRouteShared() }));',
+        },
+      ],
+      invalid: [],
+    });
   });
 });

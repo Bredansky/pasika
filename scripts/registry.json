@@ -812,9 +812,21 @@
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
-      "text": "A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.",
-      "hash": "17a3f78e7c",
-      "note": "Judgment: pasika/route-handler-shape catches the narrow case of single-use imported response forwarding, but reviewers must inspect other delegated calls. Syntax alone cannot distinguish a genuinely reusable operation from a hidden multi-step workflow."
+      "text": "A handler wrapped in `withResponse` MUST expose each step of a route-specific workflow as an awaited call to an imported function, rather than hide those steps inside a single-use utility.",
+      "hash": "d9cff64fae",
+      "note": "Whether a unique imported utility hides several route-specific workflow steps requires review; the single-response delegation case is lint-enforced."
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A handler wrapped in `withResponse` MAY reuse a multi-step utility when it has another production consumer outside that handler.",
+      "hash": "0daf18627b",
+      "ref": "pasika/route-handler-shape"
+    },
+    {
+      "doc": "next-codebase-guide/rules/route-handler-rule.md",
+      "text": "A one-step `withResponse` handler MUST NOT delegate its entire response to a single-use imported utility.",
+      "hash": "344c4b2dae",
+      "ref": "pasika/route-handler-shape"
     },
     {
       "doc": "next-codebase-guide/rules/route-handler-rule.md",
