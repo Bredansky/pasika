@@ -1375,12 +1375,6 @@
       "ref": "pasika/husky-hook"
     },
     {
-      "doc": "pasika-adoption-guide/rules/husky-hook-rule.md",
-      "text": "A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.",
-      "hash": "0fa6974c4b",
-      "ref": "pasika/husky-hook"
-    },
-    {
       "doc": "pasika-adoption-guide/rules/lint-setup-rule.md",
       "text": "A repository MUST declare a `lint` script in package.json that runs ESLint across the repository.",
       "hash": "212c221034",

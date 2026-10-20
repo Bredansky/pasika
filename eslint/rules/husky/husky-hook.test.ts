@@ -73,25 +73,25 @@ const BASE_SCRIPTS = {
   "test:unit:coverage": "vitest run --coverage",
 };
 
-void describe("A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.", () => {
+void describe("An optional test:requirements script does not need to run in .husky/pre-commit.", () => {
   const scripts = { ...BASE_SCRIPTS, "test:requirements": "tsx scripts/coverage.ts" };
-  const missing = buildFixture(BASE_HOOK);
-  process.chdir(path.dirname(missing));
+  const withoutRequirements = buildFixture(BASE_HOOK);
+  process.chdir(path.dirname(withoutRequirements));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [],
-    invalid: [
-      {
-        code: JSON.stringify({ scripts }),
-        filename: missing,
-        errors: [{ message: ".husky/pre-commit must run npm run test:requirements." }],
-      },
-    ],
+    valid: [{ code: JSON.stringify({ scripts }), filename: withoutRequirements }],
+    invalid: [],
   });
 
-  const present = buildFixture(BASE_HOOK.replace("npm run typecheck", "npm run typecheck\nnpm run test:requirements"));
-  process.chdir(path.dirname(present));
+  const withRequirements = buildFixture(
+    BASE_HOOK.replace(
+      "npm run typecheck",
+      `npm run typecheck
+npm run test:requirements`,
+    ),
+  );
+  process.chdir(path.dirname(withRequirements));
   huskyRuleTester.run("husky-hook", huskyHookRule, {
-    valid: [{ code: JSON.stringify({ scripts }), filename: present }],
+    valid: [{ code: JSON.stringify({ scripts }), filename: withRequirements }],
     invalid: [],
   });
 });

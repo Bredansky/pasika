@@ -12,7 +12,6 @@ A pre-commit hook only protects a repository when its checks run and generated c
 - A repository with `vulyk.config.ts` MUST run its pinned `npx vulyk sync` and `npx vulyk agents` before `lint-staged` in `.husky/pre-commit`.
 - A repository with `vulyk.config.ts` MUST run `npx vulyk stage` after `npx vulyk agents` and before `lint-staged` in `.husky/pre-commit`.
 - A repository that tracks `eslint-suppressions.json` MUST declare a `lint:prune` script in package.json, run it (`npm run lint:prune`) in `.husky/pre-commit`, and then stage the suppression file.
-- A repository declaring `test:requirements` MUST run it as a named script in `.husky/pre-commit`.
 
 ## Incorrect — Direct Commands Bypass Named Scripts
 
