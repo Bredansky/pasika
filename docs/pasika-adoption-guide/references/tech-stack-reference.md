@@ -158,7 +158,29 @@ Scripts the Lint Setup, Husky Hook, Vitest Coverage, and CI Checks Rules require
 
 Husky runs local checks and may rewrite generated documentation, staged source files, and coverage thresholds. `npx vulyk stage` stages only Vulyk-owned output; coverage updates remain subject to explicit review, and repositories tracking `eslint-suppressions.json` also prune and stage that suppression file.
 
-Pasika's own `.husky/pre-commit` runs `npx vulyk sync`, `npx vulyk agents`, and `npx vulyk stage`, then `npx lint-staged`, `npm run typecheck`, `npm run test:requirements`, and `npm run test:unit:coverage`. It rejects unstaged changes to `vitest.config.ts` and runs `npx libyear --limit-major-individual=1 --no-pre-releases` **on every commit**. The Vulyk command derives generated paths from its own state; no repository-specific path list is needed.
+Pasika's own `.husky/pre-commit`:
+
+```sh
+# .husky/pre-commit
+npx vulyk sync
+npx vulyk agents
+npx vulyk stage
+
+npx lint-staged
+npm run typecheck
+npm run test:requirements
+npm run test:unit:coverage
+
+if ! git diff --quiet -- vitest.config.ts; then
+  echo "Vitest configuration changed. Review and stage it before committing."
+  git status --short -- vitest.config.ts
+  exit 1
+fi
+
+npx libyear --limit-major-individual=1 --no-pre-releases
+```
+
+Vulyk derives generated paths from its own state, so the hook needs no repository-specific path list.
 
 ## lint-staged Wiring
 
