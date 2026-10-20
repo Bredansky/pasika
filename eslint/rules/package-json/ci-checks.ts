@@ -128,9 +128,7 @@ export const ciChecksRule: JSONRuleDefinition = {
 
         const scripts = scriptsOf(node.body);
         const requiredScripts = ["format", "lint", "typecheck", "test:unit:coverage:check"];
-        for (const optional of ["test:requirements", "build"]) {
-          if (scripts.has(optional)) requiredScripts.push(optional);
-        }
+        if (scripts.has("build")) requiredScripts.push("build");
 
         const checkJobs = Object.values(jobs(check));
         const allSteps = checkJobs.flatMap(steps);

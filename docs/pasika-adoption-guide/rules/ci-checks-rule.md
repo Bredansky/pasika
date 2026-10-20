@@ -4,7 +4,7 @@ CI that skips validation can let broken changes merge. This rule requires GitHub
 
 - A repository using GitHub Actions MUST run validation for pull requests and pushes to a named branch.
 - A repository using GitHub Actions MUST check out the source and install dependencies with `npm ci` before validation.
-- A repository using GitHub Actions MUST run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run test:unit:coverage:check`; when `build` or `test:requirements` scripts exist, CI MUST run those too.
+- A repository using GitHub Actions MUST run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run test:unit:coverage:check`; if a `build` script exists, CI MUST also run `npm run build`.
 - A repository using GitHub Actions MUST declare `test:unit:coverage:check` as a script that disables coverage threshold auto-updates and checks the Git diff after running aggregate coverage.
 
 ## Incorrect — Checks Skip Coverage And Formatting
@@ -25,7 +25,7 @@ jobs:
       - run: npm run typecheck
 ```
 
-Why: lint and typechecking alone miss formatting, coverage regressions, and any required build or requirement checks.
+Why: lint and typechecking alone miss formatting, coverage regressions, and the build check when available.
 
 ## Correct — Checks Run Named Scripts
 
@@ -45,7 +45,6 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:unit:coverage:check
-      - run: npm run test:requirements
       - run: npm run build
 ```
 

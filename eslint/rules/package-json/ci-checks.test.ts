@@ -6,7 +6,6 @@ import { describe, packageJsonRuleTester } from "./rule-tester";
 
 const CHECKS = [
   "on:",
-  "  workflow_call:",
   "  pull_request:",
   "  push:",
   "    branches: [main]",
@@ -20,7 +19,6 @@ const CHECKS = [
   "      - run: npm run lint",
   "      - run: npm run typecheck",
   "      - run: npm run test:unit:coverage:check",
-  "      - run: npm run test:requirements",
   "      - run: npm run build",
 ].join("\n");
 
@@ -68,7 +66,7 @@ void describe("A repository using GitHub Actions MUST run validation for pull re
   });
 
   const eventsWithoutBranches = fixture(
-    CHECKS.replace("on:\n  workflow_call:\n  pull_request:\n  push:\n    branches: [main]", "on: [pull_request, push]"),
+    CHECKS.replace("on:\n  pull_request:\n  push:\n    branches: [main]", "on: [pull_request, push]"),
   );
   process.chdir(path.dirname(eventsWithoutBranches));
   packageJsonRuleTester.run("ci-checks", ciChecksRule, {
@@ -136,7 +134,7 @@ void describe("A repository using GitHub Actions MUST check out the source and i
   });
 });
 
-void describe("A repository using GitHub Actions MUST run npm run format, npm run lint, npm run typecheck, and npm run test:unit:coverage:check; when build or test:requirements scripts exist, CI MUST run those too.", () => {
+void describe("A repository using GitHub Actions MUST run npm run format, npm run lint, npm run typecheck, and npm run test:unit:coverage:check; if a build script exists, CI MUST also run npm run build.", () => {
   const missingCoverage = fixture(
     CHECKS.replace("      - run: npm run test:unit:coverage:check", "      - run: npm run test:unit:coverage"),
   );
@@ -165,11 +163,9 @@ void describe("A repository using GitHub Actions MUST run npm run format, npm ru
     ],
   });
 
-  const noBuildScript = fixture(
-    CHECKS.replace("      - run: npm run build", "").replace("      - run: npm run test:requirements\n", ""),
-  );
+  const noBuildScript = fixture(CHECKS.replace("      - run: npm run build", ""));
   process.chdir(path.dirname(noBuildScript));
-  const { build: _build, "test:requirements": _requirements, ...appScripts } = SCRIPTS;
+  const { build: _build, ...appScripts } = SCRIPTS;
   packageJsonRuleTester.run("ci-checks", ciChecksRule, {
     valid: [{ filename: noBuildScript, code: JSON.stringify({ scripts: appScripts }) }],
     invalid: [],
