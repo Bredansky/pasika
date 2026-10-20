@@ -248,6 +248,12 @@
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A Rule MUST keep all requirement bullets in one uninterrupted list without blank lines between bullets.",
+      "hash": "25916640d9",
+      "ref": "pasika/rule-paired-examples"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
       "text": "A Rule MUST place its first Incorrect/Correct example immediately after the requirement bullet list, without intervening prose or other blocks.",
       "hash": "9189936531",
       "ref": "pasika/rule-paired-examples"
@@ -263,6 +269,12 @@
       "text": "A `Why:` explanation MUST contain no more than two sentences.",
       "hash": "42ab71fe50",
       "ref": "pasika/why-sentence-limit"
+    },
+    {
+      "doc": "documentation-guide/rules/rule-creation-rule.md",
+      "text": "A `Why:` explanation MUST be the final block of its example, followed only by the next Incorrect/Correct heading or the end of the Rule.",
+      "hash": "8a9d798424",
+      "ref": "pasika/rule-paired-examples"
     },
     {
       "doc": "documentation-guide/rules/rule-creation-rule.md",
@@ -685,6 +697,12 @@
       "ref": "pasika/no-mixed-concerns"
     },
     {
+      "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
+      "text": "A dynamic Next.js `page.tsx` or `layout.tsx` MAY export `generateStaticParams`; a static route MUST NOT export it.",
+      "hash": "580b32d23f",
+      "ref": "pasika/no-mixed-concerns"
+    },
+    {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.",
       "hash": "74f4efb1d9",
@@ -692,8 +710,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An import MUST NOT rename an imported symbol.",
-      "hash": "0b5a5b5b2b",
+      "text": "An import MUST NOT rename an imported symbol, except a named underscore-containing font loader from `next/font/google` MAY use a camelCase alias.",
+      "hash": "6f3df06c9f",
       "ref": "pasika/no-redundant-alias"
     },
     {

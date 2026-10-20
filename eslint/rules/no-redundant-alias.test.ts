@@ -124,7 +124,7 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
   });
 });
 
-void describe("An import MUST NOT rename an imported symbol.", () => {
+void describe("An import MUST NOT rename an imported symbol, except a named underscore-containing font loader from `next/font/google` MAY use a camelCase alias.", () => {
   ruleTester.run("no-redundant-alias:imports", noRedundantAliasRule, {
     valid: [
       {

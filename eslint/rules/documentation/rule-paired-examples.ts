@@ -44,11 +44,39 @@ export const rulePairedExamplesRule: MarkdownRuleDefinition = {
           (child, index) => index < firstExampleIndex && child.type === "list" && !child.ordered,
         );
         if (requirementsIndex !== -1) {
+          const requirements = node.children[requirementsIndex];
+          if (requirements?.type === "list" && requirements.spread) {
+            context.report({
+              node: requirements,
+              message: "Rule requirement bullets must form one uninterrupted list without blank lines",
+            });
+          }
           for (const child of node.children.slice(requirementsIndex + 1, firstExampleIndex)) {
             context.report({
               node: child,
               message: "Rule requirements must be followed directly by the first Incorrect/Correct example",
             });
+          }
+        }
+
+        // Once the explanation starts, an example cannot append unattached
+        // prose, code, or another block before the next example heading.
+        let inExample = false;
+        let afterWhy = false;
+        for (const child of node.children) {
+          if (child.type === "heading" && child.depth === 2) {
+            inExample = true;
+            afterWhy = false;
+            continue;
+          }
+          if (!inExample) continue;
+          if (afterWhy) {
+            context.report({
+              node: child,
+              message: "A Why explanation must be the final block of its example",
+            });
+          } else if (child.type === "paragraph" && getTextContent(child).trim().startsWith("Why:")) {
+            afterWhy = true;
           }
         }
 

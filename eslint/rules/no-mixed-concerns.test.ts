@@ -96,3 +96,30 @@ void describe("A `.tsx` file that defines a component MUST NOT contain a second 
     ],
   });
 });
+
+void describe("A dynamic Next.js `page.tsx` or `layout.tsx` MAY export `generateStaticParams`; a static route MUST NOT export it.", () => {
+  ruleTester.run("no-mixed-concerns:dynamic-route-exports", noMixedConcernsRule, {
+    valid: [
+      {
+        filename: srcFile("app/blog/[slug]/page.tsx"),
+        code: "export function generateStaticParams() { return []; }\nexport default function Page() { return <main />; }",
+      },
+      {
+        filename: srcFile("app/blog/[slug]/layout.tsx"),
+        code: "export function generateStaticParams() { return []; }\nexport default function Layout() { return <main />; }",
+      },
+    ],
+    invalid: [
+      {
+        filename: srcFile("app/blog/page.tsx"),
+        code: "export function generateStaticParams() { return []; }\nexport default function Page() { return <main />; }",
+        errors: 1,
+      },
+      {
+        filename: srcFile("app/blog/layout.tsx"),
+        code: "export function generateStaticParams() { return []; }\nexport default function Layout() { return <main />; }",
+        errors: 1,
+      },
+    ],
+  });
+});

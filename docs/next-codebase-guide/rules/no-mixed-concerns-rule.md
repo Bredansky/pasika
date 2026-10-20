@@ -5,6 +5,7 @@ One component per file keeps components easy to find and change independently. T
 - A `.tsx` file that defines a component MUST NOT contain a second component.
 - A component `.tsx` file MUST NOT re-export another component.
 - A supporting non-component export from a component MUST stay in its `.tsx` file when every consumer also imports the component.
+- A dynamic Next.js `page.tsx` or `layout.tsx` MAY export `generateStaticParams`; a static route MUST NOT export it.
 
 ## Incorrect — Two Components in One File
 
@@ -98,5 +99,3 @@ export function Preview() {
 ```
 
 Why: the exported styling helper remains coupled to the component that owns it.
-
-For Next.js dynamic routes, `page.tsx` and `layout.tsx` can also export the framework-required `generateStaticParams` entry point. This exception does not apply to static routes or arbitrary supporting values.
