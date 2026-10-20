@@ -124,7 +124,7 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
   });
 });
 
-void describe("An import MUST NOT rename an imported symbol, except a named underscore-containing font loader from `next/font/google` MAY use a camelCase alias.", () => {
+void describe("An import MUST NOT rename an imported symbol, except an underscore-containing export from an external package MAY use a camelCase alias.", () => {
   ruleTester.run("no-redundant-alias:imports", noRedundantAliasRule, {
     valid: [
       {
@@ -135,12 +135,52 @@ void describe("An import MUST NOT rename an imported symbol, except a named unde
         code: 'import { Toaster } from "sonner";',
         filename: srcFile("utils/example.ts"),
       },
-    ],
-    invalid: [
       {
         code: 'import { Roboto_Mono as robotoMonoFont } from "some-other-font-package";',
         filename: srcFile("app/layout.tsx"),
+      },
+      {
+        code: 'import { API_RESPONSE as apiResponse } from "@vendor/sdk";',
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: 'import { snake_case as snakeCase } from "external-library";',
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: 'import { __private_method as privateMethod } from "external-library";',
+        filename: srcFile("utils/example.ts"),
+      },
+      {
+        code: 'import { DATA__VALUE as dataValue } from "@vendor/sdk";',
+        filename: srcFile("utils/example.ts"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { Roboto_Mono as robotoMonoFont } from "./local-fonts";',
+        filename: srcFile("app/layout.tsx"),
         errors: [{ message: bindingAliasMessage("robotoMonoFont", "Roboto_Mono") }],
+      },
+      {
+        code: 'import { API_RESPONSE as apiResponse } from "@/utils/network";',
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: bindingAliasMessage("apiResponse", "API_RESPONSE") }],
+      },
+      {
+        code: 'import { snake_case as snakeCase } from "~/local";',
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: bindingAliasMessage("snakeCase", "snake_case") }],
+      },
+      {
+        code: 'import { snake_case as SnakeCase } from "external-library";',
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: bindingAliasMessage("SnakeCase", "snake_case") }],
+      },
+      {
+        code: 'import { snake_case as snake_case_alias } from "external-library";',
+        filename: srcFile("utils/example.ts"),
+        errors: [{ message: bindingAliasMessage("snake_case_alias", "snake_case") }],
       },
       {
         code: 'import { Inter as otherFont } from "next/font/google";',

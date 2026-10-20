@@ -710,8 +710,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
-      "text": "An import MUST NOT rename an imported symbol, except a named underscore-containing font loader from `next/font/google` MAY use a camelCase alias.",
-      "hash": "6f3df06c9f",
+      "text": "An import MUST NOT rename an imported symbol, except an underscore-containing export from an external package MAY use a camelCase alias.",
+      "hash": "9be7175d7f",
       "ref": "pasika/no-redundant-alias"
     },
     {
