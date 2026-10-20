@@ -139,20 +139,19 @@ Toolchain packages declared in `devDependencies` — the baseline both `pasikaAp
 
 Scripts the Lint Setup, Husky Hook, Vitest Coverage, and CI Checks Rules require in package.json. "Applies to" distinguishes required scripts from those specific to a repository or suppression tracking.
 
-<!-- prettier-ignore -->
-| Script               | Applies to                                       | Runs                                                                            |
-| -------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `prepare`            | Every repository                                 | `husky`, installing the git hooks                                               |
-| `lint`               | Every repository                                 | ESLint across the whole repository                                              |
-| `lint:staged`        | Every repository                                 | ESLint with no repository-wide argument, run by `lint-staged` on staged files   |
-| `format`             | Every repository                                 | `prettier --check` across the whole repository                                  |
-| `format:staged`      | Every repository                                 | Prettier with no repository-wide argument, run by `lint-staged` on staged files |
-| `typecheck`          | Every repository                                 | The TypeScript compiler with no emit                                            |
-| `lint:prune`         | Repositories tracking `eslint-suppressions.json` | `eslint --prune-suppressions`, keeping the suppression file canonical           |
-| `test:unit`          | Every repository                                 | Vitest without coverage                                                         |
-| `test:unit:coverage` | Every repository                                 | Vitest with coverage, gated by the ratcheted whole-repository threshold         |
-| `test:unit:coverage:check` | GitHub Actions repositories | Coverage without threshold updates; verifies `vitest.config.ts` is unchanged |
-| `test:unit:staged`   | Every repository                                 | `vitest related` without coverage, run by `lint-staged` on staged files         |
+| Script                     | Applies to                                       | Runs                                                                            |
+| -------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `prepare`                  | Every repository                                 | `husky`, installing the git hooks                                               |
+| `lint`                     | Every repository                                 | ESLint across the whole repository                                              |
+| `lint:staged`              | Every repository                                 | ESLint with no repository-wide argument, run by `lint-staged` on staged files   |
+| `format`                   | Every repository                                 | `prettier --check` across the whole repository                                  |
+| `format:staged`            | Every repository                                 | Prettier with no repository-wide argument, run by `lint-staged` on staged files |
+| `typecheck`                | Every repository                                 | The TypeScript compiler with no emit                                            |
+| `lint:prune`               | Repositories tracking `eslint-suppressions.json` | `eslint --prune-suppressions`, keeping the suppression file canonical           |
+| `test:unit`                | Every repository                                 | Vitest without coverage                                                         |
+| `test:unit:coverage`       | Every repository                                 | Vitest with coverage, gated by the ratcheted whole-repository threshold         |
+| `test:unit:coverage:check` | GitHub Actions repositories                      | Coverage without threshold updates; verifies `vitest.config.ts` is unchanged    |
+| `test:unit:staged`         | Every repository                                 | `vitest related` without coverage, run by `lint-staged` on staged files         |
 
 ## Husky Configuration
 
