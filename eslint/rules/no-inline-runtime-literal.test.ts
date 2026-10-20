@@ -245,3 +245,37 @@ void describe("Every runtime string or numeric value MUST be represented by a na
     ],
   });
 });
+
+void describe("Numeric literals MAY appear in arithmetic that directly defines a named constant or enum value. At call sites or inside unrelated objects, calculations MUST use named values; this exception does not apply to string concatenation.", () => {
+  ruleTester.run("no-inline-runtime-literal-numeric-arithmetic", noInlineRuntimeLiteralRule, {
+    valid: [
+      { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
+      { filename: file, code: "const offset = -5 * 2;" },
+      { filename: file, code: "enum Size { Max = 20 * 1024 * 1024 }" },
+      { filename: file, code: "const width = 20 * 1024; render({ width });" },
+      { filename: file, code: "const ratio = 100 / 4 + 2;" },
+    ],
+    invalid: [
+      {
+        filename: file,
+        code: "render({ width: 20 * 1024 });",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "render(20 * 1024);",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const path = "/api/" + segment;',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const path = "/api/" + "drafts";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+    ],
+  });
+});

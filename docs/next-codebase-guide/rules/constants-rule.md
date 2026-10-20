@@ -4,6 +4,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
+- Numeric literals MAY appear in arithmetic that directly defines a named constant or enum value. At call sites or inside unrelated objects, calculations MUST use named values; this exception does not apply to string concatenation.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
@@ -76,7 +77,7 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 export const maxFileSize = 20 * 1024 * 1024;
 ```
 
-Why: numeric operands may form a named constant or enum value, but the calculation's literals do not belong inline at call sites or in unrelated objects. This exception applies only to numeric arithmetic, not string concatenation such as `const path = "/api/" + segment`.
+Why: `maxFileSize` has a descriptive camelCase name, and its calculation belongs to the definition.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 
