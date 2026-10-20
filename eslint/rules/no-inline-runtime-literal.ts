@@ -132,8 +132,9 @@ function containsInlineString(node: unknown): boolean {
 
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Arithmetic and string concatenation belong to a named const when their
-  // expression directly initializes it; enum members also allow arithmetic.
+  // Arithmetic and string concatenation allow literals only when they
+  // directly initialize a named const, not an enum member.
+  let isCalculation = false;
   while (current.parent) {
     const parent = current.parent;
     const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
@@ -147,11 +148,12 @@ function isNamedValue(node: AncestorNode): boolean {
       ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator) &&
       (parent.operator === "+" || (!containsInlineString(parent.left) && !containsInlineString(parent.right)));
     if (!isTypeWrapper && !isSignedNumber && !isArithmetic) break;
+    if (isArithmetic) isCalculation = true;
     current = parent;
   }
   const parent = current.parent;
   if (!parent) return false;
-  if (parent.type === "TSEnumMember" && parent.initializer === current) return true;
+  if (parent.type === "TSEnumMember" && parent.initializer === current) return !isCalculation;
   if (parent.type !== "VariableDeclarator" || parent.init !== current) return false;
   const id = parent.id;
   return (

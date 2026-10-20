@@ -440,8 +440,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.",
-      "hash": "8fb9fc1bdc",
+      "text": "String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.",
+      "hash": "224084c070",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {

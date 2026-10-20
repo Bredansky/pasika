@@ -47,7 +47,6 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "const maxFileSize = (20 * 1024) * 1024 as const;" },
       { filename: file, code: "const ratio = 100 / 4 + 2; const offset = -5 * 2;" },
       { filename: file, code: "const computed = baseOffset + 20; const pixels = (2 << 10) - 1;" },
-      { filename: file, code: "enum Size { Max = 20 * 1024 * 1024 }" },
       { filename: file, code: "const max = 100 as const; const minimum = -2 satisfies number;" },
       { filename: file, code: "enum Offset { Previous = -1, Current = 0, Next = 1 }" },
       { filename: file, code: "enum HttpCode { Success = 200, Missing = 404 }" },
@@ -233,14 +232,14 @@ void describe("Every runtime string or numeric value MUST be represented by a na
   });
 });
 
-void describe("String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.", () => {
+void describe("String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.", () => {
   ruleTester.run("no-inline-runtime-literal-numeric-arithmetic", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
       { filename: file, code: "const offset = -5 * 2;" },
-      { filename: file, code: "enum Size { Max = 20 * 1024 * 1024 }" },
       { filename: file, code: "const width = 20 * 1024; render({ width });" },
       { filename: file, code: "const ratio = 100 / 4 + 2;" },
+      { filename: file, code: "const maxFileSize = 20 * 1024; enum Size { Max = maxFileSize }" },
       { filename: file, code: 'const fullName = "first" + "second";' },
       { filename: file, code: 'const url = prefix + "/api";' },
       { filename: file, code: 'const units = 20 + "px";' },
@@ -250,6 +249,21 @@ void describe("String concatenation and numeric arithmetic MAY use literals when
       { filename: file, code: 'const greeting = ("Hello " + name) as string;' },
     ],
     invalid: [
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 * 1024 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Flags { Read = 1 << 0 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 as number }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
       {
         filename: file,
         code: "render({ width: 20 * 1024 });",

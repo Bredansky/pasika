@@ -4,7 +4,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
-- String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.
+- String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
