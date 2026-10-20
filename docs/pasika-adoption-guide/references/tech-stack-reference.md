@@ -137,8 +137,9 @@ Toolchain packages declared in `devDependencies` — the baseline both `pasikaAp
 
 ## npm Scripts
 
-Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package.json. "Applies to" marks scripts every repository must declare versus ones required only once a repository tracks `eslint-suppressions.json`.
+Scripts the Lint Setup, Husky Hook, Vitest Coverage, and CI Checks Rules require in package.json. "Applies to" distinguishes required scripts from those specific to a repository or suppression tracking.
 
+<!-- prettier-ignore -->
 | Script               | Applies to                                       | Runs                                                                            |
 | -------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------- |
 | `prepare`            | Every repository                                 | `husky`, installing the git hooks                                               |
@@ -150,9 +151,8 @@ Scripts the Lint Setup, Husky Hook, and Vitest Coverage Rules require in package
 | `lint:prune`         | Repositories tracking `eslint-suppressions.json` | `eslint --prune-suppressions`, keeping the suppression file canonical           |
 | `test:unit`          | Every repository                                 | Vitest without coverage                                                         |
 | `test:unit:coverage` | Every repository                                 | Vitest with coverage, gated by the ratcheted whole-repository threshold         |
+| `test:unit:coverage:check` | GitHub Actions repositories | Coverage without threshold updates; verifies `vitest.config.ts` is unchanged |
 | `test:unit:staged`   | Every repository                                 | `vitest related` without coverage, run by `lint-staged` on staged files         |
-
-For GitHub Actions repositories, the CI Checks Rule additionally requires `test:unit:coverage:check` to run coverage without threshold updates and verify that `vitest.config.ts` remains unchanged.
 
 ## Husky Configuration
 
