@@ -440,8 +440,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Numeric literals MAY appear in arithmetic that directly defines a named constant or enum value. At call sites or inside unrelated objects, calculations MUST use named values; this exception does not apply to string concatenation.",
-      "hash": "884d132424",
+      "text": "String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.",
+      "hash": "8fb9fc1bdc",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {

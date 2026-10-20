@@ -4,7 +4,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
-- Numeric literals MAY appear in arithmetic that directly defines a named constant or enum value. At call sites or inside unrelated objects, calculations MUST use named values; this exception does not apply to string concatenation.
+- String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
@@ -78,6 +78,23 @@ export const maxFileSize = 20 * 1024 * 1024;
 ```
 
 Why: `maxFileSize` has a descriptive camelCase name, and its calculation belongs to the definition.
+
+## Incorrect — String Concatenation at a Call Site
+
+```ts
+showName("first" + "second");
+```
+
+Why: the string is built at a call site instead of being assigned to a named constant.
+
+## Correct — String Concatenation in a Named Constant
+
+```ts
+const fullName = "first" + "second";
+showName(fullName);
+```
+
+Why: the concatenation defines a named value that other code can reuse.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 

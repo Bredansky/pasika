@@ -217,19 +217,6 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: "const bytes = calculate(20 * 1024);",
         errors: [{ message: MESSAGE }, { message: MESSAGE }],
       },
-      {
-        filename: file,
-        code: 'const label = "first" + "second";',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      { filename: file, code: 'const url = prefix + "/api";', errors: [{ message: MESSAGE }] },
-      { filename: file, code: 'const units = 20 + "px";', errors: [{ message: MESSAGE }, { message: MESSAGE }] },
-      {
-        filename: file,
-        code: 'const bad = 100 + (10 + "px");',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
-      },
-      { filename: file, code: "const message = `Hello` + name;", errors: [{ message: MESSAGE }] },
       { filename: file, code: "const aboveLimit = size > 5000;", errors: [{ message: MESSAGE }] },
       { filename: file, code: "const width = ready ? 0 : 1;", errors: [{ message: MESSAGE }, { message: MESSAGE }] },
       { filename: file, code: "const View = () => <Canvas width={300} />;", errors: [{ message: MESSAGE }] },
@@ -246,7 +233,7 @@ void describe("Every runtime string or numeric value MUST be represented by a na
   });
 });
 
-void describe("Numeric literals MAY appear in arithmetic that directly defines a named constant or enum value. At call sites or inside unrelated objects, calculations MUST use named values; this exception does not apply to string concatenation.", () => {
+void describe("String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`; numeric arithmetic MAY also use literals when defining an enum member. At call sites or inside unrelated objects, literals MUST use named values.", () => {
   ruleTester.run("no-inline-runtime-literal-numeric-arithmetic", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
@@ -254,6 +241,13 @@ void describe("Numeric literals MAY appear in arithmetic that directly defines a
       { filename: file, code: "enum Size { Max = 20 * 1024 * 1024 }" },
       { filename: file, code: "const width = 20 * 1024; render({ width });" },
       { filename: file, code: "const ratio = 100 / 4 + 2;" },
+      { filename: file, code: 'const fullName = "first" + "second";' },
+      { filename: file, code: 'const url = prefix + "/api";' },
+      { filename: file, code: 'const units = 20 + "px";' },
+      { filename: file, code: 'const mixed = 100 + (10 + "px");' },
+      { filename: file, code: "const greeting = `Hello` + name;" },
+      { filename: file, code: 'const nested = ("first" + "second") + "!";' },
+      { filename: file, code: 'const greeting = ("Hello " + name) as string;' },
     ],
     invalid: [
       {
@@ -268,12 +262,22 @@ void describe("Numeric literals MAY appear in arithmetic that directly defines a
       },
       {
         filename: file,
-        code: 'const path = "/api/" + segment;',
-        errors: [{ message: MESSAGE }],
+        code: 'send("first" + "second");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
       },
       {
         filename: file,
-        code: 'const path = "/api/" + "drafts";',
+        code: 'const options = { name: "first" + "second" };',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'let name = "first" + "second";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const name = format("first" + "second");',
         errors: [{ message: MESSAGE }, { message: MESSAGE }],
       },
     ],
