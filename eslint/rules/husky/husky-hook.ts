@@ -65,11 +65,10 @@ export const huskyHookRule: JSONRuleDefinition = {
 
         const autoStageAll = /^\s*git\s+add\s+(?:--\s+)?(?:-A|--all|-u|\.)(?:\s*(?:#.*)?)?$/m.test(commands);
         const coverageIndex = commands.indexOf("npm run test:unit:coverage");
-        const coverageGuard =
-          /if\s+!\s+git\s+diff\s+--quiet\s+--\s+vitest\.config\.ts\s*;\s*then[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b/.exec(
-            commands,
-          );
-        if (coverageIndex >= 0 && (!coverageGuard || coverageGuard.index <= coverageIndex)) {
+        const coverageGuards =
+          /if\s+!\s+git\s+diff\s+--quiet\s+--\s+vitest\.config\.ts\s*;\s*then[\s\S]*?\bexit\s+1\b[\s\S]*?\bfi\b|git\s+diff\s+--exit-code\s+--\s+vitest\.config\.ts\s*\|\|\s*exit\s+1\b/g;
+        const hasCoverageGuard = [...commands.matchAll(coverageGuards)].some((match) => match.index > coverageIndex);
+        if (coverageIndex >= 0 && !hasCoverageGuard) {
           context.report({
             node,
             message: ".husky/pre-commit must reject unstaged vitest.config.ts changes after coverage.",

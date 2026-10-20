@@ -33,10 +33,7 @@ function buildFixture(preCommit: string, suppressions?: string): string {
 }
 
 const COVERAGE_CHECK = "npm run test:unit:coverage";
-const VITEST_GUARD = `if ! git diff --quiet -- vitest.config.ts; then
-  echo "Review Vitest configuration"
-  exit 1
-fi`;
+const VITEST_GUARD = "git diff --exit-code -- vitest.config.ts || exit 1";
 const COVERAGE_STEP = `${COVERAGE_CHECK}
 ${VITEST_GUARD}`;
 const VULYK_STEPS = `npx vulyk sync
@@ -310,6 +307,45 @@ void describe("A repository with `vulyk.config.ts` MUST run `npx vulyk stage` af
 });
 
 void describe("After coverage, the hook MUST fail on unstaged `vitest.config.ts` changes so contributors explicitly review and stage them.", () => {
+  // Existing hooks using the explicit if-block remain valid.
+  const verboseGuard = `if ! git diff --quiet -- vitest.config.ts; then
+  echo "Review and stage vitest.config.ts"
+  exit 1
+fi`;
+  const legacy = buildFixture(BASE_HOOK.replace(VITEST_GUARD, verboseGuard));
+  process.chdir(path.dirname(legacy));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [{ code: JSON.stringify({ scripts: BASE_SCRIPTS }), filename: legacy }],
+    invalid: [],
+  });
+
+  // The shorter command must explicitly exit, and it must appear after coverage.
+  const missingExit = buildFixture(BASE_HOOK.replace(VITEST_GUARD, "git diff --exit-code -- vitest.config.ts"));
+  process.chdir(path.dirname(missingExit));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: missingExit,
+        errors: [{ message: ".husky/pre-commit must reject unstaged vitest.config.ts changes after coverage." }],
+      },
+    ],
+  });
+
+  const beforeCoverage = buildFixture(BASE_HOOK.replace(COVERAGE_STEP, `${VITEST_GUARD}\n${COVERAGE_CHECK}`));
+  process.chdir(path.dirname(beforeCoverage));
+  huskyRuleTester.run("husky-hook", huskyHookRule, {
+    valid: [],
+    invalid: [
+      {
+        code: JSON.stringify({ scripts: BASE_SCRIPTS }),
+        filename: beforeCoverage,
+        errors: [{ message: ".husky/pre-commit must reject unstaged vitest.config.ts changes after coverage." }],
+      },
+    ],
+  });
+
   const missingGuard = buildFixture(BASE_HOOK.replace(VITEST_GUARD, ""));
   process.chdir(path.dirname(missingGuard));
   huskyRuleTester.run("husky-hook", huskyHookRule, {

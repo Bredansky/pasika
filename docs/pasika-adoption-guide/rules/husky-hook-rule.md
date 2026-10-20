@@ -37,11 +37,7 @@ npm run lint:prune
 git add eslint-suppressions.json
 npm run test:unit:coverage
 
-if ! git diff --quiet -- vitest.config.ts; then
-  echo "Vitest configuration changed. Review and stage it before committing."
-  git status --short -- vitest.config.ts
-  exit 1
-fi
+git diff --exit-code -- vitest.config.ts || exit 1
 
 npx libyear --limit-major-individual=1
 ```
@@ -84,11 +80,7 @@ Why: threshold updates can differ across platforms, so automatic staging can ina
 ```sh
 npm run test:unit:coverage
 
-if ! git diff --quiet -- vitest.config.ts; then
-  echo "Vitest configuration changed. Review and stage it before committing."
-  git status --short -- vitest.config.ts
-  exit 1
-fi
+git diff --exit-code -- vitest.config.ts || exit 1
 ```
 
-Why: the guard catches unstaged configuration changes, including those made after an earlier staging operation. Generated coverage reports remain ignored rather than being committed.
+Why: `git diff --exit-code` displays unstaged coverage configuration changes and rejects the commit until they are reviewed and staged. Generated coverage reports remain ignored rather than committed.
