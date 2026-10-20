@@ -1291,12 +1291,6 @@
       "ref": "pasika/ci-checks"
     },
     {
-      "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
-      "text": "A repository that publishes through GitHub Actions MUST expose the checks as a reusable `workflow_call` and make its publishing job depend on a job that invokes those checks.",
-      "hash": "b0b78e43cc",
-      "ref": "pasika/ci-checks"
-    },
-    {
       "doc": "pasika-adoption-guide/rules/cn-helper-rule.md",
       "text": "A file that merges class names MUST import `cn` from `pasika/cn`.",
       "hash": "18d2dba9f3",

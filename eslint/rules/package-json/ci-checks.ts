@@ -32,11 +32,6 @@ function scriptsOf(root: DocumentNode["body"]): Map<string, string> {
   );
 }
 
-interface Workflow {
-  file: string;
-  content: Mapping;
-}
-
 function events(workflow: Mapping): Mapping {
   const on: unknown = workflow.on;
   if (typeof on === "string") return { [on]: null };
@@ -83,26 +78,8 @@ function usesAction(value: unknown, action: string): boolean {
   return typeof value === "string" && value.startsWith(`${action}@`);
 }
 
-function usesReusableWorkflow(job: unknown, filename: string): boolean {
-  const uses: unknown = mapping(job)?.uses;
-  if (typeof uses !== "string" || !uses.startsWith("./.github/workflows/")) return false;
-  const relative = uses.slice("./.github/workflows/".length);
-  return path.posix.normalize(relative) === filename;
-}
-
-function needsJob(job: unknown, dependency: string): boolean {
-  const needs: unknown = mapping(job)?.needs;
-  return needs === dependency || (Array.isArray(needs) && needs.includes(dependency));
-}
-
-function publishes(job: unknown): boolean {
-  return steps(job).some(
-    (step) => typeof step.run === "string" && /(?:^|[\n;&|])\s*npm\s+publish(?=\s|$)/.test(step.run),
-  );
-}
-
-function readWorkflows(dir: string): { workflows: Workflow[]; errors: string[] } {
-  const workflows: Workflow[] = [];
+function readWorkflows(dir: string): { workflows: Mapping[]; errors: string[] } {
+  const workflows: Mapping[] = [];
   const errors: string[] = [];
   for (const file of readdirSync(dir)
     .filter((name) => /\.ya?ml$/i.test(name))
@@ -111,7 +88,7 @@ function readWorkflows(dir: string): { workflows: Workflow[]; errors: string[] }
       const parsed: unknown = parse(readFileSync(path.join(dir, file), "utf8"), { uniqueKeys: true });
       const content = mapping(parsed);
       if (!content) throw new Error("expected a YAML mapping");
-      workflows.push({ file, content });
+      workflows.push(content);
     } catch (error) {
       errors.push(`${file}: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -124,7 +101,7 @@ export const ciChecksRule: JSONRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require GitHub Actions validation and gate publishing on the same reusable checks.",
+      description: "Require GitHub Actions validation for pull requests and branch pushes.",
     },
   },
   create(context) {
@@ -142,7 +119,7 @@ export const ciChecksRule: JSONRuleDefinition = {
         for (const error of errors) report(`Invalid GitHub Actions workflow: ${error}`);
 
         const check = workflows.find(
-          ({ content }) => Object.hasOwn(events(content), "pull_request") && branchesTrigger(content),
+          (workflow) => Object.hasOwn(events(workflow), "pull_request") && branchesTrigger(workflow),
         );
         if (!check) {
           report("GitHub Actions must run shared checks for pull requests and branch pushes.");
@@ -155,7 +132,7 @@ export const ciChecksRule: JSONRuleDefinition = {
           if (scripts.has(optional)) requiredScripts.push(optional);
         }
 
-        const checkJobs = Object.values(jobs(check.content));
+        const checkJobs = Object.values(jobs(check));
         const allSteps = checkJobs.flatMap(steps);
         for (const job of checkJobs) {
           const jobSteps = steps(job);
@@ -186,26 +163,6 @@ export const ciChecksRule: JSONRuleDefinition = {
           report(
             "package.json must declare test:unit:coverage:check that runs coverage with autoUpdate=false and verifies no Git diff.",
           );
-        }
-
-        const releaseWorkflows = workflows.filter(({ content }) => Object.values(jobs(content)).some(publishes));
-        if (releaseWorkflows.length === 0) return;
-
-        if (!Object.hasOwn(events(check.content), "workflow_call")) {
-          report("GitHub Actions checks must support workflow_call so publishing can reuse them.");
-        }
-        for (const release of releaseWorkflows) {
-          const releaseJobs = jobs(release.content);
-          const checksJob = Object.entries(releaseJobs).find(([, job]) => usesReusableWorkflow(job, check.file));
-          if (!checksJob) {
-            report(`GitHub Actions ${release.file} must call the reusable checks workflow before publishing.`);
-            continue;
-          }
-          for (const [id, job] of Object.entries(releaseJobs)) {
-            if (publishes(job) && !needsJob(job, checksJob[0])) {
-              report(`GitHub Actions ${release.file} publishing job "${id}" must depend on the checks job.`);
-            }
-          }
         }
       },
     };

@@ -24,20 +24,6 @@ const CHECKS = [
   "      - run: npm run build",
 ].join("\n");
 
-const PUBLISH = [
-  "on:",
-  "  push:",
-  "    tags: ['v*']",
-  "jobs:",
-  "  validation:",
-  "    uses: ./.github/workflows/quality.yaml",
-  "  ship:",
-  "    needs: validation",
-  "    runs-on: ubuntu-latest",
-  "    steps:",
-  "      - run: npm publish",
-].join("\n");
-
 const SCRIPTS = {
   format: "prettier --check .",
   lint: "eslint .",
@@ -50,19 +36,18 @@ const SCRIPTS = {
 };
 const PACKAGE_JSON = JSON.stringify({ scripts: SCRIPTS });
 
-function fixture(checks?: string, publish?: string): string {
+function fixture(checks?: string): string {
   const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-ci-checks-")));
-  if (checks !== undefined || publish !== undefined) {
+  if (checks !== undefined) {
     const dir = path.join(root, ".github", "workflows");
     mkdirSync(dir, { recursive: true });
-    if (checks !== undefined) writeFileSync(path.join(dir, "quality.yaml"), checks);
-    if (publish !== undefined) writeFileSync(path.join(dir, "release.yml"), publish);
+    writeFileSync(path.join(dir, "quality.yaml"), checks);
   }
   return path.join(root, "package.json");
 }
 
 void describe("A repository using GitHub Actions MUST run validation for pull requests and pushes to a named branch.", () => {
-  const complete = fixture(CHECKS, PUBLISH);
+  const complete = fixture(CHECKS);
   process.chdir(path.dirname(complete));
   packageJsonRuleTester.run("ci-checks", ciChecksRule, {
     valid: [{ filename: complete, code: PACKAGE_JSON }],
@@ -206,62 +191,6 @@ void describe("A repository using GitHub Actions MUST declare test:unit:coverage
           {
             message:
               "package.json must declare test:unit:coverage:check that runs coverage with autoUpdate=false and verifies no Git diff.",
-          },
-        ],
-      },
-    ],
-  });
-});
-
-void describe("A repository that publishes through GitHub Actions MUST expose the checks as a reusable workflow_call and make its publishing job depend on a job that invokes those checks.", () => {
-  const notReusable = fixture(CHECKS.replace("  workflow_call:\n", ""), PUBLISH);
-  process.chdir(path.dirname(notReusable));
-  packageJsonRuleTester.run("ci-checks", ciChecksRule, {
-    valid: [],
-    invalid: [
-      {
-        filename: notReusable,
-        code: PACKAGE_JSON,
-        errors: [
-          {
-            message: "GitHub Actions checks must support workflow_call so publishing can reuse them.",
-          },
-        ],
-      },
-    ],
-  });
-
-  const noGate = fixture(CHECKS, PUBLISH.replace("    needs: validation\n", ""));
-  process.chdir(path.dirname(noGate));
-  packageJsonRuleTester.run("ci-checks", ciChecksRule, {
-    valid: [],
-    invalid: [
-      {
-        filename: noGate,
-        code: PACKAGE_JSON,
-        errors: [
-          {
-            message: 'GitHub Actions release.yml publishing job "ship" must depend on the checks job.',
-          },
-        ],
-      },
-    ],
-  });
-
-  const duplicated = fixture(
-    CHECKS,
-    PUBLISH.replace("    uses: ./.github/workflows/quality.yaml", "    runs-on: ubuntu-latest"),
-  );
-  process.chdir(path.dirname(duplicated));
-  packageJsonRuleTester.run("ci-checks", ciChecksRule, {
-    valid: [],
-    invalid: [
-      {
-        filename: duplicated,
-        code: PACKAGE_JSON,
-        errors: [
-          {
-            message: "GitHub Actions release.yml must call the reusable checks workflow before publishing.",
           },
         ],
       },
