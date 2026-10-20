@@ -4,7 +4,6 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
-- String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
@@ -65,7 +64,7 @@ Why: runtime values need meaningful names and shared definitions; syntax, JSX `c
 
 ```ts
 // src/constants/index.ts
-export const MAX_FILE_SIZE = 20 * 1024 * 1024;
+export const MAX_FILE_SIZE = 20_971_520;
 ```
 
 Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name, so it must be `camelCase`.
@@ -74,27 +73,27 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 
 ```ts
 // src/constants/index.ts
-export const maxFileSize = 20 * 1024 * 1024;
+export const maxFileSize = 20_971_520;
 ```
 
-Why: `maxFileSize` has a descriptive camelCase name, and its calculation belongs to the definition.
+Why: `maxFileSize` has a descriptive camelCase name and stores the precomputed value.
 
-## Incorrect — String Concatenation at a Call Site
-
-```ts
-showName("first" + "second");
-```
-
-Why: the string is built at a call site instead of being assigned to a named constant.
-
-## Correct — String Concatenation in a Named Constant
+## Incorrect — Literal String Concatenation
 
 ```ts
 const fullName = "first" + "second";
+```
+
+Why: a static string is assembled from multiple literals instead of being defined as one value.
+
+## Correct — Precomputed String
+
+```ts
+const fullName = "firstsecond";
 showName(fullName);
 ```
 
-Why: the concatenation defines a named value that other code can reuse.
+Why: the constant stores its final value without unnecessary concatenation.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 

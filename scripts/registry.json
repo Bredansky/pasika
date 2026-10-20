@@ -440,12 +440,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.",
-      "hash": "224084c070",
-      "ref": "pasika/no-inline-runtime-literal"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.",
       "hash": "b2de3e2192",
       "ref": "pasika/prefer-enum, pasika/repeated-semantic-literal"

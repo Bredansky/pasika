@@ -43,10 +43,10 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "const count = 3; const enabled = true;" },
       { filename: file, code: "const zero = 0; const one = 1; const negative = -1; const positive = +2;" },
       { filename: file, code: "const timeout = 5_000; setTimeout(callback, timeout);" },
-      { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
-      { filename: file, code: "const maxFileSize = (20 * 1024) * 1024 as const;" },
-      { filename: file, code: "const ratio = 100 / 4 + 2; const offset = -5 * 2;" },
-      { filename: file, code: "const computed = baseOffset + 20; const pixels = (2 << 10) - 1;" },
+      { filename: file, code: "const maxFileSize = 20_971_520;" },
+      { filename: file, code: "const factor = 1024; const size = 20; const bytes = size * factor;" },
+      { filename: file, code: 'const fullName = "firstsecond";' },
+      { filename: file, code: 'const first = "first"; const second = "second"; const fullName = first + second;' },
       { filename: file, code: "const max = 100 as const; const minimum = -2 satisfies number;" },
       { filename: file, code: "enum Offset { Previous = -1, Current = 0, Next = 1 }" },
       { filename: file, code: "enum HttpCode { Success = 200, Missing = 404 }" },
@@ -88,6 +88,102 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
     ],
     invalid: [
+      {
+        filename: file,
+        code: "export const maxFileSize = 20 * 1024 * 1024;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const maxFileSize = (20 * 1024) * 1024 as const;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const ratio = 100 / 4 + 2; const offset = -5 * 2;",
+        errors: [
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+        ],
+      },
+      {
+        filename: file,
+        code: "const computed = baseOffset + 20; const pixels = (2 << 10) - 1;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const fullName = "first" + "second";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const url = prefix + "/api";',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const units = 20 + "px";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const mixed = 100 + (10 + "px");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const greeting = `Hello` + name;",
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const nested = ("first" + "second") + "!";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const greeting = ("Hello " + name) as string;',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 * 1024 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Flags { Read = 1 << 0 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 as number }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'send("first" + "second");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const options = { name: "first" + "second" };',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'let name = "first" + "second";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const name = format("first" + "second");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
       {
         filename: srcFile("locales/global.ts"),
         code: `export const global = { greeting: \`Hello \${name}\` };`,
@@ -228,72 +324,6 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "send(-1);", errors: [{ message: MESSAGE }] },
       { filename: file, code: "send(+1);", errors: [{ message: MESSAGE }] },
       { filename: file, code: "send(10n);", errors: [{ message: MESSAGE }] },
-    ],
-  });
-});
-
-void describe("String concatenation and numeric arithmetic MAY use literals when directly initializing a named `const`. At call sites, inside unrelated objects, or in enum calculations, literals MUST use named values.", () => {
-  ruleTester.run("no-inline-runtime-literal-numeric-arithmetic", noInlineRuntimeLiteralRule, {
-    valid: [
-      { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
-      { filename: file, code: "const offset = -5 * 2;" },
-      { filename: file, code: "const width = 20 * 1024; render({ width });" },
-      { filename: file, code: "const ratio = 100 / 4 + 2;" },
-      { filename: file, code: "const maxFileSize = 20 * 1024; enum Size { Max = maxFileSize }" },
-      { filename: file, code: 'const fullName = "first" + "second";' },
-      { filename: file, code: 'const url = prefix + "/api";' },
-      { filename: file, code: 'const units = 20 + "px";' },
-      { filename: file, code: 'const mixed = 100 + (10 + "px");' },
-      { filename: file, code: "const greeting = `Hello` + name;" },
-      { filename: file, code: 'const nested = ("first" + "second") + "!";' },
-      { filename: file, code: 'const greeting = ("Hello " + name) as string;' },
-    ],
-    invalid: [
-      {
-        filename: file,
-        code: "enum Size { Max = 20 * 1024 * 1024 }",
-        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: "enum Flags { Read = 1 << 0 }",
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: "enum Size { Max = 20 * 1024 as number }",
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: "render({ width: 20 * 1024 });",
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: "render(20 * 1024);",
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: 'send("first" + "second");',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: 'const options = { name: "first" + "second" };',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: 'let name = "first" + "second";',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      {
-        filename: file,
-        code: 'const name = format("first" + "second");',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
     ],
   });
 });

@@ -117,24 +117,10 @@ function isStaticMatcherValue(node: AncestorNode, root: string, file: string): b
   return false;
 }
 
-function containsInlineString(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || !("type" in node)) return false;
-  if (node.type === "TemplateLiteral") return true;
-  if (node.type === "Literal") return "value" in node && typeof node.value === "string";
-  if (node.type === "BinaryExpression") {
-    return ("left" in node && containsInlineString(node.left)) || ("right" in node && containsInlineString(node.right));
-  }
-  if (node.type === "TSAsExpression" || node.type === "TSSatisfiesExpression") {
-    return "expression" in node && containsInlineString(node.expression);
-  }
-  return false;
-}
-
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Arithmetic and string concatenation allow literals only when they
-  // directly initialize a named const, not an enum member.
-  let isCalculation = false;
+  // Direct named values, signed numbers, and type wrappers are allowed;
+  // literals nested in calculations or concatenations are not.
   while (current.parent) {
     const parent = current.parent;
     const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
@@ -142,18 +128,12 @@ function isNamedValue(node: AncestorNode): boolean {
       parent.type === "UnaryExpression" &&
       parent.argument === current &&
       (parent.operator === "-" || parent.operator === "+");
-    const isArithmetic =
-      parent.type === "BinaryExpression" &&
-      typeof parent.operator === "string" &&
-      ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator) &&
-      (parent.operator === "+" || (!containsInlineString(parent.left) && !containsInlineString(parent.right)));
-    if (!isTypeWrapper && !isSignedNumber && !isArithmetic) break;
-    if (isArithmetic) isCalculation = true;
+    if (!isTypeWrapper && !isSignedNumber) break;
     current = parent;
   }
   const parent = current.parent;
   if (!parent) return false;
-  if (parent.type === "TSEnumMember" && parent.initializer === current) return !isCalculation;
+  if (parent.type === "TSEnumMember" && parent.initializer === current) return true;
   if (parent.type !== "VariableDeclarator" || parent.init !== current) return false;
   const id = parent.id;
   return (
