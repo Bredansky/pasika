@@ -199,7 +199,7 @@ Every named `*:staged` script is wired into `lint-staged` against the glob it ap
 
 ## GitHub Actions CI
 
-The CI Checks Rule enforces the validation contract in GitHub Actions repositories without fixing or staging files. Pasika declares validation once in `.github/workflows/checks.yml`, which runs for pull requests and pushes to `main` and can be called by the release workflow.
+The CI Checks Rule enforces the validation contract in GitHub Actions repositories without fixing or staging files. Pasika declares validation in `.github/workflows/checks.yml`, which runs for pull requests and pushes to `main`.
 
 The shared checks workflow enables reuse through `workflow_call`:
 
@@ -212,25 +212,9 @@ on:
     branches: [main]
 ```
 
-The tag-triggered `.github/workflows/publish.yml` calls that workflow and makes publishing depend on successful validation:
-
-```yaml
-# jobs in .github/workflows/publish.yml
-checks:
-  uses: ./.github/workflows/checks.yml
-  permissions:
-    contents: read
-publish:
-  needs: checks
-  runs-on: ubuntu-latest
-  permissions:
-    contents: read
-    id-token: write
-```
-
 The shared job checks formatting, lint, types, unit coverage, coverage configuration, requirements, and the build. Vulyk sync and agent-file generation stay in Husky only; CI does not independently verify generated Vulyk files, so bypassing the local hook can leave stale generated output in a commit. CI runs `npm run test:unit:coverage:check`, which disables coverage threshold auto-updates and checks `vitest.config.ts` for changes.
 
-The separate publishing job checks out the release tag, installs dependencies, and runs `npm publish`; the package's `prepack` script builds the publishable output. A GitHub Release is created only after publication succeeds. Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. This CI layout is enforced for GitHub Actions repositories by `pasika/ci-checks`; names for workflow files, steps, and jobs remain flexible.
+Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. `pasika/ci-checks` enforces the GitHub Actions validation contract without requiring specific workflow, step, or job names.
 
 ## Not Declared
 
