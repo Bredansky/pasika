@@ -175,8 +175,6 @@ git diff --exit-code -- vitest.config.ts || exit 1
 npx libyear --limit-major-individual=1 --no-pre-releases
 ```
 
-Vulyk derives generated paths from its own state, so the hook needs no repository-specific path list.
-
 ## lint-staged Wiring
 
 Every named `*:staged` script is wired into `lint-staged` against the glob it applies to, never through the repository-wide script of the same check (see the Lint Setup Rule for why that distinction matters). When the same files need two checks, their entry chains those commands so they run in order.
@@ -257,10 +255,6 @@ jobs:
       - name: Build
         run: npm run build
 ```
-
-CI runs read-only validation: `test:unit:coverage:check` disables automatic coverage threshold updates and rejects changes to `vitest.config.ts`. Vulyk generation remains in Husky, so bypassing the local hook can leave stale generated files in a commit.
-
-Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. `pasika/ci-checks` enforces the GitHub Actions validation contract without requiring specific workflow, step, or job names.
 
 ## Not Declared
 
