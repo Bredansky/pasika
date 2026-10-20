@@ -97,30 +97,6 @@ export const POST = withResponse(renderInstagramApiContract, async (request: Nex
 
 Why: each imported function owns one route-specific step, while the handler shows their order. A multi-step utility shared with another production consumer can still be reused.
 
-## Incorrect — Single-Use Utility Hides The Route Response
-
-```ts
-// src/app/api/stream-status/route.ts
-import { fetchStreamStatusResponse } from "@/features/stream/utils/fetch-stream-status-response";
-
-export const GET = withResponse(streamStatusApiContract, async () => fetchStreamStatusResponse());
-```
-
-Why: `fetchStreamStatusResponse` has no other production consumer and only moves the response construction into another file, so the route's entire algorithm is hidden behind one call. `pasika/route-handler-shape` detects this case automatically; other hidden multi-step workflows still require review.
-
-## Correct — One-Time Response Construction Stays In The Handler
-
-```ts
-// src/app/api/stream-status/route.ts
-import { getLiveStream } from "@/utils/get-live-stream";
-
-export const GET = withResponse(streamStatusApiContract, async () => ({
-  data: await getLiveStream(),
-}));
-```
-
-Why: response construction is visible at the route boundary, while `getLiveStream` remains an imported reusable operation also called by server rendering. A genuinely shared response utility may also be called directly.
-
 ## Incorrect — HttpError Returned From An `async` Function
 
 ```ts
