@@ -5,9 +5,8 @@ Route handlers grow into application logic, and a failure swallowed inside one i
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.
 - A handler `route.ts` only re-exports MAY stay unwrapped.
-- A handler wrapped in `withResponse` MUST expose each step of a route-specific workflow as an awaited call to an imported function, rather than hide those steps inside a single-use utility.
-- A handler wrapped in `withResponse` MAY reuse a multi-step utility when it has another production consumer outside that handler.
-- A one-step `withResponse` handler MUST NOT delegate its entire response to a single-use imported utility.
+- A handler wrapped in `withResponse` MUST keep route-specific workflow steps visible instead of delegating its entire response to a utility used only by that handler.
+- Utilities reused by other production consumers MAY encapsulate multiple steps.
 - A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.

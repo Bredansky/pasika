@@ -41,7 +41,7 @@ const ROUTE = file("app/api/main/route.ts");
 const SINGLE_USE =
   'Handler "GET" delegates its entire response to single-use utility "getOnly"; inline its workflow in route.ts. See docs/next-codebase-guide/rules/route-handler-rule.md';
 
-void describe("A one-step `withResponse` handler MUST NOT delegate its entire response to a single-use imported utility.", () => {
+void describe("A handler wrapped in `withResponse` MUST keep route-specific workflow steps visible instead of delegating its entire response to a utility used only by that handler.", () => {
   afterAll(() => {
     process.chdir(originalCwd);
     rmSync(root, { recursive: true, force: true });
@@ -110,7 +110,7 @@ void describe("A one-step `withResponse` handler MUST NOT delegate its entire re
     ],
   });
 
-  void describe("A handler wrapped in `withResponse` MAY reuse a multi-step utility when it has another production consumer outside that handler.", () => {
+  void describe("Utilities reused by other production consumers MAY encapsulate multiple steps.", () => {
     ruleTester.run("route-handler-shape:shared-multi-step-utility", routeHandlerShapeRule, {
       valid: [
         {
