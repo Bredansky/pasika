@@ -377,6 +377,22 @@ export const noRedundantAliasRule: Rule.RuleModule = {
       ImportSpecifier(node) {
         if (node.imported.type !== "Identifier" || node.imported.name === node.local.name) return;
 
+        // An external package's underscored export name is outside our control.
+        // Keep a camelCase local binding instead of forcing its naming convention.
+        const importDeclaration = node.parent;
+        const source = importDeclaration.type === "ImportDeclaration" ? importDeclaration.source.value : undefined;
+        if (
+          typeof source === "string" &&
+          !source.startsWith(".") &&
+          !source.startsWith("/") &&
+          !source.startsWith("@/") &&
+          !source.startsWith("~/") &&
+          node.imported.name.includes("_") &&
+          /^[a-z][A-Za-z0-9]*$/.test(node.local.name)
+        ) {
+          return;
+        }
+
         context.report({
           node,
           message: bindingAliasMessage(node.local.name, node.imported.name),

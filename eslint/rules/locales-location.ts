@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/locales-location
  *
- * All locales MUST live in the named locales object exported from
- * src/locales/index.ts. User-facing strings defined outside the locales
+ * All locales MUST be imported from named locale dictionaries and exposed
+ * from src/locales/index.ts. User-facing strings defined outside the locales
  * directory are reported.
  *
  * @see docs/next-codebase-guide/rules/locales-rule.md

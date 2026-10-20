@@ -140,4 +140,4 @@ coverage: {
 },
 ```
 
-Why: `lint-staged` passes staged paths to `vitest related`, so relevant tests fail quickly without interpreting presentation-only edits as uncovered behavior. The separate `test:unit:coverage` command remains the aggregate coverage authority, while the buffered formatter ratchets thresholds upward without promoting platform-specific V8 differences in the hundredths of a percentage point.
+Why: `lint-staged` runs relevant tests for changed files, while `test:unit:coverage` measures total coverage and updates thresholds without reacting to tiny platform differences. CI runs `npm run test:unit:coverage:check` without updating thresholds and checks that the configuration stays unchanged; local hooks handle updates.

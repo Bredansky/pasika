@@ -1,54 +1,59 @@
 # Locales Rule
 
-Scattered translations make user-facing text hard to find and keep consistent. This rule keeps them centralized and organized by feature.
+Keep user-facing text in `src/locales/` and use one `locales` object to access it. Choose the dictionary based on where the text is used.
 
-- All locales MUST live in the named `locales` object exported from `src/locales/index.ts`.
-- Locales read only by files in one feature folder MUST live in an object with the camelCase form of its feature folder name (for example, `user-settings` becomes `userSettings`).
-- Locales read by files in more than one feature folder or by `src/shared/`, `src/compositions/`, `src/app/`, or root support folders MUST live at the top level of `locales`.
-- A namespaced locale MUST be read through its full dotted path (`locales.<feature>.<key>`).
-- A feature locale namespace MUST contain string entries directly and MUST NOT contain nested locale objects.
-- A locale key MUST be English camelCase. A direct translation longer than 30 characters MUST describe the message's purpose instead and end in a WAI-ARIA element role postfix such as `Button`, `Link`, or `Dialog`.
+- User-facing text MUST be defined as static strings in flat dictionaries, each in its own file directly under `src/locales/`: `global.ts` or `<feature-name>.ts`. Nested objects, dynamic values, and unrelated declarations are not allowed.
+- Text used only within one feature MUST go in that feature's `<feature-name>.ts` dictionary. Text used outside that feature MUST go in `global.ts`. Identical strings MUST NOT appear in different dictionaries.
+- `src/locales/index.ts` MUST import the dictionaries and export one `locales` object, with global keys at the top level and feature dictionaries under their camelCase names. It MUST NOT define translation strings directly.
+- Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` directly. User-facing text MUST NOT appear inline in JSX, props, toasts, or component dictionaries.
+- Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.
 
-## Incorrect — Flat Feature Locale Keys
-
-```ts
-// src/locales/index.ts
-export const locales = {
-  streamPlayerLiveText: "Дивитись прямий ефір", // describes the element, not the text
-  ctaButton: "Прийняти всі cookies", // describes the element, not the text
-  youSuccessfullySubscribedToUpdates: "Ви успішно підписалися на оновлення", // direct translation — unwieldy
-};
-```
-
-```tsx
-// src/features/stream/stream-player.tsx
-locales.streamPlayerLiveText; // no namespace — collides with any other feature that picks this key
-```
-
-Why: the first two keys describe elements instead of text, the direct translation is unwieldy, and the flat structure does not show that `streamPlayerLiveText` belongs to the stream feature.
-
-## Correct — Namespaced Feature Locale Keys
+## Incorrect — Inline Locale Definitions
 
 ```ts
 // src/locales/index.ts
 export const locales = {
-  stream: {
-    watchLiveStream: "Дивитись прямий ефір",
-  },
-  acceptAllCookies: "Прийняти всі cookies", // shared — direct text-based key
-  subscriptionConfirmed: "Ви успішно підписалися на оновлення", // shared — describes the message's purpose
+  cancel: "Cancel",
+  stream: { watchLiveStream: "Watch live" },
 };
 ```
 
-```tsx
-// src/features/stream/stream-player.tsx
-locales.stream.watchLiveStream; // namespaced by feature
+Why: the public index defines translations instead of importing dictionaries.
 
+## Correct — Global And Feature Dictionaries
+
+```ts
+// src/locales/global.ts
+export const global = {
+  cancel: "Cancel",
+  nextStream: "Next stream",
+};
+```
+
+```ts
+// src/locales/stream.ts
+export const stream = {
+  watchLiveStream: "Watch live",
+};
+```
+
+```ts
+// src/locales/index.ts
+import { global } from "./global";
+import { stream } from "./stream";
+
+export const locales = { ...global, stream };
+```
+
+```tsx
 // src/shared/cookie-banner.tsx
-locales.acceptAllCookies; // shared — read from the top level
+locales.cancel;
 
-// src/shared/subscription-form.tsx
-locales.subscriptionConfirmed; // shared — read from the top level
+// src/compositions/stream-page-content.tsx
+locales.nextStream;
+
+// src/features/stream/stream-player.tsx
+locales.stream.watchLiveStream;
 ```
 
-Why: the stream feature has its own namespace, while shared strings stay at the top level. `acceptAllCookies` is based on the text, while `subscriptionConfirmed` describes the message's purpose instead of using an unwieldy direct translation.
+Why: strings used only by one feature stay in its dictionary; all other strings go in `global.ts`. Only text shown to users, including accessibility labels and UI errors, needs localization.

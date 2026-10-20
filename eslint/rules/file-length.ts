@@ -1,8 +1,7 @@
 /**
  * ESLint rule: pasika/file-length
  *
- * Keeps repository TypeScript and application JavaScript files bounded so they
- * cannot accumulate independent responsibilities without extraction.
+ * Every source file follows the same 300-line limit, including locales.
  *
  * @see docs/next-codebase-guide/rules/application-structure-rule.md
  */

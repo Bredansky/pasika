@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/locale-dotted-path
  *
- * A namespaced locale MUST be read through its full dotted path
- * (locales.<feature>.<key>) rather than destructured.
+ * Read global locales as locales.<key> and feature locales as
+ * locales.<feature>.<key>, without destructuring.
  *
  * @see docs/next-codebase-guide/rules/locales-rule.md
  */
@@ -37,7 +37,7 @@ export const localeDottedPathRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require reading namespaced locales through their full dotted path.",
+      description: "Require direct global and feature locale access without destructuring.",
     },
   },
   create(context) {
@@ -60,7 +60,7 @@ export const localeDottedPathRule: Rule.RuleModule = {
           if (valueName) {
             context.report({
               node,
-              message: `Destructuring locales.${valueName} loses the namespace; read through the full dotted path instead.`,
+              message: `Destructuring locales.${valueName} hides its key path; access locales directly instead.`,
             });
           }
         }

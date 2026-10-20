@@ -3,9 +3,9 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js `config.matcher` values are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -13,6 +13,25 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'enum ApiRoute { Post = "/api/post" }; send(ApiRoute.Post);' },
       { filename: file, code: "const post = ApiRoute.Post; fetch(post);" },
       { filename: file, code: 'export function Card({ active }) { return <div className="text-sm" />; }' },
+      { filename: file, code: 'export function Card() { return <div data-component="Card" />; }' },
+      { filename: file, code: 'declare module "next-auth" { interface Session { user: User } }' },
+      { filename: file, code: 'declare module "next-auth/jwt" { interface JWT { sub: string } }' },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { matcher: "/api/:path*" };',
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { matcher: ["/api/:path*"] } satisfies MiddlewareConfig;',
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const config = { matcher: ["/api/:path*", { source: "/admin/:path*", has: [{ type: "header", key: "x-auth", value: "yes" }] }] };',
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const config = { "matcher": ["/api/:path*"] };',
+      },
       {
         filename: file,
         code: 'export function Card({ active }) { return <div className={active ? "block" : "hidden"} />; }',
@@ -24,11 +43,10 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "const count = 3; const enabled = true;" },
       { filename: file, code: "const zero = 0; const one = 1; const negative = -1; const positive = +2;" },
       { filename: file, code: "const timeout = 5_000; setTimeout(callback, timeout);" },
-      { filename: file, code: "export const maxFileSize = 20 * 1024 * 1024;" },
-      { filename: file, code: "const maxFileSize = (20 * 1024) * 1024 as const;" },
-      { filename: file, code: "const ratio = 100 / 4 + 2; const offset = -5 * 2;" },
-      { filename: file, code: "const computed = baseOffset + 20; const pixels = (2 << 10) - 1;" },
-      { filename: file, code: "enum Size { Max = 20 * 1024 * 1024 }" },
+      { filename: file, code: "const maxFileSize = 20_971_520;" },
+      { filename: file, code: "const factor = 1024; const size = 20; const bytes = size * factor;" },
+      { filename: file, code: 'const fullName = "firstsecond";' },
+      { filename: file, code: 'const first = "first"; const second = "second"; const fullName = first + second;' },
       { filename: file, code: "const max = 100 as const; const minimum = -2 satisfies number;" },
       { filename: file, code: "enum Offset { Previous = -1, Current = 0, Next = 1 }" },
       { filename: file, code: "enum HttpCode { Success = 200, Missing = 404 }" },
@@ -37,16 +55,20 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: 'const View = () => <Canvas className={active ? "mt-2" : "mt-4"} />;' },
       { filename: srcFile("features/editor/screen.test.tsx"), code: 'const value = ["inline-in-tests"];' },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { welcome: "Ласкаво просимо", settings: { save: "Зберегти" } };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { welcome: "Ласкаво просимо" };',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { common: { cancel: "Cancel" }, save: "Save" } as const;',
+        filename: srcFile("locales/editor.ts"),
+        code: 'export const editor = { cancel: "Cancel", save: "Save" } as const;',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { save: "Save" } satisfies Record<string, string>;',
+        filename: srcFile("locales/stream.ts"),
+        code: 'export const stream = { save: "Save" } satisfies Record<string, string>;',
+      },
+      {
+        filename: srcFile("locales/user-settings.ts"),
+        code: 'export const userSettings = { saveChanges: "Save changes" } as const;',
       },
       {
         filename: srcFile("features/mocks/utils/draft-preview-mock.test.ts"),
@@ -61,14 +83,110 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: 'const mock = new Headers({ "Content-Type": "image/png" });',
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: "export const locales = { greeting: `Hello` };",
+        filename: srcFile("locales/global.ts"),
+        code: "export const global = { greeting: `Hello` };",
       },
     ],
     invalid: [
       {
-        filename: srcFile("locales/index.ts"),
-        code: `export const locales = { greeting: \`Hello \${name}\` };`,
+        filename: file,
+        code: "export const maxFileSize = 20 * 1024 * 1024;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const maxFileSize = (20 * 1024) * 1024 as const;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const ratio = 100 / 4 + 2; const offset = -5 * 2;",
+        errors: [
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+          { message: MESSAGE },
+        ],
+      },
+      {
+        filename: file,
+        code: "const computed = baseOffset + 20; const pixels = (2 << 10) - 1;",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const fullName = "first" + "second";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const url = prefix + "/api";',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const units = 20 + "px";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const mixed = 100 + (10 + "px");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const greeting = `Hello` + name;",
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const nested = ("first" + "second") + "!";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const greeting = ("Hello " + name) as string;',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 * 1024 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Flags { Read = 1 << 0 }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "enum Size { Max = 20 * 1024 as number }",
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'send("first" + "second");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const options = { name: "first" + "second" };',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'let name = "first" + "second";',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const name = format("first" + "second");',
+        errors: [{ message: MESSAGE }, { message: MESSAGE }],
+      },
+      {
+        filename: srcFile("locales/global.ts"),
+        code: `export const global = { greeting: \`Hello \${name}\` };`,
         errors: [{ message: MESSAGE }],
       },
       {
@@ -82,33 +200,68 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { save: "Save" }; send("not a translation");',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { save: "Save" }; send("not a translation");',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'const locales = { save: "Save" };',
+        filename: srcFile("locales/global.ts"),
+        code: 'const global = { save: "Save" };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { nested: { deeper: { invalid: "too deep" } } };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { nested: { deeper: { invalid: "too deep" } } };',
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: "export const locales = { retries: 3 };",
+        filename: srcFile("locales/global.ts"),
+        code: "export const global = { retries: 3 };",
         errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("locales/index.ts"),
-        code: 'export const locales = { good: "Saved", bad: format("inline") };',
+        filename: srcFile("locales/global.ts"),
+        code: 'export const global = { good: "Saved", bad: format("inline") };',
         errors: [{ message: MESSAGE }],
       },
       {
         filename: srcFile("features/editor/screen.tsx"),
         code: 'export const locales = { save: "Save" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export function Card() { return <div data-component={"Card"} />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export function Card() { return <div data-test="Card" />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'export const config = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'const config = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const other = { matcher: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("middleware.ts"),
+        code: 'export const config = { path: "/api/:path*" };',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: srcFile("proxy.ts"),
+        code: 'export const config = { matcher: matcherFor("/api/:path*") };',
         errors: [{ message: MESSAGE }],
       },
       { filename: file, code: 'fetch("/api/post");', errors: [{ message: MESSAGE }] },
@@ -159,19 +312,6 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: "const bytes = calculate(20 * 1024);",
         errors: [{ message: MESSAGE }, { message: MESSAGE }],
       },
-      {
-        filename: file,
-        code: 'const label = "first" + "second";',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }],
-      },
-      { filename: file, code: 'const url = prefix + "/api";', errors: [{ message: MESSAGE }] },
-      { filename: file, code: 'const units = 20 + "px";', errors: [{ message: MESSAGE }, { message: MESSAGE }] },
-      {
-        filename: file,
-        code: 'const bad = 100 + (10 + "px");',
-        errors: [{ message: MESSAGE }, { message: MESSAGE }, { message: MESSAGE }],
-      },
-      { filename: file, code: "const message = `Hello` + name;", errors: [{ message: MESSAGE }] },
       { filename: file, code: "const aboveLimit = size > 5000;", errors: [{ message: MESSAGE }] },
       { filename: file, code: "const width = ready ? 0 : 1;", errors: [{ message: MESSAGE }, { message: MESSAGE }] },
       { filename: file, code: "const View = () => <Canvas width={300} />;", errors: [{ message: MESSAGE }] },

@@ -2,7 +2,7 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
-- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Inline JSX `className` values and string entries in the exported `locales` object at `src/locales/index.ts` are exempt.
+- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
@@ -64,7 +64,7 @@ Why: runtime values need meaningful names and shared definitions; syntax, JSX `c
 
 ```ts
 // src/constants/index.ts
-export const MAX_FILE_SIZE = 20 * 1024 * 1024;
+export const MAX_FILE_SIZE = 20_971_520;
 ```
 
 Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name, so it must be `camelCase`.
@@ -73,10 +73,27 @@ Why: `MAX_FILE_SIZE` is a plain value with no framework requirement on its name,
 
 ```ts
 // src/constants/index.ts
-export const maxFileSize = 20 * 1024 * 1024;
+export const maxFileSize = 20_971_520;
 ```
 
-Why: numeric operands used to calculate a named constant or enum value are part of that named definition. The calculation is permitted here, but its literals are not permitted inline at call sites or inside unrelated object values. This exemption applies only to numeric arithmetic, not string concatenation such as `const path = "/api/" + segment`.
+Why: `maxFileSize` has a descriptive camelCase name and stores the precomputed value.
+
+## Incorrect — Literal String Concatenation
+
+```ts
+const fullName = "first" + "second";
+```
+
+Why: a static string is assembled from multiple literals instead of being defined as one value.
+
+## Correct — Precomputed String
+
+```ts
+const fullName = "firstsecond";
+showName(fullName);
+```
+
+Why: the constant stores its final value without unnecessary concatenation.
 
 ## Incorrect — Repeated Named Numeric Value Across Files
 

@@ -3,7 +3,7 @@
 Aliases give one value several names, making code harder to follow. Keep field names consistent, and make their source clear when a different name is needed.
 
 - A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.
-- An import MUST NOT rename an imported symbol.
+- An import MUST NOT rename an imported symbol, except an underscore-containing export from an external package MAY use a camelCase alias.
 - An export specifier MUST NOT introduce a second name for a symbol unless a framework requires the exported name.
 - Destructuring MUST keep property names unchanged.
 - When an object property uses an existing variable under the same name, it MUST use shorthand form.

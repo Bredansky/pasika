@@ -2,8 +2,10 @@
  * ESLint rule: pasika/no-inline-runtime-literal
  *
  * Runtime string and numeric values must be named constants or enum members.
- * Inline JSX className values and canonical locale dictionary strings are exempt.
- * Module specifiers, directives, property keys and TypeScript structural keys are syntax.
+ * Static JSX data-component markers, framework matcher declarations, inline JSX
+ * className values, and canonical locale dictionary strings are exempt.
+ * Module specifiers, ambient module names, directives, property keys and
+ * TypeScript structural keys are syntax.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -14,7 +16,7 @@ import { isProductionSource } from "../project/semantic-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className and canonical locale strings are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -35,6 +37,8 @@ interface AncestorNode {
   left?: unknown;
   right?: unknown;
   expression?: unknown;
+  elements?: unknown;
+  properties?: unknown;
 }
 
 function isClassNameProp(node: AncestorNode): boolean {
@@ -50,24 +54,73 @@ function isClassNameProp(node: AncestorNode): boolean {
   return false;
 }
 
-function containsInlineString(node: unknown): boolean {
-  if (typeof node !== "object" || node === null || !("type" in node)) return false;
-  if (node.type === "TemplateLiteral") return true;
-  if (node.type === "Literal") return "value" in node && typeof node.value === "string";
-  if (node.type === "BinaryExpression") {
-    return ("left" in node && containsInlineString(node.left)) || ("right" in node && containsInlineString(node.right));
-  }
-  if (node.type === "TSAsExpression" || node.type === "TSSatisfiesExpression") {
-    return "expression" in node && containsInlineString(node.expression);
+function isStaticDataComponentMarker(node: AncestorNode): boolean {
+  const parent = node.parent;
+  if (parent?.type !== "JSXAttribute" || parent.value !== node) return false;
+  const name = parent.name;
+  return typeof name === "object" && name !== null && "name" in name && name.name === "data-component";
+}
+
+/**
+ * Next.js extracts the exported config.matcher from syntax rather than executing
+ * module constants. Permit literal matcher data in its AST, not arbitrary
+ * expressions or values from unrelated config objects.
+ */
+function isStaticMatcherValue(node: AncestorNode, root: string, file: string): boolean {
+  const relativeFile = path.relative(root, file);
+  if (relativeFile !== "middleware.ts" && relativeFile !== "proxy.ts") return false;
+
+  let current = node;
+  while (current.parent) {
+    const parent = current.parent;
+    if (parent.type === "ArrayExpression" && Array.isArray(parent.elements) && parent.elements.includes(current)) {
+      current = parent;
+      continue;
+    }
+    if (parent.type === "ObjectExpression" && Array.isArray(parent.properties) && parent.properties.includes(current)) {
+      current = parent;
+      continue;
+    }
+    if (parent.type !== "Property" || parent.value !== current || parent.computed) return false;
+
+    const key = parent.key;
+    if (typeof key !== "object" || key === null) return false;
+    const isMatcher = ("name" in key && key.name === "matcher") || ("value" in key && key.value === "matcher");
+    if (!isMatcher) {
+      current = parent;
+      continue;
+    }
+
+    const object = parent.parent;
+    if (object?.type !== "ObjectExpression") return false;
+    let configValue = object;
+    while (
+      (configValue.parent?.type === "TSAsExpression" || configValue.parent?.type === "TSSatisfiesExpression") &&
+      configValue.parent.expression === configValue
+    ) {
+      configValue = configValue.parent;
+    }
+    const declaration = configValue.parent;
+    const id = declaration?.id;
+    return (
+      declaration?.type === "VariableDeclarator" &&
+      declaration.init === configValue &&
+      typeof id === "object" &&
+      id !== null &&
+      "name" in id &&
+      id.name === "config" &&
+      declaration.parent?.type === "VariableDeclaration" &&
+      declaration.parent.kind === "const" &&
+      declaration.parent.parent?.type === "ExportNamedDeclaration"
+    );
   }
   return false;
 }
 
 function isNamedValue(node: AncestorNode): boolean {
   let current = node;
-  // Only numeric arithmetic operands belong to the named value when the
-  // calculation directly initializes a const or enum member. Concatenated
-  // inline strings and templates are never exempted as arithmetic.
+  // Direct named values, signed numbers, and type wrappers are allowed;
+  // literals nested in calculations or concatenations are not.
   while (current.parent) {
     const parent = current.parent;
     const isTypeWrapper = parent.type === "TSAsExpression" || parent.type === "TSSatisfiesExpression";
@@ -75,13 +128,7 @@ function isNamedValue(node: AncestorNode): boolean {
       parent.type === "UnaryExpression" &&
       parent.argument === current &&
       (parent.operator === "-" || parent.operator === "+");
-    const isArithmetic =
-      parent.type === "BinaryExpression" &&
-      typeof parent.operator === "string" &&
-      ["+", "-", "*", "/", "%", "**", "<<", ">>", ">>>", "&", "|", "^"].includes(parent.operator) &&
-      !containsInlineString(parent.left) &&
-      !containsInlineString(parent.right);
-    if (!isTypeWrapper && !isSignedNumber && !isArithmetic) break;
+    if (!isTypeWrapper && !isSignedNumber) break;
     current = parent;
   }
   const parent = current.parent;
@@ -102,6 +149,8 @@ function isNamedValue(node: AncestorNode): boolean {
 function isSyntacticString(node: AncestorNode): boolean {
   const parent = node.parent;
   if (!parent) return false;
+  // Ambient module specifiers cannot be replaced by identifiers.
+  if (parent.type === "TSModuleDeclaration" && parent.id === node) return true;
   // These tokens cannot be replaced with constants in the relevant syntax.
   if (
     parent.type === "ImportDeclaration" ||
@@ -139,40 +188,40 @@ function isRuntimeMockSource(file: string, root: string): boolean {
 }
 
 /**
- * Locale entries are content, not standalone runtime constants. Only allow
- * direct string values and one level of feature namespaces inside the exported
- * canonical `locales` object, never arbitrary expressions in the same file.
+ * Locale values are exempt only within named, exported dictionary modules.
  */
 function isCanonicalLocaleString(node: AncestorNode, root: string, file: string): boolean {
-  if (path.relative(root, file) !== path.join("locales", "index.ts")) return false;
-
-  let current = node;
-  let depth = 0;
-  while (current.parent?.type === "Property" && current.parent.value === current) {
-    const object = current.parent.parent;
-    if (object?.type !== "ObjectExpression") return false;
-    current = object;
-    depth += 1;
+  const relative = path.relative(root, file).split(path.sep);
+  let namespace: string | undefined;
+  if (
+    relative.length === 2 &&
+    relative[0] === "locales" &&
+    relative[1] !== "index.ts" &&
+    /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.ts$/.test(relative[1] ?? "")
+  ) {
+    namespace = (relative[1] ?? "").slice(0, -3).replace(/-[a-z]/g, (match) => match.slice(1).toUpperCase());
   }
-  if (depth < 1 || depth > 2) return false;
-
+  if (!namespace) return false;
+  if (node.parent?.type !== "Property" || node.parent.value !== node) return false;
+  let current = node.parent.parent;
+  if (current?.type !== "ObjectExpression") return false;
   while (
     (current.parent?.type === "TSAsExpression" || current.parent?.type === "TSSatisfiesExpression") &&
     current.parent.expression === current
   ) {
     current = current.parent;
   }
-
   const declaration = current.parent;
-  if (declaration?.type !== "VariableDeclarator" || declaration.init !== current) return false;
-  const id = declaration.id;
+  const id = declaration?.id;
   return (
+    declaration?.type === "VariableDeclarator" &&
+    declaration.init === current &&
     typeof id === "object" &&
     id !== null &&
     "type" in id &&
     id.type === "Identifier" &&
     "name" in id &&
-    id.name === "locales" &&
+    id.name === namespace &&
     declaration.parent?.type === "VariableDeclaration" &&
     declaration.parent.kind === "const" &&
     declaration.parent.parent?.type === "ExportNamedDeclaration"
@@ -202,7 +251,11 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
           return;
         }
         if (
-          (typeof node.value === "string" && (isClassNameProp(node) || isCanonicalLocaleString(node, root, file))) ||
+          (typeof node.value === "string" &&
+            (isClassNameProp(node) ||
+              isStaticDataComponentMarker(node) ||
+              isCanonicalLocaleString(node, root, file))) ||
+          isStaticMatcherValue(node, root, file) ||
           isNamedValue(node) ||
           isSyntacticString(node)
         ) {

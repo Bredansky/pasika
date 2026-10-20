@@ -1,11 +1,12 @@
 # Route Handler Rule
 
-Route handlers grow into application logic, and a failure swallowed inside one is a response the client never gets. This rule keeps a handler to a `withResponse` wrapper, written in `route.ts` where the wrapper takes it, and awaited, imported calls — one call per step.
+Route handlers grow into application logic, and a failure swallowed inside one is a response the client never gets. This rule keeps a handler to a `withResponse` wrapper, written in `route.ts` where the wrapper takes it, with route-specific workflow steps visible as awaited, imported calls.
 
 - An HTTP method handler exported from `route.ts` MUST be wrapped in `withResponse`.
 - A handler wrapped in `withResponse` MUST be written as a function in `route.ts` — never passed to `withResponse` as a reference to a function declared elsewhere.
 - A handler `route.ts` only re-exports MAY stay unwrapped.
-- A handler wrapped in `withResponse` MUST compose its workflow as its own awaited calls to imported functions, one call per step — a workflow of one step is one call, and a delegated module owns that step, not a sequence of them.
+- A handler wrapped in `withResponse` MUST keep route-specific workflow steps visible instead of delegating its entire response to a utility used only by that handler.
+- Utilities reused by other production consumers MAY encapsulate multiple steps.
 - A delegated module MUST report a failure by throwing an `HttpError` — never another error type, never a returned value.
 - A handler wrapped in `withResponse` MUST NOT contain a `try` statement in its body.
 - A function that a handler wrapped in `withResponse` calls MUST be imported, not declared in `route.ts`.
@@ -79,7 +80,7 @@ export const POST = withResponse(renderInstagramApiContract, async (request: Nex
 });
 ```
 
-Why: `dispatchInstagramRenderWorkflow` performs the whole workflow — reading the payload, creating the publications, dispatching the render jobs — so the handler's single `await` stands where its steps belong, and a reader of the route learns the call's name instead of what the route does.
+Why: `dispatchInstagramRenderWorkflow` is used only by this route yet hides payload parsing, publication creation, and job dispatch behind one call. A reader cannot see the route-specific steps or their order.
 
 ## Correct — Each Step Of The Workflow Awaited In The Handler
 
@@ -94,7 +95,7 @@ export const POST = withResponse(renderInstagramApiContract, async (request: Nex
 });
 ```
 
-Why: each delegated module owns one step — reading the payload, creating a publication per order, dispatching the render jobs — and the handler's body is the order those steps run in.
+Why: each imported function owns one route-specific step, while the handler shows their order. A multi-step utility shared with another production consumer can still be reused.
 
 ## Incorrect — HttpError Returned From An `async` Function
 

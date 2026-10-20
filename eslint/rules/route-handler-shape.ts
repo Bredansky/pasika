@@ -21,6 +21,7 @@ import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
 import type { FunctionDeclarationNode } from "../ast-types";
+import { singleUseResponseDelegate } from "./route-single-use-delegation";
 
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const REQUIRED_BOUNDARY = "withResponse";
@@ -183,6 +184,16 @@ export const routeHandlerShapeRule: Rule.RuleModule = {
             "See docs/next-codebase-guide/rules/route-handler-rule.md",
         });
         return;
+      }
+
+      const singleUseDelegate = singleUseResponseDelegate(context, handler);
+      if (singleUseDelegate) {
+        context.report({
+          node,
+          message:
+            `Handler "${name}" delegates its entire response to single-use utility "${singleUseDelegate}"; ` +
+            "inline its workflow in route.ts. See docs/next-codebase-guide/rules/route-handler-rule.md",
+        });
       }
 
       const { kinds, calledNames } = analyzeHandlerBody(handler.body, sourceText);

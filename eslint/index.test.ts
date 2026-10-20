@@ -199,6 +199,7 @@ void describe("pasika presets", () => {
       new Set(blocks.flatMap((block) => Object.keys(block.rules ?? {})));
     for (const preset of [pasikaApp, pasikaNextjsApp]) {
       assert.ok(ruleRefs(preset).has("pasika/tracked-docs"), "preset must enforce tracked-docs");
+      assert.ok(ruleRefs(preset).has("pasika/ci-checks"), "preset must enforce GitHub Actions checks");
     }
   });
 });
