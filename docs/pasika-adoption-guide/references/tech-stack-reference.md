@@ -201,18 +201,64 @@ Every named `*:staged` script is wired into `lint-staged` against the glob it ap
 
 The CI Checks Rule enforces the validation contract in GitHub Actions repositories without fixing or staging files. Pasika declares validation in `.github/workflows/checks.yml`, which runs for pull requests and pushes to `main`.
 
-The shared checks workflow enables reuse through `workflow_call`:
+The shared checks workflow defines the triggers and validation job:
 
 ```yaml
 # .github/workflows/checks.yml
+name: Checks
+
 on:
   workflow_call:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# Repeated commits to one PR/branch supersede earlier CI runs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format
+        run: npm run format
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Verify unit coverage
+        run: npm run test:unit:coverage:check
+
+      - name: Verify requirements
+        run: npm run test:requirements
+
+      - name: Build
+        run: npm run build
 ```
 
-The shared job checks formatting, lint, types, unit coverage, coverage configuration, requirements, and the build. Vulyk sync and agent-file generation stay in Husky only; CI does not independently verify generated Vulyk files, so bypassing the local hook can leave stale generated output in a commit. CI runs `npm run test:unit:coverage:check`, which disables coverage threshold auto-updates and checks `vitest.config.ts` for changes.
+CI runs read-only validation: `test:unit:coverage:check` disables automatic coverage threshold updates and rejects changes to `vitest.config.ts`. Vulyk generation remains in Husky, so bypassing the local hook can leave stale generated files in a commit.
 
 Local Husky retains generation, autofixes, coverage ratchets, and dependency drift (`libyear`); repositories that track `eslint-suppressions.json` also prune suppressions locally. `pasika/ci-checks` enforces the GitHub Actions validation contract without requiring specific workflow, step, or job names.
 
