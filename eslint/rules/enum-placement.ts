@@ -1,8 +1,9 @@
 /**
  * ESLint rule: pasika/enum-placement
  *
- * An enum used only in its declaring file stays local. Enums actually imported
- * by other source files belong in constants/, and one-member enums are constants.
+ * An enum stays in its component file while every external consumer also
+ * imports that component. Independently imported enums belong in constants/;
+ * one-member enums remain constants.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -25,6 +26,8 @@ export const enumPlacementRule: Rule.RuleModule = {
     if (!filename.startsWith(sourceRoot + path.sep)) return {};
     const inConstantsFolder = path.basename(path.dirname(filename)) === "constants";
     const index = getProjectIndex(sourceRoot);
+    const component = index?.modules.get(filename)?.exports.find((entry) => entry.kind === "component");
+    const componentConsumers = component ? index?.symbolConsumers.get(symbolKey(filename, component.name)) : undefined;
 
     return {
       TSEnumDeclaration(node: Rule.Node) {
@@ -42,12 +45,13 @@ export const enumPlacementRule: Rule.RuleModule = {
           });
           return;
         }
-        const shared = (index?.symbolConsumers.get(symbolKey(filename, enumName))?.size ?? 0) > 0;
-        if (inConstantsFolder || !shared) return;
+        const consumers = index?.symbolConsumers.get(symbolKey(filename, enumName));
+        if (inConstantsFolder || !consumers || consumers.size === 0) return;
+        if (component && [...consumers].every((consumer) => componentConsumers?.has(consumer))) return;
         context.report({
           node,
           message:
-            "An enum imported by another file must live in a constants/ folder at its CCF; keep file-local enums beside their consumers. See docs/next-codebase-guide/rules/constants-rule.md",
+            "An enum imported independently of its component must live in constants/ at its CCF; keep component-owned enums beside their component. See docs/next-codebase-guide/rules/constants-rule.md",
         });
       },
     };

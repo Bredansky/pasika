@@ -5,6 +5,7 @@ One component per file keeps components easy to find and change independently. T
 - A `.tsx` file that defines a component MUST NOT contain a second component.
 - A component `.tsx` file MUST NOT re-export another component.
 - A supporting non-component export from a component MUST stay in its `.tsx` file when every consumer also imports the component.
+- A constant, enum, type, or schema imported only by a component and consumers that also import the component MUST be defined in its `.tsx` file, not in a separate support module. Independently consumed values MUST remain in their matching `constants/`, `types/`, or `schemas/` folder.
 - A dynamic Next.js `page.tsx` or `layout.tsx` MAY export `generateStaticParams`; a static route MUST NOT export it.
 
 ## Incorrect — Two Components in One File
@@ -65,37 +66,76 @@ export function Menu(): React.JSX.Element {
 
 Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable.
 
-## Incorrect — Importing a Colocated Variant Without Its Component
+## Incorrect — Extracting Component-Only CVA Variants
 
-```tsx
-// badge.tsx
-const badgeVariants = cva("inline-flex");
-function Badge() {
-  return <span />;
-}
-export { Badge, badgeVariants };
+```ts
+// src/constants/index.ts
+import { cva } from "class-variance-authority";
 
-// elsewhere.ts
-import { badgeVariants } from "./badge";
+export const buttonVariants = cva("inline-flex items-center rounded", {
+  variants: {
+    tone: {
+      primary: "bg-primary-canvas text-primary-ink",
+      secondary: "bg-muted-canvas text-muted-ink",
+    },
+  },
+  defaultVariants: { tone: "primary" },
+});
 ```
 
-Why: the consumer only needs the variants, so the variants belong in a separate module.
-
-## Correct — Importing a Colocated Variant With Its Component
-
 ```tsx
-// badge.tsx
-const badgeVariants = cva("inline-flex");
-function Badge() {
-  return <span className={badgeVariants()} />;
-}
-export { Badge, badgeVariants };
+// src/shared/button.tsx
+import type { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "@/constants";
+import { cn } from "@/utils/cn";
 
-// elsewhere.tsx
-import { Badge, badgeVariants } from "./badge";
-export function Preview() {
-  return <Badge className={badgeVariants()} />;
+type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
+
+export function Button({ tone, className, ...props }: ButtonProps): React.JSX.Element {
+  return <button className={cn(buttonVariants({ tone }), className)} {...props} />;
 }
 ```
 
-Why: the exported styling helper remains coupled to the component that owns it.
+Why: `buttonVariants` is used only by `Button` and files that also import `Button`, so extracting its styling definition into `constants/` creates an unnecessary second owner.
+
+## Correct — Keep CVA Variants With Their Component
+
+```tsx
+// src/shared/button.tsx
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+export const buttonVariants = cva("inline-flex items-center rounded", {
+  variants: {
+    tone: {
+      primary: "bg-primary-canvas text-primary-ink",
+      secondary: "bg-muted-canvas text-muted-ink",
+    },
+  },
+  defaultVariants: { tone: "primary" },
+});
+
+type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
+
+export function Button({ tone, className, ...props }: ButtonProps): React.JSX.Element {
+  return <button className={cn(buttonVariants({ tone }), className)} {...props} />;
+}
+```
+
+```tsx
+// src/features/profile/profile-actions.tsx
+import { Button, buttonVariants } from "@/shared/button";
+
+export function ProfileActions(): React.JSX.Element {
+  return (
+    <div>
+      <Button tone="primary">Save</Button>
+      <a href="/help" className={buttonVariants({ tone: "secondary" })}>
+        Help
+      </a>
+    </div>
+  );
+}
+```
+
+Why: CVA defines the button's visual options, `VariantProps` derives its prop types, and both remain with the component while their consumers import `Button` too. Extract `buttonVariants` only if a file needs it without `Button`.

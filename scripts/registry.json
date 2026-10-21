@@ -476,9 +476,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.",
-      "hash": "8f9301d343",
-      "ref": "pasika/value-extraction, pasika/enum-placement"
+      "text": "A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.",
+      "hash": "a5cdb54496",
+      "ref": "pasika/value-extraction, pasika/enum-placement, pasika/no-mixed-concerns"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
@@ -694,6 +694,12 @@
       "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
       "text": "A supporting non-component export from a component MUST stay in its `.tsx` file when every consumer also imports the component.",
       "hash": "d6f34a3d4d",
+      "ref": "pasika/no-mixed-concerns"
+    },
+    {
+      "doc": "next-codebase-guide/rules/no-mixed-concerns-rule.md",
+      "text": "A constant, enum, type, or schema imported only by a component and consumers that also import the component MUST be defined in its `.tsx` file, not in a separate support module. Independently consumed values MUST remain in their matching `constants/`, `types/`, or `schemas/` folder.",
+      "hash": "92b181a992",
       "ref": "pasika/no-mixed-concerns"
     },
     {
