@@ -14,7 +14,7 @@ const file = (name: string, code: string): { filename: string; code: string } =>
 };
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const SHARED = `An enum imported by another file must live in a constants/ folder at its CCF; keep file-local enums beside their consumers. ${DOC}`;
+const SHARED = `An enum imported independently of its component must live in constants/ at its CCF; keep component-owned enums beside their component. ${DOC}`;
 const SINGLE = `A single named string or number value must be a const, not a one-member enum. ${DOC}`;
 
 file(
@@ -27,7 +27,7 @@ file(
   'import { OrderStatus } from "./constants/order-status"; export const orderStatus = OrderStatus.Draft;',
 );
 
-void describe("A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.", () => {
+void describe("A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file(
