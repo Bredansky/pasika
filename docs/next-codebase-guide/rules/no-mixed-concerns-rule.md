@@ -66,57 +66,78 @@ export function Menu(): React.JSX.Element {
 
 Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable.
 
-## Incorrect — Extracting Component-Only Values
-
-```tsx
-// src/shared/ascii-divider.tsx
-import { AsciiDividerVariant } from "@/constants";
-
-export function AsciiDivider({ variant = AsciiDividerVariant.Stars }: AsciiDividerProps) {
-  return <div>{variant}</div>;
-}
-```
+## Incorrect — Extracting an Enum Used Only With Its Component
 
 ```ts
-// src/constants/index.ts
-export enum AsciiDividerVariant {
-  Stars = "Stars",
-  Diamonds = "Diamonds",
+// src/features/feed/constants/index.ts
+export enum FeedSort {
+  Newest = "newest",
+  Oldest = "oldest",
 }
 ```
 
-Why: every use of the enum belongs to the divider itself or consumers that also import the divider. No independent consumer has earned extraction.
-
-## Correct — Component Owns Its Enum, Types and Schema
-
 ```tsx
-// src/shared/ascii-divider.tsx
+// src/features/feed/feed-sort-select.tsx
+import { FeedSort } from "./constants";
 import { z } from "zod";
 
-export enum AsciiDividerVariant {
-  Stars = "Stars",
-  Diamonds = "Diamonds",
+const feedSortSchema = z.enum(FeedSort);
+type FeedSortSelectProps = {
+  value: FeedSort;
+  onChange: (value: FeedSort) => void;
+};
+
+export function FeedSortSelect({ value, onChange }: FeedSortSelectProps) {
+  return (
+    <select value={value} onChange={(event) => onChange(feedSortSchema.parse(event.currentTarget.value))}>
+      <option value={FeedSort.Newest}>Newest</option>
+      <option value={FeedSort.Oldest}>Oldest</option>
+    </select>
+  );
+}
+```
+
+Why: `FeedSort` is only used by `FeedSortSelect` and consumers that also import that component, so a separate constants module is premature.
+
+## Correct — Keep Component-Owned Definitions Together
+
+```tsx
+// src/features/feed/feed-sort-select.tsx
+import { z } from "zod";
+
+export enum FeedSort {
+  Newest = "newest",
+  Oldest = "oldest",
 }
 
-export const asciiDividerSchema = z.object({ variant: z.enum(AsciiDividerVariant) });
-export type AsciiDividerProps = { variant?: AsciiDividerVariant };
+const feedSortSchema = z.enum(FeedSort);
+type FeedSortSelectProps = {
+  value: FeedSort;
+  onChange: (value: FeedSort) => void;
+};
 
-export function AsciiDivider({ variant = AsciiDividerVariant.Stars }: AsciiDividerProps) {
-  return <div>{variant}</div>;
+export function FeedSortSelect({ value, onChange }: FeedSortSelectProps) {
+  return (
+    <select value={value} onChange={(event) => onChange(feedSortSchema.parse(event.currentTarget.value))}>
+      <option value={FeedSort.Newest}>Newest</option>
+      <option value={FeedSort.Oldest}>Oldest</option>
+    </select>
+  );
 }
 ```
 
 ```tsx
-// consumer
-import { AsciiDivider, AsciiDividerVariant, asciiDividerSchema, type AsciiDividerProps } from "@/shared/ascii-divider";
+// src/features/feed/feed-toolbar.tsx
+import { useState } from "react";
+import { FeedSort, FeedSortSelect } from "./feed-sort-select";
 
-export function Preview() {
-  const props: AsciiDividerProps = asciiDividerSchema.parse({ variant: AsciiDividerVariant.Diamonds });
-  return <AsciiDivider {...props} />;
+export function FeedToolbar() {
+  const [sort, setSort] = useState(FeedSort.Newest);
+  return <FeedSortSelect value={sort} onChange={setSort} />;
 }
 ```
 
-Why: variants, supporting types and schemas remain colocated with their owner until a consumer uses them without the component.
+Why: the enum is exported alongside its component because the toolbar uses both, while the schema and props type remain private because only the component needs them. Extract any of these definitions only when another file consumes it independently of `FeedSortSelect`.
 
 ## Incorrect — Importing a Colocated Variant Without Its Component
 
