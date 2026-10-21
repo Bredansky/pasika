@@ -464,12 +464,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A first-party component's static JSX `variant` MUST use an owner-provided option instead of a consumer-local string constant. Consumers SHOULD omit the prop for the default variant; dynamically selected values and third-party component APIs are unaffected. CVA-backed variants MAY keep their component-owned CVA configuration.",
-      "hash": "87738c5ba0",
-      "ref": "pasika/component-variant-ownership"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "Repeated named numeric values in the same semantic slot across production files MUST share a constant.",
       "hash": "7d4a8beb3f",
       "ref": "pasika/repeated-numeric-value"
