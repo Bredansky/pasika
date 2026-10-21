@@ -6,6 +6,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
+- A first-party component's static JSX `variant` MUST use an owner-provided option instead of a consumer-local string constant. Consumers SHOULD omit the prop for the default variant; dynamically selected values and third-party component APIs are unaffected. CVA-backed variants MAY keep their component-owned CVA configuration.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 - A constant or enum MUST remain in its declaring file until another file imports it; only then MUST it be extracted for sharing.
@@ -14,6 +15,52 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.
+
+## Incorrect — Consumer-Local Component Variant
+
+```tsx
+// src/app/components-showcase/ascii-divider/page.tsx
+import { AsciiDivider } from "@/shared/ascii-divider";
+
+const showcaseAsciiDividerVariant = "Stars";
+
+export default function Page() {
+  return <AsciiDivider variant={showcaseAsciiDividerVariant} />;
+}
+```
+
+Why: the consumer duplicates a variant value instead of selecting an option declared by the component.
+
+## Correct — Component-Owned Variants
+
+```ts
+// src/constants/index.ts — the divider's exported variant domain
+export enum AsciiDividerVariant {
+  Stars = "Stars",
+  Diamonds = "Diamonds",
+}
+```
+
+```tsx
+// src/app/components-showcase/ascii-divider/page.tsx
+import { AsciiDivider } from "@/shared/ascii-divider";
+
+export default function Page() {
+  return <AsciiDivider />;
+}
+```
+
+```tsx
+// When a non-default variant is needed:
+import { AsciiDividerVariant } from "@/constants";
+import { AsciiDivider } from "@/shared/ascii-divider";
+
+export function ContactDivider() {
+  return <AsciiDivider variant={AsciiDividerVariant.Diamonds} />;
+}
+```
+
+Why: the default lives in the component, while non-default selections reference its canonical, exported variant domain. Existing CVA-backed components may continue deriving their variant types from CVA.
 
 ## Incorrect — Inline Runtime Values
 

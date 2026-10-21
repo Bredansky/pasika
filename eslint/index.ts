@@ -17,6 +17,7 @@ import { cnHelperRule } from "./rules/cn-helper";
 import { componentCasingRule } from "./rules/component-casing";
 import { componentNestingRule } from "./rules/component-nesting";
 import { componentPlacementRule } from "./rules/component-placement";
+import { componentVariantOwnershipRule } from "./rules/component-variant-ownership";
 import { configExtractionRule } from "./rules/config-extraction";
 import { constantCasingRule } from "./rules/constant-casing";
 import { crossFeatureImportRule } from "./rules/cross-feature-import";
@@ -117,6 +118,7 @@ const pasikaNextjsAppRules = {
   "zirka-baseline": zirkaBaselineRule,
   // Next.js/React application rules.
   "component-placement": componentPlacementRule,
+  "component-variant-ownership": componentVariantOwnershipRule,
   "component-casing": componentCasingRule,
   "application-structure": applicationStructureRule,
   "data-component-case": dataComponentCaseRule,
