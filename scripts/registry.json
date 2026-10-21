@@ -1280,8 +1280,8 @@
     },
     {
       "doc": "pasika-adoption-guide/rules/ci-checks-rule.md",
-      "text": "A repository using GitHub Actions MUST run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run test:unit:coverage:check`; if a `build` script exists, CI MUST also run `npm run build`.",
-      "hash": "e381f609ca",
+      "text": "A repository using GitHub Actions MUST run `npm run format`, `npm run lint`, `npm run typecheck`, and `npm run test:unit:coverage:check`.",
+      "hash": "8255bbdcf8",
       "ref": "pasika/ci-checks"
     },
     {
