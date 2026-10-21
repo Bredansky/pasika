@@ -66,110 +66,76 @@ export function Menu(): React.JSX.Element {
 
 Why: `Menu` and `MenuItem` each have their own file, so both are independently searchable.
 
-## Incorrect — Extracting an Enum Used Only With Its Component
+## Incorrect — Extracting Component-Only CVA Variants
 
 ```ts
-// src/features/feed/constants/index.ts
-export enum FeedSort {
-  Newest = "newest",
-  Oldest = "oldest",
+// src/constants/index.ts
+import { cva } from "class-variance-authority";
+
+export const buttonVariants = cva("inline-flex items-center rounded", {
+  variants: {
+    tone: {
+      primary: "bg-primary-canvas text-primary-ink",
+      secondary: "bg-muted-canvas text-muted-ink",
+    },
+  },
+  defaultVariants: { tone: "primary" },
+});
+```
+
+```tsx
+// src/shared/button.tsx
+import type { VariantProps } from "class-variance-authority";
+import { buttonVariants } from "@/constants";
+import { cn } from "@/utils/cn";
+
+type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
+
+export function Button({ tone, className, ...props }: ButtonProps): React.JSX.Element {
+  return <button className={cn(buttonVariants({ tone }), className)} {...props} />;
+}
+```
+
+Why: `buttonVariants` is used only by `Button` and files that also import `Button`, so extracting its styling definition into `constants/` creates an unnecessary second owner.
+
+## Correct — Keep CVA Variants With Their Component
+
+```tsx
+// src/shared/button.tsx
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/utils/cn";
+
+export const buttonVariants = cva("inline-flex items-center rounded", {
+  variants: {
+    tone: {
+      primary: "bg-primary-canvas text-primary-ink",
+      secondary: "bg-muted-canvas text-muted-ink",
+    },
+  },
+  defaultVariants: { tone: "primary" },
+});
+
+type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
+
+export function Button({ tone, className, ...props }: ButtonProps): React.JSX.Element {
+  return <button className={cn(buttonVariants({ tone }), className)} {...props} />;
 }
 ```
 
 ```tsx
-// src/features/feed/feed-sort-select.tsx
-import { FeedSort } from "./constants";
-import { z } from "zod";
+// src/features/profile/profile-actions.tsx
+import { Button, buttonVariants } from "@/shared/button";
 
-const feedSortSchema = z.enum(FeedSort);
-type FeedSortSelectProps = {
-  value: FeedSort;
-  onChange: (value: FeedSort) => void;
-};
-
-export function FeedSortSelect({ value, onChange }: FeedSortSelectProps) {
+export function ProfileActions(): React.JSX.Element {
   return (
-    <select value={value} onChange={(event) => onChange(feedSortSchema.parse(event.currentTarget.value))}>
-      <option value={FeedSort.Newest}>Newest</option>
-      <option value={FeedSort.Oldest}>Oldest</option>
-    </select>
+    <div>
+      <Button tone="primary">Save</Button>
+      <a href="/help" className={buttonVariants({ tone: "secondary" })}>
+        Help
+      </a>
+    </div>
   );
 }
 ```
 
-Why: `FeedSort` is only used by `FeedSortSelect` and consumers that also import that component, so a separate constants module is premature.
-
-## Correct — Keep Component-Owned Definitions Together
-
-```tsx
-// src/features/feed/feed-sort-select.tsx
-import { z } from "zod";
-
-export enum FeedSort {
-  Newest = "newest",
-  Oldest = "oldest",
-}
-
-const feedSortSchema = z.enum(FeedSort);
-type FeedSortSelectProps = {
-  value: FeedSort;
-  onChange: (value: FeedSort) => void;
-};
-
-export function FeedSortSelect({ value, onChange }: FeedSortSelectProps) {
-  return (
-    <select value={value} onChange={(event) => onChange(feedSortSchema.parse(event.currentTarget.value))}>
-      <option value={FeedSort.Newest}>Newest</option>
-      <option value={FeedSort.Oldest}>Oldest</option>
-    </select>
-  );
-}
-```
-
-```tsx
-// src/features/feed/feed-toolbar.tsx
-import { useState } from "react";
-import { FeedSort, FeedSortSelect } from "./feed-sort-select";
-
-export function FeedToolbar() {
-  const [sort, setSort] = useState(FeedSort.Newest);
-  return <FeedSortSelect value={sort} onChange={setSort} />;
-}
-```
-
-Why: the enum is exported alongside its component because the toolbar uses both, while the schema and props type remain private because only the component needs them. Extract any of these definitions only when another file consumes it independently of `FeedSortSelect`.
-
-## Incorrect — Importing a Colocated Variant Without Its Component
-
-```tsx
-// badge.tsx
-const badgeVariants = cva("inline-flex");
-function Badge() {
-  return <span />;
-}
-export { Badge, badgeVariants };
-
-// elsewhere.ts
-import { badgeVariants } from "./badge";
-```
-
-Why: the consumer only needs the variants, so the variants belong in a separate module.
-
-## Correct — Importing a Colocated Variant With Its Component
-
-```tsx
-// badge.tsx
-const badgeVariants = cva("inline-flex");
-function Badge() {
-  return <span className={badgeVariants()} />;
-}
-export { Badge, badgeVariants };
-
-// elsewhere.tsx
-import { Badge, badgeVariants } from "./badge";
-export function Preview() {
-  return <Badge className={badgeVariants()} />;
-}
-```
-
-Why: the exported styling helper remains coupled to the component that owns it.
+Why: CVA defines the button's visual options, `VariantProps` derives its prop types, and both remain with the component while their consumers import `Button` too. Extract `buttonVariants` only if a file needs it without `Button`.
