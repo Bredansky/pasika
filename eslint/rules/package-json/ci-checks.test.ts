@@ -19,7 +19,6 @@ const CHECKS = [
   "      - run: npm run lint",
   "      - run: npm run typecheck",
   "      - run: npm run test:unit:coverage:check",
-  "      - run: npm run build",
 ].join("\n");
 
 const SCRIPTS = {
@@ -104,8 +103,8 @@ void describe("A repository using GitHub Actions MUST check out the source and i
 
   const lateInstall = fixture(
     CHECKS.replace("      - run: npm ci\n", "").replace(
-      "      - run: npm run build",
-      "      - run: npm run build\n      - run: npm ci",
+      "      - run: npm run test:unit:coverage:check",
+      "      - run: npm run test:unit:coverage:check\n      - run: npm ci",
     ),
   );
   process.chdir(path.dirname(lateInstall));
@@ -134,7 +133,7 @@ void describe("A repository using GitHub Actions MUST check out the source and i
   });
 });
 
-void describe("A repository using GitHub Actions MUST run npm run format, npm run lint, npm run typecheck, and npm run test:unit:coverage:check; if a build script exists, CI MUST also run npm run build.", () => {
+void describe("A repository using GitHub Actions MUST run npm run format, npm run lint, npm run typecheck, and npm run test:unit:coverage:check.", () => {
   const missingCoverage = fixture(
     CHECKS.replace("      - run: npm run test:unit:coverage:check", "      - run: npm run test:unit:coverage"),
   );
@@ -150,24 +149,11 @@ void describe("A repository using GitHub Actions MUST run npm run format, npm ru
     ],
   });
 
-  const missingBuild = fixture(CHECKS.replace("      - run: npm run build", ""));
-  process.chdir(path.dirname(missingBuild));
-  packageJsonRuleTester.run("ci-checks", ciChecksRule, {
-    valid: [],
-    invalid: [
-      {
-        filename: missingBuild,
-        code: PACKAGE_JSON,
-        errors: [{ message: "GitHub Actions checks must run npm run build." }],
-      },
-    ],
-  });
-
-  const noBuildScript = fixture(CHECKS.replace("      - run: npm run build", ""));
-  process.chdir(path.dirname(noBuildScript));
+  const withoutBuildScript = fixture(CHECKS);
+  process.chdir(path.dirname(withoutBuildScript));
   const { build: _build, ...appScripts } = SCRIPTS;
   packageJsonRuleTester.run("ci-checks", ciChecksRule, {
-    valid: [{ filename: noBuildScript, code: JSON.stringify({ scripts: appScripts }) }],
+    valid: [{ filename: withoutBuildScript, code: JSON.stringify({ scripts: appScripts }) }],
     invalid: [],
   });
 });
