@@ -45,6 +45,7 @@ import { localePlacementRule } from "./rules/locale-placement";
 import { localesLocationRule } from "./rules/locales-location";
 import { namedExportsRule } from "./rules/named-exports";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
+import { noDuplicateJsxClassesRule } from "./rules/no-duplicate-jsx-classes";
 import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
@@ -124,6 +125,7 @@ const pasikaNextjsAppRules = {
   "interactive-component": interactiveComponentRule,
   "ui-state": uiStateRule,
   "no-mixed-concerns": noMixedConcernsRule,
+  "no-duplicate-jsx-classes": noDuplicateJsxClassesRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
   "no-literal-inline-style": noLiteralInlineStyleRule,
   "unknown-utility": unknownUtilityRule,

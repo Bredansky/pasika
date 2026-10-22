@@ -1099,6 +1099,12 @@
       "ref": "pasika/enforce-cn-merge"
     },
     {
+      "doc": "next-tailwind-guide/rules/component-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
+    },
+    {
       "doc": "next-tailwind-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST use Tailwind \"state variants\" when they can express a supported UI state.",
       "hash": "0f6c3bb7ed",
