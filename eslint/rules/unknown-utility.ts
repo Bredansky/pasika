@@ -24,6 +24,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
+import { violatesBoundaryColorRole } from "../project/semantic-color-role";
 import { sourceRootOf } from "./project-root";
 
 /** The theme-variable namespaces Tailwind turns into utilities, and the utility prefixes that consume each one. */
@@ -501,6 +502,24 @@ function isColorToken(token: string, inventory: Inventory): boolean {
   return DEFAULT_PALETTE_FAMILIES.has(token.slice(0, hyphen)) && DEFAULT_PALETTE_SHADES.has(token.slice(hyphen + 1));
 }
 
+/** Whether a class references an explicitly defined but incorrectly named boundary color. */
+function isInvalidBoundaryColorClass(className: string, inventory: Inventory): boolean {
+  if (className.includes("[") || className.includes("(")) return false;
+  const utility = (className.replace(/!+$/, "").split(":").pop() ?? "").split("/")[0] ?? "";
+  const compound = Object.keys(PREFIX_NAMESPACES).find(
+    (prefix) => prefix.includes("-") && utility.startsWith(`${prefix}-`),
+  );
+  const dash = utility.indexOf("-");
+  if (dash === -1) return false;
+  const prefix = compound ?? utility.slice(0, dash);
+  const token = utility.slice(prefix.length + 1);
+  return (
+    (PREFIX_NAMESPACES[prefix]?.includes("color") ?? false) &&
+    (inventory.themeTokens.get("color")?.has(token) ?? false) &&
+    violatesBoundaryColorRole(token)
+  );
+}
+
 /** Whether the class is provably a custom utility, a theme-generated utility, or a built-in. */
 function isKnown(className: string, inventory: Inventory): boolean {
   // Arbitrary values and parenthesized CSS-variable utilities can't be validated here.
@@ -591,6 +610,13 @@ export const unknownUtilityRule: Rule.RuleModule = {
       for (const candidate of value.split(/\s+/)) {
         if (!candidate || seen.has(candidate)) continue;
         seen.add(candidate);
+        if (isInvalidBoundaryColorClass(candidate, inventory)) {
+          context.report({
+            node,
+            message: `Utility class "${candidate}" uses a boundary color token named after a CSS property; use a semantic -edge color token instead (for example, border-control-edge).`,
+          });
+          continue;
+        }
         if (isKnown(candidate, inventory)) continue;
         // A class defined as a plain CSS selector is real but not registered as
         // an @utility/theme utility. Give it an actionable message instead of the

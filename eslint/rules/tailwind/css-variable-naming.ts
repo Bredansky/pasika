@@ -9,6 +9,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { DeclarationPlain } from "@eslint/css-tree";
+import { violatesBoundaryColorRole } from "../../project/semantic-color-role";
 
 const EDGE_PROPERTY_WORDS = new Set(["border", "outline", "ring", "stroke"]);
 const NON_COLOR_WORDS = new Set(["height", "leading", "offset", "radius", "size", "spacing", "style", "width"]);
@@ -63,7 +64,15 @@ export const cssVariableNamingRule: CSSRuleDefinition = {
       Declaration(node: DeclarationPlain) {
         const property = node.property;
         if (!property.startsWith("--")) return;
-        if (isTailwindThemeVariable(property)) return;
+        if (isTailwindThemeVariable(property)) {
+          if (property.startsWith("--color-") && violatesBoundaryColorRole(property.slice("--color-".length))) {
+            context.report({
+              node,
+              message: `Theme color "${property}" names a boundary using a CSS property; use --color-<role>-edge and border-<role>-edge instead.`,
+            });
+          }
+          return;
+        }
         const lower = property.toLowerCase();
         if ((lower.includes("bg") || lower.includes("background")) && !lower.endsWith("-canvas")) {
           context.report({
