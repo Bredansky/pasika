@@ -60,7 +60,7 @@ function fixture(name: string): { code: string; filename: string } {
 }
 
 function message(tag: string, amount: number, reference: string): string {
-  return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-tailwind-guide/rules/component-reuse-rule.md`;
+  return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md`;
 }
 
 void describe("Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.", () => {

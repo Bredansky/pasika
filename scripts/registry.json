@@ -1099,7 +1099,7 @@
       "ref": "pasika/enforce-cn-merge"
     },
     {
-      "doc": "next-tailwind-guide/rules/component-reuse-rule.md",
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
       "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
       "hash": "f0fae6c4e1",
       "ref": "pasika/no-duplicate-jsx-classes"

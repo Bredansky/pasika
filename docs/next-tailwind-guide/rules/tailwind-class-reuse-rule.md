@@ -1,4 +1,4 @@
-# Component Reuse Rule
+# Tailwind Class Reuse Rule
 
 Identical class sets on native JSX elements across files duplicate ownership of the same styling. Reuse one component to keep that styling in one place.
 
