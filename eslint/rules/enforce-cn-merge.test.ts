@@ -161,7 +161,7 @@ void describe("A static class list with more than five class names MUST use cn w
         filename: srcFile("shared/card.tsx"),
       },
       {
-        code: '<article className={cn("rounded-lg border border-border", "bg-card shadow-sm", "px-6 py-4")} />',
+        code: '<article className={cn("rounded-lg border border-panel-edge", "bg-card shadow-sm", "px-6 py-4")} />',
         filename: srcFile("shared/card.tsx"),
       },
       {
@@ -175,12 +175,12 @@ void describe("A static class list with more than five class names MUST use cn w
     ],
     invalid: [
       {
-        code: '<article className="rounded-lg border border-border bg-card px-6 py-4 shadow-sm transition-shadow" />',
+        code: '<article className="rounded-lg border border-panel-edge bg-card px-6 py-4 shadow-sm transition-shadow" />',
         filename: srcFile("shared/card.tsx"),
         errors: [{ message: STATIC_MESSAGE }],
       },
       {
-        code: '<article className={cn("rounded-lg border border-border bg-card px-6 py-4 shadow-sm")} />',
+        code: '<article className={cn("rounded-lg border border-panel-edge bg-card px-6 py-4 shadow-sm")} />',
         filename: srcFile("shared/card.tsx"),
         errors: [{ message: GROUP_MESSAGE }],
       },

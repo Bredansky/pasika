@@ -22,10 +22,19 @@ void describe("Property-specific colors MUST use the reserved semantic suffixes 
       },
       // Tailwind theme namespaces describe generated utility APIs, not semantic color intent.
       {
-        code: `@theme inline {\n  --color-divider: var(--divider);\n  --text-sm: var(--small-text-size);\n  --text-sm--line-height: var(--small-text-leading);\n  --font-weight-medium: var(--medium-font-weight);\n}`,
+        code: `@theme inline {\n  --color-divider: var(--divider);\n  --color-control-edge: var(--control-edge);\n  --color-brand: #2563eb;\n  --text-sm: var(--small-text-size);\n  --text-sm--line-height: var(--small-text-leading);\n  --font-weight-medium: var(--medium-font-weight);\n}`,
       },
     ],
     invalid: [
+      // A defined @theme color is not exempt from semantic boundary naming.
+      {
+        code: `@theme inline {\n  --color-border: var(--base-edge);\n  --color-retro-border: var(--retro-edge);\n  --color-primary-soft-border: var(--soft-edge);\n  --color-control-ring: var(--focus-edge);\n}`,
+        errors: ["--color-border", "--color-retro-border", "--color-primary-soft-border", "--color-control-ring"].map(
+          (property) => ({
+            message: `Theme color "${property}" names a boundary using a CSS property; use --color-<role>-edge and border-<role>-edge instead.`,
+          }),
+        ),
+      },
       // Background variable not ending in -canvas
       {
         code: `:root {\n  --card-bg: #ffffff;\n}`,

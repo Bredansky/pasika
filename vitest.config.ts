@@ -10,9 +10,9 @@ export default defineConfig({
       exclude: ["**/*.test.ts"],
       thresholds: {
         lines: 93.8,
-        functions: 96.8,
+        functions: 96.9,
         branches: 83.6,
-        statements: 88.9,
+        statements: 89,
         autoUpdate: (newThreshold, previousThreshold) =>
           Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),
       },

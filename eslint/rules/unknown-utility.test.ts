@@ -23,6 +23,11 @@ const GLOBALS = `@import "tailwindcss";
 @theme {
   --*: initial;
   --color-primary-canvas: #d87943;
+  --color-control-edge: #cbd5e1;
+  --color-border: #ccc;
+  --color-retro-border: #777;
+  --color-primary-soft-border: #999;
+  --color-control-ring: #555;
   --color-primary-ink: #ffffff;
   --color-brand-500: #123456;
   --radius-card: 1rem;
@@ -85,6 +90,8 @@ process.chdir(root);
 
 const message = (className: string): string =>
   `Utility class "${className}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`;
+const boundaryMessage = (className: string): string =>
+  `Utility class "${className}" uses a boundary color token named after a CSS property; use a semantic -edge color token instead (for example, border-control-edge).`;
 const plainMessage = (className: string): string =>
   `Utility class "${className}" is defined as a plain CSS selector in a stylesheet, not as an @utility (or @theme variable). Define it with @utility so the framework can own and validate it.`;
 
@@ -95,6 +102,11 @@ void describe("A utility class a component statically references MUST be a custo
       {
         code: '<button className="bg-primary-canvas text-primary-ink">Save</button>',
         filename: srcFile("shared/save-button.tsx"),
+      },
+      // The semantic -edge token is allowed, including border widths and structural utilities.
+      {
+        code: '<div className="border-control-edge hover:border-control-edge border-2 border-b border-solid bg-primary-canvas" />',
+        filename: srcFile("shared/card.tsx"),
       },
       // Custom @utility.
       { code: '<div className="primary-surface" />', filename: srcFile("shared/card.tsx") },
@@ -171,6 +183,27 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="sm:flex" />', filename: srcFile("shared/card.tsx") },
     ],
     invalid: [
+      // A token's presence in @theme does not make its boundary naming valid.
+      {
+        code: '<div className="border-border hover:border-retro-border sm:border-primary-soft-border bg-retro-border ring-control-ring" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          "border-border",
+          "hover:border-retro-border",
+          "sm:border-primary-soft-border",
+          "bg-retro-border",
+          "ring-control-ring",
+        ].map((className) => ({ message: boundaryMessage(className) })),
+      },
+      // Also validate strings passed to class helpers, not just bare JSX attributes.
+      {
+        code: 'cn("border-border", isActive && "hover:border-retro-border")',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: boundaryMessage("border-border") },
+          { message: boundaryMessage("hover:border-retro-border") },
+        ],
+      },
       // A typo inside a theme token family.
       {
         code: '<div className="bg-primay-canvas" />',

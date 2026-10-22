@@ -46,6 +46,36 @@ Why: registering a text-only color in `--color-*` also creates unintended backgr
 
 Why: the custom utility maps one CSS variable to the one Tailwind operation the component needs.
 
+## Incorrect — Theme Token Repeats the CSS Property
+
+```css
+@theme inline {
+  --color-border: var(--base-edge);
+  --color-retro-border: var(--retro-edge);
+}
+```
+
+```tsx
+<div className="border-border hover:border-retro-border" />
+```
+
+Why: a boundary color's semantic role must end in `-edge`; declaring the incorrect names in `@theme` does not make them valid.
+
+## Correct — Theme Token and Utility Use an Edge Role
+
+```css
+@theme inline {
+  --color-base-edge: var(--base-edge);
+  --color-retro-edge: var(--retro-edge);
+}
+```
+
+```tsx
+<div className="border-base-edge hover:border-retro-edge" />
+```
+
+Why: both the theme names and their generated Tailwind classes describe boundary color roles instead of repeating the CSS property.
+
 ## Incorrect — Boundary Value Named After a CSS Property
 
 ```css
