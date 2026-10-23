@@ -1057,6 +1057,24 @@
       "ref": "pasika/util-file-name"
     },
     {
+      "doc": "next-performance-guide/rules/upstream-performance-adoption-rule.md",
+      "text": "Imported upstream performance recommendations MUST remain advisory until an equivalent requirement is approved in a Pasika Rule.",
+      "hash": "fa5ee4b1a8",
+      "note": "Reviewed local policy boundary; upstream content is advisory until a Pasika Rule is approved."
+    },
+    {
+      "doc": "next-performance-guide/rules/upstream-performance-adoption-rule.md",
+      "text": "An adopted performance requirement MUST be classified through the existing requirements registry before an ESLint rule enforces it.",
+      "hash": "a603fd56a0",
+      "note": "Reviewers classify adopted requirements with the existing registry; this review step is judgment-based."
+    },
+    {
+      "doc": "next-performance-guide/rules/upstream-performance-adoption-rule.md",
+      "text": "An ESLint implementation for an adopted performance requirement SHOULD be limited to statically verifiable cases and supported by regression tests.",
+      "hash": "885540b922",
+      "note": "Evaluate static decidability and test strength during ESLint review."
+    },
+    {
       "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
       "text": "Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.",
       "hash": "297cc4ce43",
@@ -1097,12 +1115,6 @@
       "text": "A static class list with more than five class names MUST use `cn` with multiple string literals, each grouped by styling concern and containing no more than five class names.",
       "hash": "2c58fa578d",
       "ref": "pasika/enforce-cn-merge"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
-      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "next-tailwind-guide/rules/component-ui-state-rule.md",
@@ -1199,6 +1211,12 @@
       "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
       "hash": "86f83ca119",
       "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

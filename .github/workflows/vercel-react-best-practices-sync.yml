@@ -1,0 +1,57 @@
+name: Vercel React Practices Sync
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: vercel-react-practices-sync
+  cancel-in-progress: false
+
+jobs:
+  upstream-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update Vulyk-pinned upstream content
+        run: |
+          npx vulyk diff vercel-react-best-practices
+          npx vulyk update vercel-react-best-practices
+          npx vulyk sync
+          npx vulyk stage
+
+      - name: Verify existing requirements
+        run: npm run test:requirements
+
+      - name: Open draft review PR when upstream changes
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: chore/review-vercel-react-best-practices
+          delete-branch: true
+          draft: true
+          commit-message: "chore: sync Vercel React Best Practices"
+          title: "chore: review updated Vercel React Best Practices"
+          body: |
+            Vulyk found a new upstream React Best Practices revision and synced its files.
+
+            Review the upstream diff in `.agents/skills/vercel-react-best-practices/` and compare changes against the existing Pasika conventions and ESLint checks.
+
+            The upstream material is **advisory**. If a recommendation is accepted, change the appropriate Pasika Rule, classify its requirements using the **existing** `scripts/registry.json` workflow, and add or update ESLint tests separately. Do not auto-enforce imported advice.
+
+            See `docs/next-performance-guide/next-performance-guide.md`.

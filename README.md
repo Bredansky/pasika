@@ -85,13 +85,30 @@ The entries share one `HttpError`, so a failure `zodFetch` throws satisfies the 
 
 The guides ship in this repository and are adopted into a project through `vulyk`. Each one owns its glossary:
 
-| Document                                                                                                                   | Covers                                                        |
-| -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [Repository Policy](https://github.com/Bredansky/pasika/blob/main/docs/repository-policy.md)                               | requirements spanning every change in a repository            |
-| [Next Codebase Guide](https://github.com/Bredansky/pasika/blob/main/docs/next-codebase-guide/next-codebase-guide.md)       | where code lives: modules, components, support files, imports |
-| [Next Tailwind Guide](https://github.com/Bredansky/pasika/blob/main/docs/next-tailwind-guide/next-tailwind-guide.md)       | theme tokens, class composition, variants, states             |
-| [Documentation Guide](https://github.com/Bredansky/pasika/blob/main/docs/documentation-guide/documentation-guide.md)       | how documents themselves are written                          |
-| [Pasika Adoption Guide](https://github.com/Bredansky/pasika/blob/main/docs/pasika-adoption-guide/pasika-adoption-guide.md) | adopting and updating the framework                           |
+| Document                                                                                                                      | Covers                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [Repository Policy](https://github.com/Bredansky/pasika/blob/main/docs/repository-policy.md)                                  | requirements spanning every change in a repository                          |
+| [Next Codebase Guide](https://github.com/Bredansky/pasika/blob/main/docs/next-codebase-guide/next-codebase-guide.md)          | where code lives: modules, components, support files, imports               |
+| [Next Tailwind Guide](https://github.com/Bredansky/pasika/blob/main/docs/next-tailwind-guide/next-tailwind-guide.md)          | theme tokens, class composition, variants, states                           |
+| [Next Performance Guide](https://github.com/Bredansky/pasika/blob/main/docs/next-performance-guide/next-performance-guide.md) | reviewing external React performance guidance without automatic enforcement |
+| [Documentation Guide](https://github.com/Bredansky/pasika/blob/main/docs/documentation-guide/documentation-guide.md)          | how documents themselves are written                                        |
+| [Pasika Adoption Guide](https://github.com/Bredansky/pasika/blob/main/docs/pasika-adoption-guide/pasika-adoption-guide.md)    | adopting and updating the framework                                         |
+
+### External React performance guidance
+
+[Vercel React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices) is installed as a **Vulyk-managed, commit-pinned skill** at `.agents/skills/vercel-react-best-practices/`. Its 70 upstream rules and generated reference material are checked into Git unchanged so updates produce a readable diff; the upstream snapshot is excluded from local Prettier formatting.
+
+The upstream skill is **advisory**, not Pasika policy. When accepting advice, add a local Pasika Rule, classify any new requirements in the **existing** `scripts/registry.json` via `npx tsx scripts/coverage.ts --classify`, and implement/test ESLint enforcement only for reliable static checks. No separate rule mapping or automatic translation is introduced.
+
+```sh
+npx vulyk diff vercel-react-best-practices
+npx vulyk update vercel-react-best-practices
+npx vulyk sync
+npx vulyk stage
+npm run test:requirements
+```
+
+The weekly [Vercel React Practices Sync](.github/workflows/vercel-react-best-practices-sync.yml) workflow proposes upstream updates as **draft PRs** for human review, not automatic ESLint changes. The repository's GitHub Actions settings must allow pull-request creation.
 
 ## 🐝 Sibling packages
 

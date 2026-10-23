@@ -1,0 +1,2 @@
+# Preserve upstream Vulyk-managed Markdown exactly as published.
+.agents/skills/vercel-react-best-practices/** -whitespace
