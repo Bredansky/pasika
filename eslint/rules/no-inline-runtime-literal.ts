@@ -3,7 +3,8 @@
  *
  * Runtime string and numeric values must be named constants or enum members.
  * Static JSX data-component markers, framework matcher declarations, inline JSX
- * className values, and canonical locale dictionary strings are exempt.
+ * className values, canonical locale dictionary strings, and required Next.js
+ * font-loader literals are exempt.
  * Module specifiers, ambient module names, directives, property keys and
  * TypeScript structural keys are syntax.
  *
@@ -13,6 +14,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import { isProductionSource } from "../project/semantic-literals";
+import { isStaticNextFontLiteral } from "./next-font-literals";
 import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
@@ -256,6 +258,7 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
               isStaticDataComponentMarker(node) ||
               isCanonicalLocaleString(node, root, file))) ||
           isStaticMatcherValue(node, root, file) ||
+          isStaticNextFontLiteral(node, context) ||
           isNamedValue(node) ||
           isSyntacticString(node)
         ) {

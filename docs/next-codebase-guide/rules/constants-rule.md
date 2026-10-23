@@ -60,6 +60,30 @@ const dimensions = { width: previewWidth, height: previewHeight };
 
 Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, and locale strings are exceptions.
 
+## Incorrect — Extracting Next.js Font Loader Options
+
+```tsx
+import { Inter } from "next/font/google";
+
+const fontSubsets = ["latin", "cyrillic"];
+const inter = Inter({ subsets: fontSubsets });
+```
+
+Why: Next.js requires a literal array directly in the font loader call and cannot extract it from an identifier at build time.
+
+## Correct — Compiler-Required Next.js Font Literals
+
+```tsx
+import { Inter, Inconsolata } from "next/font/google";
+import localFont from "next/font/local";
+
+const inter = Inter({ subsets: ["latin", "cyrillic"], display: "swap" });
+const mono = Inconsolata({ subsets: ["latin"] });
+const brand = localFont({ src: [{ path: "./fonts/brand.woff2", weight: "400" }] });
+```
+
+Why: Next.js's font loader requires these values in the static call-site AST, so referencing named constants breaks the build. The exception is limited to static configuration of directly imported Next.js font-loader functions; other runtime literals still require names.
+
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
 ```ts
