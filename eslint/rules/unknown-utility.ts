@@ -24,7 +24,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
-import { violatesBoundaryColorRole } from "../project/semantic-color-role";
+import { incompatibleColorUtilityRole, violatesBoundaryColorRole } from "../project/semantic-color-role";
 import { sourceRootOf } from "./project-root";
 
 /** The theme-variable namespaces Tailwind turns into utilities, and the utility prefixes that consume each one. */
@@ -502,22 +502,29 @@ function isColorToken(token: string, inventory: Inventory): boolean {
   return DEFAULT_PALETTE_FAMILIES.has(token.slice(0, hyphen)) && DEFAULT_PALETTE_SHADES.has(token.slice(hyphen + 1));
 }
 
-/** Whether a class references an explicitly defined but incorrectly named boundary color. */
-function isInvalidBoundaryColorClass(className: string, inventory: Inventory): boolean {
-  if (className.includes("[") || className.includes("(")) return false;
+/** A static Tailwind utility that references a color declared in the project theme. */
+function definedThemeColorClass(
+  className: string,
+  inventory: Inventory,
+): { prefix: string; token: string } | undefined {
+  if (className.includes("[") || className.includes("(")) return undefined;
   const utility = (className.replace(/!+$/, "").split(":").pop() ?? "").split("/")[0] ?? "";
   const compound = Object.keys(PREFIX_NAMESPACES).find(
     (prefix) => prefix.includes("-") && utility.startsWith(`${prefix}-`),
   );
   const dash = utility.indexOf("-");
-  if (dash === -1) return false;
+  if (dash === -1) return undefined;
   const prefix = compound ?? utility.slice(0, dash);
   const token = utility.slice(prefix.length + 1);
-  return (
-    (PREFIX_NAMESPACES[prefix]?.includes("color") ?? false) &&
-    (inventory.themeTokens.get("color")?.has(token) ?? false) &&
-    violatesBoundaryColorRole(token)
-  );
+  if (!(PREFIX_NAMESPACES[prefix]?.includes("color") ?? false)) return undefined;
+  if (!(inventory.themeTokens.get("color")?.has(token) ?? false)) return undefined;
+  return { prefix, token };
+}
+
+/** Whether a class references an explicitly defined but incorrectly named boundary color. */
+function isInvalidBoundaryColorClass(className: string, inventory: Inventory): boolean {
+  const themeColor = definedThemeColorClass(className, inventory);
+  return themeColor !== undefined && violatesBoundaryColorRole(themeColor.token);
 }
 
 /** Whether the class is provably a custom utility, a theme-generated utility, or a built-in. */
@@ -614,6 +621,24 @@ export const unknownUtilityRule: Rule.RuleModule = {
           context.report({
             node,
             message: `Utility class "${candidate}" uses a boundary color token named after a CSS property; use a semantic -edge color token instead (for example, border-control-edge).`,
+          });
+          continue;
+        }
+        const themeColor = definedThemeColorClass(candidate, inventory);
+        const incompatibleRole = themeColor
+          ? incompatibleColorUtilityRole(themeColor.prefix, themeColor.token)
+          : undefined;
+        if (incompatibleRole) {
+          const expected = {
+            canvas: "bg-<role>-canvas",
+            ink: "text-<role>-ink",
+            edge: "border-<role>-edge",
+          }[incompatibleRole];
+          context.report({
+            node,
+            message:
+              `Utility class "${candidate}" applies a -${incompatibleRole} color token to an incompatible property; ` +
+              `use ${expected} for that role or define a token for the intended property.`,
           });
           continue;
         }
