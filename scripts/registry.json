@@ -446,6 +446,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Literal string and numeric values required by the Next.js font compiler MAY appear inline only in static options passed directly to functions imported from `next/font/google` or `next/font/local`; unrelated function calls, extracted options, and computed expressions remain subject to the named-constants rule.",
+      "hash": "1eca6fd1e6",
+      "ref": "pasika/no-inline-runtime-literal"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A single named string or number value MUST be represented by a `const`, not a one-member `enum`.",
       "hash": "312f9eda9b",
       "ref": "pasika/enum-placement"
@@ -1099,12 +1105,6 @@
       "ref": "pasika/enforce-cn-merge"
     },
     {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
-      "ref": "pasika/no-duplicate-jsx-classes"
-    },
-    {
       "doc": "next-tailwind-guide/rules/component-ui-state-rule.md",
       "text": "A component MUST use Tailwind \"state variants\" when they can express a supported UI state.",
       "hash": "0f6c3bb7ed",
@@ -1199,6 +1199,12 @@
       "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
       "hash": "86f83ca119",
       "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

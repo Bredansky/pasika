@@ -384,3 +384,25 @@ void describe("Every runtime string or numeric value MUST be represented by a na
     ],
   });
 });
+
+void describe("Literal string and numeric values required by the Next.js font compiler MAY appear inline only in static options passed directly to functions imported from next/font/google or next/font/local; unrelated function calls, extracted options, and computed expressions remain subject to the named-constants rule.", () => {
+  ruleTester.run("no-inline-runtime-literal:next-font-loader-options", noInlineRuntimeLiteralRule, {
+    valid: [
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ subsets: ["latin", "cyrillic"] });',
+      },
+      {
+        filename: file,
+        code: 'import localFont from "next/font/local"; const font = localFont({ src: "./font.woff2" });',
+      },
+    ],
+    invalid: [
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; otherFont({ subsets: ["latin"] });',
+        errors: [{ message: MESSAGE }],
+      },
+    ],
+  });
+});
