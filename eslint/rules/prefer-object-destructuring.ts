@@ -689,7 +689,15 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
       "FunctionDeclaration:exit": exitUsageScope,
       FunctionExpression: enterUsageBarrier,
       "FunctionExpression:exit": exitUsageScope,
-      ArrowFunctionExpression: enterUsageBarrier,
+      ArrowFunctionExpression(node) {
+        // Block bodies already have a BlockStatement usage scope. Concise arrows need
+        // their own scope so repeated reads in returned objects/JSX are not skipped.
+        if (node.body.type === "BlockStatement") {
+          enterUsageBarrier();
+        } else {
+          enterUsageScope(node);
+        }
+      },
       "ArrowFunctionExpression:exit": exitUsageScope,
       MemberExpression(node) {
         recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue, detachableCall);
