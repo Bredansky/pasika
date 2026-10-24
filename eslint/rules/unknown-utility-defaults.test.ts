@@ -37,7 +37,7 @@ void describe("Without a default-theme reset, Tailwind's built-in defaults are v
       },
       // Palette colors through the color-consuming prefixes.
       {
-        code: '<div className="from-sky-400 caret-black shadow-red-500 border-red-500 text-primary-canvas" />',
+        code: '<div className="from-sky-400 caret-black shadow-red-500 border-red-500 bg-primary-canvas" />',
         filename: srcFile("shared/card.tsx"),
       },
       // Font-size and value namespaces fall back to the defaults when the project did not reset them.
