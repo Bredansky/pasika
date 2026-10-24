@@ -17,6 +17,11 @@ void describe("An interactive HTML element MUST be extracted to a component with
         filename: srcFile("features/navigation/empty.tsx"),
       },
       {
+        // Route pages may compose extracted controls without introducing raw interactive elements.
+        code: "export default function MerchPage() { return <main><h1>Merch</h1><MerchShopButton /></main>; }",
+        filename: srcFile("app/merch/page.tsx"),
+      },
+      {
         // Next.js framework files (error boundary, metadata) are exempt.
         code: `export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {\n  return <html><body><p>{String(error.message)}</p><button type="button" onClick={reset}>retry</button></body></html>;\n}`,
         filename: srcFile("app/global-error.tsx"),
@@ -58,6 +63,29 @@ void describe("An interactive HTML element MUST be extracted to a component with
       },
     ],
     invalid: [
+      {
+        // A page route is ordinary composition: a native button beside content must be extracted.
+        code: "export default function MerchPage() { return <main><h1>Merch</h1><button type='button'>Shop</button></main>; }",
+        filename: srcFile("app/merch/page.tsx"),
+        errors: [
+          {
+            message:
+              "Extract the interactive <button> into a descriptive component. See docs/next-codebase-guide/rules/interactive-component-rule.md",
+          },
+        ],
+      },
+      {
+        // An interactive element nested in a page's composed widget must still be extracted.
+        code: "export default function MerchPage() { return <main><RetroBox><p>Visit our shop</p><button type='button'><ExternalLink />Shop</button></RetroBox></main>; }",
+        filename: srcFile("app/merch/page.tsx"),
+        errors: 1,
+      },
+      {
+        // Root app route pages are subject to the same rule.
+        code: "export default function HomePage() { return <main><p>Welcome</p><a href='/shop'>Shop</a></main>; }",
+        filename: srcFile("app/page.tsx"),
+        errors: 1,
+      },
       {
         // A native button remains interactive when a behavior wrapper such as Radix asChild supplies the handler.
         code: `export function SidebarSection() { return <Collapsible><CollapsibleTrigger asChild><button type="button">Section</button></CollapsibleTrigger></Collapsible>; }`,

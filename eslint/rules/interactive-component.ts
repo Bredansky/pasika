@@ -33,7 +33,6 @@ const NEXT_ROUTING_FILES = new Set([
   "loading",
   "middleware",
   "not-found",
-  "page",
   "route",
   "template",
   // File conventions Next.js requires to keep their exact names in src/app/
@@ -234,9 +233,9 @@ export const interactiveComponentRule: Rule.RuleModule = {
     if (!context.filename.endsWith(".tsx") && !context.filename.endsWith(".jsx")) return {};
     const filename = path.resolve(context.filename);
     const base = path.basename(filename, path.extname(filename));
-    // Next.js App Router framework files have a rigid structure (error
-    // boundaries must render a full document, metadata files are single
-    // exports) and are exempt, matching the other framework-aware rules.
+    // Some framework-only routing files need inline interactive elements (for
+    // example, error boundaries). Ordinary page.tsx files still compose UI and
+    // must extract interactive controls like other application components.
     if (NEXT_ROUTING_FILES.has(base)) return {};
 
     return {
