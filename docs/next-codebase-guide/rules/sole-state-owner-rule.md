@@ -30,7 +30,7 @@ export function DashboardView(): React.JSX.Element {
 }
 ```
 
-Why: the help button and modal are the only users of `isHelpOpen`, but the state lives in `DashboardView`.
+Why: the help button and modal are the only users of `isHelpOpen`, but the state lives in `DashboardView`. Simple derived values also belong to their state owner: for example, `const filtered = filter === FilterType.All ? products : products.filter((product) => product.category === filter)` does not hide that the filter buttons and product grid form an extractable UI section across a decorative divider, whereas effects, side-effectful computations, or values consumed elsewhere do not qualify for automatic extraction.
 
 ## Correct — Child Owns Its State
 
