@@ -2,8 +2,8 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
-- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
-- Literal string and numeric values required by the Next.js font compiler MAY appear inline only in static options passed directly to functions imported from `next/font/google` or `next/font/local`; unrelated function calls, extracted options, and computed expressions remain subject to the named-constants rule.
+- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
+- When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.

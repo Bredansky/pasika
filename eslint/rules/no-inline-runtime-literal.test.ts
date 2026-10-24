@@ -5,7 +5,7 @@ const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js `config.matcher` values are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -385,7 +385,7 @@ void describe("Every runtime string or numeric value MUST be represented by a na
   });
 });
 
-void describe("Literal string and numeric values required by the Next.js font compiler MAY appear inline only in static options passed directly to functions imported from next/font/google or next/font/local; unrelated function calls, extracted options, and computed expressions remain subject to the named-constants rule.", () => {
+void describe("When specified, static Next.js config.matcher values and string or numeric options passed directly to next/font/google or next/font/local loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.", () => {
   ruleTester.run("no-inline-runtime-literal:next-font-loader-options", noInlineRuntimeLiteralRule, {
     valid: [
       {

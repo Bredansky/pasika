@@ -440,14 +440,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.",
-      "hash": "8af5d01241",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.",
+      "hash": "00f45c96c9",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Literal string and numeric values required by the Next.js font compiler MAY appear inline only in static options passed directly to functions imported from `next/font/google` or `next/font/local`; unrelated function calls, extracted options, and computed expressions remain subject to the named-constants rule.",
-      "hash": "1eca6fd1e6",
+      "text": "When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.",
+      "hash": "a15e78c171",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {
