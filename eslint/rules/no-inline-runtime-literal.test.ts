@@ -5,7 +5,7 @@ const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js `config.matcher` values are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -38,6 +38,18 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
       { filename: file, code: 'import value from "some-module"; export { value } from "some-module";' },
       { filename: file, code: '"use client"; const value = "data";' },
+      {
+        filename: file,
+        code: 'import { Inter, Inconsolata as Mono } from "next/font/google"; const inter = Inter({ subsets: ["latin", "cyrillic"], weight: ["400", "700"], display: "swap", fallback: ["Arial"], variable: "--font-inter" }); const mono = Mono({ subsets: ["latin"] });',
+      },
+      {
+        filename: file,
+        code: 'import localFont from "next/font/local"; const mono = localFont({ src: [{ path: "./fonts/mono.woff2", weight: "400", style: "normal" }], declarations: [{ prop: "font-feature-settings", value: "normal" }], display: "swap" });',
+      },
+      {
+        filename: file,
+        code: 'import { Inter as BrandFont } from "next/font/google"; const font = BrandFont({ "subsets": ["latin"] });',
+      },
       { filename: file, code: 'const options = { "other-key": namedValue };' },
       { filename: file, code: 'type Value = Pick<Options, "id">; const name = "id";' },
       { filename: file, code: "const count = 3; const enabled = true;" },
@@ -88,6 +100,51 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
     ],
     invalid: [
+      {
+        filename: file,
+        code: 'import { Inter } from "another-font-library"; const font = Inter({ subsets: ["latin"] });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import Inter from "next/font/google"; const font = Inter({ subsets: ["latin"] });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; function makeFont(Inter) { return Inter({ subsets: ["latin"] }); }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ other: ["latin"] });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ subsets: ["latin" + suffix] });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ subsets: transform("latin") });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const options = { subsets: ["latin"] }; const font = Inter(options);',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ subsets: ["latin"] }); fetch("/api/users");',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import font from "next/font/local"; const options = { src: "./mono.woff2" }; font(options);',
+        errors: [{ message: MESSAGE }],
+      },
       {
         filename: file,
         code: "export const maxFileSize = 20 * 1024 * 1024;",
@@ -324,6 +381,28 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       { filename: file, code: "send(-1);", errors: [{ message: MESSAGE }] },
       { filename: file, code: "send(+1);", errors: [{ message: MESSAGE }] },
       { filename: file, code: "send(10n);", errors: [{ message: MESSAGE }] },
+    ],
+  });
+});
+
+void describe("When specified, static Next.js config.matcher values and string or numeric options passed directly to next/font/google or next/font/local loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.", () => {
+  ruleTester.run("no-inline-runtime-literal:next-font-loader-options", noInlineRuntimeLiteralRule, {
+    valid: [
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; const font = Inter({ subsets: ["latin", "cyrillic"] });',
+      },
+      {
+        filename: file,
+        code: 'import localFont from "next/font/local"; const font = localFont({ src: "./font.woff2" });',
+      },
+    ],
+    invalid: [
+      {
+        filename: file,
+        code: 'import { Inter } from "next/font/google"; otherFont({ subsets: ["latin"] });',
+        errors: [{ message: MESSAGE }],
+      },
     ],
   });
 });

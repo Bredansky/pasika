@@ -2,7 +2,8 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
-- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, direct strings in named `src/locales/` dictionaries, and static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values are exempt.
+- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
+- When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
@@ -59,6 +60,30 @@ const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
 Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, and locale strings are exceptions.
+
+## Incorrect — Extracting Next.js Font Loader Options
+
+```tsx
+import { Inter } from "next/font/google";
+
+const fontSubsets = ["latin", "cyrillic"];
+const inter = Inter({ subsets: fontSubsets });
+```
+
+Why: Next.js requires a literal array directly in the font loader call and cannot extract it from an identifier at build time.
+
+## Correct — Compiler-Required Next.js Font Literals
+
+```tsx
+import { Inter, Inconsolata } from "next/font/google";
+import localFont from "next/font/local";
+
+const inter = Inter({ subsets: ["latin", "cyrillic"], display: "swap" });
+const mono = Inconsolata({ subsets: ["latin"] });
+const brand = localFont({ src: [{ path: "./fonts/brand.woff2", weight: "400" }] });
+```
+
+Why: Next.js's font loader requires these values in the static call-site AST, so referencing named constants breaks the build. The exception is limited to static configuration of directly imported Next.js font-loader functions; other runtime literals still require names.
 
 ## Incorrect — Screaming-Case Constant for an Ordinary Value
 
