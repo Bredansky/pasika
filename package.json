@@ -42,6 +42,7 @@
     "dist"
   ],
   "scripts": {
+    "audit:tailwind": "tsx scripts/tailwind-audit.ts",
     "build": "tsup",
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",

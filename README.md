@@ -110,6 +110,8 @@ npm run test:unit
 npm run test:requirements # every requirement still has recorded enforcement
 npm run build
 npm run dogfood -- ../some/repo   # lint a sibling repo with the built presets
+npm run audit:tailwind -- ../some/repo   # read-only Tailwind diagnostic review
+npm run audit:tailwind -- ../some/repo --json   # machine-readable findings
 ```
 
 ## 📄 License
