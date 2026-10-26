@@ -40,25 +40,11 @@ Why: this custom utility only renames an existing class without adding a new map
 
 Why: a color token belongs to Tailwind's `--color-*` namespace when it should be available across color utility families; its semantic name is not constrained to a fixed suffix.
 
-## Incorrect — Runtime Color Mapping Without Inline
-
-```css
-@theme {
-  --color-button-surface: var(--button-surface);
-}
-```
-
-Why: variable-backed theme tokens without `inline` can resolve against the wrong CSS-variable scope.
-
-## Correct — A Runtime-Backed Theme Token
+## Incorrect — Theme Values Indirected Through Runtime Variables
 
 ```css
 :root {
   --button-surface: #18181b;
-}
-
-[data-theme="light"] {
-  --button-surface: #fafafa;
 }
 
 @theme inline {
@@ -66,7 +52,27 @@ Why: variable-backed theme tokens without `inline` can resolve against the wrong
 }
 ```
 
-Why: `@theme inline` keeps the runtime CSS variable reference in generated utilities. The names of the CSS variable and theme token can differ.
+Why: theme tokens must have their default values directly in `@theme`; using `inline` or an indirect `var()` mapping makes the token's source and theme-specific overrides harder to trace.
+
+## Correct — Scoped Overrides of One Theme Token
+
+```css
+@theme {
+  --color-button-surface: #18181b;
+}
+
+[data-theme="light"] {
+  --color-button-surface: #fafafa;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --color-button-surface: #18181b;
+  }
+}
+```
+
+Why: Tailwind registers one `bg-button-surface` utility that reads `--color-button-surface`; each theme overrides that exact token without alias variables or `@theme inline`.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 

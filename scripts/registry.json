@@ -1166,8 +1166,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind theme value that references a CSS variable MUST use `@theme inline`; direct values MAY be defined in `@theme` without a `:root` counterpart.",
-      "hash": "00f4a6d4c9",
+      "text": "A Tailwind design token MUST be defined directly in `@theme`, never `@theme inline`, and different themes MUST override that token in scoped selectors or conditional rules.",
+      "hash": "6ef831a160",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "An unconditional `:root` block MUST NOT redeclare a token already defined in `@theme`; scoped or conditional overrides of the same token are allowed.",
+      "hash": "89a9e49833",
       "ref": "pasika/root-variables"
     },
     {
