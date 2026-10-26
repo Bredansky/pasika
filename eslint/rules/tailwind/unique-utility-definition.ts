@@ -49,7 +49,7 @@ export const uniqueUtilityDefinitionRule: CSSRuleDefinition = {
           if (!canonical || current === canonical) continue;
           context.report({
             node: utility,
-            message: `Custom utility "${name}" is also defined in ${path.relative(sourceRoot, canonical)}; one utility must have one stylesheet owner.`,
+            message: `Custom utility "${name}" is also defined in ${path.relative(sourceRoot, canonical)}; define it in only one CSS file.`,
           });
         }
       },
