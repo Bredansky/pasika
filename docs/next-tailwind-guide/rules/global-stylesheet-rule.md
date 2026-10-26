@@ -1,6 +1,6 @@
 # Global Stylesheet Rule
 
-Keep all project CSS under `src/app/styles/`, with `globals.css` as the single Tailwind entry point that directly imports every other project stylesheet. The global stylesheet means the full CSS tree rooted at that entry point: theme resets and base-layer defaults may live in imported partials, but only `globals.css` registers Tailwind.
+Scattered project stylesheets and competing Tailwind entry points make CSS ownership, global defaults, and styling dependencies difficult to trace. A single, predictable stylesheet import tree prevents these inconsistencies as project CSS grows.
 
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
