@@ -1244,6 +1244,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Every custom `@utility` name MUST have one stylesheet owner across the project CSS files.",
+      "hash": "247f0bbb7d",
+      "ref": "pasika/unique-utility-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.",
       "hash": "25b627025e",
       "ref": "pasika/utility-mapping"

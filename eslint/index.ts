@@ -275,14 +275,17 @@ const tailwindStructureRules: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: Object.fromEntries(tailwindRuleIds.filter((id) => id !== "pasika/css-entry-point").map((id) => [id, "error"])),
+  rules: Object.fromEntries(
+    tailwindRuleIds
+      .filter((id) => id !== "pasika/css-entry-point" && id !== "pasika/unique-utility-definition")
+      .map((id) => [id, "error"]),
+  ),
 };
 
 /**
- * Every stylesheet under `src` — the cross-file `css-entry-point` import-graph
- * rule, applied once over all files so a stray sheet or one reached two hops
- * away is caught. Kept apart from the structural rules because those assume
- * the entry point and can't run here.
+ * Every stylesheet under `src` — cross-file import and unique utility-owner
+ * graph rules. They run on every CSS file so duplicate definitions outside the
+ * global entry point are reported at their actual location.
  */
 const tailwindImportGraph: Linter.Config = {
   files: ["src/**/*.css"],
@@ -292,7 +295,10 @@ const tailwindImportGraph: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: { "pasika/css-entry-point": "error" },
+  rules: {
+    "pasika/css-entry-point": "error",
+    "pasika/unique-utility-definition": "error",
+  },
 };
 
 /**

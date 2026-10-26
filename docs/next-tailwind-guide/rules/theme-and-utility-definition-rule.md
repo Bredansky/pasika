@@ -8,6 +8,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
+- Every custom `@utility` name MUST have one stylesheet owner across the project CSS files.
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
