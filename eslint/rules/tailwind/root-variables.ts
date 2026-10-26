@@ -1,10 +1,10 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * One canonical source for Tailwind design tokens:
- * - Define base values directly in @theme (never @theme inline).
- * - Override those same CSS variables under scoped/conditional theme selectors.
- * - Plain :root variables remain valid for non-theme values.
+ * Design tokens use @theme for direct values and @theme inline for values
+ * referencing runtime CSS variables, regardless of theme selector strategy.
+ * Default :root variables may not redeclare Tailwind token names, while
+ * independent runtime variables and scoped overrides remain valid.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -16,10 +16,8 @@ import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { atrulesNamed, preludeIdentifiers } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-const INLINE_MESSAGE =
-  "Define Tailwind tokens in @theme, never @theme inline; override the same token inside each theme scope.";
-const INDIRECT_MESSAGE =
-  "Define theme token values directly in @theme; theme variants must override the token in their own CSS scope.";
+const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
+const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
@@ -27,7 +25,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require direct @theme definitions and scoped theme overrides without inline or default :root duplication.",
+        "Require @theme for direct token values, @theme inline for var()-backed values, and no default :root token duplication.",
     },
   },
   create(context) {
@@ -52,14 +50,35 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         for (const theme of atrulesNamed(node, "theme")) {
-          if (preludeIdentifiers(theme).includes("inline")) {
-            context.report({ node: theme, message: INLINE_MESSAGE });
+          const inline = preludeIdentifiers(theme).includes("inline");
+          // Tailwind's theme declarations can be Raw nodes in the tolerant CSS
+          // parser. Inspect each declaration separately, including multiline
+          // values and declarations without a final semicolon.
+          const source = context.sourceCode
+            .getText(theme)
+            .replace(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replace(/[^\r\n]/gu, " "));
+          for (const match of source.matchAll(
+            /(?:^|[{;\r\n])\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;{}]*)(?=;|[}])/gu,
+          )) {
+            const { name, value } = match.groups ?? {};
+            if (!name || value === undefined) continue;
+            // A quoted literal containing "var(" isn't a variable reference.
+            const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
+            const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
+            if (inline === referencesVariable) continue;
+            const offset = (theme.loc?.start.offset ?? 0) + match.index + match[0].indexOf(name);
+            const preceding = context.sourceCode.text.slice(0, offset);
+            const line = preceding.split("\n").length;
+            const column = offset - preceding.lastIndexOf("\n");
+            context.report({
+              node: theme,
+              loc: {
+                start: { line, column },
+                end: { line, column: column + name.length },
+              },
+              message: inline ? INLINE_MESSAGE : INDIRECT_MESSAGE,
+            });
           }
-          // The tolerant parser can carry theme declarations as Raw nodes.
-          // Strip comments before checking for indirection in theme values.
-          const source = context.sourceCode.getText(theme).replace(/\/\*[\s\S]*?\*\//gu, "");
-          const indirect = /--[a-z][\w-]*\s*:\s*[^;{}]*\bvar\s*\(/u.test(source);
-          if (indirect) context.report({ node: theme, message: INDIRECT_MESSAGE });
         }
 
         for (const symbol of graph.definitions) {

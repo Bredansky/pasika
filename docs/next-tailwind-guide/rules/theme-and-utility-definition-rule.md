@@ -40,19 +40,15 @@ Why: this custom utility only renames an existing class without adding a new map
 
 Why: a color token belongs to Tailwind's `--color-*` namespace when it should be available across color utility families; its semantic name is not constrained to a fixed suffix.
 
-## Incorrect — Theme Values Indirected Through Runtime Variables
+## Incorrect — Direct Theme Value Marked Inline
 
 ```css
-:root {
-  --button-surface: #18181b;
-}
-
 @theme inline {
-  --color-button-surface: var(--button-surface);
+  --color-button-surface: #18181b;
 }
 ```
 
-Why: theme tokens must have their default values directly in `@theme`; using `inline` or an indirect `var()` mapping makes the token's source and theme-specific overrides harder to trace.
+Why: a literal token value does not need inline variable resolution and belongs in regular `@theme`.
 
 ## Correct — Scoped Overrides of One Theme Token
 
@@ -72,7 +68,39 @@ Why: theme tokens must have their default values directly in `@theme`; using `in
 }
 ```
 
-Why: Tailwind registers one `bg-button-surface` utility that reads `--color-button-surface`; each theme overrides that exact token without alias variables or `@theme inline`.
+Why: Tailwind registers one `bg-button-surface` utility that reads `--color-button-surface`; the theme-specific selectors override that token directly.
+
+## Incorrect — Runtime Variable Without Inline
+
+```css
+:root {
+  --button-surface: #18181b;
+}
+
+@theme {
+  --color-button-surface: var(--button-surface);
+}
+```
+
+Why: an indirect theme token without `inline` can resolve its source variable outside the scope where the utility is used.
+
+## Correct — Runtime Variable Mapped Inline
+
+```css
+:root {
+  --button-surface: #18181b;
+}
+
+.dark {
+  --button-surface: #fafafa;
+}
+
+@theme inline {
+  --color-button-surface: var(--button-surface);
+}
+```
+
+Why: Tailwind emits `bg-button-surface` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 

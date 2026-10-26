@@ -1166,8 +1166,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind design token MUST be defined directly in `@theme`, never `@theme inline`, and different themes MUST override that token in scoped selectors or conditional rules.",
-      "hash": "6ef831a160",
+      "text": "A Tailwind design token whose value does not reference another CSS custom property via `var()` MUST be defined in regular `@theme`.",
+      "hash": "9fa1e39bb5",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "A Tailwind design token whose value references another CSS custom property via `var()` MUST be defined in `@theme inline`, regardless of how themes are selected.",
+      "hash": "26b268f896",
       "ref": "pasika/root-variables"
     },
     {

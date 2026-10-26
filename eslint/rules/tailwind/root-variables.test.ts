@@ -4,18 +4,27 @@ import path from "node:path";
 import { rootVariablesRule } from "./root-variables";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-const INLINE =
-  "Define Tailwind tokens in @theme, never @theme inline; override the same token inside each theme scope.";
-const INDIRECT =
-  "Define theme token values directly in @theme; theme variants must override the token in their own CSS scope.";
+const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
+const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
 const ROOT =
   'Theme token "--color-brand" already belongs to @theme; remove the unconditional :root redeclaration and use scoped theme overrides.';
 
-void describe("A Tailwind design token MUST be defined directly in @theme, never @theme inline, and different themes MUST override that token in scoped selectors or conditional rules.", () => {
+void describe("A Tailwind design token whose value does not reference another CSS custom property via `var()` MUST be defined in regular `@theme`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
+      { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
+      { code: "@theme inline { --color-brand: var(--brand); }" },
+      { code: "@theme inline { --shadow-custom: calc(2px + var(--offset)); }" },
+      { code: "@theme inline { --color-surface: hsl(var(--surface)); }" },
+      { code: "@theme inline { --color-brand: rgb(\n  var(--runtime-brand)\n); }" },
+      { code: "@theme { --color-brand: #2563eb; } @theme inline { --color-surface: var(--surface); }" },
+      { code: "@theme { --color-brand: #2563eb; /* --color-comment: var(--nope); */ }" },
+      { code: '@theme { --font-label: "var(--literal)"; }' },
+      {
+        code: ":root { --surface: white; } .dark { --surface: black; } @theme inline { --color-surface: var(--surface); }",
+      },
       { code: ":root { --runtime-brand: #2563eb; }" },
       {
         code: '@theme { --color-brand: #ffffff; }\n[data-theme="dark"] { --color-brand: #111111; }',
@@ -30,8 +39,16 @@ void describe("A Tailwind design token MUST be defined directly in @theme, never
         errors: [{ message: INLINE }],
       },
       {
-        code: "@theme inline { --color-brand: var(--brand); }",
-        errors: [{ message: INLINE }, { message: INDIRECT }],
+        code: "@theme inline { --color-brand: var(--brand); --color-ink: #111827; }",
+        errors: [{ message: INLINE }],
+      },
+      {
+        code: "@theme inline { --color-brand: #2563eb; --color-ink: #111827; }",
+        errors: [{ message: INLINE }, { message: INLINE }],
+      },
+      {
+        code: "@theme { --color-surface: var(--surface); --color-ink: #111827; --color-accent: var(--accent); }",
+        errors: [{ message: INDIRECT }, { message: INDIRECT }],
       },
       {
         code: "@theme { --color-brand: var(--runtime-brand); }",
@@ -39,6 +56,35 @@ void describe("A Tailwind design token MUST be defined directly in @theme, never
       },
       {
         code: "@theme { --shadow-custom: calc(2px + var(--offset)); }",
+        errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --color-surface: rgb(\n  var(--surface)\n); }",
+        errors: [{ message: INDIRECT }],
+      },
+      {
+        code: '@theme inline { --font-label: "var(--literal)"; --font-body: Arial, sans-serif; }',
+        errors: [{ message: INLINE }, { message: INLINE }],
+      },
+    ],
+  });
+});
+
+void describe("A Tailwind design token whose value references another CSS custom property via `var()` MUST be defined in `@theme inline`, regardless of how themes are selected.", () => {
+  tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
+    valid: [
+      { code: "@theme inline { --color-surface: var(--surface); }" },
+      {
+        code: ":root { --surface: white; } .dark { --surface: black; } @theme inline { --color-surface: var(--surface); }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --color-surface: hsl(var(--surface)); }",
+        errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --shadow-depth: calc(2px + var(--offset)); }",
         errors: [{ message: INDIRECT }],
       },
     ],

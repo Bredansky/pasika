@@ -15,12 +15,8 @@ Why: the design value is hidden in markup and cannot be tracked as part of the p
 ## Correct — Named Radius Token
 
 ```css
-:root {
+@theme {
   --radius-md: 0.375rem;
-}
-
-@theme inline {
-  --radius-md: var(--radius-md);
 }
 ```
 
