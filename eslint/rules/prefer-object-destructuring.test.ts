@@ -113,13 +113,52 @@ void describe("When a block reads two or more different properties from one obje
       "use(config.size);",
       "use(config.size); use(config.size);",
       "function dimensions(config) { return config.current.width * config.current.height; }",
-      "const dimensions = (config) => config.width * config.height;",
       "const width = 1; function dimensions(config) { return config.width * config.height; }",
       "function render(layer) { if (layer.type) use(layer.type); const { color, type } = layer; use(color, type); }",
       "function render(position) { use(position.width, position.height); return (box) => { const { width, height } = box; return width + height; }; }",
       "function process(post) { use(post.id, post.currentPayload); return [1].map((id) => id); }",
+      "products.map((product) => product.id);",
+      "products.map((product) => ({ id: product.id, key: product.id }));",
+      "products.map((product) => ({ id: product.id, nested: [1].map(() => product.category) }));",
+      "const id = 5; products.map((product) => ({ id: product.id, category: product.category }));",
     ],
     invalid: [
+      {
+        code: "const dimensions = (config) => config.width * config.height;",
+        output: null,
+        errors: [
+          {
+            message: `"width", "height" are read from "config" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "products.map((product) => ({ id: product.id, category: product.category, content: <Card key={product.id} product={product} /> }));",
+        output: null,
+        errors: [
+          {
+            message: `"id", "category" are read from "product" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "products.map((product) => <Card id={product.id} category={product.category} product={product} />);",
+        output: null,
+        errors: [
+          {
+            message: `"id", "category" are read from "product" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "products.map((product) => ({ id: product.id, category: product.category, nested: values.map((value) => value.id) }));",
+        output: null,
+        errors: [
+          {
+            message: `"id", "category" are read from "product" in the same block. Destructure them together in one declaration. ${doc}`,
+          },
+        ],
+      },
       {
         code: "const { previewUrl } = file; use(previewUrl);",
         output: null,
