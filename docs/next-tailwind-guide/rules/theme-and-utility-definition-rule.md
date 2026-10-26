@@ -8,6 +8,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
+- A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Property-Specific Color Exposed Broadly
@@ -125,12 +126,12 @@ Why: `ink` is reserved for readable text colors, but this value is a font size.
   --tweet-card-name-text-size: 0.875rem;
 }
 
-@utility text-tweet-card-name-size {
-  @apply text-(length:--tweet-card-name-text-size);
+@theme inline {
+  --text-tweet-card-name-size: var(--tweet-card-name-text-size);
 }
 ```
 
-Why: the variable describes the value it stores, while the utility name keeps the Tailwind `text-` operation and makes the size role explicit without extending the color-role vocabulary.
+Why: the descriptive variable and theme token expose the font size through Tailwind's typography namespace without adding another custom utility.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 
@@ -241,3 +242,52 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 ```
 
 Why: re-declaring `--color-red-500` in the project theme turns `bg-red-500` into a theme-generated utility again.
+
+## Incorrect — Font Size Hidden in a Custom Utility
+
+```css
+@utility text-retro-11 {
+  @apply [font-size:11px];
+}
+```
+
+Why: this single font-size mapping duplicates the utility generation already available through the Tailwind text theme namespace.
+
+## Correct — Font Size Owned by a Theme Token
+
+```css
+:root {
+  --retro-11-text-size: 11px;
+}
+
+@theme inline {
+  --text-retro-11: var(--retro-11-text-size);
+}
+```
+
+Why: Tailwind generates `text-retro-11` directly from the named theme token.
+
+## Incorrect — Duplicate Configured Typography Utility
+
+```css
+@theme {
+  --text-sm: 14px;
+  --text-retro-14: 14px;
+}
+```
+
+Why: both classes emit the same font-size with no additional styling, so the alias adds no capability.
+
+## Correct — Reuse an Equivalent Typography Utility
+
+```css
+:root {
+  --compact-text-size: 14px;
+}
+
+@theme inline {
+  --text-sm: var(--compact-text-size);
+}
+```
+
+Why: `text-sm` expresses the existing configured size without a redundant alias; sizes with different units or additional line-height and letter-spacing remain distinct.
