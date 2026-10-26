@@ -4,9 +4,6 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.
-- A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.
-- Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.
-- Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
@@ -17,127 +14,103 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Property-Specific Color Exposed Broadly
+## Incorrect — Redundant Shared Color Alias
 
 ```css
-:root {
-  --color-header-ink: #111827;
+@utility bg-brand {
+  @apply bg-red-500;
 }
+```
 
-@theme inline {
-  --color-header-ink: var(--color-header-ink);
+Why: this custom utility only renames an existing class without adding a new mapping.
+
+## Correct — Shared Theme Color
+
+```css
+@theme {
+  --color-brand: #6366f1;
+  --color-surface: #18181b;
+  --color-on-surface: #fafafa;
 }
 ```
 
 ```tsx
-<h1 className="text-header-ink">Title</h1>
+<div className="bg-surface text-on-surface border-brand" />
 ```
 
-Why: registering a text-only color in `--color-*` also creates unintended background, border, ring, and other color utilities.
+Why: a color token belongs to Tailwind's `--color-*` namespace when it should be available across color utility families; its semantic name is not constrained to a fixed suffix.
 
-## Correct — Property-Specific Utility
+## Incorrect — Runtime Color Mapping Without Inline
+
+```css
+@theme {
+  --color-button-surface: var(--button-surface);
+}
+```
+
+Why: variable-backed theme tokens without `inline` can resolve against the wrong CSS-variable scope.
+
+## Correct — A Runtime-Backed Theme Token
 
 ```css
 :root {
-  --header-ink: #111827;
+  --button-surface: #18181b;
 }
 
-@utility text-header-ink {
-  @apply text-(--header-ink);
-}
-```
-
-```tsx
-<h1 className="text-header-ink">Title</h1>
-```
-
-Why: the custom utility maps one CSS variable to the one Tailwind operation the component needs.
-
-## Incorrect — Theme Token Repeats the CSS Property
-
-```css
-@theme inline {
-  --color-border: var(--base-edge);
-  --color-retro-border: var(--retro-edge);
-}
-```
-
-```tsx
-<div className="border-border hover:border-retro-border" />
-```
-
-Why: a boundary color's semantic role must end in `-edge`; declaring the incorrect names in `@theme` does not make them valid.
-
-## Correct — Theme Token and Utility Use an Edge Role
-
-```css
-@theme inline {
-  --color-base-edge: var(--base-edge);
-  --color-retro-edge: var(--retro-edge);
-}
-```
-
-```tsx
-<div className="border-base-edge hover:border-retro-edge" />
-```
-
-Why: both the theme names and their generated Tailwind classes describe boundary color roles instead of repeating the CSS property.
-
-## Incorrect — Boundary Value Named After a CSS Property
-
-```css
-:root {
-  --control-border: #d1d5db;
-}
-
-@utility border-control {
-  @apply border-(--control-border);
-}
-```
-
-Why: `border` is repeated as both the CSS property and the value role, while the variable cannot describe the same boundary color when an outline, ring, or stroke needs it.
-
-## Correct — Boundary Value Uses an Edge Role
-
-```css
-:root {
-  --control-edge: #d1d5db;
-}
-
-@utility border-control-edge {
-  @apply border-(--control-edge);
-}
-```
-
-Why: `edge` names the value's visual role, and `border` names the property through which the utility applies it.
-
-## Incorrect — Non-Color Value Reuses a Color Role
-
-```css
-:root {
-  --tweet-card-name-ink: 0.875rem;
-}
-
-@utility text-tweet-card-name-ink {
-  @apply text-(length:--tweet-card-name-ink);
-}
-```
-
-Why: `ink` is reserved for readable text colors, but this value is a font size.
-
-## Correct — Non-Color Value Uses a Descriptive Name
-
-```css
-:root {
-  --tweet-card-name-text-size: 0.875rem;
+[data-theme="light"] {
+  --button-surface: #fafafa;
 }
 
 @theme inline {
-  --text-tweet-card-name-size: var(--tweet-card-name-text-size);
+  --color-button-surface: var(--button-surface);
 }
 ```
 
-Why: the descriptive variable and theme token expose the font size through Tailwind's typography namespace without adding another custom utility.
+Why: `@theme inline` keeps the runtime CSS variable reference in generated utilities. The names of the CSS variable and theme token can differ.
+
+## Incorrect — Raw Property Inside a Custom Utility
+
+```css
+@utility border-button-outline {
+  border-color: var(--button-border-color);
+}
+```
+
+Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
+
+## Correct — A Property-Specific Utility
+
+```css
+:root {
+  --button-border-color: #d1d5db;
+}
+
+@utility border-button-outline {
+  @apply border-(--button-border-color);
+}
+```
+
+Why: the explicit `border-*` utility limits the mapping to the intended property, without imposing a particular semantic naming suffix.
+
+## Incorrect — Typography Size Hidden in Custom Utility
+
+```css
+@utility text-card-title {
+  @apply [font-size:0.875rem];
+}
+```
+
+Why: a simple font-size mapping belongs in Tailwind's `--text-*` theme namespace.
+
+## Correct — A Descriptive Typography Token
+
+```css
+@theme {
+  --text-card-title: 0.875rem;
+}
+```
+
+Why: a direct theme value requires no extra `:root` variable, and the Tailwind typography namespace determines the generated utility.
 
 ## Incorrect — Utility Only Renames Another Class
 

@@ -279,16 +279,19 @@ const tailwindStructureRules: Linter.Config = {
     tailwindRuleIds
       .filter(
         (id) =>
-          id !== "pasika/css-entry-point" && id !== "pasika/unique-css-definition" && id !== "pasika/no-utility-alias",
+          id !== "pasika/css-entry-point" &&
+          id !== "pasika/unique-css-definition" &&
+          id !== "pasika/no-utility-alias" &&
+          id !== "pasika/root-variables",
       )
       .map((id) => [id, "error"]),
   ),
 };
 
 /**
- * Every stylesheet under `src` — cross-file import and unique utility-owner
- * graph rules. They run on every CSS file so duplicate definitions outside the
- * global entry point are reported at their actual location.
+ * Every stylesheet under `src` — cross-file definition ownership, imports,
+ * redundant aliases, and deterministic variable-backed theme declarations.
+ * These checks must also cover CSS files imported by the global entry point.
  */
 const tailwindImportGraph: Linter.Config = {
   files: ["src/**/*.css"],
@@ -302,6 +305,7 @@ const tailwindImportGraph: Linter.Config = {
     "pasika/css-entry-point": "error",
     "pasika/unique-css-definition": "error",
     "pasika/no-utility-alias": "error",
+    "pasika/root-variables": "error",
   },
 };
 

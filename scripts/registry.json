@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.",
-      "hash": "d89d54996c",
+      "text": "A Tailwind theme value that references a CSS variable MUST use `@theme inline`; direct values MAY be defined in `@theme` without a `:root` counterpart.",
+      "hash": "00f4a6d4c9",
       "ref": "pasika/root-variables"
     },
     {
@@ -1217,24 +1217,6 @@
       "text": "A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.",
       "hash": "d9c3f062b3",
       "ref": "pasika/no-utility-alias"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.",
-      "hash": "d9b8eeb83d",
-      "ref": "pasika/theme-variable-namespace"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.",
-      "hash": "78f5c13289",
-      "ref": "pasika/css-variable-naming"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.",
-      "hash": "217f793752",
-      "note": "Whether a non-color custom value uses a descriptive domain name and avoids reserved color-role suffixes is a naming-review judgment."
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

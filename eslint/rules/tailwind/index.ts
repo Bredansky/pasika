@@ -4,7 +4,6 @@
 import { applyUsageRule } from "./apply-usage";
 import { baseLayerPairRule } from "./base-layer-pair";
 import { cssEntryPointRule } from "./css-entry-point";
-import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { globalSelectorStylingRule } from "./global-selector-styling";
 import { globalStylesheetRule } from "./global-stylesheet";
@@ -12,7 +11,6 @@ import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { themeResetRule } from "./theme-reset";
-import { themeVariableNamespaceRule } from "./theme-variable-namespace";
 import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { unusedUtilityRule } from "./unused-utility";
 import { utilityMappingRule } from "./utility-mapping";
@@ -23,10 +21,8 @@ export const tailwindRules = {
   "apply-usage": applyUsageRule,
   "base-layer-pair": baseLayerPairRule,
   "stylesheet-ordering": stylesheetOrderingRule,
-  "css-variable-naming": cssVariableNamingRule,
   "custom-utility-apply": customUtilityApplyRule,
   "utility-mapping": utilityMappingRule,
-  "theme-variable-namespace": themeVariableNamespaceRule,
   "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,

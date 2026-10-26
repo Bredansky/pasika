@@ -1,28 +1,28 @@
 import { rootVariablesRule } from "./root-variables";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Every value used for the project's styling MUST be defined as a CSS variable in :root, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through @theme inline.", () => {
+void describe("A Tailwind theme value that references a CSS variable MUST use @theme inline; direct values MAY be defined in @theme without a :root counterpart.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
-      // CSS variables in :root, referenced through @theme inline
-      {
-        code: `:root {\n  --color-brand: #2563eb;\n}\n\n@theme inline {\n  --color-brand: var(--color-brand);\n}`,
-      },
-      // :root variables without any theme block
-      {
-        code: `:root {\n  --surface-canvas: #ffffff;\n}`,
-      },
+      { code: "@theme { --color-brand: #2563eb; }" },
+      { code: ":root { --runtime-brand: #2563eb; }\n@theme inline { --color-brand: var(--runtime-brand); }" },
+      { code: "@theme inline { --color-brand: var(--runtime-brand, #2563eb); }" },
+      { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
+      { code: ":root { --runtime-brand: #2563eb; }" },
+      { code: "@theme { /* --color-brand: var(--runtime); */ --color-brand: #2563eb; }" },
     ],
     invalid: [
-      // No :root block at all
       {
-        code: `@theme {\n  --color-brand: #2563eb;\n}`,
-        errors: [{ message: "Styling values must be defined as CSS variables in a :root block." }],
+        code: "@theme { --color-brand: var(--runtime-brand); }",
+        errors: [{ message: "Theme values that reference CSS variables must use @theme inline." }],
       },
-      // Theme variable references a CSS variable but not through @theme inline
       {
-        code: `:root {\n  --color-brand: #2563eb;\n}\n\n@theme {\n  --color-brand: var(--color-brand);\n}`,
-        errors: [{ message: "Tailwind theme variables that reference CSS variables must use @theme inline." }],
+        code: "@theme inline { --color-primary: var(--primary); }\n@theme { --color-secondary: var(--secondary); }",
+        errors: [{ message: "Theme values that reference CSS variables must use @theme inline." }],
+      },
+      {
+        code: "@theme { --shadow-custom: calc(2px + var(--offset)); }",
+        errors: [{ message: "Theme values that reference CSS variables must use @theme inline." }],
       },
     ],
   });

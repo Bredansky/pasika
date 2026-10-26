@@ -1,56 +1,38 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Every value used for the project's styling MUST be defined as a CSS variable
- * in :root, and a Tailwind theme variable MUST reference that CSS variable
- * through @theme inline.
+ * Theme definitions may contain direct values or map to runtime CSS variables.
+ * A variable-backed theme declaration must use @theme inline so Tailwind emits
+ * the variable reference in the consuming utility at the correct cascade scope.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
-
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren, preludeIdentifiers, rules, selectorNames } from "./helpers";
+import { atrulesNamed, preludeIdentifiers } from "./helpers";
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require styling values to be CSS variables in :root referenced through @theme inline.",
+      description: "Require @theme inline for theme values that reference runtime CSS variables.",
     },
   },
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        const hasRootVars = rules(node).some((rule) => {
-          if (!selectorNames(rule).includes("root")) return false;
-          return blockChildren(rule).some((child) => child.type === "Declaration");
-        });
-        if (!hasRootVars) {
+        for (const theme of atrulesNamed(node, "theme")) {
+          if (preludeIdentifiers(theme).includes("inline")) continue;
+          // Tailwind tolerant mode may parse theme declarations as Raw nodes,
+          // especially when --*: initial is present. Inspect only declaration
+          // bodies, not comments or unrelated text, without relying on its AST.
+          const source = context.sourceCode.getText(theme).replace(/\/\*[\s\S]*?\*\//gu, "");
+          const hasVariableBackedValue = /--[a-z][\w-]*\s*:\s*[^;{}]*\bvar\s*\(/u.test(source);
+          if (!hasVariableBackedValue) continue;
           context.report({
-            node,
-            message: "Styling values must be defined as CSS variables in a :root block.",
-          });
-        }
-
-        // A Tailwind theme variable that references a CSS variable must go
-        // through @theme inline; a bare @theme block would generate values
-        // instead of referencing the :root variables.
-        const referencingThemes = atrulesNamed(node, "theme").filter((theme) =>
-          blockChildren(theme).some((child) => {
-            if (child.type === "Raw") return child.value.includes("var(");
-            if (child.type === "Declaration") return JSON.stringify(child.value).includes("var(");
-            return false;
-          }),
-        );
-        const inlineThemes = atrulesNamed(node, "theme").filter((theme) =>
-          preludeIdentifiers(theme).includes("inline"),
-        );
-        if (referencingThemes.length > 0 && inlineThemes.length === 0) {
-          context.report({
-            node,
-            message: "Tailwind theme variables that reference CSS variables must use @theme inline.",
+            node: theme,
+            message: "Theme values that reference CSS variables must use @theme inline.",
           });
         }
       },

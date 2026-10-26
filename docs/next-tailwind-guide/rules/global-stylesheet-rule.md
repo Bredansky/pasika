@@ -6,7 +6,7 @@ Keep all project CSS under `src/app/styles/`. Use `globals.css` as the single Ta
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
-- Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.
+- A Tailwind theme value that references a CSS variable MUST use `@theme inline`; direct values MAY be defined in `@theme` without a `:root` counterpart.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
