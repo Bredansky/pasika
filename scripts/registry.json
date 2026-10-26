@@ -1214,6 +1214,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.",
+      "hash": "d9c3f062b3",
+      "ref": "pasika/no-utility-alias"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.",
       "hash": "d9b8eeb83d",
       "ref": "pasika/theme-variable-namespace"

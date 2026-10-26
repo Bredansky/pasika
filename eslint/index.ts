@@ -277,7 +277,12 @@ const tailwindStructureRules: Linter.Config = {
   languageOptions: { tolerant: true },
   rules: Object.fromEntries(
     tailwindRuleIds
-      .filter((id) => id !== "pasika/css-entry-point" && id !== "pasika/unique-utility-definition")
+      .filter(
+        (id) =>
+          id !== "pasika/css-entry-point" &&
+          id !== "pasika/unique-utility-definition" &&
+          id !== "pasika/no-utility-alias",
+      )
       .map((id) => [id, "error"]),
   ),
 };
@@ -298,6 +303,7 @@ const tailwindImportGraph: Linter.Config = {
   rules: {
     "pasika/css-entry-point": "error",
     "pasika/unique-utility-definition": "error",
+    "pasika/no-utility-alias": "error",
   },
 };
 

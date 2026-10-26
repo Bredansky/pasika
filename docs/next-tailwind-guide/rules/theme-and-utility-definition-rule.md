@@ -3,6 +3,7 @@
 Project values need stable Tailwind names, while presentation reuse belongs to components. Custom utilities bridge values or properties into Tailwind; they are not reusable style bundles.
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
+- A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.
 - A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.
 - Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.
 - Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.
@@ -133,6 +134,24 @@ Why: `ink` is reserved for readable text colors, but this value is a font size.
 ```
 
 Why: the descriptive variable and theme token expose the font size through Tailwind's typography namespace without adding another custom utility.
+
+## Incorrect — Utility Only Renames Another Class
+
+```css
+@utility bg-mc-button {
+  @apply bg-gray-500;
+}
+```
+
+Why: a custom utility that only applies one ordinary Tailwind class is an unnecessary alias that adds no styling operation. The referenced class must still exist in the project's theme, particularly when the default palette is reset.
+
+## Correct — Reuse the Existing Utility Directly
+
+```tsx
+<button className="bg-gray-500">Play</button>
+```
+
+Why: use the underlying utility where it is needed, provided `--color-gray-500` is configured. Keep custom `@utility` definitions for property-specific or variable-backed values that cannot be expressed directly with an existing named class.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 

@@ -8,6 +8,7 @@ import { cssVariableNamingRule } from "./css-variable-naming";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { globalSelectorStylingRule } from "./global-selector-styling";
 import { globalStylesheetRule } from "./global-stylesheet";
+import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { themeResetRule } from "./theme-reset";
@@ -30,6 +31,7 @@ export const tailwindRules = {
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
   "unique-utility-definition": uniqueUtilityDefinitionRule,
+  "no-utility-alias": noUtilityAliasRule,
   "global-selector-styling": globalSelectorStylingRule,
 };
 
