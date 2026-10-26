@@ -20,6 +20,10 @@ export interface CssSymbol {
   file: string;
   line: number;
   value?: string;
+  /** Only default :root definitions compete for canonical ownership. */
+  scope?: "default" | "conditional";
+  /** Font face signature includes family, style, weight, stretch and unicode range. */
+  identity?: string;
 }
 export interface CssReference {
   kind: CssReferenceKind;
@@ -77,23 +81,55 @@ export function buildCssDependencyGraph(options: {
       if (target) imports.push({ from: filename, to: path.normalize(target) });
     }
     const ast = parse(file.content, { positions: true, parseAtrulePrelude: false });
+    const atRuleStack: string[] = [];
     walk(ast, {
       enter(node) {
+        if (node.type === "Atrule") atRuleStack.push(node.name);
         const line = node.loc?.start.line ?? 1;
         if (node.type === "Atrule") {
           if (node.name === "utility" || node.name === "keyframes") {
             pushSymbol(definitions, node.name, node.prelude ? generate(node.prelude).trim() : "", filename, line);
           } else if (node.name === "font-face") {
-            const body = node.block ? generate(node.block) : "";
-            const family = /font-family\s*:\s*(?<name>[^;}]+)/u.exec(body)?.groups?.name;
+            const descriptors = new Map<string, string>();
+            for (const child of node.block?.children ?? []) {
+              if (child.type === "Declaration") descriptors.set(child.property, generate(child.value).trim());
+            }
+            const family = descriptors
+              .get("font-family")
+              ?.replace(/^["']|["']$/gu, "")
+              .replace(/\s+/gu, " ")
+              .toLowerCase();
             if (family) {
-              pushSymbol(definitions, "font-face", family.trim().replace(/^["']|["']$/gu, ""), filename, line);
+              const descriptor = (name: string, fallback: string): string =>
+                (descriptors.get(name) ?? fallback).toLowerCase().replace(/\s+/gu, " ").trim();
+              const weight = descriptor("font-weight", "400");
+              let normalizedWeight = weight;
+              if (weight === "normal") normalizedWeight = "400";
+              else if (weight === "bold") normalizedWeight = "700";
+              const stretch = descriptor("font-stretch", "normal");
+              definitions.push({
+                kind: "font-face",
+                name: family,
+                file: filename,
+                line,
+                identity: [
+                  family,
+                  descriptor("font-style", "normal"),
+                  normalizedWeight,
+                  stretch === "100%" ? "normal" : stretch,
+                  descriptor("unicode-range", "u+0-10ffff"),
+                ].join("|"),
+              });
             }
           } else if (node.name === "theme" && node.loc) {
             // Tailwind's --*: initial is deliberately nonstandard CSS. css-tree
             // can parse the rest of its @theme body as Rule/Raw instead of
             // Declaration nodes, so inspect this known theme scope directly.
-            const source = file.content.slice(node.loc.start.offset, node.loc.end.offset);
+            const source = file.content
+              .slice(node.loc.start.offset, node.loc.end.offset)
+              // Ignore declaration-shaped text inside CSS comments while
+              // preserving offsets so diagnostics still point to real lines.
+              .replace(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replace(/[^\r\n]/gu, " "));
             for (const found of source.matchAll(
               /(?:^|[{;\r\n])\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;\r\n]+);/gu,
             )) {
@@ -114,8 +150,21 @@ export function buildCssDependencyGraph(options: {
         if (node.type !== "Declaration" || !node.property.startsWith("--") || node.property === "--*") return;
         const inRoot = this.rule?.type === "Rule" && generate(this.rule.prelude).trim() === ":root";
         if (inRoot) {
-          pushSymbol(definitions, "root-variable", node.property, filename, line, generate(node.value));
+          // @layer does not change the selector's matching conditions;
+          // @media/@supports/@container etc. may override it deliberately.
+          const scope = atRuleStack.every((name) => name === "layer") ? "default" : "conditional";
+          definitions.push({
+            kind: "root-variable",
+            name: node.property,
+            file: filename,
+            line,
+            value: generate(node.value),
+            scope,
+          });
         }
+      },
+      leave(node) {
+        if (node.type === "Atrule") atRuleStack.pop();
       },
     });
     for (const found of file.content.matchAll(/var\(\s*(?<name>--[\w-]+)/gu)) {

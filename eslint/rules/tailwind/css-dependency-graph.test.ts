@@ -74,4 +74,43 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     });
     expect(cssSymbolUsages(scoped, "utility", "panel")).toEqual([]);
   });
+
+  it("normalizes equivalent font-weight descriptors while distinguishing weight and Unicode ranges", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        { path: tokens, content: '@font-face { font-family: "Atlas"; font-weight: 400; src: url(a.woff2) }' },
+        { path: minecraft, content: "@font-face { font-family: Atlas; font-weight: normal; src: url(b.woff2) }" },
+        { path: globals, content: "@font-face { font-family: Atlas; font-weight: bold; src: url(c.woff2) }" },
+      ],
+      modules: [],
+    });
+    const signatures = index.definitions
+      .filter((symbol) => symbol.kind === "font-face")
+      .map((symbol) => symbol.identity);
+    expect(signatures[0]).toBe(signatures[1]);
+    expect(signatures[2]).not.toBe(signatures[1]);
+  });
+
+  it("ignores declaration-shaped comments and marks conditional root overrides", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: globals,
+          content:
+            "@theme { /*\n --color-fake: red;\n */ --color-real: blue; }\n" +
+            ":root { --gap: 1rem; }\n" +
+            "@media (min-width: 40rem) { @layer base { :root { --gap: 2rem; } } }",
+        },
+      ],
+      modules: [],
+    });
+    expect(index.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name)).toEqual([
+      "--color-real",
+    ]);
+    expect(index.definitions.filter((symbol) => symbol.kind === "root-variable").map((symbol) => symbol.scope)).toEqual(
+      ["default", "conditional"],
+    );
+  });
 });

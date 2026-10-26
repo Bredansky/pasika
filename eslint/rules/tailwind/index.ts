@@ -13,7 +13,7 @@ import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { themeResetRule } from "./theme-reset";
 import { themeVariableNamespaceRule } from "./theme-variable-namespace";
-import { uniqueUtilityDefinitionRule } from "./unique-utility-definition";
+import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { unusedUtilityRule } from "./unused-utility";
 import { utilityMappingRule } from "./utility-mapping";
 
@@ -30,7 +30,7 @@ export const tailwindRules = {
   "css-entry-point": cssEntryPointRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
-  "unique-utility-definition": uniqueUtilityDefinitionRule,
+  "unique-css-definition": uniqueCssDefinitionRule,
   "no-utility-alias": noUtilityAliasRule,
   "global-selector-styling": globalSelectorStylingRule,
 };
