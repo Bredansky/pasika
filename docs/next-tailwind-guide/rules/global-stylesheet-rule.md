@@ -6,9 +6,9 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
-- A Tailwind design token whose value does not reference another CSS custom property via `var()` MUST be defined in regular `@theme`.
-- A Tailwind design token whose value references another CSS custom property via `var()` MUST be defined in `@theme inline`, regardless of how themes are selected.
-- An unconditional `:root` block MUST NOT redeclare a token already defined in `@theme`; scoped or conditional overrides of the same token are allowed.
+- A Tailwind token without `var()` in its value MUST be declared in `@theme`.
+- A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.
+- A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
@@ -77,11 +77,23 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 ```css
 @import "tailwindcss";
 
+:root {
+  --surface: #ffffff;
+}
+
+.dark {
+  --surface: #111827;
+}
+
 @theme {
   --*: initial;
   --spacing: 0.25rem;
   --color-base-canvas: #ffffff;
   --color-base-ink: #111827;
+}
+
+@theme inline {
+  --color-surface: var(--surface);
 }
 
 @layer base {
@@ -91,4 +103,4 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 }
 ```
 
-Why: one entry point registers Tailwind, defines the shared system, and applies document defaults in a predictable order.
+Why: one entry point owns both theme blocks; direct and variable-backed tokens are declared separately without duplicating token names.

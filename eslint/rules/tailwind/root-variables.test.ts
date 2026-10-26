@@ -6,10 +6,9 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const ROOT =
-  'Theme token "--color-brand" already belongs to @theme; remove the unconditional :root redeclaration and use scoped theme overrides.';
+const ROOT = 'Token "--color-brand" is already defined in @theme; remove its duplicate default :root declaration.';
 
-void describe("A Tailwind design token whose value does not reference another CSS custom property via `var()` MUST be defined in regular `@theme`.", () => {
+void describe("A Tailwind token without `var()` in its value MUST be declared in `@theme`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
@@ -70,7 +69,7 @@ void describe("A Tailwind design token whose value does not reference another CS
   });
 });
 
-void describe("A Tailwind design token whose value references another CSS custom property via `var()` MUST be defined in `@theme inline`, regardless of how themes are selected.", () => {
+void describe("A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --color-surface: var(--surface); }" },
@@ -91,7 +90,7 @@ void describe("A Tailwind design token whose value references another CSS custom
   });
 });
 
-void describe("An unconditional :root block MUST NOT redeclare a token already defined in @theme; scoped or conditional overrides of the same token are allowed.", () => {
+void describe("A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

@@ -1166,20 +1166,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind design token whose value does not reference another CSS custom property via `var()` MUST be defined in regular `@theme`.",
-      "hash": "9fa1e39bb5",
+      "text": "A Tailwind token without `var()` in its value MUST be declared in `@theme`.",
+      "hash": "24d20e7a7b",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind design token whose value references another CSS custom property via `var()` MUST be defined in `@theme inline`, regardless of how themes are selected.",
-      "hash": "26b268f896",
+      "text": "A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.",
+      "hash": "6848c2590f",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An unconditional `:root` block MUST NOT redeclare a token already defined in `@theme`; scoped or conditional overrides of the same token are allowed.",
-      "hash": "89a9e49833",
+      "text": "A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.",
+      "hash": "2f1e006fda",
       "ref": "pasika/root-variables"
     },
     {

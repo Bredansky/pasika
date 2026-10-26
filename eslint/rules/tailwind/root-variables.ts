@@ -90,9 +90,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
               start: { line: symbol.line, column: 1 },
               end: { line: symbol.line, column: 2 },
             },
-            message: `Theme token "${
+            message: `Token "${
               symbol.name
-            }" already belongs to @theme; remove the unconditional :root redeclaration and use scoped theme overrides.`,
+            }" is already defined in @theme; remove its duplicate default :root declaration.`,
           });
         }
       },
