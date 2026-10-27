@@ -55,25 +55,15 @@ Why: the canvas suffix identifies a background color and Pasika verifies that th
 
 Why: a literal token value does not need inline variable resolution and belongs in regular `@theme`.
 
-## Correct — Scoped Overrides of One Theme Token
+## Correct — Literal Color Token Declared Directly
 
 ```css
 @theme {
   --color-primary-canvas: #18181b;
 }
-
-[data-theme="light"] {
-  --color-primary-canvas: #fafafa;
-}
-
-@media (prefers-color-scheme: dark) {
-  [data-theme="system"] {
-    --color-primary-canvas: #18181b;
-  }
-}
 ```
 
-Why: Tailwind registers one `bg-primary-canvas` utility that reads `--color-primary-canvas`; the theme-specific selectors override that token directly.
+Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`.
 
 ## Incorrect — Runtime Variable Without Inline
 
@@ -89,15 +79,21 @@ Why: Tailwind registers one `bg-primary-canvas` utility that reads `--color-prim
 
 Why: an indirect theme token without `inline` can resolve its source variable outside the scope where the utility is used.
 
-## Correct — Runtime Variable Mapped Inline
+## Correct — Runtime Color Variable Mapped Inline
 
 ```css
 :root {
+  --primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
   --primary-canvas: #18181b;
 }
 
-.dark {
-  --primary-canvas: #fafafa;
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --primary-canvas: #18181b;
+  }
 }
 
 @theme inline {
@@ -105,7 +101,7 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 }
 ```
 
-Why: Tailwind emits `bg-primary-canvas` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
+Why: `bg-primary-canvas` resolves the runtime variable where it is used; explicit dark mode and system dark mode override its value while the light default remains available.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 

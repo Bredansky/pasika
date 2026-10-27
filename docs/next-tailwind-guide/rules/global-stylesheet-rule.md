@@ -78,21 +78,33 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 @import "tailwindcss";
 
 :root {
-  --accent-canvas: #ffffff;
+  --base-canvas: #ffffff;
+  --base-ink: #18181b;
+  --accent-canvas: #2563eb;
 }
 
-.dark {
-  --accent-canvas: #111827;
+[data-theme="dark"] {
+  --base-canvas: #09090b;
+  --base-ink: #fafafa;
+  --accent-canvas: #60a5fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --base-canvas: #09090b;
+    --base-ink: #fafafa;
+    --accent-canvas: #60a5fa;
+  }
 }
 
 @theme {
   --*: initial;
   --spacing: 0.25rem;
-  --color-base-canvas: #ffffff;
-  --color-base-ink: #111827;
 }
 
 @theme inline {
+  --color-base-canvas: var(--base-canvas);
+  --color-base-ink: var(--base-ink);
   --color-accent-canvas: var(--accent-canvas);
 }
 
@@ -103,4 +115,4 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 }
 ```
 
-Why: one entry point owns both theme blocks; direct and variable-backed tokens are declared separately without duplicating token names.
+Why: one entry point defines literal spacing in `@theme` and maps theme-dependent colors through `@theme inline`; the runtime variables provide light defaults and scoped dark overrides without duplicating token names.
