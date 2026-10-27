@@ -1232,14 +1232,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color tokens MUST use semantic names ending in -canvas for backgrounds, -ink for readable text, or -edge for borders, outlines, focus rings, dividers, and SVG strokes.",
-      "hash": "7f0626cac0",
-      "ref": "pasika/color-role-usage"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
-      "hash": "40f60cb612",
+      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "000bc1f0bd",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
     },
     {

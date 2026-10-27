@@ -4,8 +4,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens MUST use semantic names ending in -canvas for backgrounds, -ink for readable text, or -edge for borders, outlines, focus rings, dividers, and SVG strokes.
-- Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
+- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
 - Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
