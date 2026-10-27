@@ -3,6 +3,7 @@
  */
 import { applyUsageRule } from "./apply-usage";
 import { baseLayerPairRule } from "./base-layer-pair";
+import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { globalSelectorStylingRule } from "./global-selector-styling";
@@ -17,6 +18,7 @@ import { utilityMappingRule } from "./utility-mapping";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
+  "color-role-usage": colorRoleUsageRule,
   "root-variables": rootVariablesRule,
   "apply-usage": applyUsageRule,
   "base-layer-pair": baseLayerPairRule,

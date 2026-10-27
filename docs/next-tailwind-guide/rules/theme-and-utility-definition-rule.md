@@ -4,6 +4,9 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
+- Tailwind color tokens MUST use semantic names ending in -canvas for backgrounds, -ink for readable text, or -edge for borders, outlines, focus rings, dividers, and SVG strokes.
+- Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
+- Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
@@ -14,11 +17,39 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
+## Incorrect — Background Using a Text Color
+
+```css
+@theme {
+  --color-shiny-ink: #ffffff;
+}
+```
+
+```tsx
+<div className="bg-shiny-ink" />
+```
+
+Why: a text-color token is being applied as a background, even though Tailwind generates the class.
+
+## Correct — Background Using a Canvas Color
+
+```css
+@theme {
+  --color-shiny-canvas: #2563eb;
+}
+```
+
+```tsx
+<div className="bg-shiny-canvas" />
+```
+
+Why: the canvas suffix identifies a background color and Pasika verifies that the utility uses it accordingly.
+
 ## Incorrect — Direct Theme Value Marked Inline
 
 ```css
 @theme inline {
-  --color-button-canvas: #18181b;
+  --color-primary-canvas: #18181b;
 }
 ```
 
@@ -28,31 +59,31 @@ Why: a literal token value does not need inline variable resolution and belongs 
 
 ```css
 @theme {
-  --color-button-canvas: #18181b;
+  --color-primary-canvas: #18181b;
 }
 
 [data-theme="light"] {
-  --color-button-canvas: #fafafa;
+  --color-primary-canvas: #fafafa;
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
-    --color-button-canvas: #18181b;
+    --color-primary-canvas: #18181b;
   }
 }
 ```
 
-Why: Tailwind registers one `bg-button-canvas` utility that reads `--color-button-canvas`; the theme-specific selectors override that token directly.
+Why: Tailwind registers one `bg-primary-canvas` utility that reads `--color-primary-canvas`; the theme-specific selectors override that token directly.
 
 ## Incorrect — Runtime Variable Without Inline
 
 ```css
 :root {
-  --button-canvas: #18181b;
+  --primary-canvas: #18181b;
 }
 
 @theme {
-  --color-button-canvas: var(--button-canvas);
+  --color-primary-canvas: var(--primary-canvas);
 }
 ```
 
@@ -62,25 +93,25 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 
 ```css
 :root {
-  --button-canvas: #18181b;
+  --primary-canvas: #18181b;
 }
 
 .dark {
-  --button-canvas: #fafafa;
+  --primary-canvas: #fafafa;
 }
 
 @theme inline {
-  --color-button-canvas: var(--button-canvas);
+  --color-primary-canvas: var(--primary-canvas);
 }
 ```
 
-Why: Tailwind emits `bg-button-canvas` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
+Why: Tailwind emits `bg-primary-canvas` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 
 ```css
-@utility border-button-outline {
-  border-color: var(--button-border-color);
+@utility border-control-edge {
+  border-color: var(--control-edge);
 }
 ```
 
@@ -90,15 +121,15 @@ Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
 
 ```css
 :root {
-  --button-border-color: #d1d5db;
+  --control-edge: #d1d5db;
 }
 
-@utility border-button-outline {
-  @apply border-(--button-border-color);
+@utility border-control-edge {
+  @apply border-(--control-edge);
 }
 ```
 
-Why: the explicit `border-*` utility limits the mapping to the intended property, without imposing a particular semantic naming suffix.
+Why: the utility maps a single border-color operation, while `edge` identifies the color's boundary role.
 
 ## Incorrect — Typography Size Hidden in Custom Utility
 
@@ -234,19 +265,20 @@ Why: both utilities are part of the project's Tailwind API.
 
 Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, so `--color-red-500` does not exist and `bg-red-500` generates nothing.
 
-## Correct — Built-in Default Re-Declared in the Theme
+## Correct — Semantic Color Defined in the Theme
 
 ```css
 @theme {
-  --color-red-500: #ef4444;
+  --color-danger-canvas: #ef4444;
+  --color-danger-ink: #ffffff;
 }
 ```
 
 ```tsx
-<button className="bg-red-500">Delete</button>
+<button className="bg-danger-canvas text-danger-ink">Delete</button>
 ```
 
-Why: re-declaring `--color-red-500` in the project theme turns `bg-red-500` into a theme-generated utility again.
+Why: explicit semantic tokens generate available color utilities after the default palette is reset.
 
 ## Incorrect — Font Size Hidden in a Custom Utility
 

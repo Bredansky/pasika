@@ -1232,6 +1232,24 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tailwind color tokens MUST use semantic names ending in -canvas for backgrounds, -ink for readable text, or -edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "7f0626cac0",
+      "ref": "pasika/color-role-usage"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "40f60cb612",
+      "ref": "pasika/color-role-usage, pasika/unknown-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.",
+      "hash": "9b884cbcab",
+      "note": "Review custom property names for domain specificity and reserved color-role suffixes; inferring whether an arbitrary CSS value is a color is not reliable from syntax alone."
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
       "hash": "a61de0650b",
       "ref": "pasika/custom-utility-apply"

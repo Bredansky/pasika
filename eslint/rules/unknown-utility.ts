@@ -24,6 +24,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
+import { colorRoleUsageMessage } from "./color-role";
 import { sourceRootOf } from "./project-root";
 
 /** The theme-variable namespaces Tailwind turns into utilities, and the utility prefixes that consume each one. */
@@ -591,7 +592,11 @@ export const unknownUtilityRule: Rule.RuleModule = {
       for (const candidate of value.split(/\s+/)) {
         if (!candidate || seen.has(candidate)) continue;
         seen.add(candidate);
-        if (isKnown(candidate, inventory)) continue;
+        if (isKnown(candidate, inventory)) {
+          const roleError = colorRoleUsageMessage(candidate);
+          if (roleError) context.report({ node, message: roleError });
+          continue;
+        }
         // A class defined as a plain CSS selector is real but not registered as
         // an @utility/theme utility. Give it an actionable message instead of the
         // unknown-verdict that reads like a typo; the framework requires the

@@ -78,11 +78,11 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 @import "tailwindcss";
 
 :root {
-  --surface: #ffffff;
+  --accent-canvas: #ffffff;
 }
 
 .dark {
-  --surface: #111827;
+  --accent-canvas: #111827;
 }
 
 @theme {
@@ -93,7 +93,7 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 }
 
 @theme inline {
-  --color-surface: var(--surface);
+  --color-accent-canvas: var(--accent-canvas);
 }
 
 @layer base {
