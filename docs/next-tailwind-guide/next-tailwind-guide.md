@@ -15,3 +15,4 @@ Use this workflow when implementing a component or changing its appearance.
 7. Follow the [Tailwind Class Reuse Rule](rules/tailwind-class-reuse-rule.md) so duplicated styling patterns are extracted into components.
 8. Follow the [Component Variant Rule](rules/component-variant-rule.md) so supported internal appearances are a typed component API.
 9. Follow the [Component UI State Rule](rules/component-ui-state-rule.md) so interaction, disabled, selected, loading, and error UI states stay coherent.
+10. Consult the [CSS Split Planning Reference](references/css-split-planning-reference.md) when splitting a large global stylesheet so CSS dependencies, consumer ownership, and cascade risks are reviewed before moving definitions.

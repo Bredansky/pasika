@@ -232,6 +232,21 @@ export function buildCssDependencyGraph(options: {
           }
         }
         if (kind === "utility") {
+          // @apply arbitrary animation values use underscores as spaces.
+          for (const match of text.matchAll(/\[(?:animation|animation-name):(?<value>[^\]]+)\]/gu)) {
+            const normalized = (match.groups?.value ?? "").replace(/_/gu, " ");
+            for (const name of keyframes) {
+              if (tokenLines(normalized, name).length > 0) {
+                references.push({
+                  kind: "keyframes",
+                  name,
+                  file: filename,
+                  line: node.loc?.start.line ?? 1,
+                  source: "css",
+                });
+              }
+            }
+          }
           for (const [name, token] of generatedClasses) {
             if (tokenLines(text, name).length > 0) {
               references.push({
