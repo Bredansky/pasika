@@ -3,7 +3,7 @@
 Project values need stable Tailwind names, while presentation reuse belongs to components. Custom utilities bridge values or properties into Tailwind; they are not reusable style bundles.
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
-- A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.
+- A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
@@ -13,32 +13,6 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
-
-## Incorrect — Redundant Shared Color Alias
-
-```css
-@utility bg-brand {
-  @apply bg-red-500;
-}
-```
-
-Why: this custom utility only renames an existing class without adding a new mapping.
-
-## Correct — Shared Theme Color
-
-```css
-@theme {
-  --color-brand: #6366f1;
-  --color-surface: #18181b;
-  --color-on-surface: #fafafa;
-}
-```
-
-```tsx
-<div className="bg-surface text-on-surface border-brand" />
-```
-
-Why: a color token belongs to Tailwind's `--color-*` namespace when it should be available across color utility families; its semantic name is not constrained to a fixed suffix.
 
 ## Incorrect — Direct Theme Value Marked Inline
 

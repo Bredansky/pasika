@@ -1,7 +1,7 @@
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("A custom @utility MUST NOT merely rename a single plain Tailwind class through @apply; use that class directly instead.", () => {
+void describe("A custom @utility MUST NOT simply alias an existing Tailwind class.", () => {
   tailwindRuleTester.run("no-utility-alias", noUtilityAliasRule, {
     valid: [
       { code: "@utility bg-mc-button { @apply bg-(--mc-button-surface); }" },

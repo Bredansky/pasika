@@ -1226,8 +1226,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom `@utility` MUST NOT merely rename a single plain Tailwind class through `@apply`; use that class directly instead.",
-      "hash": "d9c3f062b3",
+      "text": "A custom `@utility` MUST NOT simply alias an existing Tailwind class.",
+      "hash": "3c8e5d4545",
       "ref": "pasika/no-utility-alias"
     },
     {
