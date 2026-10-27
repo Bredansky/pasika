@@ -7,8 +7,8 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
-- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named semantic color variables mapped through `@theme inline`.
-- Semantic color tokens using `var()` MUST reference same-named variables defined in the default `:root`.
+- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named variables mapped through `@theme inline`.
+- Tailwind tokens using `var()` MUST reference same-named variables defined in the default `:root`.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
@@ -26,7 +26,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 }
 ```
 
-Why: scoped overrides of Tailwind tokens are forbidden unless the token is a semantic color explicitly mapped to its same-named runtime variable through `@theme inline`.
+Why: scoped token overrides are forbidden unless the token maps to its same-named runtime variable through `@theme inline`.
 
 ## Correct — Theme Overrides the Runtime Color
 
@@ -45,6 +45,38 @@ Why: scoped overrides of Tailwind tokens are forbidden unless the token is a sem
 ```
 
 Why: the default value lives in `:root`, the theme changes that same variable, and `@theme inline` exposes a stable Tailwind utility.
+
+## Incorrect — Scoped Radius Overrides a Fixed Token
+
+```css
+@theme {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+```
+
+Why: a direct `@theme` token cannot be overridden in a scoped selector; use a matching `:root` variable and `@theme inline` instead.
+
+## Correct — Scoped Radius Uses the Same Token Name
+
+```css
+:root {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+
+@theme inline {
+  --radius-card: var(--radius-card);
+}
+```
+
+Why: the same-named variable provides the default and scoped values for the `rounded-card` utility without creating a second token name.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 

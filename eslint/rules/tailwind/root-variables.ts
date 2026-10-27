@@ -1,10 +1,9 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Design tokens use @theme for direct values and @theme inline for values
- * referencing runtime CSS variables, regardless of theme selector strategy.
- * Tailwind tokens cannot be redeclared outside @theme, while separate
- * runtime variables may have scoped overrides.
+ * Direct tokens use @theme; tokens using var() use @theme inline.
+ * Each referenced runtime variable has the token's exact name and a default
+ * :root declaration. Its value may be overridden in scoped selectors.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -25,7 +24,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require @theme for direct values, @theme inline for var()-backed values, and prevent redeclaring Tailwind tokens outside @theme.",
+        "Require @theme for fixed tokens, matching :root variables for @theme inline tokens, and no other token redeclarations.",
     },
   },
   create(context) {
@@ -47,9 +46,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
     // Collect all theme names, including one-line blocks the tolerant parser
-    // may truncate. Self-mapped semantic colors intentionally share their
-    // CSS variable name with the Tailwind token.
-    const mirroredColors = new Set<string>();
+    // may truncate. Inline tokens backed by identically named variables may
+    // be overridden at runtime regardless of their Tailwind namespace.
+    const mirroredTokens = new Set<string>();
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -63,11 +62,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
           const { name, value } = declaration.groups ?? {};
           if (!name) continue;
           names.add(name);
-          if (inline && /^--color-[a-z0-9-]+-(?:canvas|ink|edge)$/u.test(name)) {
-            const references = [...(value ?? "").matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)];
-            if (references.length > 0 && references.every((ref) => ref.groups?.variable === name)) {
-              mirroredColors.add(name);
-            }
+          if (inline && /\bvar\s*\(/u.test(value ?? "")) {
+            mirroredTokens.add(name);
           }
         }
       }
@@ -96,18 +92,18 @@ export const rootVariablesRule: CSSRuleDefinition = {
             // A quoted literal containing "var(" isn't a variable reference.
             const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
             const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
-            if (inline && /^--color-[a-z0-9-]+-(?:canvas|ink|edge)$/u.test(name)) {
+            if (inline && referencesVariable) {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
                 if (runtime && runtime !== name) {
                   context.report({
                     node: theme,
-                    message: `Semantic color "${name}" must reference its matching CSS variable "${name}", not "${runtime}".`,
+                    message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,
                   });
                 } else if (runtime && !defaultRootNames.has(runtime)) {
                   context.report({
                     node: theme,
-                    message: `Semantic color "${name}" references "${runtime}" without a default :root declaration.`,
+                    message: `Tailwind token "${name}" references "${runtime}" without a default :root declaration.`,
                   });
                 }
               }
@@ -128,8 +124,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
           }
         }
 
-        // Scoped overrides must target backing runtime variables, not
-        // registered Tailwind tokens, regardless of the token namespace.
+        // Scoped overrides are allowed only for the same-named variables
+        // exposed by @theme inline, regardless of namespace.
         function checkTokenRedeclarations(currentNode: CssNodePlain, conditional = false): void {
           if (currentNode.type === "Atrule" && ["theme", "utility", "keyframes"].includes(currentNode.name)) {
             return;
@@ -141,11 +137,11 @@ export const rootVariablesRule: CSSRuleDefinition = {
             if (!isDefaultRoot) {
               for (const declaration of blockChildren(currentNode)) {
                 if (declaration.type !== "Declaration") continue;
-                if (mirroredColors.has(declaration.property)) continue;
+                if (mirroredTokens.has(declaration.property)) continue;
                 if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
                 context.report({
                   node: declaration,
-                  message: `Tailwind token "${declaration.property}" must not be redeclared outside @theme; override a separate runtime variable through @theme inline instead.`,
+                  message: `Tailwind token "${declaration.property}" must not be redeclared outside @theme; map it through @theme inline to its same-named runtime variable instead.`,
                 });
               }
             }
@@ -159,7 +155,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
 
         for (const symbol of graph.definitions) {
           if (symbol.kind !== "root-variable" || symbol.scope !== "default") continue;
-          if (symbol.file !== current || !names.has(symbol.name) || mirroredColors.has(symbol.name)) continue;
+          if (symbol.file !== current || !names.has(symbol.name) || mirroredTokens.has(symbol.name)) continue;
           context.report({
             node,
             loc: {
