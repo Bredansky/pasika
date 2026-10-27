@@ -7,8 +7,8 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
-- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named variables mapped through `@theme inline`.
-- Tailwind tokens using `var()` MUST reference same-named variables defined in the default `:root`.
+- Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
+- Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.

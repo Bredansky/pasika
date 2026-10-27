@@ -99,7 +99,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("Tailwind tokens using `var()` MUST reference same-named variables defined in the default `:root`.", () => {
+void describe("Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-tokens-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -204,7 +204,7 @@ void describe("Tailwind tokens using `var()` MUST reference same-named variables
   }
 });
 
-void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named variables mapped through `@theme inline`.", () => {
+void describe("Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.", () => {
   tailwindRuleTester.run("root-variables-token-overrides", rootVariablesRule, {
     valid: [
       {
@@ -242,7 +242,7 @@ void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@them
   });
 });
 
-void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named variables mapped through `@theme inline`.", () => {
+void describe("Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

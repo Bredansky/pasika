@@ -1172,14 +1172,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named variables mapped through `@theme inline`.",
-      "hash": "3ed9c92227",
+      "text": "Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.",
+      "hash": "4f7c33d824",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens using `var()` MUST reference same-named variables defined in the default `:root`.",
-      "hash": "4b0a7dba0f",
+      "text": "Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.",
+      "hash": "7e932cd558",
       "ref": "pasika/root-variables"
     },
     {
