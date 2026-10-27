@@ -3,8 +3,8 @@
  *
  * Design tokens use @theme for direct values and @theme inline for values
  * referencing runtime CSS variables, regardless of theme selector strategy.
- * Default :root variables may not redeclare Tailwind token names, while
- * independent runtime variables and scoped overrides remain valid.
+ * Tailwind tokens cannot be redeclared outside @theme, while separate
+ * runtime variables may have scoped overrides.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -25,7 +25,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require @theme for direct token values, @theme inline for var()-backed values, and no default :root token duplication.",
+        "Require @theme for direct values, @theme inline for var()-backed values, and prevent redeclaring Tailwind tokens outside @theme.",
     },
   },
   create(context) {
@@ -46,6 +46,20 @@ export const rootVariablesRule: CSSRuleDefinition = {
     const names = new Set(
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
+    // The tolerant CSS parser can truncate an inline @theme block after its
+    // first declaration. Also collect names from raw theme bodies so scoped
+    // overrides are rejected across files regardless of formatting.
+    for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
+      const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
+        /\/\*[\s\S]*?\*\//gu,
+        " ",
+      );
+      for (const theme of source.matchAll(/@theme(?:\s+[\w-]+)*\s*\{(?<body>[^{}]*)\}/gu)) {
+        for (const declaration of (theme.groups?.body ?? "").matchAll(/(?:^|;)\s*(?<name>--[a-z][\w-]*)\s*:/gu)) {
+          if (declaration.groups?.name) names.add(declaration.groups.name);
+        }
+      }
+    }
     const defaultRootNames = new Set(
       graph.definitions
         .filter((symbol) => symbol.kind === "root-variable" && symbol.scope === "default")
@@ -97,9 +111,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
           }
         }
 
-        // Runtime color overrides belong on the backing custom property, not
-        // on the Tailwind --color-* token. Keep non-color scoped overrides legal.
-        function checkScopedColors(currentNode: CssNodePlain, conditional = false): void {
+        // Scoped overrides must target backing runtime variables, not
+        // registered Tailwind tokens, regardless of the token namespace.
+        function checkTokenRedeclarations(currentNode: CssNodePlain, conditional = false): void {
           if (currentNode.type === "Atrule" && ["theme", "utility", "keyframes"].includes(currentNode.name)) {
             return;
           }
@@ -109,20 +123,21 @@ export const rootVariablesRule: CSSRuleDefinition = {
             const isDefaultRoot = selector === ":root" && !isConditional;
             if (!isDefaultRoot) {
               for (const declaration of blockChildren(currentNode)) {
-                if (declaration.type !== "Declaration" || !declaration.property.startsWith("--color-")) continue;
+                if (declaration.type !== "Declaration") continue;
+                if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
                 context.report({
                   node: declaration,
-                  message: `Override runtime variable "--${declaration.property.slice("--color-".length)}" instead of Tailwind color token "${declaration.property}"; expose it through @theme inline.`,
+                  message: `Tailwind token "${declaration.property}" must not be redeclared outside @theme; override a separate runtime variable through @theme inline instead.`,
                 });
               }
             }
           }
           const children = currentNode.type === "StyleSheet" ? currentNode.children : blockChildren(currentNode);
           for (const child of children) {
-            if (child.type === "Atrule" || child.type === "Rule") checkScopedColors(child, isConditional);
+            if (child.type === "Atrule" || child.type === "Rule") checkTokenRedeclarations(child, isConditional);
           }
         }
-        checkScopedColors(node);
+        checkTokenRedeclarations(node);
 
         for (const symbol of graph.definitions) {
           if (symbol.kind !== "root-variable" || symbol.scope !== "default") continue;

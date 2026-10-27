@@ -6,13 +6,14 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const ROOT = 'Token "--color-brand" is already defined in @theme; remove its duplicate default :root declaration.';
-const COLOR_OVERRIDE =
-  'Override runtime variable "--primary-canvas" instead of Tailwind color token "--color-primary-canvas"; expose it through @theme inline.';
+const rootDuplicate = (name: string): string =>
+  `Token "${name}" is already defined in @theme; remove its duplicate default :root declaration.`;
+const tokenOverride = (token: string): string =>
+  `Tailwind token "${token}" must not be redeclared outside @theme; override a separate runtime variable through @theme inline instead.`;
 const NO_COLOR_DEFAULT =
   'Semantic color "--color-primary-canvas" references "--primary-canvas" without a default :root declaration.';
 
-void describe("A Tailwind token without `var()` in its value MUST be declared in `@theme`.", () => {
+void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
@@ -30,10 +31,10 @@ void describe("A Tailwind token without `var()` in its value MUST be declared in
       },
       { code: ":root { --runtime-brand: #2563eb; }" },
       {
-        code: '@theme { --radius-card: 8px; }\n[data-theme="dark"] { --radius-card: 10px; }',
+        code: '@theme inline { --radius-card: var(--card-radius); }\n[data-theme="dark"] { --card-radius: 10px; }',
       },
       {
-        code: "@theme { --radius-card: 8px; }\n@media (prefers-color-scheme: dark) { :root { --radius-card: 10px; } }",
+        code: "@theme inline { --radius-card: var(--card-radius); }\n@media (prefers-color-scheme: dark) { :root { --card-radius: 10px; } }",
       },
     ],
     invalid: [
@@ -73,7 +74,7 @@ void describe("A Tailwind token without `var()` in its value MUST be declared in
   });
 });
 
-void describe("A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.", () => {
+void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --color-surface: var(--surface); }" },
@@ -94,7 +95,7 @@ void describe("A Tailwind token with `var()` in its value MUST be declared in `@
   });
 });
 
-void describe("A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.", () => {
+void describe("Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-colors-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -146,7 +147,7 @@ void describe("A semantic color token backed by `var()` in `@theme inline` MUST 
   }
 });
 
-void describe("Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.", () => {
+void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-color-overrides", rootVariablesRule, {
     valid: [
       {
@@ -156,28 +157,40 @@ void describe("Theme-specific colors MUST override runtime CSS variables mapped 
         code: "@theme { --color-primary-canvas: #fafafa; }",
       },
       {
-        code: "@media (prefers-color-scheme: dark) { :root { --radius-card: 12px; } }",
+        code: "@media (prefers-color-scheme: dark) { :root { --card-radius: 12px; } }",
       },
     ],
     invalid: [
       {
         code: '@theme { --color-primary-canvas: #fafafa; } [data-theme="dark"] { --color-primary-canvas: #18181b; }',
-        errors: [{ message: COLOR_OVERRIDE }],
+        errors: [{ message: tokenOverride("--color-primary-canvas") }],
       },
       {
         code: "@media (prefers-color-scheme: dark) { :root { --color-primary-canvas: #18181b; } }",
-        errors: [{ message: COLOR_OVERRIDE }],
+        errors: [{ message: tokenOverride("--color-primary-canvas") }],
+      },
+      {
+        code: '@theme { --radius-card: 8px; } [data-theme="compact"] { --radius-card: 4px; }',
+        errors: [{ message: tokenOverride("--radius-card") }],
+      },
+      {
+        code: "@theme { --spacing: 0.25rem; } @media (min-width: 1000px) { :root { --spacing: 0.5rem; } }",
+        errors: [{ message: tokenOverride("--spacing") }],
+      },
+      {
+        code: ":root { --card-radius: 8px; } @theme inline { --radius-card: var(--card-radius); } [data-theme=compact] { --radius-card: 4px; }",
+        errors: [{ message: tokenOverride("--radius-card") }],
       },
     ],
   });
 });
 
-void describe("A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.", () => {
+void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
   writeFileSync(filename("globals.css"), '@import "tailwindcss";\n@import "./tokens.css";\n@import "./overrides.css";');
-  writeFileSync(filename("tokens.css"), "@theme { --color-brand: #ffffff; }");
+  writeFileSync(filename("tokens.css"), "@theme { --color-brand: #ffffff; --radius-card: 8px; --spacing: 0.25rem; }");
   writeFileSync(filename("overrides.css"), ":root { --color-brand: #111111; }");
 
   const originalDirectory = process.cwd();
@@ -187,11 +200,11 @@ void describe("A token defined in `@theme` MUST NOT be defined again in the defa
       valid: [
         {
           filename: filename("overrides.css"),
-          code: '[data-theme="dark"] { --radius-card: 10px; }',
+          code: '[data-theme="dark"] { --card-radius: 10px; }',
         },
         {
           filename: filename("overrides.css"),
-          code: "@media (prefers-color-scheme: dark) { :root { --radius-card: 10px; } }",
+          code: "@media (prefers-color-scheme: dark) { :root { --card-radius: 10px; } }",
         },
         {
           filename: filename("overrides.css"),
@@ -202,12 +215,27 @@ void describe("A token defined in `@theme` MUST NOT be defined again in the defa
         {
           filename: filename("overrides.css"),
           code: ":root { --color-brand: #111111; }",
-          errors: [{ message: ROOT }],
+          errors: [{ message: rootDuplicate("--color-brand") }],
         },
         {
           filename: filename("overrides.css"),
           code: "@layer base { :root { --color-brand: #111111; } }",
-          errors: [{ message: ROOT }],
+          errors: [{ message: rootDuplicate("--color-brand") }],
+        },
+        {
+          filename: filename("overrides.css"),
+          code: ":root { --radius-card: 10px; }",
+          errors: [{ message: rootDuplicate("--radius-card") }],
+        },
+        {
+          filename: filename("overrides.css"),
+          code: '@media (min-width: 900px) { [data-theme="compact"] { --radius-card: 10px; } }',
+          errors: [{ message: tokenOverride("--radius-card") }],
+        },
+        {
+          filename: filename("overrides.css"),
+          code: ":root { --spacing: 0.5rem; }",
+          errors: [{ message: rootDuplicate("--spacing") }],
         },
       ],
     });

@@ -6,17 +6,15 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
-- A Tailwind token without `var()` in its value MUST be declared in `@theme`.
-- A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.
-- A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.
-- A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.
-- Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.
+- Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
+- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.
+- Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
-## Incorrect — Theme Overrides a Tailwind Color Token
+## Incorrect — Theme Overrides a Tailwind Token
 
 ```css
 @theme {
@@ -28,7 +26,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 }
 ```
 
-Why: the dark theme overrides the utility-generation token directly instead of a runtime color variable.
+Why: scoped themes cannot redeclare Tailwind tokens; they must override backing CSS variables.
 
 ## Correct — Theme Overrides the Runtime Color
 

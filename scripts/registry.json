@@ -1166,32 +1166,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind token without `var()` in its value MUST be declared in `@theme`.",
-      "hash": "24d20e7a7b",
+      "text": "Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.",
+      "hash": "512636a817",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.",
-      "hash": "6848c2590f",
+      "text": "Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.",
+      "hash": "e1b86f853d",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.",
-      "hash": "4deac52ddf",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.",
-      "hash": "cecb8123cb",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.",
-      "hash": "185ad898e3",
+      "text": "Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.",
+      "hash": "96939352e2",
       "ref": "pasika/root-variables"
     },
     {
