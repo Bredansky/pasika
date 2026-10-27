@@ -69,11 +69,11 @@ Why: a fixed color can be declared directly in `@theme`; colors that change with
 
 ```css
 :root {
-  --primary-canvas: #18181b;
+  --color-primary-canvas: #18181b;
 }
 
 @theme {
-  --color-primary-canvas: var(--primary-canvas);
+  --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 
@@ -83,21 +83,21 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 
 ```css
 :root {
-  --primary-canvas: #fafafa;
+  --color-primary-canvas: #fafafa;
 }
 
 [data-theme="dark"] {
-  --primary-canvas: #18181b;
+  --color-primary-canvas: #18181b;
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
-    --primary-canvas: #18181b;
+    --color-primary-canvas: #18181b;
   }
 }
 
 @theme inline {
-  --color-primary-canvas: var(--primary-canvas);
+  --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 

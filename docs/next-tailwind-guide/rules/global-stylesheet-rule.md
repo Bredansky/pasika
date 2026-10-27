@@ -7,8 +7,8 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
-- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.
-- Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.
+- Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named semantic color variables mapped through `@theme inline`.
+- Semantic color tokens using `var()` MUST reference same-named variables defined in the default `:root`.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
@@ -26,21 +26,21 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 }
 ```
 
-Why: scoped themes cannot redeclare Tailwind tokens; they must override backing CSS variables.
+Why: scoped overrides of Tailwind tokens are forbidden unless the token is a semantic color explicitly mapped to its same-named runtime variable through `@theme inline`.
 
 ## Correct — Theme Overrides the Runtime Color
 
 ```css
 :root {
-  --primary-canvas: #fafafa;
+  --color-primary-canvas: #fafafa;
 }
 
 [data-theme="dark"] {
-  --primary-canvas: #18181b;
+  --color-primary-canvas: #18181b;
 }
 
 @theme inline {
-  --color-primary-canvas: var(--primary-canvas);
+  --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 
@@ -110,22 +110,22 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 @import "tailwindcss";
 
 :root {
-  --base-canvas: #ffffff;
-  --base-ink: #18181b;
-  --accent-canvas: #2563eb;
+  --color-base-canvas: #ffffff;
+  --color-base-ink: #18181b;
+  --color-accent-canvas: #2563eb;
 }
 
 [data-theme="dark"] {
-  --base-canvas: #09090b;
-  --base-ink: #fafafa;
-  --accent-canvas: #60a5fa;
+  --color-base-canvas: #09090b;
+  --color-base-ink: #fafafa;
+  --color-accent-canvas: #60a5fa;
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
-    --base-canvas: #09090b;
-    --base-ink: #fafafa;
-    --accent-canvas: #60a5fa;
+    --color-base-canvas: #09090b;
+    --color-base-ink: #fafafa;
+    --color-accent-canvas: #60a5fa;
   }
 }
 
@@ -135,9 +135,9 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
 }
 
 @theme inline {
-  --color-base-canvas: var(--base-canvas);
-  --color-base-ink: var(--base-ink);
-  --color-accent-canvas: var(--accent-canvas);
+  --color-base-canvas: var(--color-base-canvas);
+  --color-base-ink: var(--color-base-ink);
+  --color-accent-canvas: var(--color-accent-canvas);
 }
 
 @layer base {

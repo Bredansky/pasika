@@ -1172,14 +1172,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.",
-      "hash": "e1b86f853d",
+      "text": "Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named semantic color variables mapped through `@theme inline`.",
+      "hash": "cb32448867",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.",
-      "hash": "96939352e2",
+      "text": "Semantic color tokens using `var()` MUST reference same-named variables defined in the default `:root`.",
+      "hash": "1b9780a509",
       "ref": "pasika/root-variables"
     },
     {

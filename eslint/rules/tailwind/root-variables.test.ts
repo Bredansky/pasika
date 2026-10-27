@@ -11,7 +11,9 @@ const rootDuplicate = (name: string): string =>
 const tokenOverride = (token: string): string =>
   `Tailwind token "${token}" must not be redeclared outside @theme; override a separate runtime variable through @theme inline instead.`;
 const NO_COLOR_DEFAULT =
-  'Semantic color "--color-primary-canvas" references "--primary-canvas" without a default :root declaration.';
+  'Semantic color "--color-primary-canvas" references "--color-primary-canvas" without a default :root declaration.';
+const WRONG_COLOR_VARIABLE =
+  'Semantic color "--color-primary-canvas" must reference its matching CSS variable "--color-primary-canvas", not "--alias-canvas".';
 
 void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
@@ -95,12 +97,12 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("Semantic color tokens using `var()` MUST reference variables defined in the default `:root`.", () => {
+void describe("Semantic color tokens using `var()` MUST reference same-named variables defined in the default `:root`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-colors-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
   writeFileSync(filename("globals.css"), '@import "tailwindcss";\\n@import "./tokens.css";');
-  writeFileSync(filename("tokens.css"), ":root { --accent-canvas: #ffffff; }");
+  writeFileSync(filename("tokens.css"), ":root { --color-accent-canvas: #ffffff; }");
 
   const originalDirectory = process.cwd();
   process.chdir(fixture);
@@ -113,31 +115,40 @@ void describe("Semantic color tokens using `var()` MUST reference variables defi
         },
         {
           filename: filename("globals.css"),
-          code: ":root { --primary-canvas: #ffffff; } @theme inline { --color-primary-canvas: var(--primary-canvas); }",
+          code: ":root { --color-primary-canvas: #ffffff; } @theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
         },
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-accent-canvas: var(--accent-canvas); }",
+          code: "@theme inline { --color-accent-canvas: var(--color-accent-canvas); }",
         },
         {
           filename: filename("globals.css"),
-          code: ":root { --primary-canvas: 255 255 255; } @theme inline { --color-primary-canvas: rgb(var(--primary-canvas)); }",
+          code: '[data-theme="dark"] { --color-accent-canvas: #18181b; } @theme inline { --color-accent-canvas: var(--color-accent-canvas); }',
+        },
+        {
+          filename: filename("globals.css"),
+          code: ":root { --color-primary-canvas: 255 255 255; } @theme inline { --color-primary-canvas: rgb(var(--color-primary-canvas)); }",
         },
       ],
       invalid: [
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-primary-canvas: var(--primary-canvas); }",
+          code: "@theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
           errors: [{ message: NO_COLOR_DEFAULT }],
         },
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-primary-canvas: rgb(var(--primary-canvas)); }",
+          code: ":root { --alias-canvas: #fafafa; } @theme inline { --color-primary-canvas: var(--alias-canvas); }",
+          errors: [{ message: WRONG_COLOR_VARIABLE }],
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-primary-canvas: rgb(var(--color-primary-canvas)); }",
           errors: [{ message: NO_COLOR_DEFAULT }],
         },
         {
           filename: filename("globals.css"),
-          code: '[data-theme="dark"] { --primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--primary-canvas); }',
+          code: '[data-theme="dark"] { --color-primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--color-primary-canvas); }',
           errors: [{ message: NO_COLOR_DEFAULT }],
         },
       ],
@@ -147,11 +158,11 @@ void describe("Semantic color tokens using `var()` MUST reference variables defi
   }
 });
 
-void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.", () => {
+void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named semantic color variables mapped through `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-color-overrides", rootVariablesRule, {
     valid: [
       {
-        code: ":root { --primary-canvas: #fafafa; } [data-theme=dark] { --primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--primary-canvas); }",
+        code: ":root { --color-primary-canvas: #fafafa; } [data-theme=dark] { --color-primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
       },
       {
         code: "@theme { --color-primary-canvas: #fafafa; }",
@@ -185,7 +196,7 @@ void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@them
   });
 });
 
-void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`.", () => {
+void describe("Tailwind tokens MUST NOT be redeclared outside `@theme` or `@theme inline`, except same-named semantic color variables mapped through `@theme inline`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

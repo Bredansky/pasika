@@ -46,17 +46,29 @@ export const rootVariablesRule: CSSRuleDefinition = {
     const names = new Set(
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
-    // The tolerant CSS parser can truncate an inline @theme block after its
-    // first declaration. Also collect names from raw theme bodies so scoped
-    // overrides are rejected across files regardless of formatting.
+    // Collect all theme names, including one-line blocks the tolerant parser
+    // may truncate. Self-mapped semantic colors intentionally share their
+    // CSS variable name with the Tailwind token.
+    const mirroredColors = new Set<string>();
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
         " ",
       );
-      for (const theme of source.matchAll(/@theme(?:\s+[\w-]+)*\s*\{(?<body>[^{}]*)\}/gu)) {
-        for (const declaration of (theme.groups?.body ?? "").matchAll(/(?:^|;)\s*(?<name>--[a-z][\w-]*)\s*:/gu)) {
-          if (declaration.groups?.name) names.add(declaration.groups.name);
+      for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
+        const inline = /\binline\b/u.test(theme.groups?.options ?? "");
+        for (const declaration of (theme.groups?.body ?? "").matchAll(
+          /(?:^|;)\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;]*)/gu,
+        )) {
+          const { name, value } = declaration.groups ?? {};
+          if (!name) continue;
+          names.add(name);
+          if (inline && /^--color-[a-z0-9-]+-(?:canvas|ink|edge)$/u.test(name)) {
+            const references = [...(value ?? "").matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)];
+            if (references.length > 0 && references.every((ref) => ref.groups?.variable === name)) {
+              mirroredColors.add(name);
+            }
+          }
         }
       }
     }
@@ -87,7 +99,12 @@ export const rootVariablesRule: CSSRuleDefinition = {
             if (inline && /^--color-[a-z0-9-]+-(?:canvas|ink|edge)$/u.test(name)) {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
-                if (runtime && !defaultRootNames.has(runtime)) {
+                if (runtime && runtime !== name) {
+                  context.report({
+                    node: theme,
+                    message: `Semantic color "${name}" must reference its matching CSS variable "${name}", not "${runtime}".`,
+                  });
+                } else if (runtime && !defaultRootNames.has(runtime)) {
                   context.report({
                     node: theme,
                     message: `Semantic color "${name}" references "${runtime}" without a default :root declaration.`,
@@ -124,6 +141,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
             if (!isDefaultRoot) {
               for (const declaration of blockChildren(currentNode)) {
                 if (declaration.type !== "Declaration") continue;
+                if (mirroredColors.has(declaration.property)) continue;
                 if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
                 context.report({
                   node: declaration,
@@ -141,7 +159,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
 
         for (const symbol of graph.definitions) {
           if (symbol.kind !== "root-variable" || symbol.scope !== "default") continue;
-          if (symbol.file !== current || !names.has(symbol.name)) continue;
+          if (symbol.file !== current || !names.has(symbol.name) || mirroredColors.has(symbol.name)) continue;
           context.report({
             node,
             loc: {
