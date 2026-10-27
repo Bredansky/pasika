@@ -8,11 +8,45 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - A Tailwind token without `var()` in its value MUST be declared in `@theme`.
 - A Tailwind token with `var()` in its value MUST be declared in `@theme inline`.
-- A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.
+- A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.
+- A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.
+- Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
+
+## Incorrect — Theme Overrides a Tailwind Color Token
+
+```css
+@theme {
+  --color-primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
+  --color-primary-canvas: #18181b;
+}
+```
+
+Why: the dark theme overrides the utility-generation token directly instead of a runtime color variable.
+
+## Correct — Theme Overrides the Runtime Color
+
+```css
+:root {
+  --primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
+  --primary-canvas: #18181b;
+}
+
+@theme inline {
+  --color-primary-canvas: var(--primary-canvas);
+}
+```
+
+Why: the default value lives in `:root`, the theme changes that same variable, and `@theme inline` exposes a stable Tailwind utility.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 

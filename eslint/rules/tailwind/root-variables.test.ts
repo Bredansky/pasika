@@ -7,6 +7,10 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
 const ROOT = 'Token "--color-brand" is already defined in @theme; remove its duplicate default :root declaration.';
+const COLOR_OVERRIDE =
+  'Override runtime variable "--primary-canvas" instead of Tailwind color token "--color-primary-canvas"; expose it through @theme inline.';
+const NO_COLOR_DEFAULT =
+  'Semantic color "--color-primary-canvas" references "--primary-canvas" without a default :root declaration.';
 
 void describe("A Tailwind token without `var()` in its value MUST be declared in `@theme`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
@@ -26,10 +30,10 @@ void describe("A Tailwind token without `var()` in its value MUST be declared in
       },
       { code: ":root { --runtime-brand: #2563eb; }" },
       {
-        code: '@theme { --color-brand: #ffffff; }\n[data-theme="dark"] { --color-brand: #111111; }',
+        code: '@theme { --radius-card: 8px; }\n[data-theme="dark"] { --radius-card: 10px; }',
       },
       {
-        code: "@theme { --color-brand: #ffffff; }\n@media (prefers-color-scheme: dark) { :root { --color-brand: #111111; } }",
+        code: "@theme { --radius-card: 8px; }\n@media (prefers-color-scheme: dark) { :root { --radius-card: 10px; } }",
       },
     ],
     invalid: [
@@ -90,7 +94,85 @@ void describe("A Tailwind token with `var()` in its value MUST be declared in `@
   });
 });
 
-void describe("A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.", () => {
+void describe("A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.", () => {
+  const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-colors-")));
+  const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
+  mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
+  writeFileSync(filename("globals.css"), '@import "tailwindcss";\\n@import "./tokens.css";');
+  writeFileSync(filename("tokens.css"), ":root { --accent-canvas: #ffffff; }");
+
+  const originalDirectory = process.cwd();
+  process.chdir(fixture);
+  try {
+    tailwindRuleTester.run("root-variables-color-default", rootVariablesRule, {
+      valid: [
+        {
+          filename: filename("globals.css"),
+          code: "@theme { --color-primary-canvas: #ffffff; }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: ":root { --primary-canvas: #ffffff; } @theme inline { --color-primary-canvas: var(--primary-canvas); }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-accent-canvas: var(--accent-canvas); }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: ":root { --primary-canvas: 255 255 255; } @theme inline { --color-primary-canvas: rgb(var(--primary-canvas)); }",
+        },
+      ],
+      invalid: [
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-primary-canvas: var(--primary-canvas); }",
+          errors: [{ message: NO_COLOR_DEFAULT }],
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-primary-canvas: rgb(var(--primary-canvas)); }",
+          errors: [{ message: NO_COLOR_DEFAULT }],
+        },
+        {
+          filename: filename("globals.css"),
+          code: '[data-theme="dark"] { --primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--primary-canvas); }',
+          errors: [{ message: NO_COLOR_DEFAULT }],
+        },
+      ],
+    });
+  } finally {
+    process.chdir(originalDirectory);
+  }
+});
+
+void describe("Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.", () => {
+  tailwindRuleTester.run("root-variables-color-overrides", rootVariablesRule, {
+    valid: [
+      {
+        code: ":root { --primary-canvas: #fafafa; } [data-theme=dark] { --primary-canvas: #18181b; } @theme inline { --color-primary-canvas: var(--primary-canvas); }",
+      },
+      {
+        code: "@theme { --color-primary-canvas: #fafafa; }",
+      },
+      {
+        code: "@media (prefers-color-scheme: dark) { :root { --radius-card: 12px; } }",
+      },
+    ],
+    invalid: [
+      {
+        code: '@theme { --color-primary-canvas: #fafafa; } [data-theme="dark"] { --color-primary-canvas: #18181b; }',
+        errors: [{ message: COLOR_OVERRIDE }],
+      },
+      {
+        code: "@media (prefers-color-scheme: dark) { :root { --color-primary-canvas: #18181b; } }",
+        errors: [{ message: COLOR_OVERRIDE }],
+      },
+    ],
+  });
+});
+
+void describe("A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -105,11 +187,11 @@ void describe("A token defined in `@theme` MUST NOT be defined again in the defa
       valid: [
         {
           filename: filename("overrides.css"),
-          code: '[data-theme="dark"] { --color-brand: #111111; }',
+          code: '[data-theme="dark"] { --radius-card: 10px; }',
         },
         {
           filename: filename("overrides.css"),
-          code: "@media (prefers-color-scheme: dark) { :root { --color-brand: #111111; } }",
+          code: "@media (prefers-color-scheme: dark) { :root { --radius-card: 10px; } }",
         },
         {
           filename: filename("overrides.css"),

@@ -1178,8 +1178,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override it.",
-      "hash": "2f1e006fda",
+      "text": "A token defined in `@theme` MUST NOT be defined again in the default `:root`. Theme-specific selectors or conditions such as `@media` MAY override non-color tokens.",
+      "hash": "4deac52ddf",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "A semantic color token backed by `var()` in `@theme inline` MUST reference a CSS variable with a default `:root` declaration.",
+      "hash": "cecb8123cb",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Theme-specific colors MUST override runtime CSS variables mapped through `@theme inline` instead of overriding `--color-*` tokens directly.",
+      "hash": "185ad898e3",
       "ref": "pasika/root-variables"
     },
     {
