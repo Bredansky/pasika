@@ -31,6 +31,8 @@ export interface CssReference {
   file: string;
   line: number;
   source: "css" | "module";
+  /** Originating @theme variable for a generated class reference. */
+  token?: string;
 }
 export interface CssDependencyGraph {
   definitions: CssSymbol[];
@@ -54,14 +56,26 @@ function pushSymbol(
 ): void {
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
-function themeClass(name: string): string | undefined {
-  // Namespaces with an unambiguous class mapping. --color-* intentionally
-  // excluded: one token generates many kinds of color utilities.
-  if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {
-    if (name.includes("--", 2)) return undefined;
-    return name.slice(2);
+function themeClasses(name: string): string[] {
+  // Only map namespaces with predictable class names. A color token emits
+  // several classes; semantic suffixes constrain them to the relevant roles.
+  if (name.includes("--", 2)) return [];
+  if (name.startsWith("--color-")) {
+    const stem = name.slice("--color-".length);
+    if (stem.endsWith("-canvas")) {
+      return ["bg", "fill", "from", "via", "to", "ring-offset"].map((prefix) => `${prefix}-${stem}`);
+    }
+    if (stem.endsWith("-ink")) return ["text", "caret", "decoration"].map((prefix) => `${prefix}-${stem}`);
+    if (stem.endsWith("-edge")) {
+      return ["border", "outline", "ring", "divide", "stroke"].map((prefix) => `${prefix}-${stem}`);
+    }
+    return [];
   }
-  return undefined;
+  if (name.startsWith("--radius-")) return [`rounded-${name.slice("--radius-".length)}`];
+  if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {
+    return [name.slice(2)];
+  }
+  return [];
 }
 
 /** Build one deterministic index over all stylesheets and their consumers. */
@@ -69,6 +83,8 @@ export function buildCssDependencyGraph(options: {
   css: readonly CssSource[];
   modules: readonly CssSource[];
   sourceRoot: string;
+  /** Skip reference discovery when a rule only needs definitions and imports. */
+  includeReferences?: boolean;
 }): CssDependencyGraph {
   const definitions: CssSymbol[] = [];
   const references: CssReference[] = [];
@@ -167,6 +183,7 @@ export function buildCssDependencyGraph(options: {
         if (node.type === "Atrule") atRuleStack.pop();
       },
     });
+    if (options.includeReferences === false) continue;
     for (const found of file.content.matchAll(/var\(\s*(?<name>--[\w-]+)/gu)) {
       if (!found.groups?.name) continue;
       references.push({
@@ -179,14 +196,15 @@ export function buildCssDependencyGraph(options: {
     }
   }
 
+  if (options.includeReferences === false) return { definitions, references, imports };
+
   const utilities = new Set(definitions.filter((item) => item.kind === "utility").map((item) => item.name));
   const keyframes = new Set(definitions.filter((item) => item.kind === "keyframes").map((item) => item.name));
-  const themeClasses = new Set(
-    definitions
-      .filter((item) => item.kind === "theme-token")
-      .map((item) => themeClass(item.name))
-      .filter((item) => item !== undefined),
-  );
+  const generatedClasses = new Map<string, string>();
+  for (const symbol of definitions) {
+    if (symbol.kind !== "theme-token") continue;
+    for (const className of themeClasses(symbol.name)) generatedClasses.set(className, symbol.name);
+  }
 
   for (const file of options.css) {
     const filename = path.normalize(file.path);
@@ -213,6 +231,20 @@ export function buildCssDependencyGraph(options: {
             references.push({ kind, name, file: filename, line: node.loc?.start.line ?? 1, source: "css" });
           }
         }
+        if (kind === "utility") {
+          for (const [name, token] of generatedClasses) {
+            if (tokenLines(text, name).length > 0) {
+              references.push({
+                kind: "theme-class",
+                name,
+                token,
+                file: filename,
+                line: node.loc?.start.line ?? 1,
+                source: "css",
+              });
+            }
+          }
+        }
       },
     });
   }
@@ -222,12 +254,16 @@ export function buildCssDependencyGraph(options: {
     for (const [kind, names] of [
       ["utility", utilities],
       ["keyframes", keyframes],
-      ["theme-class", themeClasses],
     ] as const) {
       for (const name of names) {
         for (const line of tokenLines(file.content, name)) {
           references.push({ kind, name, file: filename, line, source: "module" });
         }
+      }
+    }
+    for (const [name, token] of generatedClasses) {
+      for (const line of tokenLines(file.content, name)) {
+        references.push({ kind: "theme-class", name, token, file: filename, line, source: "module" });
       }
     }
   }

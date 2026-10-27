@@ -52,6 +52,7 @@ export const uniqueCssDefinitionRule: CSSRuleDefinition = {
       sourceRoot,
       css: cssFiles.map((file) => ({ path: file, content: textOf(file) })),
       modules: [],
+      includeReferences: false,
     });
 
     const owners = new Map<string, Set<string>>();

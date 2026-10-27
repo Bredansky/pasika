@@ -35,6 +35,19 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     ],
   });
 
+  it("supports definition-only indexing for structural rules", () => {
+    const definitionsOnly = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [{ path: tokens, content: "@theme { --radius-card: 0.5rem; }" }],
+      modules: [{ path: component, content: 'const cls = "rounded-card";' }],
+      includeReferences: false,
+    });
+    expect(definitionsOnly.definitions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: "theme-token", name: "--radius-card" })]),
+    );
+    expect(definitionsOnly.references).toEqual([]);
+  });
+
   it("connects a theme variable to its CSS definition and module-generated class", () => {
     expect(graph.definitions).toEqual(
       expect.arrayContaining([
@@ -73,6 +86,48 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
       modules: [{ path: component, content: 'const cls = "panel-wide";' }],
     });
     expect(cssSymbolUsages(scoped, "utility", "panel")).toEqual([]);
+  });
+
+  it("links semantic color and radius tokens to generated classes in modules and @apply", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: tokens,
+          content: [
+            "@theme {",
+            "  --color-primary-canvas: #ffffff;",
+            "  --color-primary-ink: #18181b;",
+            "  --color-primary-edge: #cccccc;",
+            "  --radius-card: 0.5rem;",
+            "}",
+            "@utility button-frame { @apply border-primary-edge bg-primary-canvas; }",
+          ].join("\n"),
+        },
+      ],
+      modules: [
+        {
+          path: component,
+          content: 'const cls = "hover:bg-primary-canvas/50 text-primary-ink ring-primary-edge rounded-card";',
+        },
+      ],
+    });
+    expect(cssSymbolUsages(index, "theme-class", "bg-primary-canvas")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ source: "css", token: "--color-primary-canvas" }),
+        expect.objectContaining({ source: "module", token: "--color-primary-canvas" }),
+      ]),
+    );
+    expect(cssSymbolUsages(index, "theme-class", "text-primary-ink")).toEqual([
+      expect.objectContaining({ token: "--color-primary-ink", file: component }),
+    ]);
+    expect(cssSymbolUsages(index, "theme-class", "ring-primary-edge")).toEqual([
+      expect.objectContaining({ token: "--color-primary-edge", file: component }),
+    ]);
+    expect(cssSymbolUsages(index, "theme-class", "rounded-card")).toEqual([
+      expect.objectContaining({ token: "--radius-card", file: component }),
+    ]);
+    expect(cssSymbolUsages(index, "theme-class", "bg-primary-ink")).toEqual([]);
   });
 
   it("normalizes equivalent font-weight descriptors while distinguishing weight and Unicode ranges", () => {

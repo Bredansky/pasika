@@ -41,6 +41,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
         { path: current, content: context.sourceCode.text },
       ],
       modules: [],
+      includeReferences: false,
     });
     const names = new Set(
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
