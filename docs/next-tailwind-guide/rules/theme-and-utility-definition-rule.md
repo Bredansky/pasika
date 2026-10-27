@@ -89,18 +89,12 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
   --color-primary-canvas: #18181b;
 }
 
-@media (prefers-color-scheme: dark) {
-  [data-theme="system"] {
-    --color-primary-canvas: #18181b;
-  }
-}
-
 @theme inline {
   --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 
-Why: `bg-primary-canvas` resolves the runtime variable where it is used; explicit dark mode and system dark mode override its value while the light default remains available.
+Why: `bg-primary-canvas` resolves the same-named runtime variable, which has a light default and a dark-theme override.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 
@@ -120,7 +114,7 @@ Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
 }
 
 @utility border-control-edge {
-  @apply border-(--control-edge);
+  @apply border-(color:--control-edge);
 }
 ```
 
@@ -149,20 +143,20 @@ Why: a direct theme value requires no extra `:root` variable, and the Tailwind t
 ## Incorrect — Utility Only Renames Another Class
 
 ```css
-@utility bg-mc-button {
-  @apply bg-gray-500;
+@utility full-width {
+  @apply w-full;
 }
 ```
 
-Why: a custom utility that only applies one ordinary Tailwind class is an unnecessary alias that adds no styling operation. The referenced class must still exist in the project's theme, particularly when the default palette is reset.
+Why: `w-full` already expresses this operation, so a custom alias adds no value.
 
 ## Correct — Reuse the Existing Utility Directly
 
 ```tsx
-<button className="bg-gray-500">Play</button>
+<div className="w-full" />
 ```
 
-Why: use the underlying utility where it is needed, provided `--color-gray-500` is configured. Keep custom `@utility` definitions for property-specific or variable-backed values that cannot be expressed directly with an existing named class.
+Why: use the built-in utility directly instead of creating an alias.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 
@@ -216,7 +210,7 @@ Why: the custom utility maps one otherwise unnamed property value through Tailwi
 
 ```css
 @utility text-header-ink {
-  @apply text-(--header-ink);
+  @apply text-(color:--header-ink);
 }
 ```
 
@@ -225,8 +219,12 @@ Why: no component or stylesheet references `text-header-ink`, so the mapping is 
 ## Correct — Custom Utility a Component Uses
 
 ```css
+:root {
+  --header-ink: #111827;
+}
+
 @utility text-header-ink {
-  @apply text-(--header-ink);
+  @apply text-(color:--header-ink);
 }
 ```
 
@@ -275,30 +273,6 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 
 Why: explicit semantic tokens generate available color utilities after the default palette is reset.
 
-## Incorrect — Font Size Hidden in a Custom Utility
-
-```css
-@utility text-retro-11 {
-  @apply [font-size:11px];
-}
-```
-
-Why: this single font-size mapping duplicates the utility generation already available through the Tailwind text theme namespace.
-
-## Correct — Font Size Owned by a Theme Token
-
-```css
-:root {
-  --retro-11-text-size: 11px;
-}
-
-@theme inline {
-  --text-retro-11: var(--retro-11-text-size);
-}
-```
-
-Why: Tailwind generates `text-retro-11` directly from the named theme token.
-
 ## Incorrect — Duplicate Configured Typography Utility
 
 ```css
@@ -313,13 +287,9 @@ Why: both classes emit the same font-size with no additional styling, so the ali
 ## Correct — Reuse an Equivalent Typography Utility
 
 ```css
-:root {
-  --compact-text-size: 14px;
-}
-
-@theme inline {
-  --text-sm: var(--compact-text-size);
+@theme {
+  --text-sm: 14px;
 }
 ```
 
-Why: `text-sm` expresses the existing configured size without a redundant alias; sizes with different units or additional line-height and letter-spacing remain distinct.
+Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.

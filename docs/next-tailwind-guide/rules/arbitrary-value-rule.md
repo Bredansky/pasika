@@ -63,6 +63,10 @@ Why: the type hint only disambiguates the custom property's meaning for Tailwind
 ## Correct — Typed Color Mapped Through a Utility
 
 ```css
+:root {
+  --tweet-card-ink: #111827;
+}
+
 @utility text-tweet-card-ink {
   @apply text-(color:--tweet-card-ink);
 }
@@ -85,6 +89,10 @@ Why: the component still depends directly on the CSS variable even though the ty
 ## Correct — Typed Length Mapped Through a Utility
 
 ```css
+:root {
+  --tweet-card-name-text-size: 0.875rem;
+}
+
 @utility text-tweet-card-name-size {
   @apply text-(length:--tweet-card-name-text-size);
 }
@@ -94,4 +102,4 @@ Why: the component still depends directly on the CSS variable even though the ty
 <p className="text-tweet-card-name-size" />
 ```
 
-Why: `size` disambiguates the Tailwind `text-` operation from a text-color utility, while the stylesheet keeps ownership of the raw typed value.
+Why: the `length:` hint selects font size instead of text color, while the component uses a named utility.

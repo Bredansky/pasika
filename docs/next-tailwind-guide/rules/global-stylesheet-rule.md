@@ -110,7 +110,7 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 
 /* src/app/styles/deep.css */
 :root {
-  --spacing: 0.25rem;
+  --content-gap: 1rem;
 }
 ```
 
@@ -125,7 +125,7 @@ Why: `deep.css` is reachable from the entry only through `base.css`, so its proj
 
 /* src/app/styles/theme.css */
 :root {
-  --spacing: 0.25rem;
+  --content-gap: 1rem;
 }
 ```
 
