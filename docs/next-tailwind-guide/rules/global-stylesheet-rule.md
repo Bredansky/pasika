@@ -153,14 +153,6 @@ Why: the root layout imports the one global CSS entry point, and `theme.css` is 
   --color-accent-canvas: #60a5fa;
 }
 
-@media (prefers-color-scheme: dark) {
-  [data-theme="system"] {
-    --color-base-canvas: #09090b;
-    --color-base-ink: #fafafa;
-    --color-accent-canvas: #60a5fa;
-  }
-}
-
 @theme {
   --*: initial;
   --spacing: 0.25rem;
