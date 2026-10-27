@@ -18,7 +18,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 
 ```css
 @theme inline {
-  --color-button-surface: #18181b;
+  --color-button-canvas: #18181b;
 }
 ```
 
@@ -28,31 +28,31 @@ Why: a literal token value does not need inline variable resolution and belongs 
 
 ```css
 @theme {
-  --color-button-surface: #18181b;
+  --color-button-canvas: #18181b;
 }
 
 [data-theme="light"] {
-  --color-button-surface: #fafafa;
+  --color-button-canvas: #fafafa;
 }
 
 @media (prefers-color-scheme: dark) {
   [data-theme="system"] {
-    --color-button-surface: #18181b;
+    --color-button-canvas: #18181b;
   }
 }
 ```
 
-Why: Tailwind registers one `bg-button-surface` utility that reads `--color-button-surface`; the theme-specific selectors override that token directly.
+Why: Tailwind registers one `bg-button-canvas` utility that reads `--color-button-canvas`; the theme-specific selectors override that token directly.
 
 ## Incorrect — Runtime Variable Without Inline
 
 ```css
 :root {
-  --button-surface: #18181b;
+  --button-canvas: #18181b;
 }
 
 @theme {
-  --color-button-surface: var(--button-surface);
+  --color-button-canvas: var(--button-canvas);
 }
 ```
 
@@ -62,19 +62,19 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 
 ```css
 :root {
-  --button-surface: #18181b;
+  --button-canvas: #18181b;
 }
 
 .dark {
-  --button-surface: #fafafa;
+  --button-canvas: #fafafa;
 }
 
 @theme inline {
-  --color-button-surface: var(--button-surface);
+  --color-button-canvas: var(--button-canvas);
 }
 ```
 
-Why: Tailwind emits `bg-button-surface` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
+Why: Tailwind emits `bg-button-canvas` using the runtime variable directly, so a scoped override changes the active color without requiring any particular theme selector.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 
