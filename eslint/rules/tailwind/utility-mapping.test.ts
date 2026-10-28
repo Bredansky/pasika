@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityMappingRule } from "./utility-mapping";
 
-void describe("A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.", () => {
+void describe("A custom `@utility` MUST NOT duplicate a utility that Tailwind can generate from a supported `@theme` namespace. When an equivalent theme-generated utility already exists, it MUST be reused instead.", () => {
   tailwindRuleTester.run("utility-mapping", utilityMappingRule, {
     valid: [
       {
@@ -77,9 +77,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       {
         code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
       },
-      {
-        code: `@utility tracking-minecraft-normal { @apply [letter-spacing:normal]; }`,
-      },
+
       {
         code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
       },
@@ -139,6 +137,15 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
     ],
     invalid: [
+      {
+        code: `@utility tracking-minecraft-normal { @apply [letter-spacing:normal]; }`,
+        errors: [
+          {
+            message:
+              'Custom utility "tracking-minecraft-normal" only maps letter-spacing (normal); prefer @theme inline token "--tracking-minecraft-normal" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
       {
         code: `@theme { --text-sm: 14px; }
 @theme inline { --text-retro-14: 14px; }`,
@@ -229,6 +236,103 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
           {
             message:
               'Custom utility "text-retro-body" only maps font-size (var(--retro-body-text-size)); prefer @theme inline token "--text-retro-body" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("utility-mapping: theme namespaces beyond typography", () => {
+  tailwindRuleTester.run("utility-mapping:theme-namespaces", utilityMappingRule, {
+    valid: [
+      { code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }" },
+      { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
+      { code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }" },
+      { code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }" },
+      {
+        code: "@theme { --radius-card: var(--border-radius); }\n@utility rounded-card { @apply [border-radius:12px]; }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --radius-card: 12px; }\n@utility rounded-card { @apply [border-radius:12px]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "rounded-card" duplicates theme-generated "rounded-card" (border-radius: 12px); reuse "rounded-card" instead.',
+          },
+        ],
+      },
+      {
+        code: "@theme { --text-sm: 14px; --text-sm--line-height: 1.5; }\n@utility text-short { @apply [font-size:14px]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "text-short" only maps font-size (14px); prefer @theme inline token "--text-short" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility rounded-card { @apply [border-radius:12px]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "rounded-card" only maps border-radius (12px); prefer @theme inline token "--radius-card" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility bg-brand-canvas { @apply [background-color:#123456]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "bg-brand-canvas" only maps background-color (#123456); prefer @theme inline token "--color-brand-canvas" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility p-card { @apply [padding:16px]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "p-card" only maps padding (16px); prefer @theme inline token "--spacing-card" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility leading-heading { @apply [line-height:1.4]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "leading-heading" only maps line-height (1.4); prefer @theme inline token "--leading-heading" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility aspect-poster { @apply [aspect-ratio:16/9]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "aspect-poster" only maps aspect-ratio (16/9); prefer @theme inline token "--aspect-poster" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility ease-panel { @apply [transition-timing-function:ease-in]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "ease-panel" only maps transition-timing-function (ease-in); prefer @theme inline token "--ease-panel" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@theme { --radius-tile: 12px; }\n@utility rounded-card { @apply [border-radius:12px]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "rounded-card" duplicates theme-generated "rounded-tile" (border-radius: 12px); reuse "rounded-tile" instead.',
           },
         ],
       },

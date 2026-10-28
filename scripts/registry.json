@@ -1292,8 +1292,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.",
-      "hash": "25b627025e",
+      "text": "A custom `@utility` MUST NOT duplicate a utility that Tailwind can generate from a supported `@theme` namespace. When an equivalent theme-generated utility already exists, it MUST be reused instead.",
+      "hash": "fb3e2453c1",
       "ref": "pasika/utility-mapping"
     },
     {
