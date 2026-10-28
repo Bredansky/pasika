@@ -20,6 +20,7 @@ export const globalStylesheetRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
+    fixable: "code",
     docs: {
       description: "Require the canonical global CSS entry point to register Tailwind, not every imported partial.",
     },
@@ -49,7 +50,17 @@ export const globalStylesheetRule: CSSRuleDefinition = {
           (child) =>
             child.type === "Atrule" && child.name === "import" && JSON.stringify(child.prelude).includes("tailwindcss"),
         );
-        if (!registersTailwind) context.report({ node, message: MISSING_REGISTRATION });
+        if (!registersTailwind) {
+          context.report({
+            node,
+            message: MISSING_REGISTRATION,
+            fix(fixer) {
+              // One canonical entry owns Tailwind; this fix only edits the
+              // current CSS file and never creates/moves sibling files.
+              return fixer.insertTextBeforeRange([0, 0], '@import "tailwindcss";\n');
+            },
+          });
+        }
       },
     };
   },

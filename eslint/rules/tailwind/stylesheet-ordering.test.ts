@@ -24,6 +24,25 @@ void describe("The global stylesheet MUST order imports, @custom-variant definit
           },
         ],
       },
+      // Every occurrence matters, not just the first import or utility.
+      {
+        code: '@import "tailwindcss";\n@theme { --*: initial; }\n@import "./late.css";',
+        errors: [
+          {
+            message:
+              'Global stylesheet section "imports" cannot reappear after "theme". Keep all section occurrences in the required order.',
+          },
+        ],
+      },
+      {
+        code: "@utility card { display: block; }\n@keyframes fade { to { opacity: 1; } }\n@utility badge { display: inline; }",
+        errors: [
+          {
+            message:
+              'Global stylesheet section "utility" cannot reappear after "keyframes". Keep all section occurrences in the required order.',
+          },
+        ],
+      },
       // base styles before @theme
       {
         code: `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n\n@theme {\n  --*: initial;\n}`,

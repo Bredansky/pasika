@@ -34,6 +34,7 @@ void describe("A repository MUST have one global stylesheet entry point that reg
         {
           filename: filename("globals.css"),
           code: ":root { --color-brand: #2563eb; }\n\nbody { @apply bg-base; }",
+          output: `@import "tailwindcss";\n:root { --color-brand: #2563eb; }\n\nbody { @apply bg-base; }`,
           errors: [{ message: 'Global stylesheet must register Tailwind with @import "tailwindcss".' }],
         },
       ],
