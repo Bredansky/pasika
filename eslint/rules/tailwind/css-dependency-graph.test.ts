@@ -147,6 +147,38 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     expect(signatures[2]).not.toBe(signatures[1]);
   });
 
+  it("tracks plain animation declarations and skips non-generating token namespaces", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: globals,
+          content: [
+            "@theme {",
+            " --spacing: 0.25rem;",
+            " --font--legacy: monospace;",
+            "}",
+            "@keyframes pulse { to { opacity: 0.5; } }",
+            ".glow { animation: pulse 1s linear; }",
+            ".blink { animation-name: pulse; }",
+          ].join("\n"),
+        },
+      ],
+      modules: [{ path: component, content: 'const cls = "glow blink";' }],
+    });
+    expect(cssSymbolUsages(index, "keyframes", "pulse")).toEqual([
+      expect.objectContaining({ source: "css", file: globals }),
+      expect.objectContaining({ source: "css", file: globals }),
+    ]);
+    expect(cssSymbolUsages(index, "theme-class", "font--legacy")).toEqual([]);
+    expect(index.definitions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "selector", name: "glow" }),
+        expect.objectContaining({ kind: "selector", name: "blink" }),
+      ]),
+    );
+  });
+
   it("ignores declaration-shaped comments and marks conditional root overrides", () => {
     const index = buildCssDependencyGraph({
       sourceRoot: root,

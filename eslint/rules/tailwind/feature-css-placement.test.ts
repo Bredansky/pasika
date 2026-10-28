@@ -273,4 +273,75 @@ void describe("CSS definitions consumed only by one feature MUST live in that fe
     "app/styles/globals.css",
     [/CSS root variable "--feature-gap" is consumed only by feature "home"; define it in home\.css/],
   );
+  // A module can consume runtime variables without a generated Tailwind class.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n:root { --portal-gap: 1rem; }',
+      "app/styles/home.css": "@utility frame { display: block; }",
+      "features/home/card.tsx": 'const css = { padding: "var(--portal-gap)" };',
+    },
+    "app/styles/globals.css",
+    [/CSS root variable "--portal-gap" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // @apply propagates ownership through a utility into a theme token.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme { --color-portal: #a855f7; }',
+      "app/styles/home.css": "@utility portal-frame { @apply text-portal; }",
+      "features/home/card.tsx": 'const cls = "portal-frame";',
+    },
+    "app/styles/globals.css",
+    [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // A utility can depend on another custom utility across stylesheet boundaries.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@utility retro-outline { border: 1px solid; }',
+      "app/styles/home.css": "@utility portal-frame { @apply retro-outline; }",
+      "features/home/card.tsx": 'const cls = "portal-frame";',
+    },
+    "app/styles/globals.css",
+    [/CSS utility "retro-outline" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // Direct module animation properties can establish ownership without @utility.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@keyframes portal-pulse { to {opacity:1} }',
+      "app/styles/home.css": "@utility frame { display: block; }",
+      "features/home/card.tsx": 'const style = { animationName: "portal-pulse" };',
+    },
+    "app/styles/globals.css",
+    [/CSS keyframes "portal-pulse" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // Duplicate definitions are intentionally left to the uniqueness rule.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@keyframes pulse { to { opacity: 1 } }',
+      "app/styles/home.css":
+        "@keyframes pulse { to { opacity: .5 } }\n@utility animate-frame { @apply [animation:pulse_1s]; }",
+      "features/home/card.tsx": 'const cls = "animate-frame";',
+    },
+    "app/styles/globals.css",
+  );
+  // Consumers outside feature folders prevent an otherwise local utility claim.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@import "./home.css";',
+      "app/styles/home.css": "@utility retro-outline { border: 1px solid; }",
+      "features/home/card.tsx": 'const cls = "retro-outline";',
+      "constants/shared-classes.ts": 'export const cls = "retro-outline";',
+    },
+    "app/styles/home.css",
+    [/CSS utility "retro-outline" is consumed across feature scopes; define it in globals\.css/],
+  );
+  // Font usage may be represented as an explicit inline style property.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@font-face { font-family: "Minecraft"; src: url(a.woff2); }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/card.tsx": 'const css = { fontFamily: "Minecraft" };',
+    },
+    "app/styles/globals.css",
+    [/CSS font face "minecraft" is consumed only by feature "home"; define it in home\.css/],
+  );
 });
