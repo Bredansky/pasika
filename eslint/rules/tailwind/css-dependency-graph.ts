@@ -71,6 +71,52 @@ export function themeClasses(name: string): string[] {
     }
     return ["bg", "text", "border", "fill", "stroke", "ring"].map((prefix) => `${prefix}-${stem}`);
   }
+  if (name.startsWith("--spacing-")) {
+    const stem = name.slice("--spacing-".length);
+    return [
+      "p",
+      "px",
+      "py",
+      "pt",
+      "pr",
+      "pb",
+      "pl",
+      "ps",
+      "pe",
+      "m",
+      "mx",
+      "my",
+      "mt",
+      "mr",
+      "mb",
+      "ml",
+      "ms",
+      "me",
+      "w",
+      "h",
+      "size",
+      "min-w",
+      "min-h",
+      "max-w",
+      "max-h",
+      "gap",
+      "gap-x",
+      "gap-y",
+      "inset",
+      "inset-x",
+      "inset-y",
+      "top",
+      "right",
+      "bottom",
+      "left",
+      "start",
+      "end",
+      "space-x",
+      "space-y",
+    ].map((prefix) => `${prefix}-${stem}`);
+  }
+  if (name.startsWith("--aspect-")) return [`aspect-${name.slice("--aspect-".length)}`];
+  if (name.startsWith("--leading-")) return [`leading-${name.slice("--leading-".length)}`];
   if (name.startsWith("--animate-")) return [`animate-${name.slice("--animate-".length)}`];
   if (name.startsWith("--radius-")) return [`rounded-${name.slice("--radius-".length)}`];
   if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {

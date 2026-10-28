@@ -55,6 +55,49 @@ const PREFIX_NAMESPACES: Record<string, string[]> = {
   "ring-offset": ["color"],
 };
 
+/** Spacing tokens generate named utilities, but each prefix also has independent built-in values. */
+const SPACING_UTILITY_PREFIXES = new Set([
+  "p",
+  "px",
+  "py",
+  "pt",
+  "pr",
+  "pb",
+  "pl",
+  "ps",
+  "pe",
+  "m",
+  "mx",
+  "my",
+  "mt",
+  "mr",
+  "mb",
+  "ml",
+  "ms",
+  "me",
+  "w",
+  "h",
+  "size",
+  "min-w",
+  "min-h",
+  "max-w",
+  "max-h",
+  "gap",
+  "gap-x",
+  "gap-y",
+  "inset",
+  "inset-x",
+  "inset-y",
+  "top",
+  "right",
+  "bottom",
+  "left",
+  "start",
+  "end",
+  "space-x",
+  "space-y",
+]);
+
 /** Built-in utilities in a checked prefix that are not theme tokens. */
 const PREFIX_BUILTINS: Record<string, string[]> = {
   bg: [
@@ -515,7 +558,7 @@ function isKnown(className: string, inventory: Inventory): boolean {
   // A compound prefix like `ring-offset-<color>` or `backdrop-blur-<token>`
   // keeps its own namespace instead of splitting at the first dash.
   const firstTwo = utility.split("-").slice(0, 2).join("-");
-  const compound = PREFIX_NAMESPACES[firstTwo] ? firstTwo : undefined;
+  const compound = PREFIX_NAMESPACES[firstTwo] || SPACING_UTILITY_PREFIXES.has(firstTwo) ? firstTwo : undefined;
   const prefix = compound ?? utility.slice(0, dash);
   const token = compound ? utility.slice(compound.length + 1) : utility.slice(dash + 1);
   if (!token) return true;
@@ -527,6 +570,7 @@ function isKnown(className: string, inventory: Inventory): boolean {
     // known even when the project resets the default theme — the project may
     // also define its own tokens in the same namespace (`--aspect-video`).
     if (STATIC_VALUE_TOKENS[prefix]?.includes(token)) return true;
+    if (SPACING_UTILITY_PREFIXES.has(prefix) && inventory.themeTokens.get("spacing")?.has(token)) return true;
     // A bare prefix may be a theme namespace the project defines itself
     // (`--animate-float` makes `animate-float` valid). Otherwise ask
     // tailwind-merge whether Tailwind itself recognizes the utility instead of

@@ -35,6 +35,9 @@ const GLOBALS = `@import "tailwindcss";
   --color-shiny-canvas: #2563eb;
   --color-brand-500: #123456;
   --radius-card: 1rem;
+  --spacing-panel-26: 26rem;
+  --spacing-viewport-10: 10%;
+  --spacing-vortex-center: 6%;
   --font-display: "Inter", sans-serif;
   --text-sm: 0.875rem;
   --blur-sm: 8px;
@@ -154,6 +157,10 @@ void describe("Tailwind color utilities MUST match semantic roles: canvas for ba
 void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
     valid: [
+      {
+        code: '<div className="lg:w-panel-26 p-viewport-10 h-vortex-center w-vortex-center w-full mx-auto" />',
+        filename: srcFile("shared/spaced-panel.tsx"),
+      },
       // Theme-generated utilities from the project's @theme.
       {
         code: '<button className="bg-primary-canvas text-primary-ink">Save</button>',
@@ -256,6 +263,16 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="sm:flex" />', filename: srcFile("shared/card.tsx") },
     ],
     invalid: [
+      {
+        code: '<div className="w-panle-26" />',
+        filename: srcFile("shared/spaced-panel.tsx"),
+        errors: [
+          {
+            message:
+              'Utility class "w-panle-26" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.',
+          },
+        ],
+      },
       // A typo inside a theme token family.
       {
         code: '<div className="bg-primay-canvas" />',
