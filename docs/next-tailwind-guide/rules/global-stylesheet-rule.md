@@ -5,8 +5,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
 - The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
-- Project CSS MUST stay in `src/app/styles/globals.css` or flat `src/app/styles/<feature>.css` files matching `src/features/<feature>/`; `shared.css` and type-based stylesheets are not allowed.
-- CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities consumed across feature scopes MUST live in globals.css. Other CSS may remain in globals.css until a safe split is possible.
+- CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities in feature-named stylesheets consumed across feature scopes MUST live in globals.css. Other CSS may remain in globals.css until a safe split is possible.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
@@ -136,7 +135,7 @@ Why: `deep.css` is reachable from the entry only through `base.css`, so its proj
 import "./styles/globals.css";
 ```
 
-Why: the root layout imports one global CSS entry point, which directly imports `home.css` for the `home` feature. Shared theme tokens and base styles stay in `globals.css`; no extra `shared.css` is needed.
+Why: the root layout imports one global CSS entry point, which directly imports `home.css` for the `home` feature. Shared theme tokens and base styles may stay in `globals.css`.
 
 ## Correct — One Global Stylesheet Owns the System
 

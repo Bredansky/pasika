@@ -25,7 +25,7 @@ function check(files: Record<string, string>, target: string, errors: RegExp[] =
   });
 }
 
-void describe("CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities consumed across feature scopes MUST live in globals.css. Other CSS may remain in globals.css until a safe split is possible.", () => {
+void describe("CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities in feature-named stylesheets consumed across feature scopes MUST live in globals.css. Other CSS may remain in globals.css until a safe split is possible.", () => {
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@utility mc-badge { display: block; }',
@@ -94,7 +94,6 @@ void describe("CSS utilities used by only one feature MUST live in that feature'
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/shared.css",
-    [/Project CSS must be in src\/app\/styles\/globals\.css or a flat <feature>\.css/],
   );
   check(
     {
@@ -103,7 +102,6 @@ void describe("CSS utilities used by only one feature MUST live in that feature'
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/effects.css",
-    [/Project CSS must be in src\/app\/styles\/globals\.css or a flat <feature>\.css/],
   );
   check(
     {
@@ -112,25 +110,5 @@ void describe("CSS utilities used by only one feature MUST live in that feature'
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/features/home.css",
-    [/Project CSS must be in src\/app\/styles\/globals\.css or a flat <feature>\.css/],
-  );
-});
-
-void describe("Project CSS MUST stay in `src/app/styles/globals.css` or flat `src/app/styles/<feature>.css` files matching `src/features/<feature>/`; `shared.css` and type-based stylesheets are not allowed.", () => {
-  check(
-    {
-      "app/styles/globals.css": '@import "tailwindcss";',
-      "app/styles/shared.css": "@utility glow { display: block; }",
-    },
-    "app/styles/shared.css",
-    [/Project CSS must be in src\/app\/styles\/globals\.css or a flat <feature>\.css/],
-  );
-  check(
-    {
-      "app/styles/globals.css": '@import "tailwindcss";',
-      "app/styles/showcase.css": "@utility glow { display: block; }",
-      "features/showcase/component.tsx": 'const css = "glow";',
-    },
-    "app/styles/showcase.css",
   );
 });

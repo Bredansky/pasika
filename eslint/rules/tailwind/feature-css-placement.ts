@@ -66,9 +66,10 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
 
     const featureName = basename.slice(0, -".css".length);
     const hasFeature = existsSync(path.join(sourceRoot, "features", featureName));
-    const validName =
-      relative === path.join(STYLES_DIR, GLOBALS) ||
-      (path.dirname(current) === styles && FEATURE_CSS.test(basename) && hasFeature);
+    const isFeatureFile = path.dirname(current) === styles && FEATURE_CSS.test(basename) && hasFeature;
+    // Other project stylesheets are allowed. Feature ownership is only
+    // enforceable for a recognized feature file or the canonical entry.
+    if (basename !== GLOBALS && !isFeatureFile) return {};
     const duplicateNames = new Set<string>();
     const names = new Set<string>();
     for (const def of graph.definitions) {
@@ -79,15 +80,6 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        if (!validName) {
-          context.report({
-            node,
-            message:
-              "Project CSS must be in src/app/styles/globals.css or a flat <feature>.css matching src/features/<feature>/; no shared.css or type-based files.",
-          });
-          return;
-        }
-
         for (const definition of graph.definitions) {
           if (definition.file !== current || definition.kind !== "utility" || duplicateNames.has(definition.name)) {
             continue;
