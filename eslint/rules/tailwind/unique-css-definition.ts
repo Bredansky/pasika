@@ -15,6 +15,8 @@ import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph"
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 function ownershipKey(symbol: CssSymbol): string | undefined {
+  // Repeated selectors may intentionally participate in the cascade.
+  if (symbol.kind === "selector") return undefined;
   if (symbol.kind === "root-variable" && symbol.scope !== "default") return undefined;
   return [symbol.kind, symbol.identity ?? symbol.name].join("|");
 }
@@ -31,6 +33,8 @@ function symbolLabel(symbol: CssSymbol): string {
       return "@keyframes";
     case "font-face":
       return "@font-face with matching descriptors for";
+    case "selector":
+      return "CSS selector";
   }
 }
 

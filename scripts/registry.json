@@ -1160,8 +1160,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities in feature-named stylesheets consumed across feature scopes MUST live in globals.css.",
-      "hash": "f004946c48",
+      "text": "CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.",
+      "hash": "f94e367684",
       "ref": "pasika/feature-css-placement"
     },
     {

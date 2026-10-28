@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/feature-css-placement
  *
- * Mirrors locale-placement: utility ownership follows consumer features.
- * A monolithic globals.css is valid until a feature stylesheet is introduced.
- * Unknown lexical usage never forces a migration.
+ * Like locale-placement, declaration ownership follows consumers, including
+ * transitive CSS dependencies. Unknown usage and global foundations remain
+ * untouched. The rule reports only; moving CSS can alter its cascade.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -13,39 +13,27 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
-import type { CssDependencyGraph } from "./css-dependency-graph";
+import { inferCssOwners, symbolId } from "./css-ownership";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 const STYLES_DIR = path.join("app", "styles");
 const GLOBALS = "globals.css";
 const FEATURE_CSS = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.css$/u;
-
-function featureOf(filename: string, sourceRoot: string): string | undefined {
-  const parts = path.relative(sourceRoot, filename).split(path.sep);
-  return parts[0] === "features" && parts.length > 2 ? parts[1] : undefined;
-}
-
-/**
- * Only module references provide ownership evidence. A reference from outside
- * src/features or from multiple features means a global utility. Dynamic
- * classes may escape lexical discovery, so no uses means unknown, not unused.
- */
-function ownerOfUtility(graph: CssDependencyGraph, name: string, sourceRoot: string): string | undefined {
-  const uses = graph.references.filter(
-    (reference) => reference.source === "module" && reference.kind === "utility" && reference.name === name,
-  );
-  if (uses.length === 0) return undefined;
-  const features = new Set(uses.map((reference) => featureOf(reference.file, sourceRoot)));
-  if (features.size === 1) return [...features][0] ?? GLOBALS;
-  return GLOBALS;
-}
+const LABELS: Record<string, string> = {
+  utility: "utility",
+  "theme-token": "theme token",
+  "root-variable": "root variable",
+  keyframes: "keyframes",
+  "font-face": "font face",
+  selector: "selector",
+};
 
 export const featureCssPlacementRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Keep single-feature CSS utilities in feature stylesheets and cross-feature utilities global.",
+      description: "Enforce ownership of CSS definitions and their transitive dependencies across feature scopes.",
     },
   },
   create(context) {
@@ -55,48 +43,38 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
     const styles = path.join(sourceRoot, STYLES_DIR);
     if (!relative.startsWith(`${STYLES_DIR}${path.sep}`)) return {};
     const basename = path.basename(current);
-    const cssFiles = findFiles(sourceRoot, CSS_EXTENSIONS);
-    const modules = findFiles(sourceRoot, MODULE_EXTENSIONS);
-    const textOf = cachedTextReader();
-    const graph = buildCssDependencyGraph({
-      sourceRoot,
-      css: cssFiles.map((file) => ({ path: file, content: textOf(file) })),
-      modules: modules.map((file) => ({ path: file, content: textOf(file) })),
-    });
-
     const featureName = basename.slice(0, -".css".length);
-    const hasFeature = existsSync(path.join(sourceRoot, "features", featureName));
-    const isFeatureFile = path.dirname(current) === styles && FEATURE_CSS.test(basename) && hasFeature;
-    // Other project stylesheets are allowed. Feature ownership is only
-    // enforceable for a recognized feature file or the canonical entry.
+    const isFeatureFile =
+      path.dirname(current) === styles &&
+      FEATURE_CSS.test(basename) &&
+      existsSync(path.join(sourceRoot, "features", featureName));
+    // Non-feature stylesheets are allowed; no speculative owner is inferred.
     if (basename !== GLOBALS && !isFeatureFile) return {};
-    const duplicateNames = new Set<string>();
-    const names = new Set<string>();
-    for (const def of graph.definitions) {
-      if (def.kind !== "utility") continue;
-      if (names.has(def.name)) duplicateNames.add(def.name);
-      names.add(def.name);
-    }
+
+    const read = cachedTextReader();
+    const css = findFiles(sourceRoot, CSS_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
+    const modules = findFiles(sourceRoot, MODULE_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
+    const graph = buildCssDependencyGraph({ sourceRoot, css, modules });
+    const owners = inferCssOwners({ graph, css, modules, sourceRoot });
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         for (const definition of graph.definitions) {
-          if (definition.file !== current || definition.kind !== "utility" || duplicateNames.has(definition.name)) {
-            continue;
-          }
-          const owner = ownerOfUtility(graph, definition.name, sourceRoot);
-          if (owner === undefined) continue;
+          if (definition.file !== current) continue;
+          const owner = owners.get(symbolId(definition));
+          if (!owner) continue;
           const expected = owner === GLOBALS ? GLOBALS : `${owner}.css`;
-          // Do not force the split of a valid globals-only project.
+          // An existing monolith is valid until an explicit feature stylesheet exists.
           if (basename === GLOBALS && expected !== GLOBALS && !existsSync(path.join(styles, expected))) continue;
           if (basename === expected) continue;
+          const kind = LABELS[definition.kind] ?? definition.kind;
           context.report({
             node,
             loc: {
               start: { line: definition.line, column: 1 },
               end: { line: definition.line, column: 2 },
             },
-            message: `CSS utility "${definition.name}" is consumed ${expected === GLOBALS ? "across feature scopes" : `only by feature "${owner}"`}; define it in ${expected}.`,
+            message: `CSS ${kind} "${definition.name}" is consumed ${owner === GLOBALS ? "across feature scopes" : `only by feature "${owner}"`}; define it in ${expected}.`,
           });
         }
       },

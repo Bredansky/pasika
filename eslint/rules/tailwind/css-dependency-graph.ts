@@ -8,8 +8,8 @@ import { generate, parse, walk } from "@eslint/css-tree";
 import { escapeRegExp } from "./source-files";
 import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 
-export type CssSymbolKind = "utility" | "theme-token" | "root-variable" | "keyframes" | "font-face";
-export type CssReferenceKind = "utility" | "variable" | "keyframes" | "theme-class";
+export type CssSymbolKind = "utility" | "theme-token" | "root-variable" | "keyframes" | "font-face" | "selector";
+export type CssReferenceKind = "utility" | "variable" | "keyframes" | "theme-class" | "selector";
 export interface CssSource {
   path: string;
   content: string;
@@ -56,7 +56,7 @@ function pushSymbol(
 ): void {
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
-function themeClasses(name: string): string[] {
+export function themeClasses(name: string): string[] {
   // Only map namespaces with predictable class names. A color token emits
   // several classes; semantic suffixes constrain them to the relevant roles.
   if (name.includes("--", 2)) return [];
@@ -69,8 +69,9 @@ function themeClasses(name: string): string[] {
     if (stem.endsWith("-edge")) {
       return ["border", "outline", "ring", "divide", "stroke"].map((prefix) => `${prefix}-${stem}`);
     }
-    return [];
+    return ["bg", "text", "border", "fill", "stroke", "ring"].map((prefix) => `${prefix}-${stem}`);
   }
+  if (name.startsWith("--animate-")) return [`animate-${name.slice("--animate-".length)}`];
   if (name.startsWith("--radius-")) return [`rounded-${name.slice("--radius-".length)}`];
   if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {
     return [name.slice(2)];
@@ -97,10 +98,15 @@ export function buildCssDependencyGraph(options: {
       if (target) imports.push({ from: filename, to: path.normalize(target) });
     }
     const ast = parse(file.content, { positions: true, parseAtrulePrelude: false });
-    const atRuleStack: string[] = [];
+    const atRuleStack: { name: string; baseLayer: boolean }[] = [];
     walk(ast, {
       enter(node) {
-        if (node.type === "Atrule") atRuleStack.push(node.name);
+        if (node.type === "Atrule") {
+          atRuleStack.push({
+            name: node.name,
+            baseLayer: node.name === "layer" && node.prelude !== null && generate(node.prelude).trim() === "base",
+          });
+        }
         const line = node.loc?.start.line ?? 1;
         if (node.type === "Atrule") {
           if (node.name === "utility" || node.name === "keyframes") {
@@ -163,12 +169,19 @@ export function buildCssDependencyGraph(options: {
             }
           }
         }
+        // Class-only selectors can be traced to TSX consumers. Compound/global
+        // selectors are deliberately excluded because they have cascade context.
+        if (node.type === "Rule" && !atRuleStack.some((entry) => entry.name === "keyframes" || entry.baseLayer)) {
+          const selector = generate(node.prelude).trim();
+          const match = /^\.(?<name>[a-zA-Z_][\w-]*)(?:::{0,1}[a-zA-Z-]+(?:\([^)]*\))?)*$/u.exec(selector);
+          if (match?.groups?.name) pushSymbol(definitions, "selector", match.groups.name, filename, line);
+        }
         if (node.type !== "Declaration" || !node.property.startsWith("--") || node.property === "--*") return;
         const inRoot = this.rule?.type === "Rule" && generate(this.rule.prelude).trim() === ":root";
         if (inRoot) {
           // @layer does not change the selector's matching conditions;
           // @media/@supports/@container etc. may override it deliberately.
-          const scope = atRuleStack.every((name) => name === "layer") ? "default" : "conditional";
+          const scope = atRuleStack.every((entry) => entry.name === "layer") ? "default" : "conditional";
           definitions.push({
             kind: "root-variable",
             name: node.property,
@@ -199,6 +212,7 @@ export function buildCssDependencyGraph(options: {
   if (options.includeReferences === false) return { definitions, references, imports };
 
   const utilities = new Set(definitions.filter((item) => item.kind === "utility").map((item) => item.name));
+  const selectors = new Set(definitions.filter((item) => item.kind === "selector").map((item) => item.name));
   const keyframes = new Set(definitions.filter((item) => item.kind === "keyframes").map((item) => item.name));
   const generatedClasses = new Map<string, string>();
   for (const symbol of definitions) {
@@ -269,6 +283,7 @@ export function buildCssDependencyGraph(options: {
     for (const [kind, names] of [
       ["utility", utilities],
       ["keyframes", keyframes],
+      ["selector", selectors],
     ] as const) {
       for (const name of names) {
         for (const line of tokenLines(file.content, name)) {

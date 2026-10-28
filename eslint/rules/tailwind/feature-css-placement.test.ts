@@ -25,7 +25,7 @@ function check(files: Record<string, string>, target: string, errors: RegExp[] =
   });
 }
 
-void describe("CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities in feature-named stylesheets consumed across feature scopes MUST live in globals.css.", () => {
+void describe("CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.", () => {
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@utility mc-badge { display: block; }',
@@ -110,5 +110,167 @@ void describe("CSS utilities used by only one feature MUST live in that feature'
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/features/home.css",
+  );
+
+  // Generated Tailwind classes provide direct ownership evidence for @theme.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme { --color-portal: #a855f7; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "bg-portal";',
+    },
+    "app/styles/globals.css",
+    [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // A theme token depends on its runtime :root variable, not the other way around.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n:root { --color-portal: #a855f7; }\n@theme inline { --color-portal: var(--color-portal); }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "bg-portal";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS root variable "--color-portal" is consumed only by feature "home"; define it in home\.css/,
+      /CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\.css/,
+    ],
+  );
+  // An animation is owned by the consumer of the utility referencing it.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@keyframes portal-pulse { 50% { opacity: .4; } }',
+      "app/styles/home.css": "@utility animate-portal { @apply [animation:portal-pulse_2s_linear]; }",
+      "features/home/banner.tsx": 'const cls = "animate-portal";',
+    },
+    "app/styles/globals.css",
+    [/CSS keyframes "portal-pulse" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // @theme fonts propagate ownership to the full matching @font-face family.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@font-face { font-family: "Minecraft"; src: url("/minecraft.woff2"); }\n@theme { --font-minecraft: "Minecraft", monospace; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "font-minecraft";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS font face "minecraft" is consumed only by feature "home"; define it in home\.css/,
+      /CSS theme token "--font-minecraft" is consumed only by feature "home"; define it in home\.css/,
+    ],
+  );
+  // Simple selectors and their pseudo states are also owned by consuming features.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n.portal-frame:hover { opacity: 0.5; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "portal-frame";',
+    },
+    "app/styles/globals.css",
+    [/CSS selector "portal-frame" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // Sharing is about consumers, irrespective of the CSS construct being used.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@import "./home.css";',
+      "app/styles/home.css": "@theme { --color-portal: #a855f7; }",
+      "features/home/banner.tsx": 'const cls = "bg-portal";',
+      "features/donation/widget.tsx": 'const cls = "text-portal";',
+    },
+    "app/styles/home.css",
+    [/CSS theme token "--color-portal" is consumed across feature scopes; define it in globals\.css/],
+  );
+  // Foundations remain global even when current consumers happen to be local.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme { --color-base-canvas: #fff; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "bg-base-canvas";',
+    },
+    "app/styles/globals.css",
+  );
+  // Global base-layer usage takes precedence over an individual feature.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@theme { --color-portal: #a855f7; }\n@layer base { body { @apply bg-portal; } }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "bg-portal";',
+    },
+    "app/styles/globals.css",
+  );
+  // Unused definitions and conditional overrides do not establish ownership.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@keyframes unknown { to {opacity:1} }\n@media (min-width: 30rem) { :root { --feature-gap: 1rem; } }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "home-frame";',
+    },
+    "app/styles/globals.css",
+  );
+  // A nested dependency chain carries feature ownership through multiple kinds.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n:root { --portal-glow: #faf; }\n@keyframes portal-pulse { 50% { color: var(--portal-glow); } }',
+      "app/styles/home.css": "@utility animate-portal { @apply [animation:portal-pulse_2s_linear]; }",
+      "features/home/banner.tsx": 'const cls = "animate-portal";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS root variable "--portal-glow" is consumed only by feature "home"; define it in home\.css/,
+      /CSS keyframes "portal-pulse" is consumed only by feature "home"; define it in home\.css/,
+    ],
+  );
+  // Tailwind @theme --animate-* declarations propagate to their keyframes.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@keyframes portal-pulse { to { opacity: 1; } }\n@theme { --animate-portal: portal-pulse 2s linear infinite; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "animate-portal";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS keyframes "portal-pulse" is consumed only by feature "home"; define it in home\.css/,
+      /CSS theme token "--animate-portal" is consumed only by feature "home"; define it in home\.css/,
+    ],
+  );
+  // A global base-layer selector is a system style, not a feature-owned class.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@layer base { .portal-frame { display: block; } }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "portal-frame";',
+    },
+    "app/styles/globals.css",
+  );
+  // Real font families may include multiple @font-face weight definitions.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@font-face { font-family: "Minecraft"; font-weight: 400; src: url(a.woff2); }\n@font-face { font-family: "Minecraft"; font-weight: 700; src: url(b.woff2); }\n@theme { --font-minecraft: "Minecraft", monospace; }',
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/banner.tsx": 'const cls = "font-minecraft";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS font face "minecraft" is consumed only by feature "home"; define it in home\.css/,
+      /CSS font face "minecraft" is consumed only by feature "home"; define it in home\.css/,
+      /CSS theme token "--font-minecraft" is consumed only by feature "home"; define it in home\.css/,
+    ],
+  );
+  // Responsive :root overrides must not suppress ownership of the default.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n:root { --feature-gap: 1rem; }\n@media (min-width: 30rem) { :root { --feature-gap: 2rem; } }',
+      "app/styles/home.css": "@utility gap-card { @apply [padding:var(--feature-gap)]; }",
+      "features/home/banner.tsx": 'const cls = "gap-card";',
+    },
+    "app/styles/globals.css",
+    [/CSS root variable "--feature-gap" is consumed only by feature "home"; define it in home\.css/],
   );
 });
