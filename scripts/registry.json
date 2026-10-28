@@ -1262,38 +1262,32 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.",
-      "hash": "c534a03919",
+      "text": "A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet; components MAY reuse the utility.",
+      "hash": "a8ea3f789d",
       "ref": "pasika/unique-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct Tailwind `@theme` tokens and default `:root` custom properties MUST NOT have the same static CSS value, even when declared in the same stylesheet or in different stylesheets. Equivalent hexadecimal color spellings count as identical values; conditional runtime overrides do not.",
-      "hash": "f298835185",
-      "ref": "pasika/unique-css-token-value"
+      "text": "Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.",
+      "hash": "bb45075972",
+      "ref": "pasika/unique-css-definition, pasika/unique-css-token-value"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.",
-      "hash": "e73e08011a",
+      "text": "Each default `:root` custom property MUST have one definition across the project's CSS files, including within a single stylesheet; distinct default `:root` properties MUST NOT share an identical static value with another default `:root` property or an `@theme` variable. Intentional overrides in conditional at-rules or scoped selectors are allowed.",
+      "hash": "c03268b9b8",
+      "ref": "pasika/unique-css-definition, pasika/unique-css-token-value"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Each `@keyframes` name MUST have one definition across the project's CSS files, including within a single stylesheet.",
+      "hash": "609a973c01",
       "ref": "pasika/unique-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.",
-      "hash": "fe6de17fbd",
-      "ref": "pasika/unique-css-definition"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "The same `@keyframes` name MUST NOT be defined in two different CSS files.",
-      "hash": "0045457c3d",
-      "ref": "pasika/unique-css-definition"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.",
-      "hash": "1680228f0e",
+      "text": "Each `@font-face` signature (family, style, weight, stretch, and Unicode range) MUST have one definition across the project's CSS files, including within a single stylesheet; different faces of one family are allowed.",
+      "hash": "4f335faab0",
       "ref": "pasika/unique-css-definition"
     },
     {

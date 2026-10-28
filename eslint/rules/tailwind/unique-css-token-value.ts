@@ -25,6 +25,8 @@ function valueIdentity(value: string): string {
 
 function isComparable(symbol: CssSymbol): boolean {
   if (symbol.value === undefined || symbol.value.trim() === "") return false;
+  // Runtime-dependent values are not statically equal, even when their syntax matches.
+  if (/\b(?:var|env|attr|calc|min|max|clamp|color-mix|light-dark)\s*\(/iu.test(symbol.value)) return false;
   return symbol.kind === "theme-token" || (symbol.kind === "root-variable" && symbol.scope === "default");
 }
 

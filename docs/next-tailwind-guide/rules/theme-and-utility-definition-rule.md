@@ -8,12 +8,11 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
-- The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
-- Distinct Tailwind `@theme` tokens and default `:root` custom properties MUST NOT have the same static CSS value, even when declared in the same stylesheet or in different stylesheets. Equivalent hexadecimal color spellings count as identical values; conditional runtime overrides do not.
-- A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.
-- A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.
-- The same `@keyframes` name MUST NOT be defined in two different CSS files.
-- An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.
+- A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet; components MAY reuse the utility.
+- Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.
+- Each default `:root` custom property MUST have one definition across the project's CSS files, including within a single stylesheet; distinct default `:root` properties MUST NOT share an identical static value with another default `:root` property or an `@theme` variable. Intentional overrides in conditional at-rules or scoped selectors are allowed.
+- Each `@keyframes` name MUST have one definition across the project's CSS files, including within a single stylesheet.
+- Each `@font-face` signature (family, style, weight, stretch, and Unicode range) MUST have one definition across the project's CSS files, including within a single stylesheet; different faces of one family are allowed.
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 

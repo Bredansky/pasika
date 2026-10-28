@@ -26,6 +26,7 @@ const files = {
     ".dark { --color-runtime-canvas: #ffffff; }",
   ].join("\n"),
   "f.css": "@theme { --color-commented-ink: #aabbcc; /* --color-fake-ink: #aabbcc; */ }",
+  "g.css": "@theme inline { --color-a-canvas: var(--shared); --color-b-canvas: var(--shared); }",
 };
 const root = fixture(files);
 process.chdir(root);
@@ -34,9 +35,9 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct Tailwind `@theme` tokens and default `:root` custom properties MUST NOT have the same static CSS value, even when declared in the same stylesheet or in different stylesheets. Equivalent hexadecimal color spellings count as identical values; conditional runtime overrides do not.", () => {
+void describe("Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
-    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css")],
+    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
       {
         ...atFile("b.css"),
@@ -65,6 +66,22 @@ void describe("Distinct Tailwind `@theme` tokens and default `:root` custom prop
             message: `Token "--color-pill-ink" duplicates the value of "--color-tag-ink" in app${path.sep}styles${
               path.sep
             }d.css:1; reuse one design token.`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Each default `:root` custom property MUST have one definition across the project's CSS files, including within a single stylesheet; distinct default `:root` properties MUST NOT share an identical static value with another default `:root` property or an `@theme` variable. Intentional overrides in conditional at-rules or scoped selectors are allowed.", () => {
+  tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
+    valid: [atFile("e.css")],
+    invalid: [
+      {
+        ...atFile("c.css"),
+        errors: [
+          {
+            message: `Token "--spacing-panel" duplicates the value of "--spacing-card" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
           },
         ],
       },
