@@ -1160,6 +1160,18 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Project CSS MUST stay in `src/app/styles/globals.css` or flat `src/app/styles/<feature>.css` files matching `src/features/<feature>/`; `shared.css` and type-based stylesheets are not allowed.",
+      "hash": "1f99dd1a4e",
+      "ref": "pasika/feature-css-placement"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "CSS utilities used by only one feature MUST live in that feature's stylesheet when it exists; utilities consumed across feature scopes MUST live in globals.css. Other CSS may remain in globals.css until a safe split is possible.",
+      "hash": "9a069af93a",
+      "ref": "pasika/feature-css-placement"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.",
       "hash": "d28608a7a3",
       "ref": "pasika/theme-reset"

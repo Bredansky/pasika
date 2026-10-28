@@ -6,6 +6,7 @@ import { baseLayerPairRule } from "./base-layer-pair";
 import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
 import { customUtilityApplyRule } from "./custom-utility-apply";
+import { featureCssPlacementRule } from "./feature-css-placement";
 import { globalSelectorStylingRule } from "./global-selector-styling";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { noUtilityAliasRule } from "./no-utility-alias";
@@ -26,6 +27,7 @@ export const tailwindRules = {
   "custom-utility-apply": customUtilityApplyRule,
   "utility-mapping": utilityMappingRule,
   "css-entry-point": cssEntryPointRule,
+  "feature-css-placement": featureCssPlacementRule,
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
   "unique-css-definition": uniqueCssDefinitionRule,

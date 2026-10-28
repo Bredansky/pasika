@@ -280,6 +280,7 @@ const tailwindStructureRules: Linter.Config = {
       .filter(
         (id) =>
           id !== "pasika/css-entry-point" &&
+          id !== "pasika/feature-css-placement" &&
           id !== "pasika/unique-css-definition" &&
           id !== "pasika/no-utility-alias" &&
           id !== "pasika/root-variables" &&
@@ -304,6 +305,7 @@ const tailwindImportGraph: Linter.Config = {
   languageOptions: { tolerant: true },
   rules: {
     "pasika/css-entry-point": "error",
+    "pasika/feature-css-placement": "error",
     "pasika/unique-css-definition": "error",
     "pasika/no-utility-alias": "error",
     "pasika/root-variables": "error",
