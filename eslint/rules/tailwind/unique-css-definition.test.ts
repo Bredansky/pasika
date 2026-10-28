@@ -97,7 +97,7 @@ function runRule(kind: keyof typeof duplicates, label: string, name: string, che
   }
 }
 
-void describe("A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet; components MAY reuse the utility.", () => {
+void describe("A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet.", () => {
   runRule("utility", "Custom utility", "custom-panel");
 });
 void describe("Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.", () => {

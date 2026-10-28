@@ -1262,8 +1262,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet; components MAY reuse the utility.",
-      "hash": "a8ea3f789d",
+      "text": "A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet.",
+      "hash": "6e2f8edc7f",
       "ref": "pasika/unique-css-definition"
     },
     {
