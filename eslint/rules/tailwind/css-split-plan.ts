@@ -34,6 +34,36 @@ export interface CssSplitCohort {
   externalDependencies: number;
 }
 
+export interface CssSplitSegment {
+  /** Every block, including unresolved ones, belongs to exactly one segment. */
+  ownership: string;
+  blockIds: number[];
+  /** Exact source-byte slice, including trivia after the last block in the segment. */
+  startOffset: number;
+  endOffset: number;
+}
+
+export interface CssSplitOrderConstraint {
+  kind: "interleaved-owner" | "cross-segment-dependency" | "repeated-definition" | "repeated-selector" | "late-import";
+  blockIds: number[];
+  detail: string;
+}
+
+export interface CssSplitOrderAudit {
+  /** All text before the first non-import top-level block stays at the entry point. */
+  entryPrefixEndOffset: number;
+  /** Ordered, lossless source ranges: NEVER sort by ownership. */
+  segments: CssSplitSegment[];
+  /** These require review before treating the segments as physical files. */
+  constraints: CssSplitOrderConstraint[];
+}
+
+export interface CssSplitProjection {
+  /** Virtual entry point that imports every fragment in original source order. */
+  entry: string;
+  fragments: { specifier: string; content: string }[];
+}
+
 export interface CssTokenUsage {
   name: string;
   cssSites: number;
@@ -50,6 +80,28 @@ export interface CssSplitPlan {
   cohorts: CssSplitCohort[];
   tokens: CssTokenUsage[];
   unresolvedBlocks: number;
+  order: CssSplitOrderAudit;
+}
+
+/**
+ * Produce an in-memory candidate split for a compiler equivalence check.
+ * Exact source slices retain comments/trivia, but import expansion and the
+ * Tailwind compiler MAY still change semantics. Never apply this blindly.
+ */
+export function projectCssSplit(content: string, plan: CssSplitPlan): CssSplitProjection {
+  if (plan.order.constraints.some((constraint) => constraint.kind === "late-import")) {
+    throw new Error("Cannot project a stylesheet with @import after non-import top-level rules.");
+  }
+  const { entryPrefixEndOffset, segments } = plan.order;
+  const fragments = segments.map((segment, index) => ({
+    specifier: `./pasika-split-${String(index).padStart(3, "0")}.css`,
+    content: content.slice(segment.startOffset, segment.endOffset),
+  }));
+  const restored = content.slice(0, entryPrefixEndOffset) + fragments.map((fragment) => fragment.content).join("");
+  if (restored !== content) throw new Error("Split projection does not reproduce the original source.");
+  const entry =
+    content.slice(0, entryPrefixEndOffset) + fragments.map((fragment) => `@import "${fragment.specifier}";\n`).join("");
+  return { entry, fragments };
 }
 
 function matches(reference: CssReference, symbol: CssSymbol): boolean {
@@ -88,15 +140,23 @@ export function planCssSplit(options: {
   const ast = parse(options.content, { positions: true, parseAtrulePrelude: false });
   if (ast.type !== "StyleSheet") throw new Error("Expected a CSS stylesheet.");
   const blocks: CssSplitBlock[] = [];
+  const blockOffsets: number[] = [];
+  const ruleSelectors = new Map<number, string>();
+  const imports: { afterBlockId: number | undefined }[] = [];
   for (const node of ast.children) {
     if (!node.loc || node.type === "Comment") continue;
-    if (node.type === "Atrule" && node.name === "import") continue;
+    if (node.type === "Atrule" && node.name === "import") {
+      imports.push({ afterBlockId: blocks.at(-1)?.id });
+      continue;
+    }
+    blockOffsets.push(node.loc.start.offset);
     let label: string = node.type;
     if (node.type === "Atrule") {
       label = `@${node.name}`;
       if (node.prelude) label += ` ${generate(node.prelude).trim()}`;
     } else if (node.type === "Rule") {
       label = generate(node.prelude).trim();
+      ruleSelectors.set(blocks.length, label);
     }
     const globalBase = node.type === "Atrule" && node.name === "layer" && label === "@layer base";
     const foundation =
@@ -203,6 +263,85 @@ export function planCssSplit(options: {
     })
     .sort((a, b) => b.blockIds.length - a.blockIds.length || a.ownership.localeCompare(b.ownership));
 
+  // Order audit is intentionally separate from responsibility grouping.
+  // Source offsets allow a future virtual import projection to reconstruct
+  // every byte, including comments and whitespace, in its original order.
+  const segments: CssSplitSegment[] = [];
+  for (const block of blocks) {
+    const previous = segments.at(-1);
+    if (previous?.ownership === block.ownership) {
+      previous.blockIds.push(block.id);
+    } else {
+      segments.push({
+        ownership: block.ownership,
+        blockIds: [block.id],
+        startOffset: blockOffsets[block.id] ?? 0,
+        endOffset: options.content.length,
+      });
+    }
+  }
+  for (let index = 0; index < segments.length - 1; index++) {
+    const next = segments[index + 1];
+    const current = segments[index];
+    if (next && current) current.endOffset = next.startOffset;
+  }
+  const segmentOf = new Map(segments.flatMap((segment, index) => segment.blockIds.map((id) => [id, index] as const)));
+  const constraints: CssSplitOrderConstraint[] = [];
+  for (const cohort of cohorts) {
+    if (cohort.contiguousRuns < 2) continue;
+    constraints.push({
+      kind: "interleaved-owner",
+      blockIds: cohort.blockIds,
+      detail: `${cohort.ownership} spans ${String(cohort.contiguousRuns)} separated source runs; merging them reorders intervening CSS`,
+    });
+  }
+  for (const block of blocks) {
+    for (const dependency of block.dependencies) {
+      if (segmentOf.get(block.id) === segmentOf.get(dependency)) continue;
+      constraints.push({
+        kind: "cross-segment-dependency",
+        blockIds: [block.id, dependency],
+        detail: `CSS in block ${String(block.id)} references a definition in block ${String(dependency)}`,
+      });
+    }
+  }
+  const byDefinition = new Map<string, number[]>();
+  for (const symbol of definitions) {
+    const id = blocks.find((block) => symbol.line >= block.startLine && symbol.line <= block.endLine)?.id;
+    if (id === undefined) continue;
+    const key = `${symbol.kind}:${symbol.name}`;
+    byDefinition.set(key, [...(byDefinition.get(key) ?? []), id]);
+  }
+  for (const [name, ids] of byDefinition) {
+    const distinct = [...new Set(ids)];
+    if (new Set(distinct.map((id) => segmentOf.get(id))).size < 2) continue;
+    constraints.push({
+      kind: "repeated-definition",
+      blockIds: distinct,
+      detail: `${name} is defined in multiple source segments; preserve registration/cascade order`,
+    });
+  }
+  const bySelector = new Map<string, number[]>();
+  for (const [id, selector] of ruleSelectors) {
+    bySelector.set(selector, [...(bySelector.get(selector) ?? []), id]);
+  }
+  for (const [selector, ids] of bySelector) {
+    if (new Set(ids.map((id) => segmentOf.get(id))).size < 2) continue;
+    constraints.push({
+      kind: "repeated-selector",
+      blockIds: ids,
+      detail: `${selector} appears in multiple source segments; later rules may override earlier ones`,
+    });
+  }
+  for (const imported of imports) {
+    if (imported.afterBlockId === undefined) continue;
+    constraints.push({
+      kind: "late-import",
+      blockIds: [imported.afterBlockId],
+      detail: `@import after block ${String(imported.afterBlockId)} cannot be treated as an entry-point-only prefix`,
+    });
+  }
+
   const tokens = definitions
     .filter((symbol) => symbol.kind === "theme-token" || symbol.kind === "root-variable")
     .map((symbol) => {
@@ -222,5 +361,10 @@ export function planCssSplit(options: {
     cohorts,
     tokens,
     unresolvedBlocks: blocks.filter((block) => block.ownership === "unresolved").length,
+    order: {
+      entryPrefixEndOffset: blockOffsets[0] ?? options.content.length,
+      segments,
+      constraints,
+    },
   };
 }

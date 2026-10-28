@@ -55,16 +55,23 @@ describe("CSS split inventory CLI", () => {
     expect(report).toContain("Top-level blocks: 2");
     expect(report).toContain("features/home");
     expect(report).toContain("--color-brand-ink");
+    expect(report).toContain("Ordered source segments:");
+    expect(report).toContain("Order constraints:");
     expect(readFileSync(stylesheet, "utf8")).toBe(before);
   });
 
   it("supports a structured JSON inventory", async () => {
     const root = makeTarget();
     const report = z
-      .object({ blocks: z.array(z.unknown()), cohorts: z.array(z.unknown()) })
+      .object({
+        blocks: z.array(z.unknown()),
+        cohorts: z.array(z.unknown()),
+        order: z.object({ segments: z.array(z.unknown()), constraints: z.array(z.unknown()) }),
+      })
       .parse(JSON.parse(await runCli(root, "--json")));
     expect(report.blocks).toHaveLength(2);
     expect(report.cohorts.length).toBeGreaterThan(0);
+    expect(report.order.segments.length).toBeGreaterThan(0);
   });
 
   it("reads the committed monolith even if the working file has changed", async () => {

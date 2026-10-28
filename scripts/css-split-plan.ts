@@ -2,7 +2,7 @@
 /**
  * Read-only CSS split inventory for a Next.js application.
  *
- * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json]
+ * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify]
  * No files in the target repository are modified.
  */
 import { execFileSync } from "node:child_process";
@@ -11,10 +11,11 @@ import path from "node:path";
 import { buildCssDependencyGraph } from "../eslint/rules/tailwind/css-dependency-graph";
 import { planCssSplit } from "../eslint/rules/tailwind/css-split-plan";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, findFiles } from "../eslint/rules/tailwind/source-files";
+import { verifyCssSplit } from "./css-split-verify";
 
 const [, , target, ...flags] = process.argv;
-if (!target || flags.some((flag) => flag !== "--head" && flag !== "--json")) {
-  process.stderr.write("Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json]\n");
+if (!target || flags.some((flag) => flag !== "--head" && flag !== "--json" && flag !== "--verify")) {
+  process.stderr.write("Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify]\n");
   process.exit(2);
 }
 
@@ -34,9 +35,13 @@ const modules = findFiles(sourceRoot, MODULE_EXTENSIONS).map((file) => ({
 }));
 const graph = buildCssDependencyGraph({ css, modules, sourceRoot });
 const plan = planCssSplit({ cssPath, content, sourceRoot, graph });
+const verification = flags.includes("--verify")
+  ? await verifyCssSplit({ root, sourceRoot, cssPath, content, plan })
+  : undefined;
+if (verification && !verification.matched) process.exitCode = 1;
 
 if (flags.includes("--json")) {
-  process.stdout.write(`${JSON.stringify(plan, undefined, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ ...plan, ...(verification ? { verification } : {}) }, undefined, 2)}\n`);
 } else {
   const relationshipCount = plan.blocks.reduce((sum, block) => sum + block.dependencies.length, 0);
   process.stdout.write(
@@ -44,7 +49,9 @@ if (flags.includes("--json")) {
       `Top-level blocks: ${String(plan.blocks.length)}\n` +
       `CSS block relationships: ${String(relationshipCount)}\n` +
       `Unresolved ownership: ${String(plan.unresolvedBlocks)}\n` +
-      `Contiguous owned runs: ${String(plan.runs.length)}\n\n`,
+      `Contiguous owned runs: ${String(plan.runs.length)}\n` +
+      `Ordered source segments: ${String(plan.order.segments.length)}\n` +
+      `Order constraints: ${String(plan.order.constraints.length)}\n\n`,
   );
   process.stdout.write("Logical responsibility cohorts (one cohort may span multiple runs):\n");
   for (const cohort of plan.cohorts) {
@@ -62,12 +69,25 @@ if (flags.includes("--json")) {
       )} blocks)\n`,
     );
   }
+  process.stdout.write("\nOrder-sensitive constraints (first 15):\n");
+  for (const constraint of plan.order.constraints.slice(0, 15)) {
+    process.stdout.write(`  ${constraint.kind}: ${constraint.detail}\n`);
+  }
   process.stdout.write("\nTop tokens by lexical module matches (not runtime usage):\n");
   for (const token of plan.tokens.slice(0, 20)) {
     process.stdout.write(
       `  ${String(token.moduleSites).padStart(5)} module / ${String(token.cssSites).padStart(4)} CSS / ${String(
         token.files,
       ).padStart(3)} files  ${token.name}\n`,
+    );
+  }
+  if (verification) {
+    process.stdout.write(
+      `\nTailwind virtual split parity: ${verification.matched ? "MATCH" : "MISMATCH"} ` +
+        `(${String(verification.candidates)} candidates, ` +
+        `${String(verification.originalBytes)} / ${String(verification.projectedBytes)} compiled bytes, ` +
+        `source directives ${verification.sourcesMatched ? "matched" : "changed"}, ` +
+        `first diff ${String(verification.firstDifference)})\n`,
     );
   }
   process.stdout.write(

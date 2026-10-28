@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
 import type { CssDependencyGraph } from "./css-dependency-graph";
-import { planCssSplit } from "./css-split-plan";
+import { planCssSplit, projectCssSplit } from "./css-split-plan";
 import type { CssSplitPlan } from "./css-split-plan";
 
 const root = path.resolve("fixtures/css-split/src");
@@ -76,6 +76,50 @@ describe("Read-only CSS split planning", () => {
     expect(
       plan.runs.filter((run) => run.ownership === "components/minecraft").map((run) => run.blockIds.length),
     ).toEqual([2, 1]);
+  });
+
+  it("creates lossless, ordered virtual fragments without touching the CSS", () => {
+    const source = css.replace("@utility mc-button", "/* keep this comment with the next slice */\n@utility mc-button");
+    const { plan } = analyze(source);
+    const projection = projectCssSplit(source, plan);
+    expect(projection.entry).toContain('@import "tailwindcss";');
+    expect(projection.entry).toContain('@import "./pasika-split-000.css";');
+    expect(projection.fragments.map((fragment) => fragment.content).join("")).toBe(
+      source.slice(plan.order.entryPrefixEndOffset),
+    );
+    expect(projection.fragments.some((fragment) => fragment.content.includes("keep this comment"))).toBe(true);
+    expect(plan.order.segments.flatMap((segment) => segment.blockIds)).toEqual(plan.blocks.map((block) => block.id));
+  });
+
+  it("flags interleaving, cross-segment links and repeated selectors instead of calling them safe", () => {
+    const source = [
+      '@import "tailwindcss";',
+      "@theme { --color-brand-ink: #fff; }",
+      "@utility mc-button { @apply text-brand-ink; }",
+      "body { color: red; }",
+      "@utility animate-sparkle { @apply text-brand-ink; }",
+      "body { color: blue; }",
+    ].join("\n");
+    const { plan } = analyze(source);
+    expect(plan.order.constraints).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "interleaved-owner" }),
+        expect.objectContaining({ kind: "cross-segment-dependency" }),
+        expect.objectContaining({ kind: "repeated-selector" }),
+      ]),
+    );
+    expect(
+      plan.order.constraints.some(
+        (constraint) => constraint.kind === "repeated-selector" && constraint.detail.includes("body"),
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects a virtual projection when an import occurs after a CSS block", () => {
+    const source = '@utility mc-button { display: block; }\n@import "./late.css";';
+    const { plan } = analyze(source);
+    expect(plan.order.constraints).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "late-import" })]));
+    expect(() => projectCssSplit(source, plan)).toThrow("after non-import");
   });
 
   it("does not mistake unrelated modules for a feature ownership signal", () => {
