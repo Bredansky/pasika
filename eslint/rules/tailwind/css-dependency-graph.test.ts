@@ -133,6 +133,28 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     expect(cssSymbolUsages(index, "theme-class", "bg-primary-ink")).toEqual([]);
   });
 
+  it("tracks generated spacing utilities from their theme tokens", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: tokens,
+          content:
+            "@theme inline { --spacing-panel-26: var(--spacing-panel-26); --spacing-viewport-10: var(--spacing-viewport-10); }",
+        },
+      ],
+      modules: [{ path: component, content: 'const classes = "lg:w-panel-26 p-viewport-10 h-panel-26";' }],
+    });
+    for (const [cls, token] of [
+      ["w-panel-26", "--spacing-panel-26"],
+      ["p-viewport-10", "--spacing-viewport-10"],
+      ["h-panel-26", "--spacing-panel-26"],
+    ] as const) {
+      expect(cssSymbolUsages(index, "theme-class", cls)).toEqual([
+        expect.objectContaining({ file: component, token, source: "module" }),
+      ]);
+    }
+  });
   it("normalizes equivalent font-weight descriptors while distinguishing weight and Unicode ranges", () => {
     const index = buildCssDependencyGraph({
       sourceRoot: root,
