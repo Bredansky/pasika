@@ -275,14 +275,25 @@ const tailwindStructureRules: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: Object.fromEntries(tailwindRuleIds.filter((id) => id !== "pasika/css-entry-point").map((id) => [id, "error"])),
+  rules: Object.fromEntries(
+    tailwindRuleIds
+      .filter(
+        (id) =>
+          id !== "pasika/css-entry-point" &&
+          id !== "pasika/feature-css-placement" &&
+          id !== "pasika/unique-css-definition" &&
+          id !== "pasika/no-utility-alias" &&
+          id !== "pasika/root-variables" &&
+          id !== "pasika/color-role-usage",
+      )
+      .map((id) => [id, "error"]),
+  ),
 };
 
 /**
- * Every stylesheet under `src` — the cross-file `css-entry-point` import-graph
- * rule, applied once over all files so a stray sheet or one reached two hops
- * away is caught. Kept apart from the structural rules because those assume
- * the entry point and can't run here.
+ * Every stylesheet under `src` — cross-file definition ownership, imports,
+ * redundant aliases, and deterministic variable-backed theme declarations.
+ * These checks must also cover CSS files imported by the global entry point.
  */
 const tailwindImportGraph: Linter.Config = {
   files: ["src/**/*.css"],
@@ -292,7 +303,14 @@ const tailwindImportGraph: Linter.Config = {
   },
   language: "css/css",
   languageOptions: { tolerant: true },
-  rules: { "pasika/css-entry-point": "error" },
+  rules: {
+    "pasika/css-entry-point": "error",
+    "pasika/feature-css-placement": "error",
+    "pasika/unique-css-definition": "error",
+    "pasika/no-utility-alias": "error",
+    "pasika/root-variables": "error",
+    "pasika/color-role-usage": "error",
+  },
 };
 
 /**

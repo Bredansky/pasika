@@ -30,6 +30,9 @@ const GLOBALS = `@import "tailwindcss";
   --color-primary-soft-border: #999;
   --color-control-ring: #555;
   --color-primary-ink: #ffffff;
+  --color-primary-edge: #a1a1aa;
+  --color-shiny-ink: #ffffff;
+  --color-shiny-canvas: #2563eb;
   --color-brand-500: #123456;
   --radius-card: 1rem;
   --font-display: "Inter", sans-serif;
@@ -91,18 +94,62 @@ process.chdir(root);
 
 const message = (className: string): string =>
   `Utility class "${className}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`;
-const boundaryMessage = (className: string): string =>
-  `Utility class "${className}" uses a boundary color token named after a CSS property; use a semantic -edge color token instead (for example, border-control-edge).`;
-const roleMessage = (className: string, role: "canvas" | "ink" | "edge"): string => {
-  const expected = {
-    canvas: "bg-<role>-canvas",
-    ink: "text-<role>-ink",
-    edge: "border-<role>-edge",
-  }[role];
-  return `Utility class "${className}" applies a -${role} color token to an incompatible property; use ${expected} for that role or define a token for the intended property.`;
-};
 const plainMessage = (className: string): string =>
   `Utility class "${className}" is defined as a plain CSS selector in a stylesheet, not as an @utility (or @theme variable). Define it with @utility so the framework can own and validate it.`;
+
+void describe("Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.", () => {
+  const invalidMessage = (cls: string, role: string, purpose: string, expected: string): string =>
+    `Color utility "${cls}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
+  ruleTester.run("unknown-utility-color-roles", unknownUtilityRule, {
+    valid: [
+      {
+        code: '<div className="bg-shiny-canvas text-shiny-ink border-primary-edge" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      {
+        code: 'cn("hover:bg-shiny-canvas/50", { "focus:ring-primary-edge": active })',
+        filename: srcFile("shared/card.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: '<div className="bg-shiny-ink" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: invalidMessage("bg-shiny-ink", "ink", "backgrounds, fills, or gradients", "canvas") }],
+      },
+      {
+        code: '<div className="hover:bg-shiny-ink/50 text-shiny-canvas" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: invalidMessage("hover:bg-shiny-ink/50", "ink", "backgrounds, fills, or gradients", "canvas") },
+          { message: invalidMessage("text-shiny-canvas", "canvas", "text, carets, or text decoration", "ink") },
+        ],
+      },
+      {
+        code: 'cn("border-shiny-ink", active && "focus:ring-shiny-canvas")',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          {
+            message: invalidMessage(
+              "border-shiny-ink",
+              "ink",
+              "borders, outlines, rings, dividers, or strokes",
+              "edge",
+            ),
+          },
+          {
+            message: invalidMessage(
+              "focus:ring-shiny-canvas",
+              "canvas",
+              "borders, outlines, rings, dividers, or strokes",
+              "edge",
+            ),
+          },
+        ],
+      },
+    ],
+  });
+});
 
 void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
@@ -117,9 +164,21 @@ void describe("A utility class a component statically references MUST be a custo
         code: '<div className="border-control-edge hover:border-control-edge border-2 border-b border-solid bg-primary-canvas" />',
         filename: srcFile("shared/card.tsx"),
       },
-      // Semantic color tokens are valid only on matching properties; variants and opacity are safe.
+      // Valid semantic roles may be used by the matching Tailwind color utilities.
       {
         code: '<div className="text-primary-ink bg-primary-canvas from-primary-canvas via-primary-canvas to-primary-canvas border-base-edge hover:border-control-edge/50 outline-control-edge ring-control-edge stroke-control-edge divide-control-edge ring-offset-primary-canvas" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      {
+        code: '<div className="text-primary-ink hover:text-primary-ink bg-primary-canvas border-primary-edge outline-primary-edge ring-primary-edge" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+      {
+        code: 'cn("sm:hover:text-primary-ink/50", selected && "focus:bg-primary-canvas", { "border-primary-edge": active })',
+        filename: srcFile("shared/card.tsx"),
+      },
+      {
+        code: '<div className="border-border hover:border-retro-border sm:border-primary-soft-border bg-retro-border ring-control-ring" />',
         filename: srcFile("shared/card.tsx"),
       },
       // Custom @utility.
@@ -197,52 +256,6 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="sm:flex" />', filename: srcFile("shared/card.tsx") },
     ],
     invalid: [
-      // A theme-generated utility can exist but still apply the wrong semantic color role.
-      {
-        code: '<div className="text-base-edge hover:text-control-edge bg-control-edge border-primary-ink outline-primary-canvas ring-primary-ink text-primary-canvas bg-primary-ink" />',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          { message: roleMessage("text-base-edge", "edge") },
-          { message: roleMessage("hover:text-control-edge", "edge") },
-          { message: roleMessage("bg-control-edge", "edge") },
-          { message: roleMessage("border-primary-ink", "ink") },
-          { message: roleMessage("outline-primary-canvas", "canvas") },
-          { message: roleMessage("ring-primary-ink", "ink") },
-          { message: roleMessage("text-primary-canvas", "canvas") },
-          { message: roleMessage("bg-primary-ink", "ink") },
-        ],
-      },
-      // Color-role checking follows variants and cn()/clsx helper expressions.
-      {
-        code: 'cn("sm:hover:text-base-edge/50", selected && "focus:bg-primary-ink", { "border-primary-canvas": active })',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          { message: roleMessage("sm:hover:text-base-edge/50", "edge") },
-          { message: roleMessage("focus:bg-primary-ink", "ink") },
-          { message: roleMessage("border-primary-canvas", "canvas") },
-        ],
-      },
-      // A token's presence in @theme does not make its boundary naming valid.
-      {
-        code: '<div className="border-border hover:border-retro-border sm:border-primary-soft-border bg-retro-border ring-control-ring" />',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          "border-border",
-          "hover:border-retro-border",
-          "sm:border-primary-soft-border",
-          "bg-retro-border",
-          "ring-control-ring",
-        ].map((className) => ({ message: boundaryMessage(className) })),
-      },
-      // Also validate strings passed to class helpers, not just bare JSX attributes.
-      {
-        code: 'cn("border-border", isActive && "hover:border-retro-border")',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          { message: boundaryMessage("border-border") },
-          { message: boundaryMessage("hover:border-retro-border") },
-        ],
-      },
       // A typo inside a theme token family.
       {
         code: '<div className="bg-primay-canvas" />',

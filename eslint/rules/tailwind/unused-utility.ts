@@ -1,30 +1,20 @@
 /**
  * ESLint rule: pasika/unused-utility
  *
- * A custom utility MUST be used by at least one file in the repository's
- * source; an @utility no file references is dead. The rule reads the src/ tree
- * from disk and reports @utility blocks whose name appears nowhere, because a
- * stylesheet alone cannot see what the components use.
+ * Require custom utilities to have a source-module or CSS @apply
+ * reference, indexed by the shared CSS dependency graph.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
 import { statSync } from "node:fs";
+import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
+import { buildCssDependencyGraph, cssSymbolUsages } from "./css-dependency-graph";
 import { atrulesNamed, preludeIdentifiers } from "./helpers";
-import { SOURCE_EXTENSIONS, cachedTextReader, escapeRegExp, findFiles } from "./source-files";
-
-/**
- * A usage regex for one utility name. The lookarounds require the name to be a
- * standalone token — not adjacent to a word or dash character — so a reference
- * to `primary-surface` never counts as a use of `primary`, and `surface-primary-x`
- * never counts as a use of `surface-primary`.
- */
-function usagePattern(name: string): RegExp {
-  return new RegExp(`(?<![\\w-])${escapeRegExp(name)}(?![\\w-])`);
-}
+import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 export const unusedUtilityRule: CSSRuleDefinition = {
   meta: {
@@ -36,16 +26,24 @@ export const unusedUtilityRule: CSSRuleDefinition = {
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
-    let files: string[];
     try {
       if (!statSync(sourceRoot).isDirectory()) return {};
-      files = findFiles(sourceRoot, SOURCE_EXTENSIONS);
     } catch {
-      // No src/ tree: the rule is inert, like the other cross-file rules.
       return {};
     }
 
+    const current = path.normalize(path.resolve(context.filename));
     const textOf = cachedTextReader();
+    const cssFiles = findFiles(sourceRoot, CSS_EXTENSIONS);
+    const moduleFiles = findFiles(sourceRoot, MODULE_EXTENSIONS);
+    const graph = buildCssDependencyGraph({
+      sourceRoot,
+      css: cssFiles.map((file) => ({
+        path: file,
+        content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
+      })),
+      modules: moduleFiles.map((file) => ({ path: file, content: textOf(file) })),
+    });
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
@@ -53,13 +51,7 @@ export const unusedUtilityRule: CSSRuleDefinition = {
           const name = preludeIdentifiers(utility)[0];
           if (!name) continue;
 
-          const pattern = usagePattern(name);
-          // The defining stylesheet contains the name in the `@utility` line
-          // itself, so drop that exact token before scanning; a reference in
-          // the same file via `@apply` still counts.
-          const definition = `@utility ${name}`;
-          const used = files.some((file) => pattern.test(textOf(file).replaceAll(definition, "")));
-          if (used) continue;
+          if (cssSymbolUsages(graph, "utility", name).length > 0) continue;
 
           context.report({
             node: utility,

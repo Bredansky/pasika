@@ -3,95 +3,110 @@
 Project values need stable Tailwind names, while presentation reuse belongs to components. Custom utilities bridge values or properties into Tailwind; they are not reusable style bundles.
 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
-- A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.
-- Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.
-- Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.
+- A custom `@utility` MUST NOT simply alias an existing Tailwind class.
+- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
+- Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
+- The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
+- A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.
+- A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.
+- The same `@keyframes` name MUST NOT be defined in two different CSS files.
+- An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.
 - A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Property-Specific Color Exposed Broadly
+## Incorrect — Background Using a Text Color
 
 ```css
-:root {
-  --color-header-ink: #111827;
-}
-
-@theme inline {
-  --color-header-ink: var(--color-header-ink);
+@theme {
+  --color-shiny-ink: #ffffff;
 }
 ```
 
 ```tsx
-<h1 className="text-header-ink">Title</h1>
+<div className="bg-shiny-ink" />
 ```
 
-Why: registering a text-only color in `--color-*` also creates unintended background, border, ring, and other color utilities.
+Why: a text-color token is being applied as a background, even though Tailwind generates the class.
 
-## Correct — Property-Specific Utility
+## Correct — Background Using a Canvas Color
 
 ```css
-:root {
-  --header-ink: #111827;
-}
-
-@utility text-header-ink {
-  @apply text-(--header-ink);
+@theme {
+  --color-shiny-canvas: #2563eb;
 }
 ```
 
 ```tsx
-<h1 className="text-header-ink">Title</h1>
+<div className="bg-shiny-canvas" />
 ```
 
-Why: the custom utility maps one CSS variable to the one Tailwind operation the component needs.
+Why: the canvas suffix identifies a background color and Pasika verifies that the utility uses it accordingly.
 
-## Incorrect — Theme Token Repeats the CSS Property
+## Incorrect — Direct Theme Value Marked Inline
 
 ```css
 @theme inline {
-  --color-border: var(--base-edge);
-  --color-retro-border: var(--retro-edge);
+  --color-primary-canvas: #18181b;
 }
 ```
 
-```tsx
-<div className="border-border hover:border-retro-border" />
-```
+Why: a literal token value does not need inline variable resolution and belongs in regular `@theme`.
 
-Why: a boundary color's semantic role must end in `-edge`; declaring the incorrect names in `@theme` does not make them valid.
-
-## Correct — Theme Token and Utility Use an Edge Role
+## Correct — Literal Color Token Declared Directly
 
 ```css
-@theme inline {
-  --color-base-edge: var(--base-edge);
-  --color-retro-edge: var(--retro-edge);
+@theme {
+  --color-primary-canvas: #18181b;
 }
 ```
 
-```tsx
-<div className="border-base-edge hover:border-retro-edge" />
-```
+Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`.
 
-Why: both the theme names and their generated Tailwind classes describe boundary color roles instead of repeating the CSS property.
-
-## Incorrect — Boundary Value Named After a CSS Property
+## Incorrect — Runtime Variable Without Inline
 
 ```css
 :root {
-  --control-border: #d1d5db;
+  --color-primary-canvas: #18181b;
 }
 
-@utility border-control {
-  @apply border-(--control-border);
+@theme {
+  --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 
-Why: `border` is repeated as both the CSS property and the value role, while the variable cannot describe the same boundary color when an outline, ring, or stroke needs it.
+Why: an indirect theme token without `inline` can resolve its source variable outside the scope where the utility is used.
 
-## Correct — Boundary Value Uses an Edge Role
+## Correct — Runtime Color Variable Mapped Inline
+
+```css
+:root {
+  --color-primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
+  --color-primary-canvas: #18181b;
+}
+
+@theme inline {
+  --color-primary-canvas: var(--color-primary-canvas);
+}
+```
+
+Why: `bg-primary-canvas` resolves the same-named runtime variable, which has a light default and a dark-theme override.
+
+## Incorrect — Raw Property Inside a Custom Utility
+
+```css
+@utility border-control-edge {
+  border-color: var(--control-edge);
+}
+```
+
+Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
+
+## Correct — A Property-Specific Utility
 
 ```css
 :root {
@@ -99,39 +114,49 @@ Why: `border` is repeated as both the CSS property and the value role, while the
 }
 
 @utility border-control-edge {
-  @apply border-(--control-edge);
+  @apply border-(color:--control-edge);
 }
 ```
 
-Why: `edge` names the value's visual role, and `border` names the property through which the utility applies it.
+Why: the utility maps a single border-color operation, while `edge` identifies the color's boundary role.
 
-## Incorrect — Non-Color Value Reuses a Color Role
+## Incorrect — Typography Size Hidden in Custom Utility
 
 ```css
-:root {
-  --tweet-card-name-ink: 0.875rem;
-}
-
-@utility text-tweet-card-name-ink {
-  @apply text-(length:--tweet-card-name-ink);
+@utility text-card-title {
+  @apply [font-size:0.875rem];
 }
 ```
 
-Why: `ink` is reserved for readable text colors, but this value is a font size.
+Why: a simple font-size mapping belongs in Tailwind's `--text-*` theme namespace.
 
-## Correct — Non-Color Value Uses a Descriptive Name
+## Correct — A Descriptive Typography Token
 
 ```css
-:root {
-  --tweet-card-name-text-size: 0.875rem;
-}
-
-@theme inline {
-  --text-tweet-card-name-size: var(--tweet-card-name-text-size);
+@theme {
+  --text-card-title: 0.875rem;
 }
 ```
 
-Why: the descriptive variable and theme token expose the font size through Tailwind's typography namespace without adding another custom utility.
+Why: a direct theme value requires no extra `:root` variable, and the Tailwind typography namespace determines the generated utility.
+
+## Incorrect — Utility Only Renames Another Class
+
+```css
+@utility full-width {
+  @apply w-full;
+}
+```
+
+Why: `w-full` already expresses this operation, so a custom alias adds no value.
+
+## Correct — Reuse the Existing Utility Directly
+
+```tsx
+<div className="w-full" />
+```
+
+Why: use the built-in utility directly instead of creating an alias.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 
@@ -185,7 +210,7 @@ Why: the custom utility maps one otherwise unnamed property value through Tailwi
 
 ```css
 @utility text-header-ink {
-  @apply text-(--header-ink);
+  @apply text-(color:--header-ink);
 }
 ```
 
@@ -194,8 +219,12 @@ Why: no component or stylesheet references `text-header-ink`, so the mapping is 
 ## Correct — Custom Utility a Component Uses
 
 ```css
+:root {
+  --header-ink: #111827;
+}
+
 @utility text-header-ink {
-  @apply text-(--header-ink);
+  @apply text-(color:--header-ink);
 }
 ```
 
@@ -229,43 +258,20 @@ Why: both utilities are part of the project's Tailwind API.
 
 Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, so `--color-red-500` does not exist and `bg-red-500` generates nothing.
 
-## Correct — Built-in Default Re-Declared in the Theme
+## Correct — Semantic Color Defined in the Theme
 
 ```css
 @theme {
-  --color-red-500: #ef4444;
+  --color-danger-canvas: #ef4444;
+  --color-danger-ink: #ffffff;
 }
 ```
 
 ```tsx
-<button className="bg-red-500">Delete</button>
+<button className="bg-danger-canvas text-danger-ink">Delete</button>
 ```
 
-Why: re-declaring `--color-red-500` in the project theme turns `bg-red-500` into a theme-generated utility again.
-
-## Incorrect — Font Size Hidden in a Custom Utility
-
-```css
-@utility text-retro-11 {
-  @apply [font-size:11px];
-}
-```
-
-Why: this single font-size mapping duplicates the utility generation already available through the Tailwind text theme namespace.
-
-## Correct — Font Size Owned by a Theme Token
-
-```css
-:root {
-  --retro-11-text-size: 11px;
-}
-
-@theme inline {
-  --text-retro-11: var(--retro-11-text-size);
-}
-```
-
-Why: Tailwind generates `text-retro-11` directly from the named theme token.
+Why: explicit semantic tokens generate available color utilities after the default palette is reset.
 
 ## Incorrect — Duplicate Configured Typography Utility
 
@@ -281,13 +287,9 @@ Why: both classes emit the same font-size with no additional styling, so the ali
 ## Correct — Reuse an Equivalent Typography Utility
 
 ```css
-:root {
-  --compact-text-size: 14px;
-}
-
-@theme inline {
-  --text-sm: var(--compact-text-size);
+@theme {
+  --text-sm: 14px;
 }
 ```
 
-Why: `text-sm` expresses the existing configured size without a redundant alias; sizes with different units or additional line-height and letter-spacing remain distinct.
+Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.

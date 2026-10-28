@@ -69,6 +69,26 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
           }
           lastSeen = at;
         }
+
+        // The first-occurrence check above misses a later reappearance of an
+        // earlier section, e.g. @import after @theme. Check EVERY occurrence
+        // so the ESLint preset owns the full ordering contract.
+        let furthestSection = -1;
+        let furthestName: string | undefined;
+        for (const section of sections) {
+          const order = SECTION_ORDER.findIndex((name) => name === section.name);
+          if (order < furthestSection) {
+            context.report({
+              node,
+              message: `Global stylesheet section "${section.name}" cannot reappear after "${String(furthestName)}". Keep all section occurrences in the required order.`,
+            });
+            return;
+          }
+          if (order > furthestSection) {
+            furthestSection = order;
+            furthestName = section.name;
+          }
+        }
       },
     };
   },

@@ -1160,14 +1160,32 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.",
+      "hash": "f94e367684",
+      "ref": "pasika/feature-css-placement"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.",
       "hash": "d28608a7a3",
       "ref": "pasika/theme-reset"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Every value used for the project's styling MUST be defined as a CSS variable in `:root`, even when no theme selector overrides it. A Tailwind theme variable MUST reference that CSS variable through `@theme inline`.",
-      "hash": "d89d54996c",
+      "text": "Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.",
+      "hash": "512636a817",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.",
+      "hash": "4f7c33d824",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.",
+      "hash": "7e932cd558",
       "ref": "pasika/root-variables"
     },
     {
@@ -1214,21 +1232,21 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A value that needs at least two utility classes from the same [Tailwind theme-variable namespace](https://tailwindcss.com/docs/theme#theme-variable-namespaces) MUST use that namespace and have the same name in `:root`.",
-      "hash": "d9b8eeb83d",
-      "ref": "pasika/theme-variable-namespace"
+      "text": "A custom `@utility` MUST NOT simply alias an existing Tailwind class.",
+      "hash": "3c8e5d4545",
+      "ref": "pasika/no-utility-alias"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Property-specific colors MUST use the reserved semantic suffixes `canvas` for backgrounds, `ink` for readable text, and `edge` for visual boundaries, with matching utilities such as `bg-<role>-canvas`, `text-<role>-ink`, and `<property>-<role>-edge`.",
-      "hash": "78f5c13289",
-      "ref": "pasika/css-variable-naming"
+      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "000bc1f0bd",
+      "ref": "pasika/color-role-usage, pasika/unknown-utility"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Non-color custom values MUST use descriptive domain names such as `--tweet-card-name-text-size` or `--media-preview-max-height` and MUST NOT use the reserved color-role suffixes.",
-      "hash": "217f793752",
-      "note": "Whether a non-color custom value uses a descriptive domain name and avoids reserved color-role suffixes is a naming-review judgment."
+      "text": "Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.",
+      "hash": "9b884cbcab",
+      "note": "Review custom property names for domain specificity and reserved color-role suffixes; inferring whether an arbitrary CSS value is a color is not reliable from syntax alone."
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1241,6 +1259,36 @@
       "text": "A custom utility MUST be statically referenced by at least one file in the repository's source.",
       "hash": "7f32f1f91b",
       "ref": "pasika/unused-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.",
+      "hash": "c534a03919",
+      "ref": "pasika/unique-css-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.",
+      "hash": "e73e08011a",
+      "ref": "pasika/unique-css-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.",
+      "hash": "fe6de17fbd",
+      "ref": "pasika/unique-css-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "The same `@keyframes` name MUST NOT be defined in two different CSS files.",
+      "hash": "0045457c3d",
+      "ref": "pasika/unique-css-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.",
+      "hash": "1680228f0e",
+      "ref": "pasika/unique-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
