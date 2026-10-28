@@ -49,3 +49,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Smoke-test packed package in isolated consumer
+        run: |
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP" >/dev/null
+          mkdir -p "$RUNNER_TEMP/pasika-consumer"
+          cd "$RUNNER_TEMP/pasika-consumer"
+          npm init -y >/dev/null
+          npm install --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/pasika-*.tgz
+          node --input-type=module -e 'const p = await import("pasika/eslint"); if (Object.keys(p).length === 0) throw new Error("Empty Pasika ESLint export");'
