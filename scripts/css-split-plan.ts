@@ -2,7 +2,7 @@
 /**
  * Read-only CSS split inventory for a Next.js application.
  *
- * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next]
+ * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next] [--turbopack]
  * No files in the target repository are modified.
  */
 import { execFileSync } from "node:child_process";
@@ -17,11 +17,15 @@ import { verifyCssSplit } from "./css-split-verify";
 const [, , target, ...flags] = process.argv;
 if (
   !target ||
-  flags.some((flag) => flag !== "--head" && flag !== "--json" && flag !== "--verify" && flag !== "--next") ||
-  (flags.includes("--next") && !flags.includes("--head"))
+  flags.some(
+    (flag) =>
+      flag !== "--head" && flag !== "--json" && flag !== "--verify" && flag !== "--next" && flag !== "--turbopack",
+  ) ||
+  (flags.includes("--next") && !flags.includes("--head")) ||
+  (flags.includes("--turbopack") && !flags.includes("--next"))
 ) {
   process.stderr.write(
-    "Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next]\n--next requires --head (isolated clone of committed source).\n",
+    "Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next] [--turbopack]\n--next requires --head; --turbopack requires --next.\n",
   );
   process.exit(2);
 }
@@ -47,7 +51,13 @@ const verification = flags.includes("--verify")
   : undefined;
 if (verification && !verification.matched) process.exitCode = 1;
 const nextVerification = flags.includes("--next")
-  ? await verifyNextCssSplit({ root, cssPath, content, plan })
+  ? await verifyNextCssSplit({
+      root,
+      cssPath,
+      content,
+      plan,
+      bundler: flags.includes("--turbopack") ? "turbopack" : "webpack",
+    })
   : undefined;
 if (nextVerification && !nextVerification.matched) process.exitCode = 1;
 
@@ -64,6 +74,8 @@ if (flags.includes("--json")) {
       `Unresolved ownership: ${String(plan.unresolvedBlocks)}\n` +
       `Contiguous owned runs: ${String(plan.runs.length)}\n` +
       `Ordered source segments: ${String(plan.order.segments.length)}\n` +
+      `Owner-stable windows: ${String(plan.order.ownerStableWindows.length)}\n` +
+      `Largest owner-stable window: ${String(Math.max(0, ...plan.order.ownerStableWindows.map((window) => window.blockIds.length)))} blocks\n` +
       `Order constraints: ${String(plan.order.constraints.length)}\n\n`,
   );
   process.stdout.write("Logical responsibility cohorts (one cohort may span multiple runs):\n");
@@ -105,7 +117,7 @@ if (flags.includes("--json")) {
   }
   if (nextVerification) {
     process.stdout.write(
-      `\nNext.js Webpack isolated production CSS parity: ${nextVerification.matched ? "MATCH" : "MISMATCH"} ` +
+      `\nNext.js ${nextVerification.bundler} isolated production CSS parity: ${nextVerification.matched ? "MATCH" : "MISMATCH"} ` +
         `(${String(nextVerification.originalAssets)} / ${String(nextVerification.projectedAssets)} CSS assets, ` +
         `${String(nextVerification.originalBytes)} / ${String(nextVerification.projectedBytes)} bytes)\n`,
     );

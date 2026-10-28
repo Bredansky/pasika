@@ -5,6 +5,7 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  cpSync,
   existsSync,
   mkdtempSync,
   mkdirSync,
@@ -27,7 +28,7 @@ interface CssBuildAssets {
 
 export interface NextCssSplitVerification {
   matched: boolean;
-  bundler: "webpack";
+  bundler: "webpack" | "turbopack";
   originalAssets: number;
   projectedAssets: number;
   originalBytes: number;
@@ -85,6 +86,8 @@ export async function verifyNextCssSplit(options: {
   cssPath: string;
   content: string;
   plan: CssSplitPlan;
+  /** Turbopack requires dependencies physically inside its filesystem root. */
+  bundler?: "webpack" | "turbopack";
   /** For isolated test fixtures; production always runs Next's own build. */
   build?: (projectRoot: string) => void | Promise<void>;
 }): Promise<NextCssSplitVerification> {
@@ -106,15 +109,24 @@ export async function verifyNextCssSplit(options: {
     writeFileSync(cssPath, options.content);
     const nodeModules = path.join(options.root, "node_modules");
     if (!existsSync(nodeModules)) throw new Error("Project node_modules is required to build the isolated clone.");
-    symlinkSync(nodeModules, path.join(project, "node_modules"), "junction");
+    const bundler = options.bundler ?? "webpack";
+    if (bundler === "turbopack") {
+      // Turbopack rejects an external junction as outside its filesystem
+      // root. Copy dependencies only into the disposable clone instead.
+      cpSync(nodeModules, path.join(project, "node_modules"), { recursive: true, dereference: true });
+    } else {
+      symlinkSync(nodeModules, path.join(project, "node_modules"), "junction");
+    }
     const build =
       options.build ??
       ((projectRoot: string): void => {
         runProcess(
           process.execPath,
-          // Default Turbopack rejects junctions pointing outside its filesystem
-          // root. Explicit webpack mode still validates Next production CSS.
-          [path.join(projectRoot, "node_modules", "next", "dist", "bin", "next"), "build", "--webpack"],
+          [
+            path.join(projectRoot, "node_modules", "next", "dist", "bin", "next"),
+            "build",
+            ...(bundler === "webpack" ? ["--webpack"] : []),
+          ],
           projectRoot,
         );
       });
@@ -137,7 +149,7 @@ export async function verifyNextCssSplit(options: {
     const onlyProjected = subtractMultiset(projected.hashes, original.hashes);
     return {
       matched: onlyOriginal.length === 0 && onlyProjected.length === 0,
-      bundler: "webpack",
+      bundler,
       originalAssets: original.hashes.length,
       projectedAssets: projected.hashes.length,
       originalBytes: original.bytes,
@@ -147,7 +159,7 @@ export async function verifyNextCssSplit(options: {
     };
   } finally {
     const link = path.join(project, "node_modules");
-    if (existsSync(link)) unlinkSync(link);
+    if (options.bundler !== "turbopack" && existsSync(link)) unlinkSync(link);
     rmSync(temp, { recursive: true, force: true });
   }
 }

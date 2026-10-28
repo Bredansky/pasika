@@ -122,6 +122,57 @@ describe("Read-only CSS split planning", () => {
     expect(() => projectCssSplit(source, plan)).toThrow("after non-import");
   });
 
+  it("proves that overlapping feature ownership spans cannot each form one ordered file", () => {
+    const source = [
+      "@utility alpha-first { display: block; }",
+      "@utility beta-first { display: inline; }",
+      "@utility alpha-last { display: flex; }",
+      "@utility beta-last { display: grid; }",
+    ].join("\n");
+    const graph = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [{ path: cssPath, content: source }],
+      modules: [
+        { path: path.join(root, "features/alpha/button.tsx"), content: '"alpha-first alpha-last"' },
+        { path: path.join(root, "features/beta/button.tsx"), content: '"beta-first beta-last"' },
+      ],
+    });
+    const plan = planCssSplit({ cssPath, content: source, sourceRoot: root, graph });
+    expect(plan.blocks.map((block) => block.ownership)).toEqual([
+      "features/alpha",
+      "features/beta",
+      "features/alpha",
+      "features/beta",
+    ]);
+    expect(plan.order.ownerStableWindows).toEqual([
+      expect.objectContaining({
+        blockIds: [0, 1, 2, 3],
+        owners: ["features/alpha", "features/beta"],
+        unresolvedBlocks: 0,
+      }),
+    ]);
+  });
+
+  it("keeps unrelated unresolved blocks separate from true owner-stability constraints", () => {
+    const source = [
+      "@utility alpha-first { display: block; }",
+      "@utility alpha-last { display: flex; }",
+      '@font-face { font-family: "Unlinked"; src: url(font.woff2); }',
+      "@keyframes unrelated { to { opacity: 1; } }",
+    ].join("\n");
+    const graph = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [{ path: cssPath, content: source }],
+      modules: [{ path: path.join(root, "features/alpha/button.tsx"), content: '"alpha-first alpha-last"' }],
+    });
+    const plan = planCssSplit({ cssPath, content: source, sourceRoot: root, graph });
+    expect(plan.order.ownerStableWindows.map((window) => window.blockIds)).toEqual([[0, 1], [2], [3]]);
+    expect(plan.order.ownerStableWindows[1]?.unresolvedBlocks).toBe(1);
+    expect(plan.order.ownerStableWindows.flatMap((window) => window.blockIds)).toEqual(
+      plan.blocks.map((block) => block.id),
+    );
+  });
+
   it("does not mistake unrelated modules for a feature ownership signal", () => {
     const other = path.join(root, "app/home/page.tsx");
     const graph = buildCssDependencyGraph({

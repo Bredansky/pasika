@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -52,7 +52,7 @@ function fakeNextBuild(breakParity = false): (project: string) => void {
   };
 }
 
-function installFakeNextCli(fail = false): void {
+function installFakeNextCli(fail = false, bundler: "webpack" | "turbopack" = "webpack"): void {
   if (!source) throw new Error("Fixture was not initialized.");
   const directory = path.join(source, "node_modules", "next", "dist", "bin");
   mkdirSync(directory, { recursive: true });
@@ -61,7 +61,7 @@ function installFakeNextCli(fail = false): void {
     : [
         'const fs = require("node:fs");',
         'const path = require("node:path");',
-        'if (!process.argv.includes("--webpack")) process.exit(3);',
+        `if (process.argv.includes("--webpack") !== ${String(bundler === "webpack")}) process.exit(3);`,
         'const styles = path.join(process.cwd(), "src", "app", "styles");',
         'const css = fs.readFileSync(path.join(styles, "globals.css"), "utf8");',
         'const output = css.replace(/@import "(\\.\\/pasika-split-\\d+\\.css)";\\n/g, (_all, ref) => fs.readFileSync(path.join(styles, ref), "utf8"));',
@@ -115,6 +115,30 @@ describe("Isolated Next.js CSS build verification", () => {
     expect(result.matched).toBe(true);
     expect(result.bundler).toBe("webpack");
     expect(readFileSync(options.cssPath, "utf8")).toBe(css);
+  });
+
+  it("runs Turbopack without an external junction and keeps dependency copy isolated", async () => {
+    const options = makeGitFixture();
+    installFakeNextCli(false, "turbopack");
+    const result = await verifyNextCssSplit({
+      ...options,
+      bundler: "turbopack",
+      build: (project) => {
+        expect(lstatSync(path.join(project, "node_modules")).isSymbolicLink()).toBe(false);
+        fakeNextBuild()(project);
+      },
+    });
+    expect(result.matched).toBe(true);
+    expect(result.bundler).toBe("turbopack");
+    expect(readFileSync(options.cssPath, "utf8")).toBe(css);
+  });
+
+  it("passes the unmodified Next CLI build arguments in Turbopack mode", async () => {
+    const options = makeGitFixture();
+    installFakeNextCli(false, "turbopack");
+    const result = await verifyNextCssSplit({ ...options, bundler: "turbopack" });
+    expect(result.matched).toBe(true);
+    expect(result.bundler).toBe("turbopack");
   });
 
   it("does not confuse a failed Next build with a CSS mismatch", async () => {

@@ -49,11 +49,22 @@ export interface CssSplitOrderConstraint {
   detail: string;
 }
 
+export interface CssSplitOwnerStableWindow {
+  /** Contiguous block range needed when every resolved owner must stay whole. */
+  blockIds: number[];
+  startLine: number;
+  endLine: number;
+  owners: string[];
+  unresolvedBlocks: number;
+}
+
 export interface CssSplitOrderAudit {
   /** All text before the first non-import top-level block stays at the entry point. */
   entryPrefixEndOffset: number;
   /** Ordered, lossless source ranges: NEVER sort by ownership. */
   segments: CssSplitSegment[];
+  /** Maximal order-preserving partition if each resolved owner appears in only one file. */
+  ownerStableWindows: CssSplitOwnerStableWindow[];
   /** These require review before treating the segments as physical files. */
   constraints: CssSplitOrderConstraint[];
 }
@@ -285,6 +296,33 @@ export function planCssSplit(options: {
     const current = segments[index];
     if (next && current) current.endOffset = next.startOffset;
   }
+  // For a single file per known owner WITHOUT reordering, every pair of
+  // occurrences forces all intervening blocks into the same CSS file.
+  // Overlapping forced intervals merge. Unknown owners never act as a shared
+  // constraint: "unresolved" is not evidence that blocks belong together.
+  const ownerLastIndex = new Map<string, number>();
+  for (const block of blocks) {
+    if (block.ownership !== "unresolved") ownerLastIndex.set(block.ownership, block.id);
+  }
+  const ownerStableWindows: CssSplitOwnerStableWindow[] = [];
+  let first = 0;
+  let end = -1;
+  for (const block of blocks) {
+    end = Math.max(end, ownerLastIndex.get(block.ownership) ?? block.id);
+    if (block.id !== end) continue;
+    const within = blocks.slice(first, block.id + 1);
+    const firstBlock = within[0];
+    if (firstBlock) {
+      ownerStableWindows.push({
+        blockIds: within.map((item) => item.id),
+        startLine: firstBlock.startLine,
+        endLine: block.endLine,
+        owners: [...new Set(within.map((item) => item.ownership))].filter((owner) => owner !== "unresolved"),
+        unresolvedBlocks: within.filter((item) => item.ownership === "unresolved").length,
+      });
+    }
+    first = block.id + 1;
+  }
   const segmentOf = new Map(segments.flatMap((segment, index) => segment.blockIds.map((id) => [id, index] as const)));
   const constraints: CssSplitOrderConstraint[] = [];
   for (const cohort of cohorts) {
@@ -364,6 +402,7 @@ export function planCssSplit(options: {
     order: {
       entryPrefixEndOffset: blockOffsets[0] ?? options.content.length,
       segments,
+      ownerStableWindows,
       constraints,
     },
   };
