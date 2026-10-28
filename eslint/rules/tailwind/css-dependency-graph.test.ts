@@ -38,12 +38,15 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
   it("supports definition-only indexing for structural rules", () => {
     const definitionsOnly = buildCssDependencyGraph({
       sourceRoot: root,
-      css: [{ path: tokens, content: "@theme { --radius-card: 0.5rem; }" }],
+      css: [{ path: tokens, content: "@theme { --radius-card: 0.5rem; --spacing-gutter: 1rem }" }],
       modules: [{ path: component, content: 'const cls = "rounded-card";' }],
       includeReferences: false,
     });
     expect(definitionsOnly.definitions).toEqual(
-      expect.arrayContaining([expect.objectContaining({ kind: "theme-token", name: "--radius-card" })]),
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "theme-token", name: "--radius-card" }),
+        expect.objectContaining({ kind: "theme-token", name: "--spacing-gutter" }),
+      ]),
     );
     expect(definitionsOnly.references).toEqual([]);
   });

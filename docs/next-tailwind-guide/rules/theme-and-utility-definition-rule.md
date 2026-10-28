@@ -9,6 +9,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
+- Distinct Tailwind `@theme` tokens and default `:root` custom properties MUST NOT have the same static CSS value, even when declared in the same stylesheet or in different stylesheets. Equivalent hexadecimal color spellings count as identical values; conditional runtime overrides do not.
 - A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.
 - A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.
 - The same `@keyframes` name MUST NOT be defined in two different CSS files.

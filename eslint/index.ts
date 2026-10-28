@@ -307,6 +307,7 @@ const tailwindImportGraph: Linter.Config = {
     "pasika/css-entry-point": "error",
     "pasika/feature-css-placement": "error",
     "pasika/unique-css-definition": "error",
+    "pasika/unique-css-token-value": "error",
     "pasika/no-utility-alias": "error",
     "pasika/root-variables": "error",
     "pasika/color-role-usage": "error",
