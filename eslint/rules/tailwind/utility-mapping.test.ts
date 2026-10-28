@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityMappingRule } from "./utility-mapping";
 
-void describe("A custom `@utility` MUST NOT duplicate a utility that Tailwind can generate from a supported `@theme` namespace. When an equivalent theme-generated utility already exists, it MUST be reused instead.", () => {
+void describe("A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.", () => {
   tailwindRuleTester.run("utility-mapping", utilityMappingRule, {
     valid: [
       {

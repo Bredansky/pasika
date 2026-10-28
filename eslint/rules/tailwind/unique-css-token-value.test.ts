@@ -35,7 +35,7 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.", () => {
+void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
     valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
@@ -73,7 +73,7 @@ void describe("Each Tailwind `@theme` variable MUST have one definition across t
   });
 });
 
-void describe("Each default `:root` custom property MUST have one definition across the project's CSS files, including within a single stylesheet; distinct default `:root` properties MUST NOT share an identical static value with another default `:root` property or an `@theme` variable. Intentional overrides in conditional at-rules or scoped selectors are allowed.", () => {
+void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [

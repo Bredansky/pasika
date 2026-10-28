@@ -97,18 +97,18 @@ function runRule(kind: keyof typeof duplicates, label: string, name: string, che
   }
 }
 
-void describe("A custom `@utility` name MUST be defined only once across the project's CSS files, including within a single stylesheet.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("utility", "Custom utility", "custom-panel");
 });
-void describe("Each Tailwind `@theme` variable MUST have one definition across the project's CSS files, including within a single stylesheet; distinct `@theme` variables MUST NOT share an identical static value with another `@theme` variable or a default `:root` custom property.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("theme", "Theme token", "--color-accent");
 });
-void describe("Each default `:root` custom property MUST have one definition across the project's CSS files, including within a single stylesheet; distinct default `:root` properties MUST NOT share an identical static value with another default `:root` property or an `@theme` variable. Intentional overrides in conditional at-rules or scoped selectors are allowed.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("root", "Default :root variable", "--layout-gap", true);
 });
-void describe("Each `@keyframes` name MUST have one definition across the project's CSS files, including within a single stylesheet.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("keyframes", "@keyframes", "fade");
 });
-void describe("Each `@font-face` signature (family, style, weight, stretch, and Unicode range) MUST have one definition across the project's CSS files, including within a single stylesheet; different faces of one family are allowed.", () => {
+void describe("`@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.", () => {
   runRule("font", "@font-face with matching descriptors for", "atlas", true);
 });
