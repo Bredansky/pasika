@@ -37,11 +37,26 @@ const duplicates = {
   keyframes: "@keyframes fade { to { opacity: 0.5; } }",
   font: '@font-face { font-family: Atlas; font-weight: 400; font-style: normal; src: url("./other.woff2"); }',
 };
+const withinFile = {
+  utility: "@utility repeated { @apply px-2; }\n@utility repeated { @apply px-3; }",
+  theme: "@theme { --color-repeated: #fff; --color-repeated: #000; }",
+  root: ":root { --repeated-gap: 1rem; }\n:root { --repeated-gap: 2rem; }",
+  keyframes: "@keyframes repeated { to { opacity: 1; } }\n@keyframes repeated { to { opacity: 0; } }",
+  font: '@font-face { font-family: Nova; font-weight: normal; src: url("a.woff2"); }\n@font-face { font-family: Nova; font-weight: 400; src: url("b.woff2"); }',
+};
+const withinFileNames = {
+  utility: "repeated",
+  theme: "--color-repeated",
+  root: "--repeated-gap",
+  keyframes: "repeated",
+  font: "nova",
+};
 const cwd = fixture({
   "app/styles/globals.css": '@import "tailwindcss";\n@import "./a.css";',
   "app/styles/a.css": canonical,
   "app/styles/c-scoped.css": scoped,
   ...Object.fromEntries(Object.entries(duplicates).map(([kind, source]) => [`app/styles/b-${kind}.css`, source])),
+  ...Object.fromEntries(Object.entries(withinFile).map(([kind, source]) => [`app/styles/d-${kind}.css`, source])),
 });
 function validCase(code: string, filename: string): { code: string; filename: string } {
   return { code, filename: path.join(cwd, "src/app/styles", filename) };
@@ -66,6 +81,15 @@ function runRule(kind: keyof typeof duplicates, label: string, name: string, che
             },
           ],
         },
+        {
+          code: withinFile[kind],
+          filename: path.join(cwd, "src/app/styles", `d-${kind}.css`),
+          errors: [
+            {
+              message: `${label} "${withinFileNames[kind]}" is defined more than once in this CSS file; define it only once.`,
+            },
+          ],
+        },
       ],
     });
   } finally {
@@ -73,18 +97,18 @@ function runRule(kind: keyof typeof duplicates, label: string, name: string, che
   }
 }
 
-void describe("The same custom @utility name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("utility", "Custom utility", "custom-panel");
 });
-void describe("A Tailwind @theme variable MUST NOT be defined in two different CSS files.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("theme", "Theme token", "--color-accent");
 });
-void describe("A default :root custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("root", "Default :root variable", "--layout-gap", true);
 });
-void describe("The same @keyframes name MUST NOT be defined in two different CSS files.", () => {
+void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
   runRule("keyframes", "@keyframes", "fade");
 });
-void describe("An @font-face with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.", () => {
+void describe("`@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.", () => {
   runRule("font", "@font-face with matching descriptors for", "atlas", true);
 });

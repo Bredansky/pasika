@@ -153,7 +153,7 @@ export function buildCssDependencyGraph(options: {
               // preserving offsets so diagnostics still point to real lines.
               .replace(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replace(/[^\r\n]/gu, " "));
             for (const found of source.matchAll(
-              /(?:^|[{;\r\n])\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;\r\n]+);/gu,
+              /(?:^|(?<=[{;\r\n]))\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;}\r\n]+)(?=;|[}])/gu,
             )) {
               const name = found.groups?.name;
               const value = found.groups?.value;

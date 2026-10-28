@@ -14,6 +14,7 @@ import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { themeResetRule } from "./theme-reset";
 import { uniqueCssDefinitionRule } from "./unique-css-definition";
+import { uniqueCssTokenValueRule } from "./unique-css-token-value";
 import { unusedUtilityRule } from "./unused-utility";
 import { utilityMappingRule } from "./utility-mapping";
 
@@ -31,6 +32,7 @@ export const tailwindRules = {
   "global-stylesheet": globalStylesheetRule,
   "unused-utility": unusedUtilityRule,
   "unique-css-definition": uniqueCssDefinitionRule,
+  "unique-css-token-value": uniqueCssTokenValueRule,
   "no-utility-alias": noUtilityAliasRule,
   "global-selector-styling": globalSelectorStylingRule,
 };

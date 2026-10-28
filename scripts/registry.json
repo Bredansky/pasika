@@ -1262,38 +1262,26 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.",
-      "hash": "c534a03919",
+      "text": "`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.",
+      "hash": "d2351e4e38",
       "ref": "pasika/unique-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.",
-      "hash": "e73e08011a",
+      "text": "`@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.",
+      "hash": "6a0257c683",
       "ref": "pasika/unique-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.",
-      "hash": "fe6de17fbd",
-      "ref": "pasika/unique-css-definition"
+      "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.",
+      "hash": "98f922a79b",
+      "ref": "pasika/unique-css-token-value"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "The same `@keyframes` name MUST NOT be defined in two different CSS files.",
-      "hash": "0045457c3d",
-      "ref": "pasika/unique-css-definition"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.",
-      "hash": "1680228f0e",
-      "ref": "pasika/unique-css-definition"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.",
-      "hash": "25b627025e",
+      "text": "A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.",
+      "hash": "40017c73e8",
       "ref": "pasika/utility-mapping"
     },
     {

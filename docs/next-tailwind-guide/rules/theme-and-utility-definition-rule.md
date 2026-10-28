@@ -8,12 +8,10 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
-- The same custom `@utility` name MUST NOT be defined in two different CSS files. Components may reuse the utility as often as needed.
-- A Tailwind `@theme` variable MUST NOT be defined in two different CSS files.
-- A default `:root` custom property MUST NOT be defined in two different CSS files; intentional overrides in conditional at-rules or scoped selectors are allowed.
-- The same `@keyframes` name MUST NOT be defined in two different CSS files.
-- An `@font-face` with the same family, style, weight, stretch, and Unicode range MUST NOT be defined in two different CSS files; different faces of one family are allowed.
-- A font-size or letter-spacing custom utility with a plain one-property mapping MUST use a theme token instead; an explicitly configured Tailwind typography class MUST be reused when its emitted styling operations and value are identical.
+- `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
+- `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
+- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
+- A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Background Using a Text Color

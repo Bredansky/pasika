@@ -5,16 +5,20 @@
  * Tailwind API. Reusable presentation belongs in components instead of
  * utilities that bundle multiple operations.
  *
- * The rule also requires simple font-size and letter-spacing mappings to
- * use theme tokens and rejects aliases of configured, equivalent Tailwind
- * typography utilities. Ambiguous CSS remains untouched.
+ * A statically equivalent single-property mapping MUST use a generated
+ * theme utility when supported by Tailwind. Configured typography equivalents
+ * are also compared by emitted operations. Ambiguous CSS is excluded.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
+import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
+import { sourceRootOf } from "../project-root";
+import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rawValue, rules } from "./helpers";
+import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 function applyOperationCount(utility: CssNodePlain): number {
   let count = 0;
@@ -39,7 +43,48 @@ interface ThemeCandidate {
   token: string;
   property: string;
   value: string;
+  prefix: string;
+  namespace: string;
 }
+
+/** Only one-property operations whose Tailwind-generated class is equivalent. */
+const themeOperations = [
+  { property: "font-size", prefix: "text", namespace: "text" },
+  { property: "letter-spacing", prefix: "tracking", namespace: "tracking" },
+  { property: "line-height", prefix: "leading", namespace: "leading" },
+  { property: "font-family", prefix: "font", namespace: "font" },
+  { property: "font-weight", prefix: "font", namespace: "font-weight" },
+  { property: "tab-size", prefix: "tab", namespace: "tab-size" },
+  { property: "border-radius", prefix: "rounded", namespace: "radius" },
+  { property: "background-color", prefix: "bg", namespace: "color" },
+  { property: "color", prefix: "text", namespace: "color" },
+  { property: "border-color", prefix: "border", namespace: "color" },
+  { property: "outline-color", prefix: "outline", namespace: "color" },
+  { property: "fill", prefix: "fill", namespace: "color" },
+  { property: "stroke", prefix: "stroke", namespace: "color" },
+  { property: "caret-color", prefix: "caret", namespace: "color" },
+  { property: "text-decoration-color", prefix: "decoration", namespace: "color" },
+  { property: "padding", prefix: "p", namespace: "spacing" },
+  { property: "padding-top", prefix: "pt", namespace: "spacing" },
+  { property: "padding-right", prefix: "pr", namespace: "spacing" },
+  { property: "padding-bottom", prefix: "pb", namespace: "spacing" },
+  { property: "padding-left", prefix: "pl", namespace: "spacing" },
+  { property: "margin", prefix: "m", namespace: "spacing" },
+  { property: "margin-top", prefix: "mt", namespace: "spacing" },
+  { property: "margin-right", prefix: "mr", namespace: "spacing" },
+  { property: "margin-bottom", prefix: "mb", namespace: "spacing" },
+  { property: "margin-left", prefix: "ml", namespace: "spacing" },
+  { property: "gap", prefix: "gap", namespace: "spacing" },
+  { property: "width", prefix: "w", namespace: "spacing" },
+  { property: "height", prefix: "h", namespace: "spacing" },
+  { property: "aspect-ratio", prefix: "aspect", namespace: "aspect" },
+  { property: "transition-timing-function", prefix: "ease", namespace: "ease" },
+  { property: "zoom", prefix: "zoom", namespace: "zoom" },
+  { property: "perspective", prefix: "perspective", namespace: "perspective" },
+  { property: "animation", prefix: "animate", namespace: "animate" },
+] as const;
+
+/** Multi-declaration generators (shadows, blur filters) need compiled-CSS equivalence, not a one-property guess. */
 
 /**
  * Recognize one plain arbitrary-property or typed variable @apply,
@@ -48,40 +93,49 @@ interface ThemeCandidate {
  */
 function themeCandidate(name: string, utilityText: string): ThemeCandidate | undefined {
   const source = utilityText.trim();
-  const arbitrary =
-    /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[(?<property>font-size|letter-spacing):(?<value>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(
-      source,
-    );
+  const arbitrary = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[(?<property>[a-z-]+):(?<value>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(
+    source,
+  );
   const typed =
-    /^@utility\s+[\w-]+\s*\{\s*@apply\s+(?<kind>text|tracking)-\((?<hint>length:)?(?<variable>--[a-z][a-z0-9-]*)\);?\s*\}$/u.exec(
+    /^@utility\s+[\w-]+\s*\{\s*@apply\s+(?<kind>[a-z]+)-\((?<hint>[a-z-]+:)?(?<variable>--[a-z][a-z0-9-]*)\);?\s*\}$/u.exec(
       source,
     );
-  const kind = typed?.groups?.kind;
-  const hint = typed?.groups?.hint;
-  if (kind === "text" && hint !== "length:") return undefined;
-  if (kind === "tracking" && hint !== undefined) return undefined;
+  const property = arbitrary?.groups?.property;
+  const matched = themeOperations.find((operation) => {
+    if (!name.startsWith(`${operation.prefix}-`) || name.length <= operation.prefix.length + 1) return false;
+    if (property) return property === operation.property;
+    if (typed?.groups?.kind !== operation.prefix) return false;
+    const hint = typed.groups.hint;
+    if (operation.prefix === "text") return hint === (operation.property === "font-size" ? "length:" : "color:");
+    if (operation.prefix === "font") {
+      return hint === (operation.property === "font-family" ? "family-name:" : "number:");
+    }
+    return hint === undefined;
+  });
+  if (!matched) return undefined;
 
-  let property = arbitrary?.groups?.property;
-  if (!property && kind === "text") property = "font-size";
-  if (!property && kind === "tracking") property = "letter-spacing";
   const value =
     arbitrary?.groups?.value?.trim() ?? (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
-  if (!property || !value) return undefined;
-
-  const prefix = property === "font-size" ? "text-" : "tracking-";
-  if (!name.startsWith(prefix) || name.length === prefix.length) return undefined;
-
-  // Only plain length values and standalone CSS variables are considered.
-  // In particular, underscore escapes, calc(), keywords and multiple values
-  // require semantic review rather than an automated lint recommendation.
-  const length = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|%)$/u.test(value);
+  if (!value) return undefined;
+  // Do not approximate calc(), color-mix(), filter functions, composite values,
+  // or underscore escapes; compiled CSS is required to prove equivalence.
+  const simple = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|%|vh|vw|ch|deg)?$/u.test(value);
   const variable = /^var\(--[a-z][a-z0-9-]*\)$/u.test(value);
-  if (!length && !variable) return undefined;
-  if (property === "font-size" && value.startsWith("-")) return undefined;
+  const color = /^#[\da-f]{3,8}$/iu.test(value);
+  const keyword = /^[a-z][a-z-]*$/u.test(value);
+  const ratio = /^\d+\/\d+$/u.test(value);
+  if (!simple && !variable && !color && !keyword && !ratio) return undefined;
+  if (matched.property === "font-size" && value.startsWith("-")) return undefined;
 
-  return { token: `--${name}`, property, value };
+  const stem = name.slice(matched.prefix.length + 1);
+  return {
+    token: `--${matched.namespace}-${stem}`,
+    property: matched.property,
+    value,
+    prefix: matched.prefix,
+    namespace: matched.namespace,
+  };
 }
-
 /** Names whose Tailwind classes are part of the common typography API. */
 const builtInTextSizes = new Set([
   "xs",
@@ -142,6 +196,20 @@ export const utilityMappingRule: CSSRuleDefinition = {
     },
   },
   create(context) {
+    const sourceRoot = sourceRootOf(context);
+    const current = path.normalize(path.resolve(context.filename));
+    const textOf = cachedTextReader();
+    const graph = buildCssDependencyGraph({
+      sourceRoot,
+      css: findFiles(sourceRoot, CSS_EXTENSIONS).map((file) => ({
+        path: file,
+        content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
+      })),
+      modules: [],
+      includeReferences: false,
+    });
+    const projectTokens = graph.definitions.filter((symbol) => symbol.kind === "theme-token");
+
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const utilities = atrulesNamed(node, "utility");
@@ -251,7 +319,57 @@ export const utilityMappingRule: CSSRuleDefinition = {
 
           if (nameCounts.get(name) !== 1) continue;
           const candidate = themeCandidate(name, context.sourceCode.getText(utility));
-          if (!candidate || themeTokens.has(candidate.token)) continue;
+          if (!candidate) continue;
+          const tokenAlreadyDefined =
+            themeTokens.has(candidate.token) || projectTokens.some((token) => token.name === candidate.token);
+
+          // A matching configured token already generates an equivalent class.
+          // Compare literal operations only; dynamic expressions and CSS
+          // multi-operation generators require compiled-output verification.
+          const namespacePrefix = `--${candidate.namespace}-`;
+          const staticValue = !/\b(?:var|env|attr|calc|min|max|clamp|color-mix|light-dark)\s*\(/iu.test(
+            candidate.value,
+          );
+          const valueKey = (value: string): string => {
+            const input = value.trim();
+            const digits = /^#(?<hex>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(input)?.groups?.hex;
+            if (digits) {
+              const lower = digits.toLowerCase();
+              return lower.length <= 4 ? Array.from(lower, (digit) => digit + digit).join("") : lower;
+            }
+            return input;
+          };
+          const sameOperation = (token: string, value: string): boolean =>
+            token.startsWith(namespacePrefix) &&
+            !token.includes("--", 2) &&
+            valueKey(value) === valueKey(candidate.value) &&
+            (candidate.namespace !== "text" ||
+              !["--line-height", "--letter-spacing", "--font-weight"].some(
+                (suffix) =>
+                  themeDefinitions.has(`${token}${suffix}`) ||
+                  projectTokens.some((definition) => definition.name === `${token}${suffix}`),
+              ));
+          const equivalent = staticValue
+            ? projectTokens.find((token) => token.value !== undefined && sameOperation(token.name, token.value))
+            : undefined;
+          const localEquivalent = staticValue
+            ? [...themeDefinitions].find(
+                ([token, definitions]) =>
+                  definitions.length === 1 &&
+                  definitions[0]?.value !== undefined &&
+                  sameOperation(token, definitions[0].value),
+              )?.[0]
+            : undefined;
+          const existingToken = equivalent?.name ?? localEquivalent;
+          if (tokenAlreadyDefined && !existingToken) continue;
+          if (existingToken) {
+            const className = `${candidate.prefix}-${existingToken.slice(namespacePrefix.length)}`;
+            context.report({
+              node: utility,
+              message: `Custom utility "${name}" duplicates theme-generated "${className}" (${candidate.property}: ${candidate.value}); reuse "${className}" instead.`,
+            });
+            continue;
+          }
           if (candidate.property === "font-size" && themeTokens.has(`--color-${name.slice(5)}`)) continue;
 
           context.report({
