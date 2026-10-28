@@ -2,7 +2,7 @@
 /**
  * Read-only CSS split inventory for a Next.js application.
  *
- * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify]
+ * Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next]
  * No files in the target repository are modified.
  */
 import { execFileSync } from "node:child_process";
@@ -11,11 +11,18 @@ import path from "node:path";
 import { buildCssDependencyGraph } from "../eslint/rules/tailwind/css-dependency-graph";
 import { planCssSplit } from "../eslint/rules/tailwind/css-split-plan";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, findFiles } from "../eslint/rules/tailwind/source-files";
+import { verifyNextCssSplit } from "./css-split-next-verify";
 import { verifyCssSplit } from "./css-split-verify";
 
 const [, , target, ...flags] = process.argv;
-if (!target || flags.some((flag) => flag !== "--head" && flag !== "--json" && flag !== "--verify")) {
-  process.stderr.write("Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify]\n");
+if (
+  !target ||
+  flags.some((flag) => flag !== "--head" && flag !== "--json" && flag !== "--verify" && flag !== "--next") ||
+  (flags.includes("--next") && !flags.includes("--head"))
+) {
+  process.stderr.write(
+    "Usage: npx tsx scripts/css-split-plan.ts <project-root> [--head] [--json] [--verify] [--next]\n--next requires --head (isolated clone of committed source).\n",
+  );
   process.exit(2);
 }
 
@@ -39,9 +46,15 @@ const verification = flags.includes("--verify")
   ? await verifyCssSplit({ root, sourceRoot, cssPath, content, plan })
   : undefined;
 if (verification && !verification.matched) process.exitCode = 1;
+const nextVerification = flags.includes("--next")
+  ? await verifyNextCssSplit({ root, cssPath, content, plan })
+  : undefined;
+if (nextVerification && !nextVerification.matched) process.exitCode = 1;
 
 if (flags.includes("--json")) {
-  process.stdout.write(`${JSON.stringify({ ...plan, ...(verification ? { verification } : {}) }, undefined, 2)}\n`);
+  process.stdout.write(
+    `${JSON.stringify({ ...plan, ...(verification ? { verification } : {}), ...(nextVerification ? { nextVerification } : {}) }, undefined, 2)}\n`,
+  );
 } else {
   const relationshipCount = plan.blocks.reduce((sum, block) => sum + block.dependencies.length, 0);
   process.stdout.write(
@@ -88,6 +101,13 @@ if (flags.includes("--json")) {
         `${String(verification.originalBytes)} / ${String(verification.projectedBytes)} compiled bytes, ` +
         `source directives ${verification.sourcesMatched ? "matched" : "changed"}, ` +
         `first diff ${String(verification.firstDifference)})\n`,
+    );
+  }
+  if (nextVerification) {
+    process.stdout.write(
+      `\nNext.js Webpack isolated production CSS parity: ${nextVerification.matched ? "MATCH" : "MISMATCH"} ` +
+        `(${String(nextVerification.originalAssets)} / ${String(nextVerification.projectedAssets)} CSS assets, ` +
+        `${String(nextVerification.originalBytes)} / ${String(nextVerification.projectedBytes)} bytes)\n`,
     );
   }
   process.stdout.write(
