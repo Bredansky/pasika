@@ -36,6 +36,9 @@ export default defineConfig({
     "@typescript-eslint/parser",
     "typescript",
     "@eslint/css",
+    // @eslint/css-tree loads package-relative JSON at runtime. Bundling it
+    // rewrites that require path relative to pasika/dist and breaks npm installs.
+    "@eslint/css-tree",
     "@eslint/json",
     "@eslint/markdown",
     "clsx",
