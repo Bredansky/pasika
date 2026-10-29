@@ -1256,8 +1256,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Every static one-operation custom `@utility` MUST encode its actual CSS property and value in a deterministic class name, preserving literal units and fingerprinting complex expressions; unknown `@apply` operations MUST use an explicit `[property:value]` mapping rather than a fabricated CSS-property name.",
-      "hash": "c8089fa6d3",
+      "text": "A static, single-operation custom `@utility` MUST be named after its CSS property and value, preserving units and hashing complex values. Ambiguous mappings MUST use explicit `[property:value]` syntax.",
+      "hash": "d0fa5af25f",
       "ref": "pasika/utility-name-parity"
     },
     {
