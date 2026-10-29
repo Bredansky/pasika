@@ -131,6 +131,31 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
     ],
     invalid: [
       {
+        code: "@utility z-index-60 { @apply [z-index:60]; }",
+        errors: [
+          {
+            message: 'Custom utility "z-index-60" duplicates built-in "z-60" (z-index: 60); use "z-60" directly.',
+          },
+        ],
+      },
+      {
+        code: "@utility z-index-neg-1 { @apply [z-index:-1]; }",
+        errors: [
+          {
+            message: 'Custom utility "z-index-neg-1" duplicates built-in "-z-1" (z-index: -1); use "-z-1" directly.',
+          },
+        ],
+      },
+      {
+        code: "@utility z-index-auto { @apply [z-index:auto]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "z-index-auto" duplicates built-in "z-auto" (z-index: auto); use "z-auto" directly.',
+          },
+        ],
+      },
+      {
         code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
         errors: [{ message: /only maps font-size \(calc\(10px \+ 2px\)\); prefer @theme inline token/u }],
       },

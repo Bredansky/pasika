@@ -224,12 +224,12 @@ Why: project styling inside a custom utility bypasses Tailwind instead of going 
 ## Correct — Arbitrary Property Mapped Through Tailwind
 
 ```css
-@utility css-grid-template-columns-2fr-1fr {
+@utility grid-template-columns-2fr-1fr {
   @apply [grid-template-columns:2fr_1fr];
 }
 ```
 
-Why: the class name encodes the actual `grid-template-columns` property and both literal values. More complex expressions use a deterministic SHA-256 fingerprint in the name.
+Why: the class name preserves the actual `grid-template-columns` property and its literal values instead of inventing a generic `css-` prefix or shortening the property to `grid-cols-`. Arbitrary values are forbidden in JSX, and more complex values use deterministic SHA-256 fingerprints in custom utility names.
 
 ## Incorrect — Custom Utility No Source Uses
 

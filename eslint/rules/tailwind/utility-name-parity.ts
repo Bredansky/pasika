@@ -166,8 +166,10 @@ function parseOperation(applyText: string): Operation | undefined {
 
 function expectedName(operation: Operation): string {
   const value = compoundValue(operation.value);
-  if (operation.property === "background-size") return `bg-size-${value}`;
-  return `css-${operation.property.replace(/^-+/u, "")}-${value}`;
+  // Mirror the actual CSS property. Only "background-*" uses the agreed
+  // Tailwind-style "bg-*" spelling; all other property names stay explicit.
+  const property = operation.property.replace(/^-+/u, "").replace(/^background-/u, "bg-");
+  return `${property}-${value}`;
 }
 
 function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): Operation | undefined {

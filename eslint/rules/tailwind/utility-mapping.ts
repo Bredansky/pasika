@@ -388,7 +388,26 @@ export const utilityMappingRule: CSSRuleDefinition = {
 
         for (const utility of utilities) {
           const name = preludeIdentifiers(utility)[0] ?? "unknown";
-          const candidate = themeCandidate(name, context.sourceCode.getText(utility));
+          const source = context.sourceCode.getText(utility);
+          // Tailwind v4 generates numeric z-* utilities without a theme token,
+          // even after --*: initial. A custom wrapper adds no capability.
+          const zIndex = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[z-index:(?<value>-?\d+|auto)\];?\s*\}$/u.exec(source)
+            ?.groups?.value;
+          const numericZIndex = zIndex && zIndex !== "auto" ? Number(zIndex) : undefined;
+          let nativeClass: string | undefined;
+          if (zIndex === "auto") {
+            nativeClass = "z-auto";
+          } else if (numericZIndex !== undefined && Number.isSafeInteger(numericZIndex)) {
+            nativeClass = numericZIndex < 0 ? `-z-${String(-numericZIndex)}` : `z-${String(numericZIndex)}`;
+          }
+          if (nativeClass && zIndex) {
+            context.report({
+              node: utility,
+              message: `Custom utility "${name}" duplicates built-in "${nativeClass}" (z-index: ${zIndex}); use "${nativeClass}" directly.`,
+            });
+            continue;
+          }
+          const candidate = themeCandidate(name, source);
           const equivalent = candidate ? matchingThemeToken(candidate) : undefined;
           if (candidate && equivalent && nameCounts.get(name) === 1) {
             context.report({
