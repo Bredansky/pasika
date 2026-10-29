@@ -75,10 +75,6 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
 @utility text-retro-11 { @apply [font-size:11px]; }`,
       },
       {
-        code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
-      },
-
-      {
         code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
       },
       {
@@ -137,6 +133,10 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
     ],
     invalid: [
+      {
+        code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
+        errors: [{ message: /define an @theme token in the "--tracking-\*" namespace/u }],
+      },
       {
         code: `@utility tracking-minecraft-normal { @apply [letter-spacing:normal]; }`,
         errors: [
@@ -255,6 +255,18 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       },
     ],
     invalid: [
+      {
+        code: "@utility css-font-size-14px { @apply [font-size:14px]; }",
+        errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-background-color-hex-abc { @apply [background-color:#abc]; }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --color-surface-canvas: #abc; }\n@utility css-background-color-hex-abc { @apply [background-color:#abc]; }",
+        errors: [{ message: /duplicates theme-generated "bg-surface-canvas"/u }],
+      },
       {
         code: "@theme { --radius-card: 12px; }\n@utility rounded-card { @apply [border-radius:12px]; }",
         errors: [
@@ -449,56 +461,6 @@ void describe("When Tailwind can generate an equivalent class from an available 
           {
             message:
               'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
-          },
-        ],
-      },
-    ],
-  });
-});
-
-void describe("A custom utility that sets a two-value literal `background-size` MUST use the `bg-size-<width>-<height>` name derived from its values, with explicit units (`pct` for `%`, otherwise the CSS unit); dynamic values are excluded.", () => {
-  tailwindRuleTester.run("utility-mapping:literal-background-size-names", utilityMappingRule, {
-    valid: [
-      { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
-      { code: "@utility bg-size-24px-24px { @apply [background-size:24px_24px]; }" },
-      { code: "@utility bg-size-1p5rem-100pct { @apply [background-size:1.5rem_100%]; }" },
-      { code: "@utility bg-dynamic-size { @apply [background-size:var(--pattern-size)]; }" },
-      { code: "@utility bg-dynamic-size { @apply [background-size:calc(100%_-_2px)_auto]; }" },
-    ],
-    invalid: [
-      {
-        code: "@utility bg-rainbow-gradient-size { @apply [background-size:200%_100%]; }",
-        errors: [
-          {
-            message:
-              'Custom utility "bg-rainbow-gradient-size" maps a literal background-size value; name it "bg-size-200pct-100pct" to encode the CSS property, units, and values.',
-          },
-        ],
-      },
-      {
-        code: "@utility background-size-200-100 { @apply [background-size:200%_100%]; }",
-        errors: [
-          {
-            message:
-              'Custom utility "background-size-200-100" maps a literal background-size value; name it "bg-size-200pct-100pct" to encode the CSS property, units, and values.',
-          },
-        ],
-      },
-      {
-        code: "@utility bg-grid-size { @apply [background-size:24px_24px]; }",
-        errors: [
-          {
-            message:
-              'Custom utility "bg-grid-size" maps a literal background-size value; name it "bg-size-24px-24px" to encode the CSS property, units, and values.',
-          },
-        ],
-      },
-      {
-        code: "@utility bg-size-12px-12px { @apply [background-size:12px_6px]; }",
-        errors: [
-          {
-            message:
-              'Custom utility "bg-size-12px-12px" maps a literal background-size value; name it "bg-size-12px-6px" to encode the CSS property, units, and values.',
           },
         ],
       },

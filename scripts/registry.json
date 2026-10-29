@@ -1256,9 +1256,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom utility that sets a two-value literal `background-size` MUST use the `bg-size-<width>-<height>` name derived from its values, with explicit units (`pct` for `%`, otherwise the CSS unit); dynamic values are excluded.",
-      "hash": "94ca7bfd09",
-      "ref": "pasika/utility-mapping"
+      "text": "Every static one-operation custom `@utility` MUST encode its actual CSS property and value in a deterministic class name, preserving literal units and fingerprinting complex expressions; unknown `@apply` operations MUST use an explicit `[property:value]` mapping rather than a fabricated CSS-property name. Theme-generated utilities take precedence regardless of the custom utility's name.",
+      "hash": "44bd84188d",
+      "ref": "pasika/utility-name-parity"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

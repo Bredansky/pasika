@@ -39,28 +39,6 @@ function applyOperationCount(utility: CssNodePlain): number {
   return count;
 }
 
-/**
- * Deterministic value names for CSS operations Tailwind cannot express through
- * an available @theme namespace. Extend by explicit operation, never by
- * guessing the meaning of arbitrary CSS expressions or variable references.
- */
-function literalBackgroundSizeName(utilityText: string): string | undefined {
-  const source = utilityText.trim();
-  const match = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[background-size:(?<values>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(source);
-  const values = match?.groups?.values;
-  if (!values) return undefined;
-  const parts = values.split("_");
-  if (parts.length !== 2) return undefined;
-  const names: string[] = [];
-  for (const part of parts) {
-    const size = /^(?<number>\d+(?:\.\d+)?)(?<unit>%|px|rem|em|vw|vh)$/u.exec(part);
-    if (!size?.groups?.number || !size.groups.unit) return undefined;
-    const digits = String(Number(size.groups.number)).replace(".", "p");
-    names.push(`${digits}${size.groups.unit === "%" ? "pct" : size.groups.unit}`);
-  }
-  return `bg-size-${names.join("-")}`;
-}
-
 interface ThemeCandidate {
   token: string;
   property: string;
@@ -427,15 +405,18 @@ export const utilityMappingRule: CSSRuleDefinition = {
             });
             continue;
           }
-          const literalName = literalBackgroundSizeName(context.sourceCode.getText(utility));
-          if (literalName && literalName !== name) {
+          if (nameCounts.get(name) !== 1 || !candidate) continue;
+          // Property/value-derived utility names intentionally do not have a Tailwind
+          // namespace prefix. They still must defer to an equivalent @theme generator.
+          if (!candidate.token) {
             context.report({
               node: utility,
-              message: `Custom utility "${name}" maps a literal background-size value; name it "${literalName}" to encode the CSS property, units, and values.`,
+              message:
+                `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ` +
+                `define an @theme token in the "--${candidate.namespace}-*" namespace and use its generated "${candidate.prefix}-*" class instead.`,
             });
             continue;
           }
-          if (nameCounts.get(name) !== 1 || !candidate?.token) continue;
           const tokenAlreadyDefined =
             themeTokens.has(candidate.token) || projectTokens.some((token) => token.name === candidate.token);
           if (tokenAlreadyDefined) continue; // A conflicting definition is not a safe replacement.

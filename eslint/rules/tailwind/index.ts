@@ -17,6 +17,7 @@ import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { uniqueCssTokenValueRule } from "./unique-css-token-value";
 import { unusedUtilityRule } from "./unused-utility";
 import { utilityMappingRule } from "./utility-mapping";
+import { utilityNameParityRule } from "./utility-name-parity";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
@@ -27,6 +28,7 @@ export const tailwindRules = {
   "stylesheet-ordering": stylesheetOrderingRule,
   "custom-utility-apply": customUtilityApplyRule,
   "utility-mapping": utilityMappingRule,
+  "utility-name-parity": utilityNameParityRule,
   "css-entry-point": cssEntryPointRule,
   "feature-css-placement": featureCssPlacementRule,
   "global-stylesheet": globalStylesheetRule,
