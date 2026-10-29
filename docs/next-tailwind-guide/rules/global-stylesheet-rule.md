@@ -45,7 +45,7 @@ Why: scoped token overrides are forbidden unless the token maps to its same-name
 }
 ```
 
-Why: the default value lives in `:root`, the theme changes that same variable, and `@theme inline` exposes a stable Tailwind utility.
+Why: the default value lives in unlayered `:root`, scoped overrides change that same variable, and `@theme inline` exposes the matching Tailwind utility. Tailwind emits the mapping in its lower-priority `theme` layer, so unlayered runtime declarations win rather than creating an active self-reference cycle.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 

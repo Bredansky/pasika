@@ -5,6 +5,11 @@
  * Each referenced runtime variable has the token's exact name and a default
  * :root declaration. Its value may be overridden in scoped selectors.
  *
+ * Tailwind emits @theme inside its lower-priority theme cascade layer.
+ * Unlayered :root and scoped runtime declarations win over that layer, so an
+ * intentional 1:1 @theme inline mapping is valid rather than a CSS var() cycle.
+ * This convention applies to every Tailwind token namespace, not just colors.
+ *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 import path from "node:path";

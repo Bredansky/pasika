@@ -34,6 +34,32 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
         code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme inline { --color-surface: var(--color-surface); }",
       },
       { code: ":root { --runtime-brand: #2563eb; }" },
+      // Intentional 1:1 @theme inline mappings are safe with the standard
+      // Tailwind cascade: unlayered runtime declarations outrank @layer theme.
+      // Preserve this contract for all namespaces, not only colors.
+      {
+        code: `:root {
+  --color-control-edge: #d1d5db;
+  --radius-control: 8px;
+  --spacing-panel: 24px;
+  --font-body: Arial, sans-serif;
+  --shadow-card: 0 2px 4px #0003;
+  --animate-enter: enter 200ms ease-out;
+}
+[data-theme="dark"] {
+  --color-control-edge: #52525b;
+  --radius-control: 10px;
+  --shadow-card: 0 3px 8px #0006;
+}
+@theme inline {
+  --color-control-edge: var(--color-control-edge);
+  --radius-control: var(--radius-control);
+  --spacing-panel: var(--spacing-panel);
+  --font-body: var(--font-body);
+  --shadow-card: var(--shadow-card);
+  --animate-enter: var(--animate-enter);
+}`,
+      },
       {
         code: ':root { --radius-card: 8px; } @theme inline { --radius-card: var(--radius-card); }\n[data-theme="dark"] { --radius-card: 10px; }',
       },

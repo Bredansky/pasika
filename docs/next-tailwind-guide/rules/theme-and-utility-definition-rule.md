@@ -93,7 +93,7 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 }
 ```
 
-Why: `bg-primary-canvas` resolves the same-named runtime variable, which has a light default and a dark-theme override.
+Why: `bg-primary-canvas` resolves the same-named runtime variable, which has a light default and a dark-theme override. With the standard Tailwind import, the unlayered runtime declarations outrank the `@theme inline` mapping in Tailwind's `theme` layer, preventing an active self-reference cycle.
 
 ## Incorrect — Raw Property Inside a Custom Utility
 
