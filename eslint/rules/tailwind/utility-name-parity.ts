@@ -151,6 +151,17 @@ function compiledOperation(compiled: CompiledResult, index: number): Operation |
   if (declarations.length !== 1) return undefined;
   const declaration = declarations[0];
   if (declaration?.type !== "Declaration") return undefined;
+  // Tailwind shadow utilities assign their actual effect to --tw-shadow,
+  // then share one ring-compositing box-shadow expression. Read the assigned
+  // shadow value rather than giving every different shadow the same name.
+  if (declaration.property === "box-shadow") {
+    const shadow = blockChildren(probe).find(
+      (child) => child.type === "Declaration" && child.property === "--tw-shadow",
+    );
+    if (shadow?.type === "Declaration") {
+      return { property: "box-shadow", value: generate(shadow.value).trim() };
+    }
+  }
   return { property: declaration.property, value: generate(declaration.value).trim() };
 }
 
