@@ -105,13 +105,18 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   const property = arbitrary?.groups?.property ?? direct?.groups?.property;
   const matched = themeOperations.find((operation) => {
     if (property) return property === operation.property;
-    if (!name.startsWith(`${operation.prefix}-`) || name.length <= operation.prefix.length + 1) return false;
+    // An explicit type hint describes CSS semantics independently of the
+    // custom class name. Never infer ambiguous prefixes from that name.
     if (typed?.groups?.kind !== operation.prefix) return false;
     const hint = typed.groups.hint;
     if (operation.prefix === "text") return hint === (operation.property === "font-size" ? "length:" : "color:");
     if (operation.prefix === "font") {
       return hint === (operation.property === "font-family" ? "family-name:" : "number:");
     }
+    if (operation.prefix === "bg") {
+      return hint === (operation.property === "background-image" ? "image:" : "color:");
+    }
+    if (["border", "outline", "decoration", "stroke"].includes(operation.prefix)) return hint === "color:";
     return hint === undefined;
   });
   if (!matched) return undefined;

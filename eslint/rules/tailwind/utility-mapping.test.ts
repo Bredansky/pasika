@@ -246,6 +246,8 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
 void describe("utility-mapping: theme namespaces beyond typography", () => {
   tailwindRuleTester.run("utility-mapping:theme-namespaces", utilityMappingRule, {
     valid: [
+      // Unhinted background variables are ambiguous: never guess color versus image.
+      { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
       { code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }" },
       { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
       { code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }" },
@@ -255,6 +257,26 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       },
     ],
     invalid: [
+      {
+        code: "@utility css-font-size-var-body { @apply text-(length:--body); }",
+        errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-background-image-var-art { @apply bg-(image:--art); }",
+        errors: [{ message: /define an @theme token in the "--background-image-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-color-var-ink { @apply text-(color:--ink); }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-border-color-var-edge { @apply border-(color:--edge); }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@theme inline { --text-body: var(--body); }\n@utility css-font-size-var-body { @apply text-(length:--body); }",
+        errors: [{ message: /duplicates theme-generated "text-body"/u }],
+      },
       {
         code: "@utility css-font-size-14px { @apply [font-size:14px]; }",
         errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
