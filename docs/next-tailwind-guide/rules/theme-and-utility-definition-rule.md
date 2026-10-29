@@ -7,6 +7,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
 - Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
+- A custom utility that sets a two-value literal `background-size` MUST use the `bg-size-<width>-<height>` name derived from its values, with explicit units (`pct` for `%`, otherwise the CSS unit); dynamic values are excluded.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.

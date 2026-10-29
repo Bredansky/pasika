@@ -39,6 +39,28 @@ function applyOperationCount(utility: CssNodePlain): number {
   return count;
 }
 
+/**
+ * Deterministic value names for CSS operations Tailwind cannot express through
+ * an available @theme namespace. Extend by explicit operation, never by
+ * guessing the meaning of arbitrary CSS expressions or variable references.
+ */
+function literalBackgroundSizeName(utilityText: string): string | undefined {
+  const source = utilityText.trim();
+  const match = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[background-size:(?<values>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(source);
+  const values = match?.groups?.values;
+  if (!values) return undefined;
+  const parts = values.split("_");
+  if (parts.length !== 2) return undefined;
+  const names: string[] = [];
+  for (const part of parts) {
+    const size = /^(?<number>\d+(?:\.\d+)?)(?<unit>%|px|rem|em|vw|vh)$/u.exec(part);
+    if (!size?.groups?.number || !size.groups.unit) return undefined;
+    const digits = String(Number(size.groups.number)).replace(".", "p");
+    names.push(`${digits}${size.groups.unit === "%" ? "pct" : size.groups.unit}`);
+  }
+  return `bg-size-${names.join("-")}`;
+}
+
 interface ThemeCandidate {
   token: string;
   property: string;
@@ -402,6 +424,14 @@ export const utilityMappingRule: CSSRuleDefinition = {
               message:
                 `Custom utility "${name}" maps ${String(operationCount)} Tailwind operations; ` +
                 "custom utilities must map exactly one operation. Reusable presentation belongs in a component.",
+            });
+            continue;
+          }
+          const literalName = literalBackgroundSizeName(context.sourceCode.getText(utility));
+          if (literalName && literalName !== name) {
+            context.report({
+              node: utility,
+              message: `Custom utility "${name}" maps a literal background-size value; name it "${literalName}" to encode the CSS property, units, and values.`,
             });
             continue;
           }

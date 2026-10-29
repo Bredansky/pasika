@@ -1256,6 +1256,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A custom utility that sets a two-value literal `background-size` MUST use the `bg-size-<width>-<height>` name derived from its values, with explicit units (`pct` for `%`, otherwise the CSS unit); dynamic values are excluded.",
+      "hash": "94ca7bfd09",
+      "ref": "pasika/utility-mapping"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST be statically referenced by at least one file in the repository's source.",
       "hash": "7f32f1f91b",
       "ref": "pasika/unused-utility"
