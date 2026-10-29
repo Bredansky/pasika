@@ -89,8 +89,9 @@ const themeOperations = [
 
 /**
  * Recognize one plain arbitrary-property or typed variable @apply,
- * without other declarations, modifiers or nested blocks. Ambiguous cases
- * remain custom utilities until their compiled CSS can be reviewed manually.
+ * without other declarations, modifiers or nested blocks. Restrict this to
+ * known one-property generators; ambiguous CSS decoding and multi-property
+ * Tailwind generators require compiled-CSS review, not an equivalence guess.
  */
 function themeCandidate(name: string, utilityText: string): ThemeCandidate | undefined {
   const source = utilityText.trim();
@@ -126,21 +127,18 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
     direct?.groups?.value?.trim() ??
     (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
   if (!value) return undefined;
-  // Do not approximate calc(), color-mix(), filter functions, composite values,
-  // or underscore escapes; compiled CSS is required to prove equivalence.
-  const simple = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|%|vh|vw|ch|deg)?$/u.test(value);
-  const variable = /^var\(--[a-z][a-z0-9-]*\)$/u.test(value);
-  const color = /^#[\da-f]{3,8}$/iu.test(value);
-  const keyword = /^[a-z][a-z-]*$/u.test(value);
-  const ratio = /^\d+\/\d+$/u.test(value);
-  if (!simple && !variable && !color && !keyword && !ratio) return undefined;
-  if (matched.property === "font-size" && value.startsWith("-")) return undefined;
+  // Tailwind turns unescaped underscores in arbitrary properties into CSS spaces.
+  // Do not infer values containing URL paths, quoted strings, escape sequences, or
+  // custom-property names with underscores: their decoding may differ.
+  if (arbitrary && (/\\|["']|\burl\(/iu.test(value) || /var\(--[^)]*_/iu.test(value))) return undefined;
+  const cssValue = arbitrary ? value.replaceAll("_", " ") : value;
+  if (matched.property === "font-size" && cssValue.startsWith("-")) return undefined;
 
   const stem = name.startsWith(`${matched.prefix}-`) ? name.slice(matched.prefix.length + 1) : undefined;
   return {
     token: stem ? `--${matched.namespace}-${stem}` : "",
     property: matched.property,
-    value,
+    value: cssValue,
     prefix: matched.prefix,
     namespace: matched.namespace,
   };

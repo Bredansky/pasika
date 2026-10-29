@@ -75,9 +75,6 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
 @utility text-retro-11 { @apply [font-size:11px]; }`,
       },
       {
-        code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
-      },
-      {
         code: `@utility text-semantic { @apply [font-size:11px]; color: red; }`,
       },
       // The project's font-size-only pixel utility is not interchangeable
@@ -133,6 +130,10 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
     ],
     invalid: [
+      {
+        code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
+        errors: [{ message: /only maps font-size \(calc\(10px \+ 2px\)\); prefer @theme inline token/u }],
+      },
       {
         code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
         errors: [{ message: /define an @theme token in the "--tracking-\*" namespace/u }],
@@ -250,13 +251,32 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
       { code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }" },
       { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
-      { code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }" },
-      { code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }" },
+      { code: "@utility bg-photo { @apply [background-image:url(hero_file.png)]; }" },
       {
         code: "@theme { --radius-card: var(--border-radius); }\n@utility rounded-card { @apply [border-radius:12px]; }",
       },
     ],
     invalid: [
+      {
+        code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }",
+        errors: [{ message: /prefer @theme inline token "--radius-complex"/u }],
+      },
+      {
+        code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }",
+        errors: [{ message: /prefer @theme inline token "--color-special"/u }],
+      },
+      {
+        code: "@utility css-animation-wiggle-2s { @apply [animation:wiggle_2s_ease-in-out_infinite]; }",
+        errors: [{ message: /define an @theme token in the "--animate-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --animate-wiggle: wiggle 2s ease-in-out infinite; }\n@utility css-animation-wiggle-2s { @apply [animation:wiggle_2s_ease-in-out_infinite]; }",
+        errors: [{ message: /duplicates theme-generated "animate-wiggle"/u }],
+      },
+      {
+        code: "@theme { --background-image-magic: linear-gradient(red, blue); }\n@utility bg-gradient-alias { @apply [background-image:linear-gradient(red,_blue)]; }",
+        errors: [{ message: /duplicates theme-generated "bg-magic"/u }],
+      },
       {
         code: "@utility css-font-size-var-body { @apply text-(length:--body); }",
         errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
