@@ -75,13 +75,6 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
 @utility text-retro-11 { @apply [font-size:11px]; }`,
       },
       {
-        code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
-      },
-
-      {
-        code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
-      },
-      {
         code: `@utility text-semantic { @apply [font-size:11px]; color: red; }`,
       },
       // The project's font-size-only pixel utility is not interchangeable
@@ -137,6 +130,39 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
     ],
     invalid: [
+      {
+        code: "@utility z-index-60 { @apply [z-index:60]; }",
+        errors: [
+          {
+            message: 'Custom utility "z-index-60" duplicates built-in "z-60" (z-index: 60); use "z-60" directly.',
+          },
+        ],
+      },
+      {
+        code: "@utility z-index-neg-1 { @apply [z-index:-1]; }",
+        errors: [
+          {
+            message: 'Custom utility "z-index-neg-1" duplicates built-in "-z-1" (z-index: -1); use "-z-1" directly.',
+          },
+        ],
+      },
+      {
+        code: "@utility z-index-auto { @apply [z-index:auto]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "z-index-auto" duplicates built-in "z-auto" (z-index: auto); use "z-auto" directly.',
+          },
+        ],
+      },
+      {
+        code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
+        errors: [{ message: /only maps font-size \(calc\(10px \+ 2px\)\); prefer @theme inline token/u }],
+      },
+      {
+        code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
+        errors: [{ message: /define an @theme token in the "--tracking-\*" namespace/u }],
+      },
       {
         code: `@utility tracking-minecraft-normal { @apply [letter-spacing:normal]; }`,
         errors: [
@@ -246,15 +272,68 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
 void describe("utility-mapping: theme namespaces beyond typography", () => {
   tailwindRuleTester.run("utility-mapping:theme-namespaces", utilityMappingRule, {
     valid: [
+      // Unhinted background variables are ambiguous: never guess color versus image.
+      { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
       { code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }" },
       { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
-      { code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }" },
-      { code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }" },
+      { code: "@utility bg-photo { @apply [background-image:url(hero_file.png)]; }" },
       {
         code: "@theme { --radius-card: var(--border-radius); }\n@utility rounded-card { @apply [border-radius:12px]; }",
       },
     ],
     invalid: [
+      {
+        code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }",
+        errors: [{ message: /prefer @theme inline token "--radius-complex"/u }],
+      },
+      {
+        code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }",
+        errors: [{ message: /prefer @theme inline token "--color-special"/u }],
+      },
+      {
+        code: "@utility css-animation-wiggle-2s { @apply [animation:wiggle_2s_ease-in-out_infinite]; }",
+        errors: [{ message: /define an @theme token in the "--animate-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --animate-wiggle: wiggle 2s ease-in-out infinite; }\n@utility css-animation-wiggle-2s { @apply [animation:wiggle_2s_ease-in-out_infinite]; }",
+        errors: [{ message: /duplicates theme-generated "animate-wiggle"/u }],
+      },
+      {
+        code: "@theme { --background-image-magic: linear-gradient(red, blue); }\n@utility bg-gradient-alias { @apply [background-image:linear-gradient(red,_blue)]; }",
+        errors: [{ message: /duplicates theme-generated "bg-magic"/u }],
+      },
+      {
+        code: "@utility css-font-size-var-body { @apply text-(length:--body); }",
+        errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-background-image-var-art { @apply bg-(image:--art); }",
+        errors: [{ message: /define an @theme token in the "--background-image-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-color-var-ink { @apply text-(color:--ink); }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-border-color-var-edge { @apply border-(color:--edge); }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@theme inline { --text-body: var(--body); }\n@utility css-font-size-var-body { @apply text-(length:--body); }",
+        errors: [{ message: /duplicates theme-generated "text-body"/u }],
+      },
+      {
+        code: "@utility css-font-size-14px { @apply [font-size:14px]; }",
+        errors: [{ message: /define an @theme token in the "--text-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-background-color-hex-abc { @apply [background-color:#abc]; }",
+        errors: [{ message: /define an @theme token in the "--color-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --color-surface-canvas: #abc; }\n@utility css-background-color-hex-abc { @apply [background-color:#abc]; }",
+        errors: [{ message: /duplicates theme-generated "bg-surface-canvas"/u }],
+      },
       {
         code: "@theme { --radius-card: 12px; }\n@utility rounded-card { @apply [border-radius:12px]; }",
         errors: [

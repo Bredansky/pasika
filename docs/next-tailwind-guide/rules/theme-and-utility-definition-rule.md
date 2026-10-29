@@ -7,6 +7,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
 - Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
+- A static custom `@utility` MUST use a name derived from its CSS property and value, including units.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
@@ -92,31 +93,57 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 }
 ```
 
-Why: `bg-primary-canvas` resolves the same-named runtime variable, which has a light default and a dark-theme override.
+Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities.
 
-## Incorrect — Raw Property Inside a Custom Utility
+## Incorrect — Theme Color Wrapped in a Custom Utility
 
 ```css
 @utility border-control-edge {
-  border-color: var(--control-edge);
+  @apply [border-color:var(--color-control-edge)];
 }
 ```
 
-Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
+Why: the color token belongs in `@theme`, which already generates `border-control-edge` without a custom utility.
 
-## Correct — A Property-Specific Utility
+## Correct — A Theme-Generated Border Color
 
 ```css
 :root {
-  --control-edge: #d1d5db;
+  --color-control-edge: #d1d5db;
 }
 
-@utility border-control-edge {
-  @apply border-(color:--control-edge);
+@theme inline {
+  --color-control-edge: var(--color-control-edge);
 }
 ```
 
-Why: the utility maps a single border-color operation, while `edge` identifies the color's boundary role.
+Why: Tailwind generates `border-control-edge` directly from the theme token, using the same runtime variable.
+
+## Incorrect — Complex Animation Hidden in a Custom Utility
+
+```css
+@utility animate-wiggle {
+  @apply [animation:wiggle_2s_ease-in-out_infinite];
+}
+```
+
+Why: Tailwind can generate the same single-property animation class from a theme variable, even though the value has several CSS tokens.
+
+## Correct — Theme-Generated Animation
+
+```css
+@theme {
+  --animate-wiggle: wiggle 2s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  to {
+    transform: rotate(3deg);
+  }
+}
+```
+
+Why: `animate-wiggle` is generated from `--animate-wiggle` and references the existing keyframes. Complex CSS values do not by themselves justify a custom `@utility`.
 
 ## Incorrect — Typography Size Hidden in Custom Utility
 
@@ -197,12 +224,12 @@ Why: project styling inside a custom utility bypasses Tailwind instead of going 
 ## Correct — Arbitrary Property Mapped Through Tailwind
 
 ```css
-@utility content-grid {
-  @apply [grid-template-columns:2fr_max(0,var(--gutter-width))_calc(var(--gutter-width)+10px)];
+@utility grid-template-columns-2fr-1fr {
+  @apply [grid-template-columns:2fr_1fr];
 }
 ```
 
-Why: the custom utility maps one otherwise unnamed property value through Tailwind without becoming a reusable style bundle.
+Why: the class name reflects `grid-template-columns: 2fr 1fr`, and the arbitrary value stays in CSS rather than JSX.
 
 ## Incorrect — Custom Utility No Source Uses
 

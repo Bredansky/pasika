@@ -89,8 +89,9 @@ const themeOperations = [
 
 /**
  * Recognize one plain arbitrary-property or typed variable @apply,
- * without other declarations, modifiers or nested blocks. Ambiguous cases
- * remain custom utilities until their compiled CSS can be reviewed manually.
+ * without other declarations, modifiers or nested blocks. Restrict this to
+ * known one-property generators; ambiguous CSS decoding and multi-property
+ * Tailwind generators require compiled-CSS review, not an equivalence guess.
  */
 function themeCandidate(name: string, utilityText: string): ThemeCandidate | undefined {
   const source = utilityText.trim();
@@ -105,13 +106,18 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   const property = arbitrary?.groups?.property ?? direct?.groups?.property;
   const matched = themeOperations.find((operation) => {
     if (property) return property === operation.property;
-    if (!name.startsWith(`${operation.prefix}-`) || name.length <= operation.prefix.length + 1) return false;
+    // An explicit type hint describes CSS semantics independently of the
+    // custom class name. Never infer ambiguous prefixes from that name.
     if (typed?.groups?.kind !== operation.prefix) return false;
     const hint = typed.groups.hint;
     if (operation.prefix === "text") return hint === (operation.property === "font-size" ? "length:" : "color:");
     if (operation.prefix === "font") {
       return hint === (operation.property === "font-family" ? "family-name:" : "number:");
     }
+    if (operation.prefix === "bg") {
+      return hint === (operation.property === "background-image" ? "image:" : "color:");
+    }
+    if (["border", "outline", "decoration", "stroke"].includes(operation.prefix)) return hint === "color:";
     return hint === undefined;
   });
   if (!matched) return undefined;
@@ -121,21 +127,18 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
     direct?.groups?.value?.trim() ??
     (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
   if (!value) return undefined;
-  // Do not approximate calc(), color-mix(), filter functions, composite values,
-  // or underscore escapes; compiled CSS is required to prove equivalence.
-  const simple = /^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|rem|em|%|vh|vw|ch|deg)?$/u.test(value);
-  const variable = /^var\(--[a-z][a-z0-9-]*\)$/u.test(value);
-  const color = /^#[\da-f]{3,8}$/iu.test(value);
-  const keyword = /^[a-z][a-z-]*$/u.test(value);
-  const ratio = /^\d+\/\d+$/u.test(value);
-  if (!simple && !variable && !color && !keyword && !ratio) return undefined;
-  if (matched.property === "font-size" && value.startsWith("-")) return undefined;
+  // Tailwind turns unescaped underscores in arbitrary properties into CSS spaces.
+  // Do not infer values containing URL paths, quoted strings, escape sequences, or
+  // custom-property names with underscores: their decoding may differ.
+  if (arbitrary && (/\\|["']|\burl\(/iu.test(value) || /var\(--[^)]*_/iu.test(value))) return undefined;
+  const cssValue = arbitrary ? value.replaceAll("_", " ") : value;
+  if (matched.property === "font-size" && cssValue.startsWith("-")) return undefined;
 
   const stem = name.startsWith(`${matched.prefix}-`) ? name.slice(matched.prefix.length + 1) : undefined;
   return {
     token: stem ? `--${matched.namespace}-${stem}` : "",
     property: matched.property,
-    value,
+    value: cssValue,
     prefix: matched.prefix,
     namespace: matched.namespace,
   };
@@ -385,7 +388,26 @@ export const utilityMappingRule: CSSRuleDefinition = {
 
         for (const utility of utilities) {
           const name = preludeIdentifiers(utility)[0] ?? "unknown";
-          const candidate = themeCandidate(name, context.sourceCode.getText(utility));
+          const source = context.sourceCode.getText(utility);
+          // Tailwind v4 generates numeric z-* utilities without a theme token,
+          // even after --*: initial. A custom wrapper adds no capability.
+          const zIndex = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[z-index:(?<value>-?\d+|auto)\];?\s*\}$/u.exec(source)
+            ?.groups?.value;
+          const numericZIndex = zIndex && zIndex !== "auto" ? Number(zIndex) : undefined;
+          let nativeClass: string | undefined;
+          if (zIndex === "auto") {
+            nativeClass = "z-auto";
+          } else if (numericZIndex !== undefined && Number.isSafeInteger(numericZIndex)) {
+            nativeClass = numericZIndex < 0 ? `-z-${String(-numericZIndex)}` : `z-${String(numericZIndex)}`;
+          }
+          if (nativeClass && zIndex) {
+            context.report({
+              node: utility,
+              message: `Custom utility "${name}" duplicates built-in "${nativeClass}" (z-index: ${zIndex}); use "${nativeClass}" directly.`,
+            });
+            continue;
+          }
+          const candidate = themeCandidate(name, source);
           const equivalent = candidate ? matchingThemeToken(candidate) : undefined;
           if (candidate && equivalent && nameCounts.get(name) === 1) {
             context.report({
@@ -405,7 +427,18 @@ export const utilityMappingRule: CSSRuleDefinition = {
             });
             continue;
           }
-          if (nameCounts.get(name) !== 1 || !candidate?.token) continue;
+          if (nameCounts.get(name) !== 1 || !candidate) continue;
+          // Property/value-derived utility names intentionally do not have a Tailwind
+          // namespace prefix. They still must defer to an equivalent @theme generator.
+          if (!candidate.token) {
+            context.report({
+              node: utility,
+              message:
+                `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ` +
+                `define an @theme token in the "--${candidate.namespace}-*" namespace and use its generated "${candidate.prefix}-*" class instead.`,
+            });
+            continue;
+          }
           const tokenAlreadyDefined =
             themeTokens.has(candidate.token) || projectTokens.some((token) => token.name === candidate.token);
           if (tokenAlreadyDefined) continue; // A conflicting definition is not a safe replacement.
