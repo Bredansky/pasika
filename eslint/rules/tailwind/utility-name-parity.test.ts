@@ -50,6 +50,13 @@ void describe("A static custom `@utility` MUST use a name derived from its CSS p
     ],
     invalid: [
       {
+        code: "@utility shadow-one { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; } @utility shadow-two { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }",
+        errors: [
+          { message: /maps box-shadow: 0 0 12px .*; rename it "box-shadow-hash-[a-f0-9]{12}"/u },
+          { message: /maps box-shadow: 0 0 24px .*; rename it "box-shadow-hash-[a-f0-9]{12}"/u },
+        ],
+      },
+      {
         code: "@utility bg-rainbow-gradient-size { @apply [background-size:200%_100%]; }",
         errors: [
           {
