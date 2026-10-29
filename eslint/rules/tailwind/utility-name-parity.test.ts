@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Every static one-operation custom `@utility` MUST encode its actual CSS property and value in a deterministic class name, preserving literal units and fingerprinting complex expressions; unknown `@apply` operations MUST use an explicit `[property:value]` mapping rather than a fabricated CSS-property name. Theme-generated utilities take precedence regardless of the custom utility's name.", () => {
+void describe("Every static one-operation custom `@utility` MUST encode its actual CSS property and value in a deterministic class name, preserving literal units and fingerprinting complex expressions; unknown `@apply` operations MUST use an explicit `[property:value]` mapping rather than a fabricated CSS-property name.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
