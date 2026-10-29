@@ -1,3 +1,6 @@
+import css from "@eslint/css";
+import { Linter } from "eslint";
+import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
@@ -8,6 +11,11 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
       { code: "@utility bg-size-24px-24px { @apply [background-size:24px_24px]; }" },
       { code: "@utility border-style-outset { @apply [border-style:outset]; }" },
       { code: "@utility grid-template-columns-2fr-1fr { @apply [grid-template-columns:2fr_1fr]; }" },
+      { code: "@utility mask-image-var-art { @apply mask-[var(--art)]; }" },
+      { code: "@utility font-weight-var-family { @apply font-(--family); }" },
+      {
+        code: "@utility mask-image-var-art { @apply mask-[var(--art)]; } @utility grid-template-columns-2fr-1fr { @apply grid-cols-[2fr_1fr]; }",
+      },
       { code: "@utility border-top-color-hex-8b8b8b { @apply [border-top-color:#8b8b8b]; }" },
       { code: "@utility z-index-neg-1 { @apply [z-index:-1]; }" },
       { code: "@utility height-3px { @apply h-[3px]; }" },
@@ -46,7 +54,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "bg-rainbow-gradient-size" maps background-size: 200%_100%; rename it "bg-size-200pct-100pct" to preserve property/value parity.',
+              'Custom utility "bg-rainbow-gradient-size" maps background-size: 200% 100%; rename it "bg-size-200pct-100pct" to preserve property/value parity.',
           },
         ],
       },
@@ -55,7 +63,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "bg-grid-size" maps background-size: 12px_6px; rename it "bg-size-12px-6px" to preserve property/value parity.',
+              'Custom utility "bg-grid-size" maps background-size: 12px 6px; rename it "bg-size-12px-6px" to preserve property/value parity.',
           },
         ],
       },
@@ -73,7 +81,16 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "css-grid-template-columns-2fr-1fr" maps grid-template-columns: 2fr_1fr; rename it "grid-template-columns-2fr-1fr" to preserve property/value parity.',
+              'Custom utility "css-grid-template-columns-2fr-1fr" maps grid-template-columns: 2fr 1fr; rename it "grid-template-columns-2fr-1fr" to preserve property/value parity.',
+          },
+        ],
+      },
+      {
+        code: "@utility mask-art { @apply mask-[var(--art)]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "mask-art" maps mask-image: var(--art); rename it "mask-image-var-art" to preserve property/value parity.',
           },
         ],
       },
@@ -82,7 +99,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "grid-cols-2fr-1fr" maps grid-template-columns: 2fr_1fr; rename it "grid-template-columns-2fr-1fr" to preserve property/value parity.',
+              'Custom utility "grid-cols-2fr-1fr" maps grid-template-columns: 2fr 1fr; rename it "grid-template-columns-2fr-1fr" to preserve property/value parity.',
           },
         ],
       },
@@ -109,7 +126,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              /^Custom utility "h-starfield" maps height: min\(700px,90vw\); rename it "height-min-hash-[a-f0-9]{12}" to preserve property\/value parity\.$/u,
+              /^Custom utility "h-starfield" maps height: min\(700px, 90vw\); rename it "height-min-hash-[a-f0-9]{12}" to preserve property\/value parity\.$/u,
           },
         ],
       },
@@ -136,7 +153,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "font-mc" maps font-family: var(--font-space-mono),_monospace; rename it "font-family-var-font-space-mono-comma-monospace" to preserve property/value parity.',
+              'Custom utility "font-mc" maps font-family: var(--font-space-mono), monospace; rename it "font-family-var-font-space-mono-comma-monospace" to preserve property/value parity.',
           },
         ],
       },
@@ -145,7 +162,7 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [
           {
             message:
-              'Custom utility "animate-float" maps animation: float_3s_linear_infinite; rename it "animation-float-3s-linear-infinite" to preserve property/value parity.',
+              'Custom utility "animate-float" maps animation: float 3s linear infinite; rename it "animation-float-3s-linear-infinite" to preserve property/value parity.',
           },
         ],
       },
@@ -160,35 +177,35 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
       },
       {
         code: "@utility unknown-text-color { @apply text-[var(--ink)]; }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps color: var\(--ink\); rename it "color-var-ink"/u }],
       },
       {
         code: "@utility unknown-bg-type { @apply bg-[var(--canvas)]; }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-var-canvas"/u }],
       },
       {
         code: "@utility unknown-text-var { @apply text-(--ink); }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps color: var\(--ink\); rename it "color-var-ink"/u }],
       },
       {
         code: "@utility unknown-bg-var { @apply bg-(--canvas); }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-var-canvas"/u }],
       },
       {
         code: "@utility unknown-font-var { @apply font-(--family); }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps font-weight: var\(--family\); rename it "font-weight-var-family"/u }],
       },
       {
         code: "@utility unknown-bg-hint { @apply bg-(depth:--depth); }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /maps background-color: var\(--depth\); rename it "bg-color-var-depth"/u }],
       },
       {
         code: "@utility unknown-prefix { @apply foo-[18px]; }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /Tailwind cannot resolve exactly one CSS property/u }],
       },
       {
         code: "@utility unknown-variable { @apply foo-(--unknown); }",
-        errors: [{ message: /actual CSS property\/value cannot be resolved safely/u }],
+        errors: [{ message: /Tailwind cannot resolve exactly one CSS property/u }],
       },
       {
         code: "@utility unknown-words { @apply [animation:a_b_c_d_e_f_g_h_i]; }",
@@ -203,14 +220,84 @@ void describe("A static, single-operation custom `@utility` MUST be named after 
         errors: [{ message: /bg-image-url-hash-[a-f0-9]{12}/u }],
       },
       {
+        code: "@utility combined-size { @apply h-[3px] w-[4px]; }",
+        errors: [{ message: /Tailwind cannot resolve exactly one CSS property/u }],
+      },
+      {
         code: "@utility bg-size-12px-12px { @apply [background-size:12px_6px]; }",
         errors: [
           {
             message:
-              'Custom utility "bg-size-12px-12px" maps background-size: 12px_6px; rename it "bg-size-12px-6px" to preserve property/value parity.',
+              'Custom utility "bg-size-12px-12px" maps background-size: 12px 6px; rename it "bg-size-12px-6px" to preserve property/value parity.',
           },
         ],
       },
     ],
+  });
+});
+
+void describe("Tailwind compiler error handling", () => {
+  function lintWithNodeOptions(code: string, nodeOptions: string): string[] {
+    const original = process.env.NODE_OPTIONS;
+    process.env.NODE_OPTIONS = nodeOptions;
+    try {
+      const linter = new Linter();
+      const messages = linter.verify(
+        code,
+        [
+          {
+            files: ["**/*.css"],
+            plugins: { css, pasika: { rules: { "utility-name-parity": utilityNameParityRule } } },
+            language: "css/css",
+            languageOptions: { tolerant: true },
+            rules: { "pasika/utility-name-parity": "error" },
+          },
+        ],
+        { filename: "probe.css" },
+      );
+      return messages.map((message) => message.message);
+    } finally {
+      if (original === undefined) delete process.env.NODE_OPTIONS;
+      else process.env.NODE_OPTIONS = original;
+    }
+  }
+
+  it("reports a Tailwind subprocess failure instead of crashing ESLint", () => {
+    const messages = lintWithNodeOptions(
+      "@utility worker-failed { @apply [height:19px]; }",
+      "--pasika-invalid-node-option",
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("Tailwind cannot resolve exactly one CSS property");
+  });
+
+  it("rejects malformed compiler responses rather than trusting their output", () => {
+    const preload = "process.stdout.write('bad');process.exit(0)";
+    const messages = lintWithNodeOptions(
+      "@utility worker-invalid { @apply [height:23px]; }",
+      `--import=data:text/javascript,${encodeURIComponent(preload)}`,
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("Invalid Tailwind compiler response");
+  });
+
+  it("rejects a non-array compiler response", () => {
+    const preload = "process.stdout.write('{}');process.exit(0)";
+    const messages = lintWithNodeOptions(
+      "@utility worker-not-array { @apply [height:31px]; }",
+      `--import=data:text/javascript,${encodeURIComponent(preload)}`,
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("Invalid Tailwind compiler response");
+  });
+
+  it("rejects an array containing invalid compiler results", () => {
+    const preload = "process.stdout.write('[null]');process.exit(0)";
+    const messages = lintWithNodeOptions(
+      "@utility worker-invalid-array { @apply [height:29px]; }",
+      `--import=data:text/javascript,${encodeURIComponent(preload)}`,
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("Invalid Tailwind compiler response");
   });
 });

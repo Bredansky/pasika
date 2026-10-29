@@ -229,7 +229,7 @@ Why: project styling inside a custom utility bypasses Tailwind instead of going 
 }
 ```
 
-Why: the class name preserves the actual `grid-template-columns` property and its literal values instead of inventing a generic `css-` prefix or shortening the property to `grid-cols-`. Arbitrary values are forbidden in JSX, and more complex values use deterministic SHA-256 fingerprints in custom utility names.
+Why: Pasika verifies the class name against Tailwind's compiled CSS property and value instead of guessing from the `@apply` prefix. Arbitrary values stay in CSS rather than JSX, and complex values use deterministic SHA-256 fingerprints.
 
 ## Incorrect — Custom Utility No Source Uses
 

@@ -6,37 +6,14 @@
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
+import { generate, parse, toPlainObject } from "@eslint/css-tree";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
-import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers";
-
-const arbitraryPrefixProperties = new Map([
-  ["h", "height"],
-  ["w", "width"],
-  ["min-h", "min-height"],
-  ["min-w", "min-width"],
-  ["max-h", "max-height"],
-  ["max-w", "max-width"],
-  ["bg", "background-image"],
-  ["shadow", "box-shadow"],
-  ["grid-cols", "grid-template-columns"],
-  ["grid-rows", "grid-template-rows"],
-  ["text", "color"],
-  ["rounded", "border-radius"],
-  ["tracking", "letter-spacing"],
-  ["leading", "line-height"],
-  ["gap", "gap"],
-  ["p", "padding"],
-  ["m", "margin"],
-  ["top", "top"],
-  ["left", "left"],
-  ["right", "right"],
-  ["bottom", "bottom"],
-  ["inset", "inset"],
-  ["z", "z-index"],
-  ["opacity", "opacity"],
-]);
+import { atrulesNamed, blockChildren, preludeIdentifiers, rules, selectorNames } from "./helpers";
 
 function numericPart(value: string): string | undefined {
   const match =
@@ -97,71 +74,84 @@ interface Operation {
   value: string;
 }
 
-function parseOperation(applyText: string): Operation | undefined {
-  const expression = /^@apply\s+(?<content>[\s\S]+?)\s*;?$/u
-    .exec(applyText.trim())
-    ?.groups?.content?.replace(/;\s*$/u, "")
-    .trim();
-  if (!expression) return undefined;
-  const arbitraryProperty = /^\[(?<property>-?[a-z][a-z0-9-]*):(?<value>[\s\S]+)\]$/iu.exec(expression);
-  if (arbitraryProperty?.groups?.property && arbitraryProperty.groups.value) {
-    return { property: arbitraryProperty.groups.property, value: arbitraryProperty.groups.value };
+/**
+ * ESLint rules are synchronous, while Tailwind's compiler is async.
+ * Batch a stylesheet's candidates in one bounded subprocess.
+ */
+const TAILWIND_WORKER = String.raw`
+import { readFileSync } from "node:fs";
+import { compile } from "tailwindcss";
+const applies = JSON.parse(readFileSync(0, "utf8"));
+const results = [];
+for (const [index, apply] of applies.entries()) {
+  const name = "pasika-probe-" + index;
+  try {
+    const compiler = await compile("@tailwind utilities; @utility " + name + " { " + apply + " }");
+    results.push({ css: compiler.build([name]) });
+  } catch (error) {
+    results.push({ error: String(error instanceof Error ? error.message : error) });
   }
-  const arbitraryClass = /^(?<prefix>[a-z][a-z0-9-]*)-\[(?<value>[\s\S]+)\]$/u.exec(expression);
-  const prefix = arbitraryClass?.groups?.prefix;
-  const raw = arbitraryClass?.groups?.value;
-  if (prefix && raw) {
-    const kind = /^(?<hint>length|color|image|size|position):(?<value>[\s\S]+)$/u.exec(raw)?.groups;
-    const value = kind?.value ?? raw;
-    if (prefix === "text") {
-      const isLength = kind?.hint === "length" || /^(?:\d+(?:\.\d+)?)(?:px|rem|em|vh|vw|%)$/u.test(raw);
-      const isColor = kind?.hint === "color" || /^(?:#|(?:rgb|hsl|oklch|color)\()/u.test(raw);
-      if (isLength) return { property: "font-size", value };
-      if (isColor) return { property: "color", value };
-      return { property: "", value: expression }; // Tailwind text-* needs a type hint.
+}
+process.stdout.write(JSON.stringify(results));
+`;
+
+interface CompiledResult {
+  css?: string;
+  error?: string;
+}
+
+const compilerCache = new Map<string, CompiledResult[]>();
+
+function isCompiledResult(value: unknown): value is CompiledResult {
+  if (typeof value !== "object" || value === null) return false;
+  return ("css" in value && typeof value.css === "string") || ("error" in value && typeof value.error === "string");
+}
+
+function compileApplies(applies: string[], cwd: string): CompiledResult[] {
+  const key = `${cwd}\u0000${JSON.stringify(applies)}`;
+  const cached = compilerCache.get(key);
+  if (cached) return cached;
+  const child = spawnSync(process.execPath, ["--input-type=module", "--eval", TAILWIND_WORKER], {
+    cwd,
+    input: JSON.stringify(applies),
+    encoding: "utf8",
+    timeout: 30000,
+    maxBuffer: 8 * 1024 * 1024,
+    windowsHide: true,
+  });
+  let results: CompiledResult[];
+  if (child.error || child.status !== 0) {
+    const reason = child.error?.message ?? (child.stderr.trim() || "Tailwind compilation failed");
+    results = applies.map(() => ({ error: reason }));
+  } else {
+    try {
+      const parsed: unknown = JSON.parse(child.stdout);
+      if (!Array.isArray(parsed)) throw new Error("Unexpected Tailwind output");
+      const values: unknown[] = parsed;
+      results = values.filter(isCompiledResult);
+      if (results.length !== applies.length) throw new Error("Unexpected Tailwind output");
+    } catch {
+      results = applies.map(() => ({ error: "Invalid Tailwind compiler response" }));
     }
-    if (prefix === "bg") {
-      const isImage = kind?.hint === "image" || /^(?:(?:repeating-)?(?:linear|radial|conic)-gradient|url)\(/u.test(raw);
-      const isColor = kind?.hint === "color" || /^(?:#|(?:rgb|hsl|oklch|color)\()/u.test(raw);
-      if (isImage) return { property: "background-image", value };
-      if (isColor) return { property: "background-color", value };
-      if (kind?.hint === "size") return { property: "background-size", value };
-      if (kind?.hint === "position") return { property: "background-position", value };
-      return { property: "", value: expression };
-    }
-    const property = arbitraryPrefixProperties.get(prefix);
-    if (property) return { property, value: raw };
   }
-  const typedClass = /^(?<prefix>[a-z][a-z0-9-]*)-\((?<hint>[a-z-]+:)?(?<variable>--[a-z][a-z0-9-]*)\)$/u.exec(
-    expression,
+  compilerCache.set(key, results);
+  return results;
+}
+
+/** Use the CSS declaration Tailwind emits, not a guessed prefix mapping. */
+function compiledOperation(compiled: CompiledResult, index: number): Operation | undefined {
+  if (!compiled.css) return undefined;
+  const sheet = toPlainObject(parse(compiled.css, { parseValue: false }));
+  const probe = rules(sheet).find((candidate) => selectorNames(candidate).includes(`pasika-probe-${String(index)}`));
+  if (!probe) return undefined;
+  // Ignore Tailwind's implementation-only variables, not its CSS operation.
+  const declarations = blockChildren(probe).filter(
+    (child) => child.type === "Declaration" && !child.property.startsWith("--tw-"),
   );
-  if (typedClass?.groups?.prefix && typedClass.groups.variable) {
-    const typedPrefix = typedClass.groups.prefix;
-    const hinted = typedClass.groups.hint;
-    if (typedPrefix === "text" && hinted === "length:") {
-      return { property: "font-size", value: `var(${typedClass.groups.variable})` };
-    }
-    if (typedPrefix === "font" && hinted === "number:") {
-      return { property: "font-weight", value: `var(${typedClass.groups.variable})` };
-    }
-    if (typedPrefix === "font" && hinted === "family-name:") {
-      return { property: "font-family", value: `var(${typedClass.groups.variable})` };
-    }
-    if ((typedPrefix === "text" || typedPrefix === "bg" || typedPrefix === "font") && !hinted) {
-      return { property: "", value: expression };
-    }
-    if (typedPrefix === "bg" && hinted) {
-      const type = hinted.slice(0, -1);
-      if (type === "image") return { property: "background-image", value: `var(${typedClass.groups.variable})` };
-      if (type === "color") return { property: "background-color", value: `var(${typedClass.groups.variable})` };
-      if (type === "size") return { property: "background-size", value: `var(${typedClass.groups.variable})` };
-      if (type === "position") return { property: "background-position", value: `var(${typedClass.groups.variable})` };
-      return { property: "", value: expression };
-    }
-    const typedProperty = arbitraryPrefixProperties.get(typedPrefix);
-    if (typedProperty) return { property: typedProperty, value: `var(${typedClass.groups.variable})` };
-  }
-  return { property: "", value: expression };
+  if (declarations.length !== 1) return undefined;
+  const declaration = declarations[0];
+  if (declaration?.type !== "Declaration") return undefined;
+  return { property: declaration.property, value: generate(declaration.value).trim() };
 }
 
 function expectedName(operation: Operation): string {
@@ -172,12 +162,12 @@ function expectedName(operation: Operation): string {
   return `${property}-${value}`;
 }
 
-function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): Operation | undefined {
+function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): string | undefined {
   const children = blockChildren(utility);
   if (children.length !== 1) return undefined;
   const child = children[0];
   if (child?.type !== "Atrule" || child.name !== "apply") return undefined;
-  return parseOperation(textOf(child));
+  return textOf(child);
 }
 
 export const utilityNameParityRule: CSSRuleDefinition = {
@@ -191,25 +181,36 @@ export const utilityNameParityRule: CSSRuleDefinition = {
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        for (const utility of atrulesNamed(node, "utility")) {
+        const candidates = atrulesNamed(node, "utility").flatMap((utility) => {
           const name = preludeIdentifiers(utility)[0];
-          if (!name || name.endsWith("-*")) continue;
-          const operation = singleApply(utility, (child) => context.sourceCode.getText(child));
-          if (!operation) continue;
-          if (!operation.property) {
+          if (!name || name.endsWith("-*")) return [];
+          const apply = singleApply(utility, (child) => context.sourceCode.getText(child));
+          return apply ? [{ utility, name, apply }] : [];
+        });
+        if (candidates.length === 0) return;
+        // Resolve Tailwind relative to the CSS file so nested workspaces can
+        // use their own installed Tailwind version instead of the repo root's.
+        const physicalDir = path.dirname(context.physicalFilename);
+        const cwd = path.isAbsolute(physicalDir) && existsSync(physicalDir) ? physicalDir : context.cwd;
+        const compiled = compileApplies(
+          candidates.map((candidate) => candidate.apply),
+          cwd,
+        );
+        for (const [index, candidate] of candidates.entries()) {
+          const result = compiled[index];
+          const operation = result ? compiledOperation(result, index) : undefined;
+          if (!operation) {
             context.report({
-              node: utility,
-              message: `Custom utility "${name}" applies "${operation.value}", but its actual CSS property/value cannot be resolved safely; use an explicit [property:value] @apply mapping instead of a guessed name.`,
+              node: candidate.utility,
+              message: `Custom utility "${candidate.name}" applies "${candidate.apply}", but Tailwind cannot resolve exactly one CSS property${result?.error ? `: ${result.error}` : ""}; use an explicit [property:value] @apply mapping instead.`,
             });
             continue;
           }
           const expected = expectedName(operation);
-          if (name === expected) continue;
+          if (candidate.name === expected) continue;
           context.report({
-            node: utility,
-            message: `Custom utility "${name}" maps ${operation.property}: ${operation.value}; rename it "${
-              expected
-            }" to preserve property/value parity.`,
+            node: candidate.utility,
+            message: `Custom utility "${candidate.name}" maps ${operation.property}: ${operation.value}; rename it "${expected}" to preserve property/value parity.`,
           });
         }
       },
