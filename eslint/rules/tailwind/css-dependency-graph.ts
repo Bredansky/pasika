@@ -71,6 +71,7 @@ export function themeClasses(name: string): string[] {
     }
     return ["bg", "text", "border", "fill", "stroke", "ring"].map((prefix) => `${prefix}-${stem}`);
   }
+  if (name.startsWith("--background-image-")) return [`bg-${name.slice("--background-image-".length)}`];
   if (name.startsWith("--spacing-")) {
     const stem = name.slice("--spacing-".length);
     return [

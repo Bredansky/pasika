@@ -1280,8 +1280,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.",
-      "hash": "40017c73e8",
+      "text": "When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.",
+      "hash": "e1fce78b2b",
       "ref": "pasika/utility-mapping"
     },
     {

@@ -7,11 +7,18 @@ import { utilityMappingRule } from "./utility-mapping";
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-utility-cross-file-")));
 const styles = path.join(root, "src/app/styles");
 mkdirSync(styles, { recursive: true });
-writeFileSync(path.join(styles, "tokens.css"), "@theme { --radius-existing: 12px; --color-primary-canvas: #123456; }");
+writeFileSync(
+  path.join(styles, "tokens.css"),
+  `:root { --rainbow-gradient: linear-gradient(red, blue); --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@theme { --radius-existing: 12px; --color-primary-canvas: #123456; }
+@theme inline { --background-image-rainbow-gradient: var(--background-image-rainbow-gradient); }`,
+);
 const cases = {
   "radius.css": "@utility rounded-card { @apply [border-radius:12px]; }",
   "color.css": "@utility bg-brand-canvas { @apply [background-color:#123456]; }",
   "other.css": "@utility p-card { @apply [padding:12px]; }",
+  "gradient.css": "@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }",
+  "selector.css": ".rainbow-surface { background-image: var(--rainbow-gradient); }",
 };
 for (const [name, content] of Object.entries(cases)) writeFileSync(path.join(styles, name), content);
 
@@ -37,6 +44,26 @@ void describe("utility-mapping uses @theme definitions across imported CSS parti
           {
             message:
               'Custom utility "bg-brand-canvas" duplicates theme-generated "bg-primary-canvas" (background-color: #123456); reuse "bg-primary-canvas" instead.',
+          },
+        ],
+      },
+      {
+        code: cases["gradient.css"],
+        filename: path.join(styles, "gradient.css"),
+        errors: [
+          {
+            message:
+              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: cases["selector.css"],
+        filename: path.join(styles, "selector.css"),
+        errors: [
+          {
+            message:
+              'CSS class ".rainbow-surface" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
           },
         ],
       },

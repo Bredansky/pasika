@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityMappingRule } from "./utility-mapping";
 
-void describe("A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.", () => {
+void describe("When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.", () => {
   tailwindRuleTester.run("utility-mapping", utilityMappingRule, {
     valid: [
       {
@@ -333,6 +333,122 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
           {
             message:
               'Custom utility "rounded-card" duplicates theme-generated "rounded-tile" (border-radius: 12px); reuse "rounded-tile" instead.',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.", () => {
+  tailwindRuleTester.run("utility-mapping:prefer-theme-first", utilityMappingRule, {
+    valid: [
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--other-gradient); }
+@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+.banner { background-image: var(--rainbow-gradient); background-size: 200% 100%; }`,
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@media (min-width: 50rem) { .banner { background-image: var(--rainbow-gradient); } }`,
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+.banner:hover { background-image: var(--rainbow-gradient); }`,
+      },
+    ],
+    invalid: [
+      {
+        code: `@theme { --color-primary-canvas: #aabbcc; }
+@utility bg-accent-canvas { @apply [background-color:#abc]; }`,
+        errors: [
+          {
+            message:
+              'Custom utility "bg-accent-canvas" duplicates theme-generated "bg-primary-canvas" (background-color: #abc); reuse "bg-primary-canvas" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        errors: [
+          {
+            message:
+              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `:root { --rainbow-gradient: linear-gradient(red, blue); --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@theme inline { --background-image-rainbow-gradient: var(--background-image-rainbow-gradient); }
+@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        errors: [
+          {
+            message:
+              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@utility bg-rainbow-gradient { background-image: var(--rainbow-gradient); }`,
+        errors: [
+          {
+            message:
+              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@utility fancy-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        errors: [
+          {
+            message:
+              'Custom utility "fancy-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+.custom-banner { @apply [background-image:var(--rainbow-gradient)]; }`,
+        errors: [
+          {
+            message:
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+.custom-banner { @apply bg-rainbow-gradient; }`,
+        errors: [
+          {
+            message:
+              'CSS class ".custom-banner" only aliases theme-generated "bg-rainbow-gradient"; use "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+@layer components { .custom-banner { background-image: var(--rainbow-gradient); } }`,
+        errors: [
+          {
+            message:
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
+          },
+        ],
+      },
+      {
+        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+.custom-banner { background-image: var(--rainbow-gradient); }`,
+        errors: [
+          {
+            message:
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
           },
         ],
       },

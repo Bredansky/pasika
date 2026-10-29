@@ -16,7 +16,7 @@ import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
-import { buildCssDependencyGraph } from "./css-dependency-graph";
+import { buildCssDependencyGraph, themeClasses } from "./css-dependency-graph";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rawValue, rules } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
@@ -57,6 +57,7 @@ const themeOperations = [
   { property: "tab-size", prefix: "tab", namespace: "tab-size" },
   { property: "border-radius", prefix: "rounded", namespace: "radius" },
   { property: "background-color", prefix: "bg", namespace: "color" },
+  { property: "background-image", prefix: "bg", namespace: "background-image" },
   { property: "color", prefix: "text", namespace: "color" },
   { property: "border-color", prefix: "border", namespace: "color" },
   { property: "outline-color", prefix: "outline", namespace: "color" },
@@ -100,10 +101,11 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
     /^@utility\s+[\w-]+\s*\{\s*@apply\s+(?<kind>[a-z]+)-\((?<hint>[a-z-]+:)?(?<variable>--[a-z][a-z0-9-]*)\);?\s*\}$/u.exec(
       source,
     );
-  const property = arbitrary?.groups?.property;
+  const direct = /^@utility\s+[\w-]+\s*\{\s*(?<property>[a-z-]+)\s*:\s*(?<value>[^;{}\r\n]+);?\s*\}$/u.exec(source);
+  const property = arbitrary?.groups?.property ?? direct?.groups?.property;
   const matched = themeOperations.find((operation) => {
-    if (!name.startsWith(`${operation.prefix}-`) || name.length <= operation.prefix.length + 1) return false;
     if (property) return property === operation.property;
+    if (!name.startsWith(`${operation.prefix}-`) || name.length <= operation.prefix.length + 1) return false;
     if (typed?.groups?.kind !== operation.prefix) return false;
     const hint = typed.groups.hint;
     if (operation.prefix === "text") return hint === (operation.property === "font-size" ? "length:" : "color:");
@@ -115,7 +117,9 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   if (!matched) return undefined;
 
   const value =
-    arbitrary?.groups?.value?.trim() ?? (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
+    arbitrary?.groups?.value?.trim() ??
+    direct?.groups?.value?.trim() ??
+    (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
   if (!value) return undefined;
   // Do not approximate calc(), color-mix(), filter functions, composite values,
   // or underscore escapes; compiled CSS is required to prove equivalence.
@@ -127,9 +131,9 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   if (!simple && !variable && !color && !keyword && !ratio) return undefined;
   if (matched.property === "font-size" && value.startsWith("-")) return undefined;
 
-  const stem = name.slice(matched.prefix.length + 1);
+  const stem = name.startsWith(`${matched.prefix}-`) ? name.slice(matched.prefix.length + 1) : undefined;
   return {
-    token: `--${matched.namespace}-${stem}`,
+    token: stem ? `--${matched.namespace}-${stem}` : "",
     property: matched.property,
     value,
     prefix: matched.prefix,
@@ -209,6 +213,39 @@ export const utilityMappingRule: CSSRuleDefinition = {
       includeReferences: false,
     });
     const projectTokens = graph.definitions.filter((symbol) => symbol.kind === "theme-token");
+    const rootDefinitions = new Map<string, { value: string; scope: string }[]>();
+    for (const symbol of graph.definitions) {
+      if (symbol.kind !== "root-variable" || !symbol.value) continue;
+      const values = rootDefinitions.get(symbol.name) ?? [];
+      values.push({ value: symbol.value, scope: symbol.scope ?? "default" });
+      rootDefinitions.set(symbol.name, values);
+    }
+
+    function comparableValue(value: string, visited = new Set<string>()): string | undefined {
+      const text = value.trim();
+      const match = /^var\((?<name>--[a-z][a-z0-9-]*)\)$/u.exec(text);
+      const name = match?.groups?.name;
+      if (!name) {
+        const hex = /^#(?<digits>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(text)?.groups?.digits;
+        if (!hex) return text;
+        const lower = hex.toLowerCase();
+        return lower.length <= 4 ? Array.from(lower, (digit) => digit + digit).join("") : lower;
+      }
+      if (visited.has(name)) return undefined;
+      const values = rootDefinitions.get(name);
+      if (!values) return text; // Same unresolved var() is still the same CSS operation.
+      if (values.length !== 1 || values[0]?.scope !== "default") return undefined;
+      const next = values[0].value;
+      if (!next) return undefined;
+      visited.add(name);
+      return comparableValue(next, visited);
+    }
+
+    function equivalentValue(a: string, b: string): boolean {
+      const left = comparableValue(a);
+      const right = comparableValue(b);
+      return left !== undefined && right !== undefined && left === right;
+    }
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
@@ -237,6 +274,19 @@ export const utilityMappingRule: CSSRuleDefinition = {
             const definitions = themeDefinitions.get(child.property) ?? [];
             definitions.push({ node: child, value });
             themeDefinitions.set(child.property, definitions);
+          }
+        }
+
+        // RuleTester supplies the current stylesheet in memory; include its
+        // top-level roots even when it has not been written into the project graph.
+        for (const cssRule of node.children) {
+          if (cssRule.type !== "Rule") continue;
+          if (context.sourceCode.getText(cssRule.prelude).trim() !== ":root") continue;
+          for (const child of blockChildren(cssRule)) {
+            if (child.type !== "Declaration" || !child.property.startsWith("--")) continue;
+            if (rootDefinitions.has(child.property)) continue;
+            const value = declarationValue(context.sourceCode.getText(child));
+            if (value) rootDefinitions.set(child.property, [{ value, scope: "default" }]);
           }
         }
 
@@ -304,8 +354,47 @@ export const utilityMappingRule: CSSRuleDefinition = {
           }
         }
 
+        function matchingThemeToken(candidate: ThemeCandidate): string | undefined {
+          const namespacePrefix = `--${candidate.namespace}-`;
+          const available = [
+            ...projectTokens,
+            ...[...themeDefinitions].flatMap(([name, definitions]) =>
+              definitions.length === 1 && definitions[0] ? [{ name, value: definitions[0].value }] : [],
+            ),
+          ];
+          for (const token of available) {
+            if (!token.value || !token.name.startsWith(namespacePrefix) || token.name.includes("--", 2)) continue;
+            if (!equivalentValue(candidate.value, token.value)) continue;
+            // Typography tokens can emit additional declarations beyond font-size.
+            if (
+              candidate.namespace === "text" &&
+              ["--line-height", "--letter-spacing", "--font-weight"].some(
+                (suffix) =>
+                  themeDefinitions.has(`${token.name}${suffix}`) ||
+                  projectTokens.some((entry) => entry.name === `${token.name}${suffix}`),
+              )
+            ) {
+              continue;
+            }
+            const generatedClass = `${candidate.prefix}-${token.name.slice(namespacePrefix.length)}`;
+            if (candidate.namespace === "color" && !themeClasses(token.name).includes(generatedClass)) continue;
+            return generatedClass;
+          }
+          return undefined;
+        }
+
         for (const utility of utilities) {
           const name = preludeIdentifiers(utility)[0] ?? "unknown";
+          const candidate = themeCandidate(name, context.sourceCode.getText(utility));
+          const equivalent = candidate ? matchingThemeToken(candidate) : undefined;
+          if (candidate && equivalent && nameCounts.get(name) === 1) {
+            context.report({
+              node: utility,
+              message: `Custom utility "${name}" duplicates theme-generated "${equivalent}" (${candidate.property}: ${candidate.value}); reuse "${equivalent}" instead.`,
+            });
+            continue;
+          }
+
           const operationCount = applyOperationCount(utility);
           if (operationCount !== 1) {
             context.report({
@@ -316,62 +405,11 @@ export const utilityMappingRule: CSSRuleDefinition = {
             });
             continue;
           }
-
-          if (nameCounts.get(name) !== 1) continue;
-          const candidate = themeCandidate(name, context.sourceCode.getText(utility));
-          if (!candidate) continue;
+          if (nameCounts.get(name) !== 1 || !candidate?.token) continue;
           const tokenAlreadyDefined =
             themeTokens.has(candidate.token) || projectTokens.some((token) => token.name === candidate.token);
-
-          // A matching configured token already generates an equivalent class.
-          // Compare literal operations only; dynamic expressions and CSS
-          // multi-operation generators require compiled-output verification.
-          const namespacePrefix = `--${candidate.namespace}-`;
-          const staticValue = !/\b(?:var|env|attr|calc|min|max|clamp|color-mix|light-dark)\s*\(/iu.test(
-            candidate.value,
-          );
-          const valueKey = (value: string): string => {
-            const input = value.trim();
-            const digits = /^#(?<hex>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(input)?.groups?.hex;
-            if (digits) {
-              const lower = digits.toLowerCase();
-              return lower.length <= 4 ? Array.from(lower, (digit) => digit + digit).join("") : lower;
-            }
-            return input;
-          };
-          const sameOperation = (token: string, value: string): boolean =>
-            token.startsWith(namespacePrefix) &&
-            !token.includes("--", 2) &&
-            valueKey(value) === valueKey(candidate.value) &&
-            (candidate.namespace !== "text" ||
-              !["--line-height", "--letter-spacing", "--font-weight"].some(
-                (suffix) =>
-                  themeDefinitions.has(`${token}${suffix}`) ||
-                  projectTokens.some((definition) => definition.name === `${token}${suffix}`),
-              ));
-          const equivalent = staticValue
-            ? projectTokens.find((token) => token.value !== undefined && sameOperation(token.name, token.value))
-            : undefined;
-          const localEquivalent = staticValue
-            ? [...themeDefinitions].find(
-                ([token, definitions]) =>
-                  definitions.length === 1 &&
-                  definitions[0]?.value !== undefined &&
-                  sameOperation(token, definitions[0].value),
-              )?.[0]
-            : undefined;
-          const existingToken = equivalent?.name ?? localEquivalent;
-          if (tokenAlreadyDefined && !existingToken) continue;
-          if (existingToken) {
-            const className = `${candidate.prefix}-${existingToken.slice(namespacePrefix.length)}`;
-            context.report({
-              node: utility,
-              message: `Custom utility "${name}" duplicates theme-generated "${className}" (${candidate.property}: ${candidate.value}); reuse "${className}" instead.`,
-            });
-            continue;
-          }
+          if (tokenAlreadyDefined) continue; // A conflicting definition is not a safe replacement.
           if (candidate.property === "font-size" && themeTokens.has(`--color-${name.slice(5)}`)) continue;
-
           context.report({
             node: utility,
             message:
@@ -380,6 +418,63 @@ export const utilityMappingRule: CSSRuleDefinition = {
               "Preserve the class name and compare compiled CSS before removing the utility.",
           });
         }
+
+        // Theme classes take precedence over plain classes and @layer utility/component aliases.
+        // Keep contextual selectors, conditional at-rules, and multi-operation bundles unchanged.
+        function checkClass(cssNode: CssNodePlain): void {
+          if (cssNode.type === "Atrule") {
+            if (cssNode.name !== "layer" || !("prelude" in cssNode) || !cssNode.prelude) return;
+            if (context.sourceCode.getText(cssNode.prelude).trim() === "base") return;
+            for (const child of blockChildren(cssNode)) checkClass(child);
+            return;
+          }
+          if (cssNode.type !== "Rule") return;
+          const selector = context.sourceCode.getText(cssNode.prelude).trim();
+          if (!/^\.[a-zA-Z_][\w-]*$/u.test(selector)) return;
+          const children = blockChildren(cssNode);
+          if (children.length !== 1) return;
+          const only = children[0];
+          if (!only) return;
+          const declarationText = context.sourceCode.getText(only).trim();
+          if (only.type === "Atrule" && only.name === "apply") {
+            const alias = /^@apply\s+(?<name>[a-z][a-z0-9-]*)\s*;?$/u.exec(declarationText)?.groups?.name;
+            if (
+              alias &&
+              [...projectTokens.map((token) => token.name), ...themeDefinitions.keys()].some((name) =>
+                themeClasses(name).includes(alias),
+              )
+            ) {
+              context.report({
+                node: cssNode,
+                message: `CSS class "${selector}" only aliases theme-generated "${alias}"; use "${alias}" instead.`,
+              });
+              return;
+            }
+          }
+          const found =
+            only.type === "Declaration"
+              ? /^(?<property>[a-z-]+)\s*:\s*(?<value>[^;{}]+);?$/u.exec(declarationText)
+              : /^@apply\s+\[(?<property>[a-z-]+):(?<value>[^\]\r\n;{}]+)\]\s*;?$/u.exec(declarationText);
+          const property = found?.groups?.property;
+          const value = found?.groups?.value?.trim();
+          if (!property || !value || value.endsWith("!important")) return;
+          const operation = themeOperations.find((item) => item.property === property);
+          if (!operation) return;
+          const candidate: ThemeCandidate = {
+            token: "",
+            property,
+            value,
+            prefix: operation.prefix,
+            namespace: operation.namespace,
+          };
+          const equivalent = matchingThemeToken(candidate);
+          if (!equivalent) return;
+          context.report({
+            node: cssNode,
+            message: `CSS class "${selector}" duplicates theme-generated "${equivalent}" (${property}: ${value}); use "${equivalent}" instead.`,
+          });
+        }
+        for (const cssRule of node.children) checkClass(cssRule);
       },
     };
   },

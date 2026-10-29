@@ -11,7 +11,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
-- A custom `@utility` MUST NOT recreate a theme-generated utility; reuse an existing class or define a theme token instead.
+- When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Background Using a Text Color
