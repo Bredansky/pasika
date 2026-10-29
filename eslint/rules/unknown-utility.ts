@@ -29,7 +29,7 @@ import { sourceRootOf } from "./project-root";
 
 /** The theme-variable namespaces Tailwind turns into utilities, and the utility prefixes that consume each one. */
 const PREFIX_NAMESPACES: Record<string, string[]> = {
-  bg: ["color"],
+  bg: ["color", "background-image"],
   text: ["color", "text"],
   border: ["color"],
   ring: ["color"],
@@ -511,8 +511,12 @@ function readInventory(files: string[]): Inventory {
     for (const block of themeBlocks(css)) {
       if (/--\*\s*:\s*initial\b/.test(block)) defaultsReset = true;
       for (const decl of block.matchAll(/--(?<namespace>[a-z][a-z0-9]*)-(?<token>[a-z0-9][a-z0-9_-]*)\s*:/g)) {
-        const namespace = decl.groups?.namespace;
-        const token = decl.groups?.token;
+        let namespace = decl.groups?.namespace;
+        let token = decl.groups?.token;
+        if (namespace === "background" && token?.startsWith("image-")) {
+          namespace = "background-image";
+          token = token.slice("image-".length);
+        }
         if (!namespace || !token) continue;
         let set = themeTokensByNamespace.get(namespace);
         if (!set) {

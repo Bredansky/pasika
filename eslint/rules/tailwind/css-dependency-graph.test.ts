@@ -133,6 +133,17 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     expect(cssSymbolUsages(index, "theme-class", "bg-primary-ink")).toEqual([]);
   });
 
+  it("tracks generated background image classes from theme variables", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [{ path: tokens, content: "@theme { --background-image-rainbow-gradient: linear-gradient(red, blue); }" }],
+      modules: [{ path: component, content: 'const cls = "bg-rainbow-gradient";' }],
+    });
+    expect(cssSymbolUsages(index, "theme-class", "bg-rainbow-gradient")).toEqual([
+      expect.objectContaining({ token: "--background-image-rainbow-gradient", file: component }),
+    ]);
+  });
+
   it("tracks generated spacing utilities from their theme tokens", () => {
     const index = buildCssDependencyGraph({
       sourceRoot: root,
