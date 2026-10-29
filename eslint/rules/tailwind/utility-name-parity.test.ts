@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("A static, single-operation custom `@utility` MUST be named after its CSS property and value, preserving units and hashing complex values. Ambiguous mappings MUST use explicit `[property:value]` syntax.", () => {
+void describe("A static, single-operation custom `@utility` MUST be named after its CSS property and value, preserving units and hashing complex values.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
