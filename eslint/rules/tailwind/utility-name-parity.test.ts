@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("A static, single-operation custom `@utility` MUST be named after its CSS property and value, preserving units and hashing complex values.", () => {
+void describe("A static custom `@utility` MUST use a name derived from its CSS property and value, including units.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
