@@ -95,15 +95,15 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 
 Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities.
 
-## Incorrect — Raw Property Inside a Custom Utility
+## Incorrect — Theme Color Wrapped in a Custom Utility
 
 ```css
 @utility border-control-edge {
-  border-color: var(--color-control-edge);
+  @apply [border-color:var(--color-control-edge)];
 }
 ```
 
-Why: project styling inside `@utility` must use Tailwind's `@apply` mapping.
+Why: the color token belongs in `@theme`, which already generates `border-control-edge` without a custom utility.
 
 ## Correct — A Theme-Generated Border Color
 
