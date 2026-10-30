@@ -1184,8 +1184,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping MAY be used only when the runtime variable is actually overridden by scoped CSS, conditional CSS, or runtime code; this mapping is valid CSS but redundant without an override.",
-      "hash": "dadd332bb0",
+      "text": "Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MAY be used only when Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call; the mapping is valid CSS but redundant without a detected override.",
+      "hash": "e461fafff8",
       "ref": "pasika/root-variables"
     },
     {
