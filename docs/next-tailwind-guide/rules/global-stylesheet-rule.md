@@ -1,6 +1,6 @@
 # Global Stylesheet Rule
 
-A single Tailwind entry point and a predictable stylesheet import tree keep CSS ownership, imports, and global defaults easy to trace. Token definitions and custom utility behavior belong to the theme and utility definition rule.
+Scattered stylesheets and competing Tailwind entry points obscure CSS ownership and ordering. A single entry point keeps imports and global defaults predictable.
 
 - Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
@@ -57,8 +57,12 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 
 /* src/app/styles/home.css */
 @keyframes home-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 ```
 
