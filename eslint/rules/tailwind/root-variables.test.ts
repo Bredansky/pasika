@@ -317,7 +317,7 @@ void describe("Runtime mappings require unconditional defaults and matching over
   }
 });
 
-void describe("Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.", () => {
+void describe("Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.", () => {
   tailwindRuleTester.run("root-variables-token-overrides", rootVariablesRule, {
     valid: [
       {
@@ -355,7 +355,7 @@ void describe("Tokens declared in non-inline `@theme` blocks MUST NOT be overrid
   });
 });
 
-void describe("Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.", () => {
+void describe("Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

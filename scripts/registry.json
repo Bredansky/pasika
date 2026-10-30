@@ -1172,8 +1172,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.",
-      "hash": "707f6de775",
+      "text": "Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.",
+      "hash": "776ec6cebc",
       "ref": "pasika/root-variables"
     },
     {
