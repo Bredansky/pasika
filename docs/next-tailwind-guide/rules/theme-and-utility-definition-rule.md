@@ -1,7 +1,11 @@
 # Theme and Utility Definition Rule
 
-Project values need stable Tailwind names, while presentation reuse belongs to components. Custom utilities bridge values or properties into Tailwind; they are not reusable style bundles.
+Theme tokens define stable Tailwind utilities and their runtime values. Custom utilities expose otherwise unsupported single styling operations; reusable presentation belongs to components.
 
+- Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
+- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
+- A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
+- An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
@@ -61,7 +65,71 @@ Why: a literal token value does not need inline variable resolution and belongs 
 }
 ```
 
-Why: a literal color needs a direct `@theme` definition. Runtime overrides and self-named `@theme inline` mappings are covered by the global stylesheet rule.
+Why: a literal color belongs directly in `@theme`. Values with runtime overrides use a default `:root` variable and a matching `@theme inline` mapping.
+
+## Incorrect — Theme Overrides a Tailwind Token
+
+```css
+@theme {
+  --color-primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
+  --color-primary-canvas: #18181b;
+}
+```
+
+Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
+
+## Correct — Theme Overrides the Runtime Color
+
+```css
+:root {
+  --color-primary-canvas: #fafafa;
+}
+
+[data-theme="dark"] {
+  --color-primary-canvas: #18181b;
+}
+
+@theme inline {
+  --color-primary-canvas: var(--color-primary-canvas);
+}
+```
+
+Why: `:root` defines the runtime value, scoped selectors override it, and `@theme inline` makes it available as a Tailwind utility.
+
+## Incorrect — Scoped Radius Overrides a Fixed Token
+
+```css
+@theme {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+```
+
+Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a runtime CSS variable and a matching `@theme inline` mapping for scoped values.
+
+## Correct — Scoped Radius Uses the Same Token Name
+
+```css
+:root {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+
+@theme inline {
+  --radius-card: var(--radius-card);
+}
+```
+
+Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
 
 ## Incorrect — A Font List Outside `var()` Is Not Its Fallback
 
