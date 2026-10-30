@@ -1190,8 +1190,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.",
-      "hash": "370d02d043",
+      "text": "Global selectors inside `@layer base` MUST contain only `@apply` directives.",
+      "hash": "3e4883d186",
       "ref": "pasika/apply-usage"
     },
     {
