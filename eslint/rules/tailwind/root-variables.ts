@@ -8,20 +8,24 @@
  * Tailwind emits @theme inside its lower-priority theme cascade layer.
  * Unlayered :root and scoped runtime declarations win over that layer, so an
  * intentional 1:1 @theme inline mapping is valid rather than a CSS var() cycle.
+ * Without runtime overrides, however, the intermediate :root value is redundant:
+ * the token's value belongs directly in @theme.
  * This convention applies to every Tailwind token namespace, not just colors.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
-import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
+import { generate, parse, walk, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers";
-import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
+import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
+  `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
@@ -74,6 +78,34 @@ export const rootVariablesRule: CSSRuleDefinition = {
         }
       }
     }
+    // Runtime overrides make 1:1 mappings meaningful. An ordinary default
+    // :root is not an override; scoped selectors and conditional :root are.
+    // Scan every stylesheet, since an override can live outside this file.
+    const overriddenNames = new Set<string>(
+      graph.definitions
+        .filter((symbol) => symbol.kind === "root-variable" && symbol.scope === "conditional")
+        .map((symbol) => symbol.name),
+    );
+    for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
+      const css = path.normalize(file) === current ? context.sourceCode.text : textOf(file);
+      const tree = parse(css, { parseAtrulePrelude: false });
+      walk(tree, {
+        enter(node) {
+          if (node.type !== "Declaration" || !node.property.startsWith("--")) return;
+          if (this.rule?.type !== "Rule") return;
+          if (generate(this.rule.prelude).trim() !== ":root") overriddenNames.add(node.property);
+        },
+      });
+    }
+
+    // CSS-in-JS may deliberately update an otherwise unscoped runtime variable.
+    // Do not label an explicit setProperty target as a static-only token.
+    for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
+      for (const found of textOf(file).matchAll(/\.setProperty\s*\(\s*["'\x60](?<name>--[\w-]+)["'\x60]/gu)) {
+        if (found.groups?.name) overriddenNames.add(found.groups.name);
+      }
+    }
+
     const defaultRootNames = new Set(
       graph.definitions
         .filter((symbol) => symbol.kind === "root-variable" && symbol.scope === "default")
@@ -102,16 +134,31 @@ export const rootVariablesRule: CSSRuleDefinition = {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
                 if (runtime && runtime !== name) {
-                  context.report({
-                    node: theme,
-                    message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,
-                  });
+                  // Theme tokens may depend on other @theme variables directly.
+                  // Fonts injected by next/font are also runtime variables;
+                  // require a font-family fallback in the inline value.
+                  const externalFont =
+                    name.startsWith("--font-") && runtime.startsWith("--font-") && /,\s*[^\s,)]+/u.test(unquoted);
+                  if (!names.has(runtime) && !externalFont) {
+                    context.report({
+                      node: theme,
+                      message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,
+                    });
+                  }
                 } else if (runtime && !defaultRootNames.has(runtime)) {
                   context.report({
                     node: theme,
                     message: `Tailwind token "${name}" references "${runtime}" without a default :root declaration.`,
                   });
                 }
+              }
+            }
+            if (inline && referencesVariable && defaultRootNames.has(name) && !overriddenNames.has(name)) {
+              const references = [...unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)].map(
+                (reference) => reference.groups?.variable,
+              );
+              if (references.length > 0 && references.every((variable) => variable === name)) {
+                context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
               }
             }
             if (inline === referencesVariable) continue;
