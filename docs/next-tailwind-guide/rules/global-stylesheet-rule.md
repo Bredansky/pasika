@@ -7,7 +7,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.
-- Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.
+- Project stylesheets MUST use either `@theme` or `@theme inline`, never both; the chosen block MUST include the `--*: initial` reset.
 - Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -155,11 +155,8 @@ Why: the root layout imports one global CSS entry point, which directly imports 
   --color-accent-canvas: #60a5fa;
 }
 
-@theme {
-  --*: initial;
-}
-
 @theme inline {
+  --*: initial;
   --color-base-canvas: var(--color-base-canvas);
   --color-base-ink: var(--color-base-ink);
   --color-accent-canvas: var(--color-accent-canvas);
@@ -172,4 +169,4 @@ Why: the root layout imports one global CSS entry point, which directly imports 
 }
 ```
 
-Why: `@theme` only resets Tailwind defaults, while `@theme inline` maps theme-dependent colors to runtime CSS variables with light defaults and scoped dark overrides. No direct-value `@theme` tokens are mixed with inline tokens.
+Why: `@theme inline` both resets Tailwind defaults and maps theme-dependent colors to runtime CSS variables with light defaults and scoped dark overrides; no separate `@theme` block is needed.

@@ -25,8 +25,7 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const MIXED_THEME_MESSAGE =
-  "Use either direct @theme tokens or @theme inline tokens across the project, not both; @theme may still reset --*: initial.";
+const MIXED_THEME_MESSAGE = "Use either @theme or @theme inline across the project, not both.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
@@ -76,8 +75,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
     const mirroredTokens = new Set<string>();
-    let hasDirectThemeTokens = false;
-    let hasInlineThemeTokens = false;
+    let hasPlainThemeBlocks = false;
+    let hasInlineThemeBlocks = false;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -85,14 +84,14 @@ export const rootVariablesRule: CSSRuleDefinition = {
       );
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
+        if (inline) hasInlineThemeBlocks = true;
+        else hasPlainThemeBlocks = true;
         for (const declaration of (theme.groups?.body ?? "").matchAll(
           /(?:^|;)\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;]*)/gu,
         )) {
           const { name, value } = declaration.groups ?? {};
           if (!name) continue;
           names.add(name);
-          if (inline) hasInlineThemeTokens = true;
-          else hasDirectThemeTokens = true;
           if (inline && /\bvar\s*\(/u.test(value ?? "")) {
             mirroredTokens.add(name);
           }
@@ -136,12 +135,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const localThemes = atrulesNamed(node, "theme");
-        if (hasDirectThemeTokens && hasInlineThemeTokens) {
-          const mixed = localThemes.find((theme) => {
-            const source = context.sourceCode.getText(theme).replace(/\/\*[\s\S]*?\*\//gu, " ");
-            return /(?:^|[{;\r\n])\s*--[a-z][\w-]*\s*:/u.test(source);
-          });
-          if (mixed) context.report({ node: mixed, message: MIXED_THEME_MESSAGE });
+        if (hasPlainThemeBlocks && hasInlineThemeBlocks && localThemes[0]) {
+          context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
         }
         for (const theme of localThemes) {
           const inline = preludeIdentifiers(theme).includes("inline");

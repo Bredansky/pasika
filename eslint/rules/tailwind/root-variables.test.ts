@@ -6,8 +6,7 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const MIXED =
-  "Use either direct @theme tokens or @theme inline tokens across the project, not both; @theme may still reset --*: initial.";
+const MIXED = "Use either @theme or @theme inline across the project, not both.";
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const rootDuplicate = (name: string): string =>
@@ -122,12 +121,12 @@ void describe("Tailwind tokens MUST use `@theme inline` when their values refere
   });
 });
 
-void describe("Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.", () => {
+void describe("Project stylesheets MUST use either `@theme` or `@theme inline`, never both; the chosen block MUST include the `--*: initial` reset.", () => {
   tailwindRuleTester.run("root-variables-theme-strategy", rootVariablesRule, {
     valid: [
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
       {
-        code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme { --*: initial; } @theme inline { --color-brand: var(--color-brand); }",
+        code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme inline { --*: initial; --color-brand: var(--color-brand); }",
       },
     ],
     invalid: [
@@ -137,6 +136,10 @@ void describe("Project stylesheets MUST NOT combine direct-value `@theme` tokens
       },
       {
         code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --color-brand: blue; } @theme inline { --color-surface: var(--color-surface); }",
+        errors: [{ message: MIXED }],
+      },
+      {
+        code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --*: initial; } @theme inline { --color-surface: var(--color-surface); }",
         errors: [{ message: MIXED }],
       },
     ],

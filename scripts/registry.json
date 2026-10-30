@@ -1172,8 +1172,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.",
-      "hash": "58d3c34120",
+      "text": "Project stylesheets MUST use either `@theme` or `@theme inline`, never both; the chosen block MUST include the `--*: initial` reset.",
+      "hash": "baf25d7ab5",
       "ref": "pasika/root-variables"
     },
     {

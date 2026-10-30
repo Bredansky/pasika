@@ -25,6 +25,10 @@ void describe("The global stylesheet MUST reset Tailwind's default theme with --
         },
         {
           filename: filename("globals.css"),
+          code: "@theme inline {\n  --*: initial;\n  --color-brand: var(--color-brand);\n}",
+        },
+        {
+          filename: filename("globals.css"),
           code: "@theme {\n  --*: initial;\n  --animate-pulse: pulse 2s infinite;\n  @keyframes pulse {\n    50% { opacity: 0.5; }\n  }\n}",
         },
         {
