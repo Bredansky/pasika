@@ -10,7 +10,9 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
 - Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.
-- An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
+- An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.
+- An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.
+- A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.

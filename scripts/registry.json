@@ -1190,8 +1190,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.",
-      "hash": "fae48c0f23",
+      "text": "An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.",
+      "hash": "54877acab7",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.",
+      "hash": "78daaa84cf",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.",
+      "hash": "ff09fe17d9",
       "ref": "pasika/root-variables"
     },
     {

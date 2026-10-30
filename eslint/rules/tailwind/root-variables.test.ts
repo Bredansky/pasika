@@ -27,13 +27,6 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
       { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
       { code: "@theme { --primary: 290 80% 65%; } @theme inline { --color-primary-canvas: hsl(var(--primary)); }" },
       {
-        code: "@theme { --color-primary-canvas: #aabbcc; } @theme inline { --color-primary-edge: var(--color-primary-canvas); }",
-      },
-      { code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }" },
-      { code: '@theme inline { --font-sans: var(--font-inter, "Helvetica Neue"), sans-serif; }' },
-      { code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)), sans-serif; }" },
-      { code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }" },
-      {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
       },
       {
@@ -94,18 +87,6 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
       {
         code: ":root { --background-image-rainbow-gradient: linear-gradient(red, blue); } @theme inline { --background-image-rainbow-gradient: var(--background-image-rainbow-gradient); }",
         errors: [{ message: redundant("--background-image-rainbow-gradient") }],
-      },
-      {
-        code: "@theme inline { --font-sans: var(--font-inter), Arial, sans-serif; }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
-      },
-      {
-        code: "@theme inline { --font-sans: var(--font-inter, ), sans-serif; }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
-      },
-      {
-        code: "@theme inline { --font-sans: var(--font-inter); }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
       },
       {
         code: "@theme inline { --color-brand: #2563eb; }",
@@ -170,7 +151,48 @@ void describe("Fixed design tokens MUST be defined directly in `@theme` rather t
   });
 });
 
-void describe("An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.", () => {
+void describe("An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.", () => {
+  tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
+    valid: [
+      {
+        code: "@theme { --color-primary-canvas: #aabbcc; } @theme inline { --color-primary-edge: var(--color-primary-canvas); }",
+      },
+      { code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }" },
+    ],
+    invalid: [
+      {
+        code: "@theme inline { --color-primary-edge: var(--unknown-primary); }",
+        errors: [{ message: wrongVariable("--color-primary-edge", "--unknown-primary") }],
+      },
+    ],
+  });
+});
+
+void describe("An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.", () => {
+  tailwindRuleTester.run("root-variables-external-font-fallbacks", rootVariablesRule, {
+    valid: [
+      { code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }" },
+      { code: '@theme inline { --font-sans: var(--font-inter, "Helvetica Neue"), sans-serif; }' },
+      { code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)), sans-serif; }" },
+    ],
+    invalid: [
+      {
+        code: "@theme inline { --font-sans: var(--font-inter), Arial, sans-serif; }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--font-inter, ), sans-serif; }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--font-inter); }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+    ],
+  });
+});
+
+void describe("A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-tokens-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
