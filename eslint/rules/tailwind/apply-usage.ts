@@ -1,28 +1,35 @@
 /**
  * ESLint rule: pasika/apply-usage
  *
- * Style declarations added by the project inside global selectors MUST use
- * @apply.
+ * Global selectors inside @layer base MUST contain only @apply directives.
+ * Outside the base layer, raw styling is forbidden and CSS variables are
+ * handled by the global-selector-styling rule.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
-import { blockChildren } from "./helpers";
+import { blockChildren, preludeIdentifiers } from "./helpers";
 
-function reportRawDeclarations(context: Parameters<CSSRuleDefinition["create"]>[0], rule: CssNodePlain): void {
+function reportRawDeclarations(
+  context: Parameters<CSSRuleDefinition["create"]>[0],
+  rule: CssNodePlain,
+  insideBase: boolean,
+): void {
   for (const child of blockChildren(rule)) {
     if (child.type === "Declaration") {
-      if (child.property.startsWith("--")) continue;
+      if (!insideBase && child.property.startsWith("--")) continue;
       context.report({
         node: child,
-        message: `Style declaration "${child.property}" inside a global selector must use @apply.`,
+        message: insideBase
+          ? `Global selectors inside @layer base may only contain @apply directives; found "${child.property}".`
+          : `Style declaration "${child.property}" inside a global selector must use @apply.`,
       });
       continue;
     }
-    if (child.type === "Rule" || (child.type === "Atrule" && ["media", "supports", "container"].includes(child.name))) {
-      reportRawDeclarations(context, child);
+    if (child.type === "Rule" || (child.type === "Atrule" && child.name !== "apply")) {
+      reportRawDeclarations(context, child, insideBase);
     }
   }
 }
@@ -32,27 +39,27 @@ export const applyUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require @apply for project style declarations inside global selectors.",
+      description: "Require only @apply directives in global selectors inside @layer base.",
     },
   },
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        // Check every top-level selector, not only @layer base. Theme selectors
-        // may declare CSS custom properties directly; every other styling
-        // declaration must go through Tailwind's @apply.
-        for (const child of node.children) {
-          if (child.type === "Rule") reportRawDeclarations(context, child);
-          if (child.type !== "Atrule" || child.name !== "layer") continue;
-          for (const layered of blockChildren(child)) {
-            if (
-              layered.type === "Rule" ||
-              (layered.type === "Atrule" && ["media", "supports", "container"].includes(layered.name))
-            ) {
-              reportRawDeclarations(context, layered);
-            }
+        function visit(current: CssNodePlain, insideBase = false): void {
+          if (current.type === "Atrule" && ["theme", "utility", "keyframes"].includes(current.name)) return;
+          if (current.type === "Rule") {
+            reportRawDeclarations(context, current, insideBase);
+            return;
+          }
+          const inBaseLayer =
+            insideBase ||
+            (current.type === "Atrule" && current.name === "layer" && preludeIdentifiers(current).includes("base"));
+          const children = current.type === "StyleSheet" ? current.children : blockChildren(current);
+          for (const child of children) {
+            if (child.type === "Rule" || child.type === "Atrule") visit(child, inBaseLayer);
           }
         }
+        visit(node);
       },
     };
   },
