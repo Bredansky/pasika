@@ -1196,12 +1196,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.",
-      "hash": "802644864d",
-      "ref": "pasika/global-selector-styling"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
       "hash": "aace35f033",
       "ref": "pasika/stylesheet-ordering"
