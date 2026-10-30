@@ -9,7 +9,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
-- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MAY be used only when Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call; the mapping is valid CSS but redundant without a detected override.
+- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MAY be used only when Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.
 - An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
@@ -78,7 +78,7 @@ Why: Pasika prohibits scoped overrides of direct `@theme` tokens; use a matching
 }
 ```
 
-Why: the same-named variable supplies default and scoped values for `rounded-card` (the `:root` default is a Pasika convention, not a CSS requirement). Without compact density, define `--radius-card: 8px` directly in `@theme` instead.
+Why: the self-named mapping is valid CSS and supplies default and scoped values for `rounded-card`; requiring a default `:root` is a Pasika convention, not a CSS requirement. Without a detected override, the bridge is redundant and `--radius-card: 8px` belongs directly in `@theme`.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 
