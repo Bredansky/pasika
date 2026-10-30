@@ -1,7 +1,7 @@
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityMappingRule } from "./utility-mapping";
 
-void describe("When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.", () => {
+void describe("When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.", () => {
   tailwindRuleTester.run("utility-mapping", utilityMappingRule, {
     valid: [
       {
@@ -438,7 +438,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
   });
 });
 
-void describe("When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.", () => {
+void describe("When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.", () => {
   tailwindRuleTester.run("utility-mapping:prefer-theme-first", utilityMappingRule, {
     valid: [
       {
