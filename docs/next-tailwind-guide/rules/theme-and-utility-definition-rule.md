@@ -287,35 +287,6 @@ Why: custom utilities use `@apply` rather than direct CSS declarations. Both exa
 
 Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
 
-## Incorrect — Unused Scrollbar Utility
-
-```css
-/* src/app/styles/notifications.css */
-@utility scrollbar-width-thin {
-  @apply [scrollbar-width:thin];
-}
-```
-
-Why: if no component or stylesheet references `scrollbar-width-thin`, the utility is dead code and should be removed.
-
-## Correct — Scrollbar Utility Used by a Component
-
-```css
-/* src/app/styles/notifications.css */
-@utility scrollbar-width-thin {
-  @apply [scrollbar-width:thin];
-}
-```
-
-```tsx
-// src/app/components/NotificationsList.tsx
-export function NotificationsList({ children }: { children: React.ReactNode }) {
-  return <div className="scrollbar-width-thin overflow-y-auto">{children}</div>;
-}
-```
-
-Why: the scrolling component uses the named, single-property utility, keeping the raw CSS-property mapping out of JSX.
-
 ## Incorrect — Component References a Nonexistent Utility
 
 ```tsx
