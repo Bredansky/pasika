@@ -25,7 +25,7 @@ function check(files: Record<string, string>, target: string, errors: RegExp[] =
   });
 }
 
-void describe("CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.", () => {
+void describe("CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.", () => {
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@utility mc-badge { display: block; }',
@@ -110,6 +110,38 @@ void describe("CSS definitions consumed only by one feature MUST live in that fe
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/features/home.css",
+  );
+
+  // Shared CSS belongs in globals regardless of the stylesheet's name.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@import "./shared.css";',
+      "app/styles/shared.css": "@utility retro-glow { display: block; }",
+      "features/home/badge.tsx": 'const cls = "retro-glow";',
+      "features/donation/widget.tsx": 'const cls = "retro-glow";',
+    },
+    "app/styles/shared.css",
+    [/CSS utility "retro-glow" is consumed across feature scopes; define it in globals\.css/],
+  );
+  // A named feature stylesheet owns its local CSS even when the definition is in a generic file.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@import "./shared.css";\n@import "./home.css";',
+      "app/styles/shared.css": "@utility home-badge { display: block; }",
+      "app/styles/home.css": "@utility home-frame { display: block; }",
+      "features/home/badge.tsx": 'const cls = "home-badge";',
+    },
+    "app/styles/shared.css",
+    [/CSS utility "home-badge" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // A feature stylesheet is not mandatory until one has been created.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@import "./shared.css";',
+      "app/styles/shared.css": "@utility home-badge { display: block; }",
+      "features/home/badge.tsx": 'const cls = "home-badge";',
+    },
+    "app/styles/shared.css",
   );
 
   // Generated Tailwind classes provide direct ownership evidence for @theme.

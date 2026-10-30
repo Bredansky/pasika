@@ -48,9 +48,6 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
       path.dirname(current) === styles &&
       FEATURE_CSS.test(basename) &&
       existsSync(path.join(sourceRoot, "features", featureName));
-    // Non-feature stylesheets are allowed; no speculative owner is inferred.
-    if (basename !== GLOBALS && !isFeatureFile) return {};
-
     const read = cachedTextReader();
     const css = findFiles(sourceRoot, CSS_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
     const modules = findFiles(sourceRoot, MODULE_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
@@ -64,8 +61,15 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
           const owner = owners.get(symbolId(definition));
           if (!owner) continue;
           const expected = owner === GLOBALS ? GLOBALS : `${owner}.css`;
-          // An existing monolith is valid until an explicit feature stylesheet exists.
-          if (basename === GLOBALS && expected !== GLOBALS && !existsSync(path.join(styles, expected))) continue;
+          // Without a feature stylesheet, unowned CSS need not be relocated.
+          // A definition in another feature's stylesheet still has the wrong owner.
+          if (
+            owner !== GLOBALS &&
+            (basename === GLOBALS || !isFeatureFile) &&
+            !existsSync(path.join(styles, expected))
+          ) {
+            continue;
+          }
           if (basename === expected) continue;
           const kind = LABELS[definition.kind] ?? definition.kind;
           context.report({
