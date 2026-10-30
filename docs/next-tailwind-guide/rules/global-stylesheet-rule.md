@@ -9,7 +9,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.
 - Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
-- Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.
+- An `@theme inline` token referencing a CSS variable with a different name MUST reference a token declared in `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.
 - Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.
 - Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.

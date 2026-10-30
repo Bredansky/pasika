@@ -151,7 +151,7 @@ void describe("A CSS variable referenced by an `@theme inline` token with the sa
   });
 });
 
-void describe("Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.", () => {
+void describe("An `@theme inline` token referencing a CSS variable with a different name MUST reference a token declared in `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
