@@ -16,7 +16,8 @@ void describe("Global selectors inside `@layer base` MUST contain only `@apply` 
         code: "@layer base { body { --color-base-canvas: blue; } }",
         errors: [
           {
-            message: 'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
+            message:
+              'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
           },
         ],
       },
@@ -24,7 +25,8 @@ void describe("Global selectors inside `@layer base` MUST contain only `@apply` 
         code: "@layer base { body { @media (max-width: 600px) { --color-base-canvas: blue; } } }",
         errors: [
           {
-            message: 'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
+            message:
+              'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
           },
         ],
       },
@@ -32,7 +34,8 @@ void describe("Global selectors inside `@layer base` MUST contain only `@apply` 
         code: "@media (max-width: 600px) { @layer base { body { --color-base-canvas: blue; } } }",
         errors: [
           {
-            message: 'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
+            message:
+              'Global selectors inside @layer base may only contain @apply directives; found "--color-base-canvas".',
           },
         ],
       },
@@ -40,7 +43,8 @@ void describe("Global selectors inside `@layer base` MUST contain only `@apply` 
         code: `@layer base {\n  body {\n    background-color: #ffffff;\n  }\n}`,
         errors: [
           {
-            message: 'Global selectors inside @layer base may only contain @apply directives; found "background-color".',
+            message:
+              'Global selectors inside @layer base may only contain @apply directives; found "background-color".',
           },
         ],
       },

@@ -150,6 +150,18 @@ Why: the root layout imports one global CSS entry point, which directly imports 
 
 Why: inside `@layer base`, global selectors may only use `@apply`. Define runtime CSS variables in `:root` and scoped overrides outside the base layer; apply base styling through Tailwind utilities.
 
+## Correct — Base Layer Uses Only Tailwind Utilities
+
+```css
+@layer base {
+  body {
+    @apply bg-base-canvas text-base-ink;
+  }
+}
+```
+
+Why: the base layer applies Tailwind utilities rather than declaring CSS properties or variables; runtime values are defined outside this layer.
+
 ## Correct — One Global Stylesheet Owns the System
 
 ```css
