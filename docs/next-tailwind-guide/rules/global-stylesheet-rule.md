@@ -6,12 +6,10 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
-- Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
+- Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.
 - Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.
-- A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.
-- An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.
-- An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.
-- A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
+- Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.
+- Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.
 - Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.
 - Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.

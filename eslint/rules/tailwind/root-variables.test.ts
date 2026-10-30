@@ -19,7 +19,7 @@ const wrongVariable = (token: string, variable: string): string =>
 const missingFontFallback = (token: string, variable: string): string =>
   `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
-void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.", () => {
+void describe("Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
@@ -124,7 +124,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.", () => {
+void describe("Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
@@ -151,7 +151,7 @@ void describe("A self-named `:root` + `@theme inline` mapping MUST NOT be used u
   });
 });
 
-void describe("An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.", () => {
+void describe("Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
@@ -172,7 +172,7 @@ void describe("An `@theme inline` token referencing a different variable MUST re
   });
 });
 
-void describe("An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.", () => {
+void describe("External font variables need a valid fallback inside var().", () => {
   tailwindRuleTester.run("root-variables-external-font-fallbacks", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }" },
@@ -200,7 +200,7 @@ void describe("An `@theme inline` font token referencing an undeclared `--font-*
   });
 });
 
-void describe("A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.", () => {
+void describe("Runtime mappings require unconditional defaults and matching overrides.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-tokens-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -208,6 +208,10 @@ void describe("A self-named `@theme inline` runtime mapping MUST have an uncondi
   writeFileSync(
     filename("tokens.css"),
     ":root { --color-accent-canvas: #ffffff; --radius-fluid: 8px; --font-sans: Arial, sans-serif; } .dark { --color-accent-canvas: #000000; --radius-fluid: 4px; --font-sans: Georgia, serif; }",
+  );
+  writeFileSync(
+    path.join(fixture, "src/app/page.tsx"),
+    'document.documentElement.style.setProperty("--radius-programmatic", "10px");',
   );
 
   const originalDirectory = process.cwd();
@@ -250,6 +254,10 @@ void describe("A self-named `@theme inline` runtime mapping MUST have an uncondi
         {
           filename: filename("globals.css"),
           code: ":root { --radius-card: 8px; } @theme inline { --radius-card: var(--radius-card); } [data-density=compact] { --radius-card: 4px; }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: ":root { --radius-programmatic: 8px; } @theme inline { --radius-programmatic: var(--radius-programmatic); }",
         },
         {
           filename: filename("globals.css"),

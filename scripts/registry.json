@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.",
-      "hash": "512636a817",
+      "text": "Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.",
+      "hash": "04ec26452d",
       "ref": "pasika/root-variables"
     },
     {
@@ -1178,26 +1178,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.",
-      "hash": "460a1d8276",
+      "text": "Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.",
+      "hash": "3423d242dd",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.",
-      "hash": "c6aef36c31",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.",
-      "hash": "78daaa84cf",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.",
-      "hash": "ff09fe17d9",
+      "text": "Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.",
+      "hash": "78a909f412",
       "ref": "pasika/root-variables"
     },
     {
