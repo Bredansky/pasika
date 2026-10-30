@@ -1154,8 +1154,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.",
-      "hash": "fc29411e0d",
+      "text": "The global stylesheet entry point MUST be imported only by `src/app/layout` (the root layout). Every other project stylesheet MUST be reachable from the entry point via `@import`, and any stylesheet other than the entry point that contains project CSS MUST be imported by the entry point directly.",
+      "hash": "219026ce1d",
       "ref": "pasika/css-entry-point"
     },
     {
@@ -1178,20 +1178,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.",
-      "hash": "4f7c33d824",
+      "text": "Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.",
+      "hash": "707f6de775",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.",
-      "hash": "b23544205c",
+      "text": "A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.",
+      "hash": "c2b57d9ae3",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.",
-      "hash": "54877acab7",
+      "text": "An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.",
+      "hash": "c6aef36c31",
       "ref": "pasika/root-variables"
     },
     {
@@ -1208,20 +1208,20 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Style declarations added by the project inside global selectors MUST use `@apply`.",
-      "hash": "9799ce3761",
+      "text": "Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.",
+      "hash": "370d02d043",
       "ref": "pasika/apply-usage"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Outside `@layer base`, a global selector MUST only scope CSS variable overrides.",
-      "hash": "6b3c897fb6",
+      "text": "Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.",
+      "hash": "802644864d",
       "ref": "pasika/global-selector-styling"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
-      "hash": "d483eb365b",
+      "text": "The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
+      "hash": "aace35f033",
       "ref": "pasika/stylesheet-ordering"
     },
     {

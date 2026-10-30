@@ -74,6 +74,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
     const mirroredTokens = new Set<string>();
+    const nonInlineThemeNames = new Set<string>();
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -87,6 +88,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
           const { name, value } = declaration.groups ?? {};
           if (!name) continue;
           names.add(name);
+          if (!inline) nonInlineThemeNames.add(name);
           if (inline && /\bvar\s*\(/u.test(value ?? "")) {
             mirroredTokens.add(name);
           }
@@ -149,13 +151,13 @@ export const rootVariablesRule: CSSRuleDefinition = {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
                 if (runtime && runtime !== name) {
-                  // Theme tokens may depend on other @theme variables directly.
-                  // Fonts injected by next/font are also runtime variables;
-                  // require a font-family fallback in the inline value.
+                  // Cross-token references require a non-inline @theme source.
+                  // External font variables (e.g. next/font) require a fallback
+                  // inside var(), even when an inline token uses the same name.
                   const externalFont = name.startsWith("--font-") && runtime.startsWith("--font-");
-                  if (!names.has(runtime) && externalFont && !hasVarFallback(value, runtime)) {
+                  if (!nonInlineThemeNames.has(runtime) && externalFont && !hasVarFallback(value, runtime)) {
                     context.report({ node: theme, message: EXTERNAL_FONT_FALLBACK_MESSAGE(name, runtime) });
-                  } else if (!names.has(runtime) && !externalFont) {
+                  } else if (!nonInlineThemeNames.has(runtime) && !externalFont) {
                     context.report({
                       node: theme,
                       message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,

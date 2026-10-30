@@ -21,7 +21,9 @@ function reportRawDeclarations(context: Parameters<CSSRuleDefinition["create"]>[
       });
       continue;
     }
-    if (child.type === "Rule") reportRawDeclarations(context, child);
+    if (child.type === "Rule" || (child.type === "Atrule" && ["media", "supports", "container"].includes(child.name))) {
+      reportRawDeclarations(context, child);
+    }
   }
 }
 
@@ -43,7 +45,12 @@ export const applyUsageRule: CSSRuleDefinition = {
           if (child.type === "Rule") reportRawDeclarations(context, child);
           if (child.type !== "Atrule" || child.name !== "layer") continue;
           for (const layered of blockChildren(child)) {
-            if (layered.type === "Rule") reportRawDeclarations(context, layered);
+            if (
+              layered.type === "Rule" ||
+              (layered.type === "Atrule" && ["media", "supports", "container"].includes(layered.name))
+            ) {
+              reportRawDeclarations(context, layered);
+            }
           }
         }
       },

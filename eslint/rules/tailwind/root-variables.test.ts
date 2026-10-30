@@ -124,7 +124,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.", () => {
+void describe("A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
@@ -151,7 +151,7 @@ void describe("Fixed design tokens MUST be defined directly in `@theme` rather t
   });
 });
 
-void describe("An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.", () => {
+void describe("An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
@@ -163,6 +163,10 @@ void describe("An `@theme inline` token referencing a different variable MUST re
       {
         code: "@theme inline { --color-primary-edge: var(--unknown-primary); }",
         errors: [{ message: wrongVariable("--color-primary-edge", "--unknown-primary") }],
+      },
+      {
+        code: ":root { --color-source: white; } .dark { --color-source: black; } @theme inline { --color-source: var(--color-source); --color-target: var(--color-source); }",
+        errors: [{ message: wrongVariable("--color-target", "--color-source") }],
       },
     ],
   });
@@ -187,6 +191,10 @@ void describe("An `@theme inline` font token referencing an undeclared `--font-*
       {
         code: "@theme inline { --font-sans: var(--font-inter); }",
         errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: ":root { --font-heading: Arial; } .dark { --font-heading: Georgia; } @theme inline { --font-heading: var(--font-heading); --font-sans: var(--font-heading); }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-heading") }],
       },
     ],
   });
@@ -301,7 +309,7 @@ void describe("A self-named `@theme inline` runtime mapping MUST have an uncondi
   }
 });
 
-void describe("Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.", () => {
+void describe("Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.", () => {
   tailwindRuleTester.run("root-variables-token-overrides", rootVariablesRule, {
     valid: [
       {
@@ -339,7 +347,7 @@ void describe("Tokens declared in `@theme` MUST NOT be overridden in CSS selecto
   });
 });
 
-void describe("Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.", () => {
+void describe("Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-scopes-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

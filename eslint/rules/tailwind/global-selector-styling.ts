@@ -10,7 +10,7 @@
 
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
-import { blockChildren } from "./helpers";
+import { blockChildren, preludeIdentifiers } from "./helpers";
 
 function hasStyling(node: CssNodePlain): boolean {
   for (const child of blockChildren(node)) {
@@ -32,14 +32,27 @@ export const globalSelectorStylingRule: CSSRuleDefinition = {
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        for (const child of node.children) {
-          if (child.type !== "Rule" || !hasStyling(child)) continue;
-          context.report({
-            node: child,
-            message:
-              "Global selectors outside @layer base may only override CSS variables; keep element/component styling as Tailwind classes in the consumer.",
-          });
+        function checkOutsideBase(current: CssNodePlain): void {
+          if (current.type === "Atrule" && ["theme", "utility", "keyframes"].includes(current.name)) return;
+          if (current.type === "Atrule" && current.name === "layer" && preludeIdentifiers(current).includes("base")) {
+            return;
+          }
+          if (current.type === "Rule") {
+            if (hasStyling(current)) {
+              context.report({
+                node: current,
+                message:
+                  "Global selectors outside @layer base may only override CSS variables; keep element/component styling as Tailwind classes in the consumer.",
+              });
+            }
+            return;
+          }
+          const children = current.type === "StyleSheet" ? current.children : blockChildren(current);
+          for (const child of children) {
+            if (child.type === "Rule" || child.type === "Atrule") checkOutsideBase(child);
+          }
         }
+        checkOutsideBase(node);
       },
     };
   },

@@ -65,7 +65,7 @@ void describe("Project stylesheets MUST live under `src/app/styles/`, and the gl
   });
 });
 
-void describe("The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via @import, and any other stylesheet holding project CSS MUST be imported by the entry point directly.", () => {
+void describe("The global stylesheet entry point MUST be imported only by `src/app/layout` (the root layout). Every other project stylesheet MUST be reachable from the entry point via `@import`, and any stylesheet other than the entry point that contains project CSS MUST be imported by the entry point directly.", () => {
   // One entry, imported once by the root layout, with a stylesheet it imports.
   const valid = buildFixture({
     "app/styles/globals.css": `${ENTRY}@import "./theme.css";\n`,
@@ -173,6 +173,60 @@ void describe("The global stylesheet entry point MUST be imported by exactly one
   });
 
   // Two modules import the entry point — it must be imported exactly once.
+  // A single importer is insufficient unless it is the root layout.
+  const nonLayout = buildFixture({
+    "app/styles/globals.css": ENTRY,
+    "app/page.tsx": 'import "./styles/globals.css";',
+  });
+  process.chdir(nonLayout);
+  tailwindRuleTester.run("css-entry-point-root-layout", cssEntryPointRule, {
+    valid: [],
+    invalid: [
+      {
+        code: ENTRY,
+        filename: srcPath(nonLayout, "app/styles/globals.css"),
+        errors: [
+          {
+            message: "The global stylesheet entry point must be imported by src/app/layout, not another module.",
+          },
+        ],
+      },
+    ],
+  });
+
+  // Importing a different file named globals.css does not count.
+  const wrongTarget = buildFixture({
+    "app/styles/globals.css": ENTRY,
+    "app/styles/other/globals.css": ":root { --test: 1px; }",
+    "app/layout.tsx": 'import "./styles/other/globals.css";',
+  });
+  process.chdir(wrongTarget);
+  tailwindRuleTester.run("css-entry-point-root-layout", cssEntryPointRule, {
+    valid: [],
+    invalid: [
+      {
+        code: ENTRY,
+        filename: srcPath(wrongTarget, "app/styles/globals.css"),
+        errors: [
+          {
+            message:
+              "The global stylesheet entry point must be imported by exactly one module (the root layout), but it is imported by 0 module(s).",
+          },
+        ],
+      },
+    ],
+  });
+
+  const aliasImport = buildFixture({
+    "app/styles/globals.css": ENTRY,
+    "app/layout.tsx": 'import "@/app/styles/globals.css";',
+  });
+  process.chdir(aliasImport);
+  tailwindRuleTester.run("css-entry-point-root-layout", cssEntryPointRule, {
+    valid: [{ code: ENTRY, filename: srcPath(aliasImport, "app/styles/globals.css") }],
+    invalid: [],
+  });
+
   const twoImports = buildFixture({
     "app/styles/globals.css": ENTRY,
     "app/layout.tsx": `import "./styles/globals.css";\n`,

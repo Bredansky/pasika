@@ -4,18 +4,18 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
-- The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.
+- The global stylesheet entry point MUST be imported only by `src/app/layout` (the root layout). Every other project stylesheet MUST be reachable from the entry point via `@import`, and any stylesheet other than the entry point that contains project CSS MUST be imported by the entry point directly.
 - CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
-- Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
-- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.
-- An `@theme inline` token referencing a different variable MUST reference a token declared in `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.
+- Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.
+- A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.
+- An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.
 - An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.
 - A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
-- Style declarations added by the project inside global selectors MUST use `@apply`.
-- Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
-- The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
+- Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.
+- Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.
+- The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
 ## Incorrect — Theme Overrides a Tailwind Token

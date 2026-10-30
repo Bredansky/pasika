@@ -23,7 +23,7 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
-import { buildStylesheetGraph, moduleImports } from "./stylesheet-graph";
+import { buildStylesheetGraph, resolveSpecifier } from "./stylesheet-graph";
 
 const APP_STYLES_DIR = path.join("app", "styles");
 const GLOBAL_STYLESHEET_PATH = path.join(APP_STYLES_DIR, "globals.css");
@@ -78,8 +78,19 @@ export const cssEntryPointRule: CSSRuleDefinition = {
             return;
           }
 
-          const basename = path.basename(current);
-          const importCount = moduleFiles.filter((modulePath) => moduleImports(textOf(modulePath), basename)).length;
+          const importers = moduleFiles.filter((modulePath) => {
+            const source = textOf(modulePath);
+            for (const match of source.matchAll(
+              /\b(?:import\s*(?:[^"'`;]*?\bfrom\s*)?|require\s*\(\s*)["'](?<specifier>[^"']+\.css)["']/gu,
+            )) {
+              const specifier = match.groups?.specifier;
+              if (!specifier) continue;
+              const resolved = resolveSpecifier(modulePath, specifier, sourceRoot);
+              if (resolved && path.normalize(resolved) === current) return true;
+            }
+            return false;
+          });
+          const importCount = importers.length;
           if (importCount !== 1) {
             context.report({
               node,
@@ -87,6 +98,18 @@ export const cssEntryPointRule: CSSRuleDefinition = {
                 `The global stylesheet entry point must be imported by exactly one module ` +
                 `(the root layout), but it is imported by ${String(importCount)} module(s).`,
             });
+          } else {
+            const importer = importers[0];
+            const isRootLayout =
+              importer !== undefined &&
+              path.dirname(importer) === path.join(sourceRoot, "app") &&
+              /^layout\.(?:[cm]?[jt]sx?)$/u.test(path.basename(importer));
+            if (!isRootLayout) {
+              context.report({
+                node,
+                message: "The global stylesheet entry point must be imported by src/app/layout, not another module.",
+              });
+            }
           }
           return;
         }
