@@ -61,67 +61,7 @@ Why: a literal token value does not need inline variable resolution and belongs 
 }
 ```
 
-Why: a fixed color belongs directly in `@theme`; colors with scoped overrides instead use runtime variables and `@theme inline`, while static 1:1 `:root` mappings are redundant even when they work. Pasika's default `:root` requirement for dynamic mappings is a repository convention, not a CSS requirement.
-
-## Incorrect — Runtime Variable Without Inline
-
-```css
-:root {
-  --color-primary-canvas: #18181b;
-}
-
-@theme {
-  --color-primary-canvas: var(--color-primary-canvas);
-}
-```
-
-Why: an indirect theme token without `inline` can resolve its source variable outside the scope where the utility is used.
-
-## Correct — Runtime Color Variable Mapped Inline
-
-```css
-:root {
-  --color-primary-canvas: #fafafa;
-}
-
-[data-theme="dark"] {
-  --color-primary-canvas: #18181b;
-}
-
-@theme inline {
-  --color-primary-canvas: var(--color-primary-canvas);
-}
-```
-
-Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities. The default `:root` is required by Pasika for these self-named mappings, not by CSS itself.
-
-## Incorrect — Fixed Derived Color Through a Runtime Root
-
-```css
-:root {
-  --brand-hue: 290 80% 65%;
-}
-
-@theme inline {
-  --color-brand-canvas: hsl(var(--brand-hue));
-}
-```
-
-Why: the fixed hue is not a runtime override and needs no `:root` bridge; define it in `@theme` instead.
-
-## Correct — A Derived Theme Color Needs No Runtime Root
-
-```css
-@theme static {
-  --brand-hue: 290 80% 65%;
-}
-
-@theme inline {
-  --color-brand-canvas: hsl(var(--brand-hue));
-}
-```
-
-Why: `--brand-hue` already belongs to `@theme`. Its derived color can reference it in `@theme inline` without an intermediate `:root` declaration.
+Why: a literal color needs a direct `@theme` definition. Runtime overrides and self-named `@theme inline` mappings are covered by the global stylesheet rule.
 
 ## Incorrect — A Font List Outside `var()` Is Not Its Fallback
 
@@ -258,12 +198,12 @@ Why: the component owns the reusable presentation and its markup/API, while mapp
 ## Incorrect — Arbitrary Property Written as Raw CSS
 
 ```css
-@utility content-grid {
-  grid-template-columns: 2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px);
+@utility grid-template-columns-2fr-1fr {
+  grid-template-columns: 2fr 1fr;
 }
 ```
 
-Why: project styling inside a custom utility bypasses Tailwind instead of going through `@apply`.
+Why: the raw declaration bypasses Pasika's `@apply` requirement; the corrected example keeps the same two-column grid.
 
 ## Correct — Arbitrary Property Mapped Through Tailwind
 
@@ -278,30 +218,26 @@ Why: the class name reflects `grid-template-columns: 2fr 1fr`, and the arbitrary
 ## Incorrect — Custom Utility No Source Uses
 
 ```css
-@utility text-header-ink {
-  @apply text-(color:--header-ink);
+@utility border-style-outset {
+  @apply [border-style:outset];
 }
 ```
 
-Why: no component or stylesheet references `text-header-ink`, so the mapping is dead.
+Why: no source file uses `border-style-outset`, so the mapping is dead.
 
 ## Correct — Custom Utility a Component Uses
 
 ```css
-:root {
-  --header-ink: #111827;
-}
-
-@utility text-header-ink {
-  @apply text-(color:--header-ink);
+@utility border-style-outset {
+  @apply [border-style:outset];
 }
 ```
 
 ```tsx
-<h1 className="text-header-ink">Settings</h1>
+<section className="border-style-outset">Settings</section>
 ```
 
-Why: the component consumes the mapping utility, so it has a live purpose.
+Why: the component consumes a single-property utility with a property/value-derived name.
 
 ## Incorrect — Component References a Nonexistent Utility
 

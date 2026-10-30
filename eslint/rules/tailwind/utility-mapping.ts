@@ -193,6 +193,33 @@ function isTypographySize(name: string): boolean {
   return /^--text-(?!.*--)(?:[a-z0-9]+-)*[a-z0-9]+$/u.test(name);
 }
 
+/** Suggestions must obey the same semantic color roles as declared @theme tokens. */
+function suggestedThemeToken(candidate: ThemeCandidate): string {
+  if (candidate.namespace !== "color") return candidate.token;
+  let role = "edge";
+  if (["bg", "fill"].includes(candidate.prefix)) {
+    role = "canvas";
+  } else if (["text", "caret", "decoration"].includes(candidate.prefix)) {
+    role = "ink";
+  }
+  const semantic = /^--color-(?<domain>[a-z][a-z0-9-]*)-(?:canvas|ink|edge)$/u.exec(candidate.token);
+  const domain = semantic?.groups?.domain;
+  return domain ? `--color-${domain}-${role}` : `${candidate.token}-${role}`;
+}
+
+/** A CSS-variable dependency needs a different migration from a fixed literal. */
+function themeMigrationGuidance(candidate: ThemeCandidate, utilityName: string): string {
+  const token = suggestedThemeToken(candidate);
+  const generatedClass = `${candidate.prefix}-${token.slice(`--${candidate.namespace}-`.length)}`;
+  const runtimeDependent = /\bvar\s*\(/iu.test(candidate.value);
+  const action = runtimeDependent
+    ? `only use a self-named @theme inline token "${token}" with an unconditional :root default and a detected runtime override; otherwise resolve the fixed value directly in @theme. `
+    : `define a direct @theme token "${token}" with value "${candidate.value}" rather than adding a :root bridge. `;
+  const classGuidance =
+    generatedClass === utilityName ? "Preserve the generated class name" : `Update class usages to "${generatedClass}"`;
+  return `${action}${classGuidance} and compare compiled CSS before removing the utility.`;
+}
+
 export const utilityMappingRule: CSSRuleDefinition = {
   meta: {
     schema: [],
@@ -445,10 +472,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
           if (candidate.property === "font-size" && themeTokens.has(`--color-${name.slice(5)}`)) continue;
           context.report({
             node: utility,
-            message:
-              `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ` +
-              `prefer @theme inline token "${candidate.token}" backed by a :root variable. ` +
-              "Preserve the class name and compare compiled CSS before removing the utility.",
+            message: `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ${themeMigrationGuidance(candidate, name)}`,
           });
         }
 

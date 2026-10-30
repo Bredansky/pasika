@@ -20,7 +20,25 @@ void describe("When Tailwind can generate an equivalent class from an available 
         errors: [
           {
             message:
-              'Custom utility "text-retro-11" only maps font-size (11px); prefer @theme inline token "--text-retro-11" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "text-retro-11" only maps font-size (11px); define a direct @theme token "--text-retro-11" with value "11px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: ':root { --text-body: 14px; } [data-density="large"] { --text-body: 18px; } @utility text-body { @apply [font-size:var(--text-body)]; }',
+        errors: [
+          {
+            message:
+              'Custom utility "text-body" only maps font-size (var(--text-body)); only use a self-named @theme inline token "--text-body" with an unconditional :root default and a detected runtime override; otherwise resolve the fixed value directly in @theme. Preserve the generated class name and compare compiled CSS before removing the utility.',
+          },
+        ],
+      },
+      {
+        code: "@utility text-danger-canvas { @apply [color:#ff0000]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "text-danger-canvas" only maps color (#ff0000); define a direct @theme token "--color-danger-ink" with value "#ff0000" rather than adding a :root bridge. Update class usages to "text-danger-ink" and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -29,7 +47,7 @@ void describe("When Tailwind can generate an equivalent class from an available 
         errors: [
           {
             message:
-              'Custom utility "text-tweet-card-name-size" only maps font-size (var(--tweet-card-name-text-size)); prefer @theme inline token "--text-tweet-card-name-size" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "text-tweet-card-name-size" only maps font-size (var(--tweet-card-name-text-size)); only use a self-named @theme inline token "--text-tweet-card-name-size" with an unconditional :root default and a detected runtime override; otherwise resolve the fixed value directly in @theme. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -38,7 +56,7 @@ void describe("When Tailwind can generate an equivalent class from an available 
         errors: [
           {
             message:
-              'Custom utility "tracking-retro-20" only maps letter-spacing (var(--retro-letter-spacing)); prefer @theme inline token "--tracking-retro-20" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "tracking-retro-20" only maps letter-spacing (var(--retro-letter-spacing)); only use a self-named @theme inline token "--tracking-retro-20" with an unconditional :root default and a detected runtime override; otherwise resolve the fixed value directly in @theme. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -59,6 +77,7 @@ void describe("When Tailwind can generate an equivalent class from an available 
 void describe("A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.", () => {
   tailwindRuleTester.run("utility-mapping", utilityMappingRule, {
     valid: [
+      { code: "@utility border-style-outset { @apply [border-style:outset]; }" },
       {
         code: `@utility text-header-ink {\n  @apply text-(--header-ink);\n}`,
       },
@@ -157,7 +176,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
       {
         code: `@utility text-complex { @apply [font-size:calc(10px_+_2px)]; }`,
-        errors: [{ message: /only maps font-size \(calc\(10px \+ 2px\)\); prefer @theme inline token/u }],
+        errors: [{ message: /only maps font-size \(calc\(10px \+ 2px\)\); define a direct @theme token/u }],
       },
       {
         code: `@utility text-retro-11 { @apply [letter-spacing:0.11em]; }`,
@@ -168,7 +187,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
         errors: [
           {
             message:
-              'Custom utility "tracking-minecraft-normal" only maps letter-spacing (normal); prefer @theme inline token "--tracking-minecraft-normal" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "tracking-minecraft-normal" only maps letter-spacing (normal); define a direct @theme token "--tracking-minecraft-normal" with value "normal" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -234,7 +253,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
         errors: [
           {
             message:
-              'Custom utility "text-retro-11" only maps font-size (11px); prefer @theme inline token "--text-retro-11" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "text-retro-11" only maps font-size (11px); define a direct @theme token "--text-retro-11" with value "11px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -243,7 +262,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
         errors: [
           {
             message:
-              'Custom utility "tracking-retro-30" only maps letter-spacing (0.3em); prefer @theme inline token "--tracking-retro-30" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "tracking-retro-30" only maps letter-spacing (0.3em); define a direct @theme token "--tracking-retro-30" with value "0.3em" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -252,7 +271,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
         errors: [
           {
             message:
-              'Custom utility "tracking-tight-custom" only maps letter-spacing (-0.025em); prefer @theme inline token "--tracking-tight-custom" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "tracking-tight-custom" only maps letter-spacing (-0.025em); define a direct @theme token "--tracking-tight-custom" with value "-0.025em" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -261,7 +280,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
         errors: [
           {
             message:
-              'Custom utility "text-retro-body" only maps font-size (var(--retro-body-text-size)); prefer @theme inline token "--text-retro-body" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "text-retro-body" only maps font-size (var(--retro-body-text-size)); only use a self-named @theme inline token "--text-retro-body" with an unconditional :root default and a detected runtime override; otherwise resolve the fixed value directly in @theme. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -284,11 +303,11 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
     invalid: [
       {
         code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }",
-        errors: [{ message: /prefer @theme inline token "--radius-complex"/u }],
+        errors: [{ message: /define a direct @theme token "--radius-complex"/u }],
       },
       {
         code: "@utility bg-special { @apply [background-color:color-mix(in_srgb,_red,_blue)]; }",
-        errors: [{ message: /prefer @theme inline token "--color-special"/u }],
+        errors: [{ message: /define a direct @theme token "--color-special-canvas"/u }],
       },
       {
         code: "@utility css-animation-wiggle-2s { @apply [animation:wiggle_2s_ease-in-out_infinite]; }",
@@ -348,7 +367,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "text-short" only maps font-size (14px); prefer @theme inline token "--text-short" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "text-short" only maps font-size (14px); define a direct @theme token "--text-short" with value "14px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -357,7 +376,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "rounded-card" only maps border-radius (12px); prefer @theme inline token "--radius-card" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "rounded-card" only maps border-radius (12px); define a direct @theme token "--radius-card" with value "12px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -366,7 +385,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "bg-brand-canvas" only maps background-color (#123456); prefer @theme inline token "--color-brand-canvas" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "bg-brand-canvas" only maps background-color (#123456); define a direct @theme token "--color-brand-canvas" with value "#123456" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -375,7 +394,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "p-card" only maps padding (16px); prefer @theme inline token "--spacing-card" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "p-card" only maps padding (16px); define a direct @theme token "--spacing-card" with value "16px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -384,7 +403,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "leading-heading" only maps line-height (1.4); prefer @theme inline token "--leading-heading" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "leading-heading" only maps line-height (1.4); define a direct @theme token "--leading-heading" with value "1.4" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -393,7 +412,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "aspect-poster" only maps aspect-ratio (16/9); prefer @theme inline token "--aspect-poster" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "aspect-poster" only maps aspect-ratio (16/9); define a direct @theme token "--aspect-poster" with value "16/9" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
@@ -402,7 +421,7 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [
           {
             message:
-              'Custom utility "ease-panel" only maps transition-timing-function (ease-in); prefer @theme inline token "--ease-panel" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "ease-panel" only maps transition-timing-function (ease-in); define a direct @theme token "--ease-panel" with value "ease-in" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },
