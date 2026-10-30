@@ -287,29 +287,34 @@ Why: custom utilities use `@apply` rather than direct CSS declarations. Both exa
 
 Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
 
-## Incorrect — Custom Utility No Source Uses
+## Incorrect — Unused Scrollbar Utility
 
 ```css
-@utility border-style-outset {
-  @apply [border-style:outset];
+/* src/app/styles/notifications.css */
+@utility scrollbar-width-thin {
+  @apply [scrollbar-width:thin];
 }
 ```
 
-Why: no source file uses `border-style-outset`, so the mapping is dead.
+Why: if no component or stylesheet references `scrollbar-width-thin`, the utility is dead code and should be removed.
 
-## Correct — Custom Utility a Component Uses
+## Correct — Scrollbar Utility Used by a Component
 
 ```css
-@utility border-style-outset {
-  @apply [border-style:outset];
+/* src/app/styles/notifications.css */
+@utility scrollbar-width-thin {
+  @apply [scrollbar-width:thin];
 }
 ```
 
 ```tsx
-<section className="border-style-outset">Settings</section>
+// src/app/components/NotificationsList.tsx
+export function NotificationsList({ children }: { children: React.ReactNode }) {
+  return <div className="scrollbar-width-thin overflow-y-auto">{children}</div>;
+}
 ```
 
-Why: the component consumes a single-property utility with a property/value-derived name.
+Why: the scrolling component uses the named, single-property utility, keeping the nonstandard scrollbar value out of JSX.
 
 ## Incorrect — Component References a Nonexistent Utility
 
