@@ -73,7 +73,7 @@ void describe("utility-mapping uses @theme definitions across imported CSS parti
         errors: [
           {
             message:
-              'Custom utility "p-card" only maps padding (12px); prefer @theme inline token "--spacing-card" backed by a :root variable. Preserve the class name and compare compiled CSS before removing the utility.',
+              'Custom utility "p-card" only maps padding (12px); define a direct @theme token "--spacing-card" with value "12px" rather than adding a :root bridge. Preserve the generated class name and compare compiled CSS before removing the utility.',
           },
         ],
       },

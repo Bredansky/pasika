@@ -1142,74 +1142,38 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
-      "hash": "4f548b26c4",
+      "text": "Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.",
+      "hash": "c986502781",
       "ref": "pasika/global-stylesheet"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.",
-      "hash": "12e9820bba",
+      "text": "The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.",
+      "hash": "fbb599b0f6",
       "ref": "pasika/css-entry-point"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet entry point MUST be imported by exactly one module (the root layout). Project CSS MAY live in that entry point; every other stylesheet MUST be reachable from it via `@import`, and any other stylesheet holding project CSS MUST be imported by the entry point directly.",
-      "hash": "fc29411e0d",
-      "ref": "pasika/css-entry-point"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.",
-      "hash": "f94e367684",
+      "text": "CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.",
+      "hash": "02530dfd11",
       "ref": "pasika/feature-css-placement"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.",
-      "hash": "d28608a7a3",
+      "text": "The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.",
+      "hash": "05412e20a7",
       "ref": "pasika/theme-reset"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.",
-      "hash": "512636a817",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.",
-      "hash": "4f7c33d824",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping is permitted only when the runtime variable has an actual scoped, conditional, or explicitly programmed override; the 1:1 mapping itself is valid.",
-      "hash": "e466089f15",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected runtime font variable with a fallback. When it references its own name, a default `:root` declaration is required, and themed overrides MUST preserve that name.",
-      "hash": "e41b23f8a9",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Style declarations added by the project inside global selectors MUST use `@apply`.",
-      "hash": "9799ce3761",
+      "text": "Global selectors inside `@layer base` MUST contain only `@apply` directives.",
+      "hash": "3e4883d186",
       "ref": "pasika/apply-usage"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Outside `@layer base`, a global selector MUST only scope CSS variable overrides.",
-      "hash": "6b3c897fb6",
-      "ref": "pasika/global-selector-styling"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
-      "hash": "d483eb365b",
+      "text": "The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
+      "hash": "aace35f033",
       "ref": "pasika/stylesheet-ordering"
     },
     {
@@ -1219,16 +1183,28 @@
       "ref": "pasika/base-layer-pair"
     },
     {
-      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
-      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
-      "hash": "86f83ca119",
-      "ref": "pasika/no-literal-inline-style"
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.",
+      "hash": "ab9bc40242",
+      "ref": "pasika/root-variables"
     },
     {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
-      "ref": "pasika/no-duplicate-jsx-classes"
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.",
+      "hash": "e5fd3dff02",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.",
+      "hash": "ba39d5ba72",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.",
+      "hash": "5bd312518e",
+      "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1292,8 +1268,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.",
-      "hash": "e1fce78b2b",
+      "text": "When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.",
+      "hash": "e05599e6dc",
       "ref": "pasika/utility-mapping"
     },
     {
@@ -1301,6 +1277,18 @@
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
+      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
+      "hash": "86f83ca119",
+      "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "pasika-adoption-guide/rules/api-contract-rule.md",

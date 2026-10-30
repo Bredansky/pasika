@@ -2,8 +2,9 @@
  * ESLint rule: pasika/root-variables
  *
  * Direct tokens use @theme; tokens using var() use @theme inline.
- * Each referenced runtime variable has the token's exact name and a default
- * :root declaration. Its value may be overridden in scoped selectors.
+ * Same-named runtime token mappings require a default :root declaration under
+ * Pasika's policy, with scoped or programmed overrides. This is a repository
+ * convention for predictable defaults, not a CSS or Tailwind requirement.
  *
  * Tailwind emits @theme inside its lower-priority theme cascade layer.
  * Unlayered :root and scoped runtime declarations win over that layer, so an
@@ -12,7 +13,7 @@
  * the token's value belongs directly in @theme.
  * This convention applies to every Tailwind token namespace, not just colors.
  *
- * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
@@ -24,8 +25,23 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const MIXED_THEME_MESSAGE = "Use either @theme or @theme inline across the project, not both.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
+const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
+  `Tailwind font token "${name}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
+
+function hasVarFallback(source: string, variable: string): boolean {
+  // A comma after var(...) is not a fallback: the fallback must be the second
+  // argument of that var() call. Keep quoted font-family fallback values.
+  for (const match of source.matchAll(/\bvar\s*\(\s*(?<name>--[\w-]+)\s*,/gu)) {
+    if (match.groups?.name !== variable) continue;
+    const start = match.index + match[0].length;
+    const close = source.indexOf(")", start);
+    if (close !== -1 && /[^,\s]/u.test(source.slice(start, close))) return true;
+  }
+  return false;
+}
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
@@ -59,11 +75,19 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
     const mirroredTokens = new Set<string>();
+    let hasPlainThemeBlocks = false;
+    let hasInlineThemeBlocks = false;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
         " ",
       );
+      // A theme containing nested @keyframes cannot match the flat-body regex.
+      // Detect each theme header independently before collecting declarations.
+      for (const header of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{/gu)) {
+        if (/\binline\b/u.test(header.groups?.options ?? "")) hasInlineThemeBlocks = true;
+        else hasPlainThemeBlocks = true;
+      }
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
         for (const declaration of (theme.groups?.body ?? "").matchAll(
@@ -114,7 +138,11 @@ export const rootVariablesRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        for (const theme of atrulesNamed(node, "theme")) {
+        const localThemes = atrulesNamed(node, "theme");
+        if (hasPlainThemeBlocks && hasInlineThemeBlocks && localThemes[0]) {
+          context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
+        }
+        for (const theme of localThemes) {
           const inline = preludeIdentifiers(theme).includes("inline");
           // Tailwind's theme declarations can be Raw nodes in the tolerant CSS
           // parser. Inspect each declaration separately, including multiline
@@ -134,12 +162,12 @@ export const rootVariablesRule: CSSRuleDefinition = {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
                 if (runtime && runtime !== name) {
-                  // Theme tokens may depend on other @theme variables directly.
-                  // Fonts injected by next/font are also runtime variables;
-                  // require a font-family fallback in the inline value.
-                  const externalFont =
-                    name.startsWith("--font-") && runtime.startsWith("--font-") && /,\s*[^\s,)]+/u.test(unquoted);
-                  if (!names.has(runtime) && !externalFont) {
+                  // Only external font variables may differ from the Tailwind
+                  // token name; next/font mappings require a var() fallback.
+                  const externalFont = name.startsWith("--font-") && runtime.startsWith("--font-");
+                  if (externalFont && !hasVarFallback(value, runtime)) {
+                    context.report({ node: theme, message: EXTERNAL_FONT_FALLBACK_MESSAGE(name, runtime) });
+                  } else if (!externalFont) {
                     context.report({
                       node: theme,
                       message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,

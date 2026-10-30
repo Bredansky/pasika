@@ -8,11 +8,20 @@
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
+import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
-import type { StyleSheetPlain } from "@eslint/css-tree";
-import { preludeIdentifiers, selectorNames } from "./helpers";
+import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
+import { sourceRootOf } from "../project-root";
+import { blockChildren, preludeIdentifiers, selectorNames } from "./helpers";
 
 const SECTION_ORDER = ["imports", "custom-variant", "root", "theme", "utility", "base styles", "keyframes"] as const;
+
+function scopesCustomProperties(node: CssNodePlain): boolean {
+  if (node.type === "Declaration") return node.property.startsWith("--");
+  if (node.type === "Atrule" && !["media", "supports", "container"].includes(node.name)) return false;
+  if (node.type !== "Atrule" && node.type !== "Rule") return false;
+  return blockChildren(node).some(scopesCustomProperties);
+}
 
 export const stylesheetOrderingRule: CSSRuleDefinition = {
   meta: {
@@ -23,6 +32,9 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
     },
   },
   create(context) {
+    const sourceRoot = sourceRootOf(context);
+    const entryPoint = path.normalize(path.join(sourceRoot, "app", "styles", "globals.css"));
+    if (path.normalize(path.resolve(context.filename)) !== entryPoint) return {};
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // Map each top-level child to its section name.
@@ -43,7 +55,12 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
             if (preludeIdentifiers(child).includes("base")) {
               sections.push({ name: "base styles", at: index });
             }
-          } else if (child.type === "Rule" && selectorNames(child).includes("root")) {
+          } else if (
+            child.type === "Rule" &&
+            (selectorNames(child).includes("root") || scopesCustomProperties(child))
+          ) {
+            sections.push({ name: "root", at: index });
+          } else if (child.type === "Atrule" && scopesCustomProperties(child)) {
             sections.push({ name: "root", at: index });
           }
           index += 1;

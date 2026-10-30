@@ -1,7 +1,11 @@
 # Theme and Utility Definition Rule
 
-Project values need stable Tailwind names, while presentation reuse belongs to components. Custom utilities bridge values or properties into Tailwind; they are not reusable style bundles.
+Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
+- Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
+- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
+- A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
+- An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
@@ -12,7 +16,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
-- When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.
+- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Background Using a Text Color
@@ -41,7 +45,7 @@ Why: a text-color token is being applied as a background, even though Tailwind g
 <div className="bg-shiny-canvas" />
 ```
 
-Why: the canvas suffix identifies a background color and Pasika verifies that the utility uses it accordingly.
+Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
@@ -61,23 +65,23 @@ Why: a literal token value does not need inline variable resolution and belongs 
 }
 ```
 
-Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`. A static 1:1 `:root` mapping is redundant even though its compiled CSS can work.
+Why: a literal color belongs directly in `@theme`. Values with runtime overrides use a default `:root` variable and a matching `@theme inline` mapping.
 
-## Incorrect — Runtime Variable Without Inline
+## Incorrect — Theme Overrides a Tailwind Token
 
 ```css
-:root {
-  --color-primary-canvas: #18181b;
+@theme {
+  --color-primary-canvas: #fafafa;
 }
 
-@theme {
-  --color-primary-canvas: var(--color-primary-canvas);
+[data-theme="dark"] {
+  --color-primary-canvas: #18181b;
 }
 ```
 
-Why: an indirect theme token without `inline` can resolve its source variable outside the scope where the utility is used.
+Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
 
-## Correct — Runtime Color Variable Mapped Inline
+## Correct — Theme Overrides the Runtime Color
 
 ```css
 :root {
@@ -93,7 +97,59 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 }
 ```
 
-Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities.
+Why: `:root` defines the runtime value, scoped selectors override it, and `@theme inline` makes it available as a Tailwind utility.
+
+## Incorrect — Scoped Radius Overrides a Fixed Token
+
+```css
+@theme {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+```
+
+Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a runtime CSS variable and a matching `@theme inline` mapping for scoped values.
+
+## Correct — Scoped Radius Uses the Same Token Name
+
+```css
+:root {
+  --radius-card: 8px;
+}
+
+[data-density="compact"] {
+  --radius-card: 4px;
+}
+
+@theme inline {
+  --radius-card: var(--radius-card);
+}
+```
+
+Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
+
+## Incorrect — A Font List Outside `var()` Is Not Its Fallback
+
+```css
+@theme inline {
+  --font-sans: var(--font-inter), Arial, sans-serif;
+}
+```
+
+Why: if the injected `--font-inter` variable is missing, the unresolved `var()` invalidates the whole `font-family` declaration. `Arial` after the closing parenthesis is not a CSS variable fallback.
+
+## Correct — Fallback Inside the External Font Reference
+
+```css
+@theme inline {
+  --font-sans: var(--font-inter, Arial), sans-serif;
+}
+```
+
+Why: the second argument of `var()` supplies `Arial` when `--font-inter` is unavailable; `sans-serif` remains the next family when the selected font is unavailable. This works with external variables injected by a font loader such as `next/font`.
 
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 
@@ -207,17 +263,17 @@ export function PrimaryButton(props: React.ComponentProps<"button">): React.JSX.
 
 Why: the component owns the reusable presentation and its markup/API, while mapping utilities remain property-specific.
 
-## Incorrect — Arbitrary Property Written as Raw CSS
+## Incorrect — Raw Declaration in a Custom Utility
 
 ```css
-@utility content-grid {
-  grid-template-columns: 2fr max(0, var(--gutter-width)) calc(var(--gutter-width) + 10px);
+@utility grid-template-columns-2fr-1fr {
+  grid-template-columns: 2fr 1fr;
 }
 ```
 
-Why: project styling inside a custom utility bypasses Tailwind instead of going through `@apply`.
+Why: custom utilities use `@apply` rather than direct CSS declarations. Both examples define the same two-column grid.
 
-## Correct — Arbitrary Property Mapped Through Tailwind
+## Correct — Custom Utility Uses `@apply`
 
 ```css
 @utility grid-template-columns-2fr-1fr {
@@ -225,35 +281,11 @@ Why: project styling inside a custom utility bypasses Tailwind instead of going 
 }
 ```
 
-Why: the class name reflects `grid-template-columns: 2fr 1fr`, and the arbitrary value stays in CSS rather than JSX.
-
-## Incorrect — Custom Utility No Source Uses
-
-```css
-@utility text-header-ink {
-  @apply text-(color:--header-ink);
-}
-```
-
-Why: no component or stylesheet references `text-header-ink`, so the mapping is dead.
-
-## Correct — Custom Utility a Component Uses
-
-```css
-:root {
-  --header-ink: #111827;
-}
-
-@utility text-header-ink {
-  @apply text-(color:--header-ink);
-}
-```
-
 ```tsx
-<h1 className="text-header-ink">Settings</h1>
+<div className="grid-template-columns-2fr-1fr grid">...</div>
 ```
 
-Why: the component consumes the mapping utility, so it has a live purpose.
+Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
 
 ## Incorrect — Component References a Nonexistent Utility
 

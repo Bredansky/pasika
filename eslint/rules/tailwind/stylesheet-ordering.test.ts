@@ -1,22 +1,58 @@
+import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 
-void describe("The global stylesheet MUST order imports, @custom-variant definitions, :root variables and the selectors that override them, @theme definitions, custom utilities, base styles, and keyframes in that order.", () => {
+void describe("The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.", () => {
+  const globals = path.resolve("src/app/styles/globals.css");
+  const partial = path.resolve("src/app/styles/tokens.css");
   tailwindRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {
     valid: [
       // Full stylesheet in the documented order
       {
+        filename: globals,
         code: `@import "tailwindcss";\n\n@custom-variant dark (&:where(.dark, .dark *));\n\n:root {\n  --color-brand: #2563eb;\n}\n\n@theme {\n  --*: initial;\n}\n\n@utility card {\n  @apply rounded-xl bg-white;\n}\n\n@layer base {\n  body {\n    @apply bg-base-canvas text-base-ink;\n  }\n}\n\n@keyframes fade {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}`,
       },
       // Partial stylesheet: only imports and :root
       {
+        filename: globals,
         code: `@import "tailwindcss";\n\n:root {\n  --color-brand: #2563eb;\n}`,
+      },
+      // Imported partials are not subject to the entry point's ordering.
+      {
+        filename: partial,
+        code: "@theme { --color-brand: red; }\n:root { --color-brand: blue; }",
+      },
+      {
+        filename: globals,
+        code: ':root { --color-brand: red; }\n[data-theme="dark"] { --color-brand: blue; }\n@theme inline { --color-brand: var(--color-brand); }',
       },
     ],
     invalid: [
       // @theme before :root
       {
+        filename: globals,
         code: `@theme {\n  --*: initial;\n}\n\n:root {\n  --color-brand: #2563eb;\n}`,
+        errors: [
+          {
+            message:
+              'Global stylesheet sections must be ordered: imports, @custom-variant, :root, @theme, custom utilities, base styles, keyframes. Found "theme" before an earlier section.',
+          },
+        ],
+      },
+      // A scoped or conditional custom-property override after @theme is out of order.
+      {
+        filename: globals,
+        code: '@theme { --color-brand: red; }\n[data-theme="dark"] { --color-brand: blue; }',
+        errors: [
+          {
+            message:
+              'Global stylesheet sections must be ordered: imports, @custom-variant, :root, @theme, custom utilities, base styles, keyframes. Found "theme" before an earlier section.',
+          },
+        ],
+      },
+      {
+        filename: globals,
+        code: "@theme { --color-brand: red; }\n@media (prefers-color-scheme: dark) { :root { --color-brand: blue; } }",
         errors: [
           {
             message:
@@ -26,6 +62,7 @@ void describe("The global stylesheet MUST order imports, @custom-variant definit
       },
       // Every occurrence matters, not just the first import or utility.
       {
+        filename: globals,
         code: '@import "tailwindcss";\n@theme { --*: initial; }\n@import "./late.css";',
         errors: [
           {
@@ -35,6 +72,7 @@ void describe("The global stylesheet MUST order imports, @custom-variant definit
         ],
       },
       {
+        filename: globals,
         code: "@utility card { display: block; }\n@keyframes fade { to { opacity: 1; } }\n@utility badge { display: inline; }",
         errors: [
           {
@@ -45,6 +83,7 @@ void describe("The global stylesheet MUST order imports, @custom-variant definit
       },
       // base styles before @theme
       {
+        filename: globals,
         code: `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n\n@theme {\n  --*: initial;\n}`,
         errors: [
           {
