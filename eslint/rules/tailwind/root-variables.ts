@@ -13,7 +13,7 @@
  * the token's value belongs directly in @theme.
  * This convention applies to every Tailwind token namespace, not just colors.
  *
- * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
