@@ -82,10 +82,14 @@ export const rootVariablesRule: CSSRuleDefinition = {
         /\/\*[\s\S]*?\*\//gu,
         " ",
       );
+      // A theme containing nested @keyframes cannot match the flat-body regex.
+      // Detect each theme header independently before collecting declarations.
+      for (const header of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{/gu)) {
+        if (/\binline\b/u.test(header.groups?.options ?? "")) hasInlineThemeBlocks = true;
+        else hasPlainThemeBlocks = true;
+      }
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
-        if (inline) hasInlineThemeBlocks = true;
-        else hasPlainThemeBlocks = true;
         for (const declaration of (theme.groups?.body ?? "").matchAll(
           /(?:^|;)\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;]*)/gu,
         )) {
