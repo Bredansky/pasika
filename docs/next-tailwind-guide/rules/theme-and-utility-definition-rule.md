@@ -1,6 +1,6 @@
 # Theme and Utility Definition Rule
 
-Theme tokens define stable Tailwind utilities and their runtime values. Custom utilities expose otherwise unsupported single styling operations; reusable presentation belongs to components. This rule governs CSS definitions, while the arbitrary value rule governs which classes components may use.
+Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
