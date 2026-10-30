@@ -1184,8 +1184,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.",
-      "hash": "c2b57d9ae3",
+      "text": "A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.",
+      "hash": "460a1d8276",
       "ref": "pasika/root-variables"
     },
     {

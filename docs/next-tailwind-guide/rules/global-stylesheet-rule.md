@@ -9,7 +9,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.
-- A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.
+- A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.
 - An `@theme inline` token referencing a different variable MUST reference a token declared in non-inline `@theme`, unless it is a `--font-*` variable referenced by another `--font-*` token.
 - An `@theme inline` font token referencing an undeclared `--font-*` variable MUST provide a nonempty fallback inside the corresponding `var()` call.
 - A self-named `@theme inline` runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.

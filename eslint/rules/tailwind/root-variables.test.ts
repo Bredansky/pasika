@@ -124,7 +124,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.", () => {
+void describe("A self-named `:root` + `@theme inline` mapping MUST NOT be used unless a matching scoped or conditional CSS declaration or an explicit runtime `setProperty()` call is detected.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
