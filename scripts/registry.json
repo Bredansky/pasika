@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.",
-      "hash": "04ec26452d",
+      "text": "Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.",
+      "hash": "5166bdeb8c",
       "ref": "pasika/root-variables"
     },
     {

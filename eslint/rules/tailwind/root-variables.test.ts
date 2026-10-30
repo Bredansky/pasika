@@ -19,7 +19,7 @@ const wrongVariable = (token: string, variable: string): string =>
 const missingFontFallback = (token: string, variable: string): string =>
   `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
-void describe("Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.", () => {
+void describe("Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },

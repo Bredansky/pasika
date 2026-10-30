@@ -6,7 +6,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
-- Fixed tokens MUST use `@theme`; tokens referencing CSS variables MUST use `@theme inline`.
+- Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.
 - Tokens declared in non-inline `@theme` blocks MUST NOT be overridden in CSS selectors.
 - Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.
 - Cross-variable references in `@theme inline` MUST target tokens declared in non-inline `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.
