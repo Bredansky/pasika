@@ -1,6 +1,6 @@
 # Arbitrary Value Rule
 
-Arbitrary values and CSS-variable references in component class names bypass named styling utilities. This rule governs usage in components; theme tokens and custom utility definitions are covered by the theme and utility definition rule.
+Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values.
 
 - Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.
 
