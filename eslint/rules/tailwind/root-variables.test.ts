@@ -143,7 +143,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MAY be used only when Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.", () => {
+void describe("Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A self-named `:root` + `@theme inline` mapping MUST NOT be used unless Pasika detects a matching scoped or conditional CSS declaration, or an explicit runtime `setProperty()` call.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
