@@ -20,12 +20,16 @@ const wrongVariable = (token: string, variable: string): string =>
 const missingFontFallback = (token: string, variable: string): string =>
   `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
-void describe("Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.", () => {
+void describe("Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
       { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
+      { code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); }" },
+      {
+        code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); --color-tertiary-ink: var(--color-secondary-ink); }",
+      },
       {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
       },
@@ -104,6 +108,14 @@ void describe("Tailwind tokens MUST use either `@theme` with direct values or `@
       {
         code: "@theme { --color-brand: var(--runtime-brand); }",
         errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --color-primary-ink: var(--color-primary-ink); }",
+        errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --color-primary-ink: var(--color-secondary-ink); --color-secondary-ink: var(--color-primary-ink); }",
+        errors: [{ message: INDIRECT }, { message: INDIRECT }],
       },
       {
         code: "@theme { --shadow-custom: calc(2px + var(--offset)); }",
