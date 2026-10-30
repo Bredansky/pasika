@@ -1178,8 +1178,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.",
-      "hash": "3423d242dd",
+      "text": "A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.",
+      "hash": "ba39d5ba72",
       "ref": "pasika/root-variables"
     },
     {

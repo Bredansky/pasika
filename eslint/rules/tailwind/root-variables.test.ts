@@ -124,7 +124,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when their values refere
   });
 });
 
-void describe("Self-named `@theme inline` mappings MUST have a default `:root` declaration and a matching scoped, conditional, or programmatic override.", () => {
+void describe("A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
