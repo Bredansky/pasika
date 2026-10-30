@@ -56,8 +56,9 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 @import "./home.css";
 
 /* src/app/styles/home.css */
-@utility border-style-outset {
-  @apply [border-style:outset];
+@keyframes home-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 ```
 
@@ -66,14 +67,7 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 import "./styles/globals.css";
 ```
 
-```tsx
-// src/app/page.tsx
-export default function Home() {
-  return <section className="border-style-outset">Home</section>;
-}
-```
-
-Why: the root layout imports the single CSS entry point, which imports the feature stylesheet directly. The feature uses its custom utility, while shared tokens and base styles may stay in `globals.css`.
+Why: the root layout imports one global CSS entry point, which imports the feature stylesheet directly. Shared CSS stays in `globals.css`, and feature-specific definitions stay in their own stylesheet.
 
 ## Incorrect — Direct Declarations Inside the Base Layer
 
