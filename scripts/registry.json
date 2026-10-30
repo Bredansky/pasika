@@ -1166,14 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.",
-      "hash": "5166bdeb8c",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Project stylesheets MUST use either `@theme` or `@theme inline`, never both; the chosen block MUST include the `--*: initial` reset.",
-      "hash": "baf25d7ab5",
+      "text": "Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.",
+      "hash": "ab9bc40242",
       "ref": "pasika/root-variables"
     },
     {
