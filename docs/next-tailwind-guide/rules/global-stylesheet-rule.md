@@ -26,7 +26,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 }
 ```
 
-Why: Pasika prohibits overriding direct `@theme` tokens in selectors. This is a design-token ownership convention, not a CSS limitation; use the documented runtime mapping when scoped values are required.
+Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
 
 ## Correct — Theme Overrides the Runtime Color
 
@@ -58,7 +58,7 @@ Why: `:root` defines the runtime value, scoped selectors override it, and `@them
 }
 ```
 
-Why: Pasika prohibits scoped overrides of direct `@theme` tokens; use a matching runtime variable and `@theme inline` when a scoped value is required.
+Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a runtime CSS variable and a matching `@theme inline` mapping for scoped values.
 
 ## Correct — Scoped Radius Uses the Same Token Name
 
@@ -76,7 +76,7 @@ Why: Pasika prohibits scoped overrides of direct `@theme` tokens; use a matching
 }
 ```
 
-Why: the self-named mapping is valid CSS and supplies default and scoped values for `rounded-card`; requiring a default `:root` is a Pasika convention, not a CSS requirement. Without a detected override, the bridge is redundant and `--radius-card: 8px` belongs directly in `@theme`.
+Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 
