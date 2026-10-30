@@ -1,6 +1,6 @@
 # Theme and Utility Definition Rule
 
-Theme tokens define stable Tailwind utilities and their runtime values. Custom utilities expose otherwise unsupported single styling operations; reusable presentation belongs to components.
+Theme tokens define stable Tailwind utilities and their runtime values. Custom utilities expose otherwise unsupported single styling operations; reusable presentation belongs to components. This rule governs CSS definitions, while the arbitrary value rule governs which classes components may use.
 
 - Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
@@ -263,7 +263,7 @@ export function PrimaryButton(props: React.ComponentProps<"button">): React.JSX.
 
 Why: the component owns the reusable presentation and its markup/API, while mapping utilities remain property-specific.
 
-## Incorrect — Arbitrary Property Written as Raw CSS
+## Incorrect — Raw Declaration in a Custom Utility
 
 ```css
 @utility grid-template-columns-2fr-1fr {
@@ -273,7 +273,7 @@ Why: the component owns the reusable presentation and its markup/API, while mapp
 
 Why: custom utilities use `@apply` rather than direct CSS declarations. Both examples define the same two-column grid.
 
-## Correct — Arbitrary Property Mapped Through Tailwind
+## Correct — Custom Utility Uses `@apply`
 
 ```css
 @utility grid-template-columns-2fr-1fr {
