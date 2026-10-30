@@ -1160,8 +1160,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.",
-      "hash": "d28608a7a3",
+      "text": "The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.",
+      "hash": "05412e20a7",
       "ref": "pasika/theme-reset"
     },
     {
@@ -1172,8 +1172,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.",
-      "hash": "776ec6cebc",
+      "text": "Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.",
+      "hash": "e5fd3dff02",
       "ref": "pasika/root-variables"
     },
     {
