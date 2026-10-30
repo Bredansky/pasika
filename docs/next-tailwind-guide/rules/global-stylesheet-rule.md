@@ -1,82 +1,14 @@
 # Global Stylesheet Rule
 
-Scattered project stylesheets and competing Tailwind entry points make CSS ownership, global defaults, and styling dependencies difficult to trace. A single, predictable stylesheet import tree prevents these inconsistencies as project CSS grows.
+A single Tailwind entry point and a predictable stylesheet import tree keep CSS ownership, imports, and global defaults easy to trace. Token definitions and custom utility behavior belong to the theme and utility definition rule.
 
 - Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.
-- Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
-- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
-- A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
-- An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
-
-## Incorrect — Theme Overrides a Tailwind Token
-
-```css
-@theme {
-  --color-primary-canvas: #fafafa;
-}
-
-[data-theme="dark"] {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
-
-## Correct — Theme Overrides the Runtime Color
-
-```css
-:root {
-  --color-primary-canvas: #fafafa;
-}
-
-[data-theme="dark"] {
-  --color-primary-canvas: #18181b;
-}
-
-@theme inline {
-  --color-primary-canvas: var(--color-primary-canvas);
-}
-```
-
-Why: `:root` defines the runtime value, scoped selectors override it, and `@theme inline` makes it available as a Tailwind utility.
-
-## Incorrect — Scoped Radius Overrides a Fixed Token
-
-```css
-@theme {
-  --radius-card: 8px;
-}
-
-[data-density="compact"] {
-  --radius-card: 4px;
-}
-```
-
-Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a runtime CSS variable and a matching `@theme inline` mapping for scoped values.
-
-## Correct — Scoped Radius Uses the Same Token Name
-
-```css
-:root {
-  --radius-card: 8px;
-}
-
-[data-density="compact"] {
-  --radius-card: 4px;
-}
-
-@theme inline {
-  --radius-card: var(--radius-card);
-}
-```
-
-Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 
@@ -173,23 +105,10 @@ Why: the base layer applies Tailwind utilities rather than declaring CSS propert
 ```css
 @import "tailwindcss";
 
-:root {
+@theme {
+  --*: initial;
   --color-base-canvas: #ffffff;
   --color-base-ink: #18181b;
-  --color-accent-canvas: #2563eb;
-}
-
-[data-theme="dark"] {
-  --color-base-canvas: #09090b;
-  --color-base-ink: #fafafa;
-  --color-accent-canvas: #60a5fa;
-}
-
-@theme inline {
-  --*: initial;
-  --color-base-canvas: var(--color-base-canvas);
-  --color-base-ink: var(--color-base-ink);
-  --color-accent-canvas: var(--color-accent-canvas);
 }
 
 @layer base {
@@ -199,4 +118,4 @@ Why: the base layer applies Tailwind utilities rather than declaring CSS propert
 }
 ```
 
-Why: `@theme inline` both resets Tailwind defaults and maps theme-dependent colors to runtime CSS variables with light defaults and scoped dark overrides; no separate `@theme` block is needed.
+Why: one entry point registers Tailwind, resets the default theme, defines the page colors, and applies global base styling. Token mappings and runtime overrides are covered by the theme and utility definition rule.
