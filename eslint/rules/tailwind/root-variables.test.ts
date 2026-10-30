@@ -142,6 +142,10 @@ void describe("Mixed `@theme` and `@theme inline` strategies are rejected, excep
         code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --*: initial; } @theme inline { --color-surface: var(--color-surface); }",
         errors: [{ message: MIXED }],
       },
+      {
+        code: "@theme { --color-brand: blue; @keyframes pulse { 50% { opacity: 0.5; } } } :root { --color-surface: white; } .dark { --color-surface: black; } @theme inline { --color-surface: var(--color-surface); }",
+        errors: [{ message: MIXED }],
+      },
     ],
   });
 });
