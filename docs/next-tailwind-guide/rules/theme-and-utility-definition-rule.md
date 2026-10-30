@@ -61,7 +61,7 @@ Why: a literal token value does not need inline variable resolution and belongs 
 }
 ```
 
-Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`. A static 1:1 `:root` mapping is redundant even though its compiled CSS can work.
+Why: a fixed color belongs directly in `@theme`; colors with scoped overrides instead use runtime variables and `@theme inline`, while static 1:1 `:root` mappings are redundant even when they work. Pasika's default `:root` requirement for dynamic mappings is a repository convention, not a CSS requirement.
 
 ## Incorrect — Runtime Variable Without Inline
 
@@ -93,7 +93,55 @@ Why: an indirect theme token without `inline` can resolve its source variable ou
 }
 ```
 
-Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities.
+Why: `:root` defines the default value, the dark-theme selector overrides it, and `@theme inline` makes it available to Tailwind utilities. The default `:root` is required by Pasika for these self-named mappings, not by CSS itself.
+
+## Incorrect — Fixed Derived Color Through a Runtime Root
+
+```css
+:root {
+  --brand-hue: 290 80% 65%;
+}
+
+@theme inline {
+  --color-brand-canvas: hsl(var(--brand-hue));
+}
+```
+
+Why: the fixed hue is not a runtime override and needs no `:root` bridge; define it in `@theme` instead.
+
+## Correct — A Derived Theme Color Needs No Runtime Root
+
+```css
+@theme static {
+  --brand-hue: 290 80% 65%;
+}
+
+@theme inline {
+  --color-brand-canvas: hsl(var(--brand-hue));
+}
+```
+
+Why: `--brand-hue` already belongs to `@theme`. Its derived color can reference it in `@theme inline` without an intermediate `:root` declaration.
+
+## Incorrect — A Font List Outside `var()` Is Not Its Fallback
+
+```css
+@theme inline {
+  --font-sans: var(--font-inter), Arial, sans-serif;
+}
+```
+
+Why: if the injected `--font-inter` variable is missing, the unresolved `var()` invalidates the whole `font-family` declaration. `Arial` after the closing parenthesis is not a CSS variable fallback.
+
+## Correct — Fallback Inside the External Font Reference
+
+```css
+@theme inline {
+  --font-sans: var(--font-inter, Arial), sans-serif;
+}
+```
+
+Why: the second argument of `var()` supplies `Arial` when `--font-inter` is unavailable; `sans-serif` remains the next family when the selected font is unavailable. This works with external variables injected by a font loader such as `next/font`.
 
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 

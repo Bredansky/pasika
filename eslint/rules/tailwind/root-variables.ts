@@ -2,8 +2,9 @@
  * ESLint rule: pasika/root-variables
  *
  * Direct tokens use @theme; tokens using var() use @theme inline.
- * Each referenced runtime variable has the token's exact name and a default
- * :root declaration. Its value may be overridden in scoped selectors.
+ * Same-named runtime token mappings require a default :root declaration under
+ * Pasika's policy, with scoped or programmed overrides. This is a repository
+ * convention for predictable defaults, not a CSS or Tailwind requirement.
  *
  * Tailwind emits @theme inside its lower-priority theme cascade layer.
  * Unlayered :root and scoped runtime declarations win over that layer, so an
@@ -26,6 +27,20 @@ const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
+const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
+  `Tailwind font token "${name}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
+
+function hasVarFallback(source: string, variable: string): boolean {
+  // A comma after var(...) is not a fallback: the fallback must be the second
+  // argument of that var() call. Keep quoted font-family fallback values.
+  for (const match of source.matchAll(/\bvar\s*\(\s*(?<name>--[\w-]+)\s*,/gu)) {
+    if (match.groups?.name !== variable) continue;
+    const start = match.index + match[0].length;
+    const close = source.indexOf(")", start);
+    if (close !== -1 && /[^,\s]/u.test(source.slice(start, close))) return true;
+  }
+  return false;
+}
 
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
@@ -137,9 +152,10 @@ export const rootVariablesRule: CSSRuleDefinition = {
                   // Theme tokens may depend on other @theme variables directly.
                   // Fonts injected by next/font are also runtime variables;
                   // require a font-family fallback in the inline value.
-                  const externalFont =
-                    name.startsWith("--font-") && runtime.startsWith("--font-") && /,\s*[^\s,)]+/u.test(unquoted);
-                  if (!names.has(runtime) && !externalFont) {
+                  const externalFont = name.startsWith("--font-") && runtime.startsWith("--font-");
+                  if (!names.has(runtime) && externalFont && !hasVarFallback(value, runtime)) {
+                    context.report({ node: theme, message: EXTERNAL_FONT_FALLBACK_MESSAGE(name, runtime) });
+                  } else if (!names.has(runtime) && !externalFont) {
                     context.report({
                       node: theme,
                       message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,

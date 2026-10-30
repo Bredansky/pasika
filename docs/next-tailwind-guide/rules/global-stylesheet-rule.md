@@ -9,8 +9,8 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
-- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping is permitted only when the runtime variable has an actual scoped, conditional, or explicitly programmed override; the 1:1 mapping itself is valid.
-- An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected runtime font variable with a fallback. When it references its own name, a default `:root` declaration is required, and themed overrides MUST preserve that name.
+- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping MAY be used only when the runtime variable is actually overridden by scoped CSS, conditional CSS, or runtime code; this mapping is valid CSS but redundant without an override.
+- An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
@@ -28,7 +28,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 }
 ```
 
-Why: scoped token overrides are forbidden unless the token maps to its same-named runtime variable through `@theme inline`.
+Why: Pasika prohibits overriding direct `@theme` tokens in selectors. This is a design-token ownership convention, not a CSS limitation; use the documented runtime mapping when scoped values are required.
 
 ## Correct — Theme Overrides the Runtime Color
 
@@ -60,7 +60,7 @@ Why: `:root` defines the runtime value, scoped selectors override it, and `@them
 }
 ```
 
-Why: a direct `@theme` token cannot be overridden in a scoped selector; use a matching `:root` variable and `@theme inline` instead.
+Why: Pasika prohibits scoped overrides of direct `@theme` tokens; use a matching runtime variable and `@theme inline` when a scoped value is required.
 
 ## Correct — Scoped Radius Uses the Same Token Name
 
@@ -78,7 +78,7 @@ Why: a direct `@theme` token cannot be overridden in a scoped selector; use a ma
 }
 ```
 
-Why: the same-named variable provides the default and scoped values for the `rounded-card` utility without creating a second token name.
+Why: the same-named variable supplies default and scoped values for `rounded-card` (the `:root` default is a Pasika convention, not a CSS requirement). Without compact density, define `--radius-card: 8px` directly in `@theme` instead.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 

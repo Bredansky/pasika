@@ -16,6 +16,8 @@ const missingDefault = (token: string): string =>
   `Tailwind token "${token}" references "${token}" without a default :root declaration.`;
 const wrongVariable = (token: string, variable: string): string =>
   `Tailwind token "${token}" must reference its same-named CSS variable, not "${variable}".`;
+const missingFontFallback = (token: string, variable: string): string =>
+  `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
 void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
@@ -27,7 +29,10 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
       {
         code: "@theme { --color-primary-canvas: #aabbcc; } @theme inline { --color-primary-edge: var(--color-primary-canvas); }",
       },
-      { code: "@theme inline { --font-sans: var(--font-inter), Arial, sans-serif; }" },
+      { code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }" },
+      { code: '@theme inline { --font-sans: var(--font-inter, "Helvetica Neue"), sans-serif; }' },
+      { code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)), sans-serif; }" },
+      { code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }" },
       {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
       },
@@ -91,6 +96,18 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
         errors: [{ message: redundant("--background-image-rainbow-gradient") }],
       },
       {
+        code: "@theme inline { --font-sans: var(--font-inter), Arial, sans-serif; }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--font-inter, ), sans-serif; }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--font-inter); }",
+        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
         code: "@theme inline { --color-brand: #2563eb; }",
         errors: [{ message: INLINE }],
       },
@@ -126,7 +143,7 @@ void describe("Tailwind tokens MUST use `@theme inline` when referencing `var()`
   });
 });
 
-void describe("Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping is permitted only when the runtime variable has an actual scoped, conditional, or explicitly programmed override; the 1:1 mapping itself is valid.", () => {
+void describe("Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping MAY be used only when the runtime variable is actually overridden by scoped CSS, conditional CSS, or runtime code; this mapping is valid CSS but redundant without an override.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
       {
@@ -153,7 +170,7 @@ void describe("Fixed design tokens MUST be defined directly in `@theme` rather t
   });
 });
 
-void describe("An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected runtime font variable with a fallback. When it references its own name, a default `:root` declaration is required, and themed overrides MUST preserve that name.", () => {
+void describe("An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected font variable with a usable fallback inside its `var()` call. A self-named runtime mapping MUST have an unconditional default `:root` declaration under Pasika's convention, and scoped overrides MUST use that same variable name.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-runtime-tokens-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -248,7 +265,7 @@ void describe("An `@theme inline` token MAY reference another token defined in `
         {
           filename: filename("globals.css"),
           code: ":root { --font-inter: Arial, sans-serif; } @theme inline { --font-sans: var(--font-inter); }",
-          errors: [{ message: wrongVariable("--font-sans", "--font-inter") }],
+          errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
         },
         {
           filename: filename("globals.css"),
