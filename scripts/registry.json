@@ -1184,8 +1184,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.",
-      "hash": "7e932cd558",
+      "text": "Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping is permitted only when the runtime variable has an actual scoped, conditional, or explicitly programmed override; the 1:1 mapping itself is valid.",
+      "hash": "e466089f15",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected runtime font variable with a fallback. When it references its own name, a default `:root` declaration is required, and themed overrides MUST preserve that name.",
+      "hash": "e41b23f8a9",
       "ref": "pasika/root-variables"
     },
     {

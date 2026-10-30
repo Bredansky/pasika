@@ -61,7 +61,7 @@ Why: a literal token value does not need inline variable resolution and belongs 
 }
 ```
 
-Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`.
+Why: a fixed color can be declared directly in `@theme`; colors that change with the active theme instead use runtime variables and `@theme inline`. A static 1:1 `:root` mapping is redundant even though its compiled CSS can work.
 
 ## Incorrect — Runtime Variable Without Inline
 
@@ -108,16 +108,12 @@ Why: the color token belongs in `@theme`, which already generates `border-contro
 ## Correct — A Theme-Generated Border Color
 
 ```css
-:root {
+@theme {
   --color-control-edge: #d1d5db;
-}
-
-@theme inline {
-  --color-control-edge: var(--color-control-edge);
 }
 ```
 
-Why: Tailwind generates `border-control-edge` directly from the theme token, using the same runtime variable.
+Why: Tailwind generates `border-control-edge` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
 
 ## Incorrect — Complex Animation Hidden in a Custom Utility
 

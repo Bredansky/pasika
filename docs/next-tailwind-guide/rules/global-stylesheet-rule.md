@@ -9,7 +9,8 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
 - Tokens declared in `@theme` MUST NOT be overridden in CSS selectors.
-- Tokens using `@theme inline` MUST reference same-named variables defined in `:root`. Theme-specific overrides MUST preserve those names.
+- Fixed design tokens MUST be defined directly in `@theme` rather than indirectly through default `:root` values. A same-named `:root` + `@theme inline` mapping is permitted only when the runtime variable has an actual scoped, conditional, or explicitly programmed override; the 1:1 mapping itself is valid.
+- An `@theme inline` token MAY reference another token defined in `@theme`, or an externally injected runtime font variable with a fallback. When it references its own name, a default `:root` declaration is required, and themed overrides MUST preserve that name.
 - Style declarations added by the project inside global selectors MUST use `@apply`.
 - Outside `@layer base`, a global selector MUST only scope CSS variable overrides.
 - The global stylesheet MUST order imports, `@custom-variant` definitions, `:root` variables and the selectors that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
