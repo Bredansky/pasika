@@ -4,7 +4,7 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 
 - A repository MUST have one global stylesheet entry point that registers Tailwind.
 - Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.
-- The global stylesheet entry point MUST be imported only by `src/app/layout` (the root layout). Every other project stylesheet MUST be reachable from the entry point via `@import`, and any stylesheet other than the entry point that contains project CSS MUST be imported by the entry point directly.
+- The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS definitions consumed only by one feature MUST live in that feature's stylesheet when it exists; definitions in feature-named stylesheets consumed across feature scopes MUST live in globals.css.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when referencing `var()`, and `@theme` otherwise.
@@ -118,7 +118,7 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 }
 ```
 
-Why: `deep.css` is reachable from the entry only through `base.css`, so its project CSS does not arrive through the entry's direct import and is easy to miss.
+Why: `deep.css` is imported through `base.css` instead of directly by `globals.css`. Every project stylesheet must be a direct import, including import-only files.
 
 ## Correct — Project CSS Imported Directly by the Entry
 

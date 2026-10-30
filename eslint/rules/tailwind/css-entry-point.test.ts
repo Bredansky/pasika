@@ -65,7 +65,7 @@ void describe("Project stylesheets MUST live under `src/app/styles/`, and the gl
   });
 });
 
-void describe("The global stylesheet entry point MUST be imported only by `src/app/layout` (the root layout). Every other project stylesheet MUST be reachable from the entry point via `@import`, and any stylesheet other than the entry point that contains project CSS MUST be imported by the entry point directly.", () => {
+void describe("The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.", () => {
   // One entry, imported once by the root layout, with a stylesheet it imports.
   const valid = buildFixture({
     "app/styles/globals.css": `${ENTRY}@import "./theme.css";\n`,
@@ -98,8 +98,7 @@ void describe("The global stylesheet entry point MUST be imported only by `src/a
         filename: srcPath(stray, "app/styles/stray.css"),
         errors: [
           {
-            message:
-              "Project CSS may only live in a stylesheet the global entry point imports directly; route it through a direct import or into the entry point.",
+            message: "Every project stylesheet must be imported directly by src/app/styles/globals.css.",
           },
         ],
       },
@@ -126,12 +125,45 @@ void describe("The global stylesheet entry point MUST be imported only by `src/a
         filename: srcPath(transitive, "app/styles/deep.css"),
         errors: [
           {
-            message:
-              "Project CSS may only live in a stylesheet the global entry point imports directly; route it through a direct import or into the entry point.",
+            message: "Every project stylesheet must be imported directly by src/app/styles/globals.css.",
           },
         ],
       },
     ],
+  });
+
+  // Even an import-only stylesheet must be directly imported by globals.css.
+  const importOnly = buildFixture({
+    "app/styles/globals.css": `${ENTRY}@import "./bridge.css";\n`,
+    "app/layout.tsx": 'import "./styles/globals.css";',
+    "app/styles/bridge.css": '@import "./empty.css";',
+    "app/styles/empty.css": "/* no project declarations */",
+  });
+  process.chdir(importOnly);
+  tailwindRuleTester.run("css-entry-point-direct-imports", cssEntryPointRule, {
+    valid: [{ code: '@import "./empty.css";', filename: srcPath(importOnly, "app/styles/bridge.css") }],
+    invalid: [
+      {
+        code: "/* no project declarations */",
+        filename: srcPath(importOnly, "app/styles/empty.css"),
+        errors: [{ message: "Every project stylesheet must be imported directly by src/app/styles/globals.css." }],
+      },
+    ],
+  });
+
+  const directImportOnly = buildFixture({
+    "app/styles/globals.css": `${ENTRY}@import "./bridge.css";\n@import "./empty.css";\n`,
+    "app/layout.tsx": 'import "./styles/globals.css";',
+    "app/styles/bridge.css": '@import "./empty.css";',
+    "app/styles/empty.css": "/* no project declarations */",
+  });
+  process.chdir(directImportOnly);
+  tailwindRuleTester.run("css-entry-point-direct-imports", cssEntryPointRule, {
+    valid: [
+      { code: '@import "./empty.css";', filename: srcPath(directImportOnly, "app/styles/bridge.css") },
+      { code: "/* no project declarations */", filename: srcPath(directImportOnly, "app/styles/empty.css") },
+    ],
+    invalid: [],
   });
 
   // Two stylesheets register Tailwind — only one may be the entry point.

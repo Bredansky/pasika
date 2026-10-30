@@ -32,7 +32,7 @@ describe("stylesheet graph helpers", () => {
     expect(resolveSpecifier(from, "tailwindcss", root)).toBeUndefined();
   });
 
-  it("tracks direct and transitive stylesheet imports without revisiting cycles", () => {
+  it("tracks direct stylesheet imports, not transitive imports", () => {
     const root = path.resolve("/repo/src");
     const global = path.join(root, "app/styles/globals.css");
     const theme = path.join(root, "app/styles/theme.css");
@@ -52,7 +52,6 @@ describe("stylesheet graph helpers", () => {
     });
 
     expect(graph.globals).toEqual([global]);
-    expect(graph.reachable).toEqual(new Set([global, theme, tokens]));
     expect(graph.directChildren).toEqual(new Set([theme]));
   });
 });

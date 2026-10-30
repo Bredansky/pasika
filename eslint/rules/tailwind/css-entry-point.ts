@@ -4,11 +4,8 @@
  * A repository has exactly one global stylesheet entry point at
  * `src/app/styles/globals.css` — the stylesheet that registers Tailwind with
  * `@import "tailwindcss"` — and every project stylesheet lives under
- * `src/app/styles/`. The entry point must be imported by exactly one module
- * (the root layout). Every other stylesheet must be reachable from the entry
- * point through `@import`, and one that holds project CSS must be imported by
- * the entry point *directly* — content arriving through a midpoint, or through
- * no path at all, cannot be seen to enter through one door.
+ * `src/app/styles/`. Only the root layout imports the entry point, which
+ * directly imports every other project stylesheet (even import-only files).
  *
  * The rule builds the stylesheet import graph from disk (like
  * `unused-utility`), because a single stylesheet cannot see what other files
@@ -33,7 +30,8 @@ export const cssEntryPointRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require the app/styles CSS root, one global entry point, and direct project-CSS imports.",
+      description:
+        "Require the app/styles CSS root, one global entry point, and direct imports for every project stylesheet.",
     },
   },
   create(context) {
@@ -51,7 +49,7 @@ export const cssEntryPointRule: CSSRuleDefinition = {
 
     const textOf = cachedTextReader();
     const graph = buildStylesheetGraph({ cssFiles, sourceRoot, textOf });
-    const { globals, reachable, directChildren } = graph;
+    const { globals, directChildren } = graph;
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
@@ -123,28 +121,10 @@ export const cssEntryPointRule: CSSRuleDefinition = {
           return;
         }
 
-        // Whether the current stylesheet defines project CSS (a declaration,
-        // `@theme`, `@layer`, `:root`, etc.) as opposed to pure @import/comment.
-        const hasProjectCss = node.children.some((child) => {
-          if (child.type === "Atrule" && child.name === "import") return false;
-          if (child.type === "Comment") return false;
-          return true;
-        });
-
-        if (hasProjectCss && !directChildren.has(current)) {
+        if (!directChildren.has(current)) {
           context.report({
             node,
-            message:
-              "Project CSS may only live in a stylesheet the global entry point imports directly; route it through a direct import or into the entry point.",
-          });
-          return;
-        }
-
-        if (!reachable.has(current)) {
-          context.report({
-            node,
-            message:
-              "This stylesheet must be imported by the global stylesheet entry point via @import, so CSS arrives through one door.",
+            message: "Every project stylesheet must be imported directly by src/app/styles/globals.css.",
           });
         }
       },

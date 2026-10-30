@@ -1,12 +1,8 @@
 /**
  * Stylesheet import-graph construction shared by the cross-file rules.
  *
- * `css-entry-point` resolves "is this stylesheet the entry point, a direct
- * child of it, or merely reachable" from the `src/` tree on disk. Building that
- * graph — finding the Tailwind-registering entry points, walking `@import`
- * chains, and separating direct children from transitively-reachable files — is
- * the interesting part of the rule and is kept here so the rule only applies
- * the verdicts.
+ * `css-entry-point` finds Tailwind-registering entry points and the
+ * stylesheets they import directly from the `src/` tree on disk.
  */
 
 import path from "node:path";
@@ -14,8 +10,6 @@ import path from "node:path";
 export interface StylesheetGraph {
   /** Stylesheets that register Tailwind — candidate global entry points. */
   globals: string[];
-  /** Normalized paths reachable from an entry point through @import chains. */
-  reachable: Set<string>;
   /** Normalized paths an entry point imports *directly* (no midpoint). */
   directChildren: Set<string>;
 }
@@ -58,26 +52,8 @@ export function buildStylesheetGraph(options: {
   // The global entry points: every stylesheet that registers Tailwind.
   const globals = cssFiles.filter((file) => registersTailwind(textOf(file)));
 
-  // Stylesheets reachable from an entry point through @import chains.
-  const reachable = new Set<string>();
-  const queue = [...globals];
-  for (const global of globals) reachable.add(path.normalize(global));
-  while (queue.length > 0) {
-    const from = queue.shift();
-    if (!from) continue;
-    for (const spec of importedSpecifiers(textOf(from))) {
-      const target = resolveSpecifier(from, spec, sourceRoot);
-      if (!target) continue;
-      const normalized = path.normalize(target);
-      if (cssSet.has(normalized) && !reachable.has(normalized)) {
-        reachable.add(normalized);
-        queue.push(normalized);
-      }
-    }
-  }
-
   // Stylesheets the entry points import directly (no intermediate import).
-  // Project CSS is only legitimate in these, so content arrives via the entry.
+  // Every project stylesheet must be one of these direct children.
   const directChildren = new Set<string>();
   for (const global of globals) {
     for (const spec of importedSpecifiers(textOf(global))) {
@@ -88,5 +64,5 @@ export function buildStylesheetGraph(options: {
     }
   }
 
-  return { globals, reachable, directChildren };
+  return { globals, directChildren };
 }
