@@ -282,7 +282,7 @@ Why: custom utilities use `@apply` rather than direct CSS declarations. Both exa
 ```
 
 ```tsx
-<div className="grid grid-template-columns-2fr-1fr">...</div>
+<div className="grid-template-columns-2fr-1fr grid">...</div>
 ```
 
 Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
