@@ -10,6 +10,8 @@ void describe("Global selectors inside `@layer base` MUST contain only `@apply` 
       { code: `@keyframes fade { from { opacity: 0; } to { opacity: 1; } }` },
       { code: "@layer base { @media (max-width: 600px) { body { @apply bg-base-canvas; } } }" },
       { code: "@layer base { body { @media (max-width: 600px) { @apply bg-base-canvas; } } }" },
+      { code: ".custom-layout { @apply grid gap-[13px]; }" },
+      { code: "@layer components { .custom-layout { @apply grid-cols-[200px_1fr]; } }" },
     ],
     invalid: [
       {
