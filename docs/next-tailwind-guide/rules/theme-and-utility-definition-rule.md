@@ -314,7 +314,7 @@ export function NotificationsList({ children }: { children: React.ReactNode }) {
 }
 ```
 
-Why: the scrolling component uses the named, single-property utility, keeping the nonstandard scrollbar value out of JSX.
+Why: the scrolling component uses the named, single-property utility, keeping the raw CSS-property mapping out of JSX.
 
 ## Incorrect — Component References a Nonexistent Utility
 
