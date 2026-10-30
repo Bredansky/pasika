@@ -7,7 +7,6 @@ import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { featureCssPlacementRule } from "./feature-css-placement";
-import { globalSelectorStylingRule } from "./global-selector-styling";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
@@ -36,7 +35,6 @@ export const tailwindRules = {
   "unique-css-definition": uniqueCssDefinitionRule,
   "unique-css-token-value": uniqueCssTokenValueRule,
   "no-utility-alias": noUtilityAliasRule,
-  "global-selector-styling": globalSelectorStylingRule,
 };
 
 export type TailwindRuleName = keyof typeof tailwindRules;
