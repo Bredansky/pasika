@@ -6,6 +6,8 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const MIXED =
+  "Use either direct @theme tokens or @theme inline tokens across the project, not both; @theme may still reset --*: initial.";
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const rootDuplicate = (name: string): string =>
@@ -25,7 +27,6 @@ void describe("Tailwind tokens MUST use `@theme inline` when their values refere
       { code: "@theme { --color-brand: #2563eb; }" },
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
       { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
-      { code: "@theme { --primary: 290 80% 65%; } @theme inline { --color-primary-canvas: hsl(var(--primary)); }" },
       {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
       },
@@ -37,9 +38,6 @@ void describe("Tailwind tokens MUST use `@theme inline` when their values refere
       },
       {
         code: ":root { --color-brand: 37 99 235; } .dark { --color-brand: 29 78 216; } @theme inline { --color-brand: rgb(\n  var(--color-brand)\n); }",
-      },
-      {
-        code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --color-brand: #2563eb; } @theme inline { --color-surface: var(--color-surface); }",
       },
       { code: "@theme { --color-brand: #2563eb; /* --color-comment: var(--nope); */ }" },
       { code: '@theme { --font-label: "var(--literal)"; }' },
@@ -124,6 +122,51 @@ void describe("Tailwind tokens MUST use `@theme inline` when their values refere
   });
 });
 
+void describe("Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.", () => {
+  tailwindRuleTester.run("root-variables-theme-strategy", rootVariablesRule, {
+    valid: [
+      { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
+      {
+        code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme { --*: initial; } @theme inline { --color-brand: var(--color-brand); }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial); }",
+        errors: [{ message: MIXED }],
+      },
+      {
+        code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --color-brand: blue; } @theme inline { --color-surface: var(--color-surface); }",
+        errors: [{ message: MIXED }],
+      },
+    ],
+  });
+});
+
+void describe("Theme strategies MUST also remain exclusive across stylesheets.", () => {
+  const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-strategies-")));
+  const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
+  mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
+  writeFileSync(filename("tokens.css"), "@theme { --color-brand: blue; }");
+
+  const originalDirectory = process.cwd();
+  process.chdir(fixture);
+  try {
+    tailwindRuleTester.run("root-variables-cross-file-theme-strategy", rootVariablesRule, {
+      valid: [{ filename: filename("globals.css"), code: "@theme { --*: initial; }" }],
+      invalid: [
+        {
+          filename: filename("globals.css"),
+          code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme inline { --color-surface: var(--color-surface); }",
+          errors: [{ message: MIXED }],
+        },
+      ],
+    });
+  } finally {
+    process.chdir(originalDirectory);
+  }
+});
+
 void describe("A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.", () => {
   tailwindRuleTester.run("root-variables-runtime", rootVariablesRule, {
     valid: [
@@ -151,15 +194,22 @@ void describe("A CSS variable referenced by an `@theme inline` token with the sa
   });
 });
 
-void describe("An `@theme inline` token referencing a CSS variable with a different name MUST reference a token declared in `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.", () => {
+void describe("An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
-        code: "@theme { --color-primary-canvas: #aabbcc; } @theme inline { --color-primary-edge: var(--color-primary-canvas); }",
+        code: ":root { --color-primary-edge: white; } .dark { --color-primary-edge: black; } @theme inline { --color-primary-edge: var(--color-primary-edge); }",
       },
-      { code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }" },
     ],
     invalid: [
+      {
+        code: "@theme { --color-primary-canvas: #aabbcc; } @theme inline { --color-primary-edge: var(--color-primary-canvas); }",
+        errors: [{ message: MIXED }, { message: wrongVariable("--color-primary-edge", "--color-primary-canvas") }],
+      },
+      {
+        code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }",
+        errors: [{ message: MIXED }, { message: missingFontFallback("--font-sans", "--font-heading") }],
+      },
       {
         code: "@theme inline { --color-primary-edge: var(--unknown-primary); }",
         errors: [{ message: wrongVariable("--color-primary-edge", "--unknown-primary") }],
@@ -225,7 +275,7 @@ void describe("Runtime mappings require unconditional defaults and matching over
         },
         {
           filename: filename("globals.css"),
-          code: "@theme { --brand-hue: 290 80% 65%; } @theme inline { --color-primary-canvas: hsl(var(--brand-hue)); }",
+          code: "@theme { --brand-hue: 290 80% 65%; }",
         },
         {
           filename: filename("globals.css"),
@@ -362,7 +412,7 @@ void describe("Tokens defined in `@theme` MUST NOT be redeclared outside `@theme
   writeFileSync(filename("globals.css"), '@import "tailwindcss";\n@import "./tokens.css";\n@import "./overrides.css";');
   writeFileSync(
     filename("tokens.css"),
-    "@theme { --color-brand: #ffffff; --radius-card: 8px; --spacing: 0.25rem; } :root { --radius-fluid: 8px; } .dark { --radius-fluid: 4px; } @theme inline { --radius-fluid: var(--radius-fluid); }",
+    "@theme { --color-brand: #ffffff; --radius-card: 8px; --spacing: 0.25rem; } :root { --radius-fluid: 8px; } .dark { --radius-fluid: 4px; }",
   );
   writeFileSync(filename("overrides.css"), ":root { --color-brand: #111111; }");
 

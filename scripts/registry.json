@@ -1172,6 +1172,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.",
+      "hash": "58d3c34120",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.",
       "hash": "776ec6cebc",
       "ref": "pasika/root-variables"
@@ -1184,8 +1190,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token referencing a CSS variable with a different name MUST reference a token declared in `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.",
-      "hash": "0a77e60e29",
+      "text": "An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.",
+      "hash": "5bd312518e",
       "ref": "pasika/root-variables"
     },
     {

@@ -25,6 +25,8 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const MIXED_THEME_MESSAGE =
+  "Use either direct @theme tokens or @theme inline tokens across the project, not both; @theme may still reset --*: initial.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
@@ -74,7 +76,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
     const mirroredTokens = new Set<string>();
-    const nonInlineThemeNames = new Set<string>();
+    let hasDirectThemeTokens = false;
+    let hasInlineThemeTokens = false;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -88,7 +91,8 @@ export const rootVariablesRule: CSSRuleDefinition = {
           const { name, value } = declaration.groups ?? {};
           if (!name) continue;
           names.add(name);
-          if (!inline) nonInlineThemeNames.add(name);
+          if (inline) hasInlineThemeTokens = true;
+          else hasDirectThemeTokens = true;
           if (inline && /\bvar\s*\(/u.test(value ?? "")) {
             mirroredTokens.add(name);
           }
@@ -131,7 +135,15 @@ export const rootVariablesRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        for (const theme of atrulesNamed(node, "theme")) {
+        const localThemes = atrulesNamed(node, "theme");
+        if (hasDirectThemeTokens && hasInlineThemeTokens) {
+          const mixed = localThemes.find((theme) => {
+            const source = context.sourceCode.getText(theme).replace(/\/\*[\s\S]*?\*\//gu, " ");
+            return /(?:^|[{;\r\n])\s*--[a-z][\w-]*\s*:/u.test(source);
+          });
+          if (mixed) context.report({ node: mixed, message: MIXED_THEME_MESSAGE });
+        }
+        for (const theme of localThemes) {
           const inline = preludeIdentifiers(theme).includes("inline");
           // Tailwind's theme declarations can be Raw nodes in the tolerant CSS
           // parser. Inspect each declaration separately, including multiline
@@ -151,13 +163,12 @@ export const rootVariablesRule: CSSRuleDefinition = {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;
                 if (runtime && runtime !== name) {
-                  // Cross-token references require a non-inline @theme source.
-                  // External font variables (e.g. next/font) require a fallback
-                  // inside var(), even when an inline token uses the same name.
+                  // Only external font variables may differ from the Tailwind
+                  // token name; next/font mappings require a var() fallback.
                   const externalFont = name.startsWith("--font-") && runtime.startsWith("--font-");
-                  if (!nonInlineThemeNames.has(runtime) && externalFont && !hasVarFallback(value, runtime)) {
+                  if (externalFont && !hasVarFallback(value, runtime)) {
                     context.report({ node: theme, message: EXTERNAL_FONT_FALLBACK_MESSAGE(name, runtime) });
-                  } else if (!nonInlineThemeNames.has(runtime) && !externalFont) {
+                  } else if (!externalFont) {
                     context.report({
                       node: theme,
                       message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,

@@ -7,9 +7,10 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
 - Tailwind tokens MUST use `@theme inline` when their values reference `var()`, and `@theme` otherwise.
+- Project stylesheets MUST NOT combine direct-value `@theme` tokens with `@theme inline` tokens; a reset-only `@theme { --*: initial; }` is allowed.
 - Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
-- An `@theme inline` token referencing a CSS variable with a different name MUST reference a token declared in `@theme`, except external `--font-*` variables, which MUST have a nonempty `var()` fallback.
+- An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - Non-custom-property style declarations in global selectors inside `@layer base` MUST use `@apply` instead of raw CSS properties.
 - Outside `@layer base`, global selectors MUST contain only CSS custom-property declarations, including default `:root` values and scoped or conditional overrides.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
@@ -156,7 +157,6 @@ Why: the root layout imports one global CSS entry point, which directly imports 
 
 @theme {
   --*: initial;
-  --spacing: 0.25rem;
 }
 
 @theme inline {
@@ -172,4 +172,4 @@ Why: the root layout imports one global CSS entry point, which directly imports 
 }
 ```
 
-Why: one entry point defines literal spacing in `@theme` and maps theme-dependent colors through `@theme inline`; the runtime variables provide light defaults and scoped dark overrides without duplicating token names.
+Why: `@theme` only resets Tailwind defaults, while `@theme inline` maps theme-dependent colors to runtime CSS variables with light defaults and scoped dark overrides. No direct-value `@theme` tokens are mixed with inline tokens.
