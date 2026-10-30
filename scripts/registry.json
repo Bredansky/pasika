@@ -1142,15 +1142,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A repository MUST have one global stylesheet entry point that registers Tailwind.",
-      "hash": "4f548b26c4",
+      "text": "Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.",
+      "hash": "c986502781",
       "ref": "pasika/global-stylesheet"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.",
-      "hash": "12e9820bba",
-      "ref": "pasika/css-entry-point"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",

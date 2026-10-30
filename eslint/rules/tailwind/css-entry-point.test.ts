@@ -19,7 +19,7 @@ const srcPath = (root: string, relativePath: string): string => path.join(root, 
 
 const ENTRY = `@import "tailwindcss";\n`;
 
-void describe("Project stylesheets MUST live under `src/app/styles/`, and the global stylesheet entry point MUST be `src/app/styles/globals.css`.", () => {
+void describe("Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.", () => {
   // A Tailwind entry point outside src/app/styles is misplaced.
   const misplacedEntry = buildFixture({
     "app/globals.css": ENTRY,

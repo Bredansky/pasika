@@ -5,7 +5,7 @@ import { describe } from "vitest";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { tailwindRuleTester } from "./rule-tester";
 
-void describe("A repository MUST have one global stylesheet entry point that registers Tailwind.", () => {
+void describe("Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-global-stylesheet-")));
   const filename = (name: string): string => path.join(fixture, "src", "app", "styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
