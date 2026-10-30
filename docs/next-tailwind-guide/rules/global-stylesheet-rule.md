@@ -5,9 +5,9 @@ Scattered project stylesheets and competing Tailwind entry points make CSS owner
 - Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
-- The global stylesheet MUST reset Tailwind's default theme with `--*: initial`.
+- The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.
 - Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
-- Tokens defined in `@theme` MUST NOT be redeclared outside `@theme`.
+- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
@@ -124,8 +124,8 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 @import "./home.css";
 
 /* src/app/styles/home.css */
-@utility home-banner {
-  @apply text-base-ink;
+@utility border-style-outset {
+  @apply [border-style:outset];
 }
 ```
 
@@ -134,7 +134,14 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 import "./styles/globals.css";
 ```
 
-Why: the root layout imports one global CSS entry point, which directly imports `home.css` for the `home` feature. Shared theme tokens and base styles may stay in `globals.css`.
+```tsx
+// src/app/page.tsx
+export default function Home() {
+  return <section className="border-style-outset">Home</section>;
+}
+```
+
+Why: the root layout imports the single CSS entry point, which imports the feature stylesheet directly. The feature uses its custom utility, while shared tokens and base styles may stay in `globals.css`.
 
 ## Incorrect — Direct Declarations Inside the Base Layer
 
