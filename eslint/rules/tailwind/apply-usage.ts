@@ -2,8 +2,8 @@
  * ESLint rule: pasika/apply-usage
  *
  * Global selectors inside @layer base MUST contain only @apply directives.
- * Outside the base layer, raw styling is forbidden and CSS variables are
- * handled by the global-selector-styling rule.
+ * Outside the base layer, ordinary selectors may use CSS variables and
+ * @apply, but direct non-variable property declarations still require @apply.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
