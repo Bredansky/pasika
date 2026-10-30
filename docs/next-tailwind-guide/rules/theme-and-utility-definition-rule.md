@@ -12,7 +12,7 @@ Project values need stable Tailwind names, while presentation reuse belongs to c
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
-- When Tailwind can generate an equivalent class from an available `@theme` token, that class MUST take precedence over custom `@utility` definitions and standalone CSS class selectors; define a theme token instead of a redundant one-property utility when supported.
+- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Background Using a Text Color
@@ -41,7 +41,7 @@ Why: a text-color token is being applied as a background, even though Tailwind g
 <div className="bg-shiny-canvas" />
 ```
 
-Why: the canvas suffix identifies a background color and Pasika verifies that the utility uses it accordingly.
+Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
@@ -203,7 +203,7 @@ Why: the component owns the reusable presentation and its markup/API, while mapp
 }
 ```
 
-Why: the raw declaration bypasses Pasika's `@apply` requirement; the corrected example keeps the same two-column grid.
+Why: custom utilities use `@apply` rather than direct CSS declarations. Both examples define the same two-column grid.
 
 ## Correct — Arbitrary Property Mapped Through Tailwind
 
@@ -213,7 +213,11 @@ Why: the raw declaration bypasses Pasika's `@apply` requirement; the corrected e
 }
 ```
 
-Why: the class name reflects `grid-template-columns: 2fr 1fr`, and the arbitrary value stays in CSS rather than JSX.
+```tsx
+<div className="grid grid-template-columns-2fr-1fr">...</div>
+```
+
+Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
 
 ## Incorrect — Custom Utility No Source Uses
 
