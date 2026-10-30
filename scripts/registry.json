@@ -1166,30 +1166,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.",
-      "hash": "ab9bc40242",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.",
-      "hash": "e5fd3dff02",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.",
-      "hash": "ba39d5ba72",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.",
-      "hash": "5bd312518e",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "Global selectors inside `@layer base` MUST contain only `@apply` directives.",
       "hash": "3e4883d186",
       "ref": "pasika/apply-usage"
@@ -1207,16 +1183,28 @@
       "ref": "pasika/base-layer-pair"
     },
     {
-      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
-      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
-      "hash": "86f83ca119",
-      "ref": "pasika/no-literal-inline-style"
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.",
+      "hash": "ab9bc40242",
+      "ref": "pasika/root-variables"
     },
     {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
-      "ref": "pasika/no-duplicate-jsx-classes"
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.",
+      "hash": "e5fd3dff02",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.",
+      "hash": "ba39d5ba72",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.",
+      "hash": "5bd312518e",
+      "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1289,6 +1277,18 @@
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
+      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
+      "hash": "86f83ca119",
+      "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "pasika-adoption-guide/rules/api-contract-rule.md",
