@@ -26,7 +26,8 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const MIXED_THEME_MESSAGE = "Use either @theme or @theme inline across the project, not both.";
+const MIXED_THEME_MESSAGE =
+  "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
@@ -97,6 +98,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     const mirroredTokens = new Set<string>();
     let hasPlainThemeBlocks = false;
     let hasInlineThemeBlocks = false;
+    let inlineBlocksAreExternalFonts = true;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -107,6 +109,38 @@ export const rootVariablesRule: CSSRuleDefinition = {
       for (const header of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{/gu)) {
         if (/\binline\b/u.test(header.groups?.options ?? "")) hasInlineThemeBlocks = true;
         else hasPlainThemeBlocks = true;
+      }
+      // Fixed theme values can coexist with externally injected next/font
+      // variables. Those are the only safe @theme inline exceptions to a
+      // project's fixed-token @theme strategy.
+      const inlineHeaders = [...source.matchAll(/@theme\s+inline\s*\{/gu)];
+      const inlineBlocks = [...source.matchAll(/@theme\s+inline\s*\{(?<body>[^{}]*)\}/gu)];
+      if (inlineHeaders.length !== inlineBlocks.length) inlineBlocksAreExternalFonts = false;
+      for (const block of inlineBlocks) {
+        const declarations = (block.groups?.body ?? "")
+          .split(";")
+          .map((part) => part.trim())
+          .filter(Boolean);
+        if (declarations.length === 0) inlineBlocksAreExternalFonts = false;
+        for (const declaration of declarations) {
+          const match = /^(?<token>--font-[a-z][\w-]*)\s*:\s*(?<value>.+)$/u.exec(declaration);
+          const name = match?.groups?.token;
+          const value = match?.groups?.value ?? "";
+          const references = [...value.matchAll(/\bvar\s*\(\s*(?<name>--[\w-]+)/gu)].map(
+            (reference) => reference.groups?.name,
+          );
+          const runtime = references[0];
+          if (
+            !name ||
+            references.length !== 1 ||
+            !runtime?.startsWith("--font-") ||
+            runtime === name ||
+            names.has(runtime) ||
+            !hasVarFallback(value, runtime)
+          ) {
+            inlineBlocksAreExternalFonts = false;
+          }
+        }
       }
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
@@ -159,7 +193,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const localThemes = atrulesNamed(node, "theme");
-        if (hasPlainThemeBlocks && hasInlineThemeBlocks && localThemes[0]) {
+        if (hasPlainThemeBlocks && hasInlineThemeBlocks && !inlineBlocksAreExternalFonts && localThemes[0]) {
           context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
         }
         for (const theme of localThemes) {
