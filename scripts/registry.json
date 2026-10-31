@@ -1196,8 +1196,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.",
-      "hash": "5f907a26f7",
+      "text": "Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.",
+      "hash": "a62ae78387",
       "ref": "pasika/root-variables"
     },
     {

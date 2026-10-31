@@ -2,7 +2,7 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.
+- Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -141,15 +141,20 @@ Why: the matching `:root` default and scoped override provide runtime values for
 
 Why: if the injected `--font-inter` variable is missing, the unresolved `var()` invalidates the whole `font-family` declaration. `Arial` after the closing parenthesis is not a CSS variable fallback.
 
-## Correct — Fallback Inside the External Font Reference
+## Correct — External Font Alongside a Fixed Theme
 
 ```css
+@theme {
+  --*: initial;
+  --color-base-ink: #fafafa;
+}
+
 @theme inline {
   --font-sans: var(--font-inter, Arial), sans-serif;
 }
 ```
 
-Why: the second argument of `var()` supplies `Arial` when `--font-inter` is unavailable; `sans-serif` remains the next family when the selected font is unavailable. This works with external variables injected by a font loader such as `next/font`.
+Why: fixed tokens stay in plain `@theme`, while the external font variable resolves where the utility is used. `Arial` is the fallback inside `var()`, `sans-serif` is the next family, and this exception supports `next/font` without making fixed colors runtime mappings.
 
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 

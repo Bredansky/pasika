@@ -6,7 +6,8 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const MIXED = "Use either @theme or @theme inline across the project, not both.";
+const MIXED =
+  "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const rootDuplicate = (name: string): string =>
@@ -20,7 +21,7 @@ const wrongVariable = (token: string, variable: string): string =>
 const missingFontFallback = (token: string, variable: string): string =>
   `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
-void describe("Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.", () => {
+void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
@@ -133,18 +134,25 @@ void describe("Tailwind tokens MUST consistently use either plain `@theme` for f
   });
 });
 
-void describe("Mixed `@theme` and `@theme inline` strategies are rejected, except that a reset belongs within the chosen block.", () => {
+void describe("Mixed theme strategies are rejected except for external font-loader mappings.", () => {
   tailwindRuleTester.run("root-variables-theme-strategy", rootVariablesRule, {
     valid: [
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
+      {
+        code: "@theme { --*: initial; --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial), sans-serif; --font-mono: var(--font-roboto-mono, monospace), monospace; }",
+      },
       {
         code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme inline { --*: initial; --color-brand: var(--color-brand); }",
       },
     ],
     invalid: [
       {
-        code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial); }",
-        errors: [{ message: MIXED }],
+        code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter); }",
+        errors: [{ message: MIXED }, { message: missingFontFallback("--font-sans", "--font-inter") }],
+      },
+      {
+        code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial), sans-serif; --color-surface: var(--color-surface); }",
+        errors: [{ message: MIXED }, { message: missingDefault("--color-surface") }],
       },
       {
         code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --color-brand: blue; } @theme inline { --color-surface: var(--color-surface); }",
@@ -172,7 +180,13 @@ void describe("Theme strategies MUST also remain exclusive across stylesheets.",
   process.chdir(fixture);
   try {
     tailwindRuleTester.run("root-variables-cross-file-theme-strategy", rootVariablesRule, {
-      valid: [{ filename: filename("globals.css"), code: "@theme { --*: initial; }" }],
+      valid: [
+        { filename: filename("globals.css"), code: "@theme { --*: initial; }" },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }",
+        },
+      ],
       invalid: [
         {
           filename: filename("globals.css"),
