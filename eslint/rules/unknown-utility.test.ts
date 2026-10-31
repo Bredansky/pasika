@@ -40,6 +40,8 @@ const GLOBALS = `@import "tailwindcss";
   --spacing-viewport-10: 10%;
   --spacing-vortex-center: 6%;
   --inset-shadow-panel: inset 1px 1px 0 #a8a8a8, inset -1px -1px 0 #555555;
+  --grid-template-columns-social-posts: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  --transition-property-retro-button: color, border-color, opacity;
   --font-display: "Inter", sans-serif;
   --text-sm: 0.875rem;
   --blur-sm: 8px;
@@ -162,6 +164,10 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="bg-rainbow-gradient-canvas" />', filename: srcFile("shared/gradient.tsx") },
       { code: '<div className="inset-0 inset-shadow-panel" />', filename: srcFile("shared/shadow.tsx") },
       {
+        code: '<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-social-posts transition-all transition-colors transition-opacity transition-shadow transition-transform transition-retro-button" />',
+        filename: srcFile("shared/semantic-grid.tsx"),
+      },
+      {
         code: '<div className="lg:w-panel-26 p-viewport-10 h-vortex-center w-vortex-center w-full mx-auto" />',
         filename: srcFile("shared/spaced-panel.tsx"),
       },
@@ -267,6 +273,11 @@ void describe("A utility class a component statically references MUST be a custo
       { code: '<div className="sm:flex" />', filename: srcFile("shared/card.tsx") },
     ],
     invalid: [
+      {
+        code: '<div className="grid-cols-social-post-typo transition-retro-buton" />',
+        filename: srcFile("shared/semantic-grid.tsx"),
+        errors: [{ message: message("grid-cols-social-post-typo") }, { message: message("transition-retro-buton") }],
+      },
       {
         code: '<div className="w-panle-26" />',
         filename: srcFile("shared/spaced-panel.tsx"),

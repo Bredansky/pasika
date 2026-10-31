@@ -45,6 +45,8 @@ const PREFIX_NAMESPACES: Record<string, string[]> = {
   to: ["color"],
   shadow: ["color", "shadow"],
   "inset-shadow": ["inset-shadow"],
+  "grid-cols": ["grid-template-columns"],
+  transition: ["transition-property"],
   rounded: ["radius"],
   font: ["font"],
   tracking: ["tracking"],
@@ -200,6 +202,8 @@ const PREFIX_BUILTINS: Record<string, string[]> = {
   decoration: ["solid", "double", "dotted", "dashed", "wavy", "none"],
   outline: ["none", "hidden", "dashed", "dotted", "double", "solid"],
   font: ["thin", "extralight", "light", "normal", "medium", "semibold", "bold", "extrabold", "black"],
+  "grid-cols": ["none", "subgrid"],
+  transition: ["none", "all", "colors", "opacity", "shadow", "transform", "discrete", "normal"],
 };
 
 /**
@@ -521,6 +525,14 @@ function readInventory(files: string[]): Inventory {
         if (namespace === "inset" && token?.startsWith("shadow-")) {
           namespace = "inset-shadow";
           token = token.slice("shadow-".length);
+        }
+        if (namespace === "grid" && token?.startsWith("template-columns-")) {
+          namespace = "grid-template-columns";
+          token = token.slice("template-columns-".length);
+        }
+        if (namespace === "transition" && token?.startsWith("property-")) {
+          namespace = "transition-property";
+          token = token.slice("property-".length);
         }
         if (!namespace || !token) continue;
         let set = themeTokensByNamespace.get(namespace);
