@@ -8,9 +8,7 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
-- Tailwind background-image tokens (`--background-image-*`) MUST end in `-canvas`, so their generated `bg-*` utilities identify background presentation.
-- Non-color custom properties MUST use descriptive domain names and MUST NOT use reserved color-role suffixes, except for `--background-image-*` theme tokens and their matching runtime defaults.
+- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A static custom `@utility` MUST use a name derived from its CSS property and value, including units.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
