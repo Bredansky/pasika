@@ -1238,12 +1238,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Non-color custom properties MUST use descriptive domain names and MUST NOT use reserved color-role suffixes, except for `--background-image-*` theme tokens and their matching runtime defaults.",
-      "hash": "9ade80b127",
-      "note": "Review custom property names for domain specificity and reserved color-role suffixes; inferring whether an arbitrary CSS value is a color is not reliable from syntax alone."
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.",
       "hash": "a61de0650b",
       "ref": "pasika/custom-utility-apply"

@@ -44,7 +44,6 @@ void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-in
     valid: [
       { code: "@theme { --*: initial; --color-base-canvas: #fff; --color-base-ink: #111; --color-base-edge: #ccc; }" },
       { code: "@theme inline { --color-primary-canvas: var(--primary); }" },
-      { code: ":root { --runtime-color: #fff; --tweet-card-name-text-size: 12px; }" },
       { code: "@theme { --radius-md: 4px; --text-card-title: 1rem; }" },
     ],
     invalid: [
