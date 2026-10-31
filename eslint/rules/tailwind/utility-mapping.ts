@@ -12,6 +12,8 @@
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
@@ -83,9 +85,70 @@ const themeOperations = [
   { property: "zoom", prefix: "zoom", namespace: "zoom" },
   { property: "perspective", prefix: "perspective", namespace: "perspective" },
   { property: "animation", prefix: "animate", namespace: "animate" },
+  { property: "box-shadow", prefix: "shadow", namespace: "shadow" },
 ] as const;
 
-/** Multi-declaration generators (shadows, blur filters) need compiled-CSS equivalence, not a one-property guess. */
+/**
+ * Tailwind's shadow generator emits multiple declarations (including ring
+ * composition). Probe the actual compiler instead of inferring support from
+ * the box-shadow property or from a manually maintained list.
+ *
+ * This proves the theme utility can represent the requested shadow value,
+ * not that replacing the custom utility is behaviorally neutral when combined
+ * with ring or inset-shadow classes. The diagnostic requires a CSS comparison.
+ */
+const SHADOW_THEME_WORKER = String.raw`
+import { readFileSync } from "node:fs";
+import { compile } from "tailwindcss";
+const values = JSON.parse(readFileSync(0, "utf8"));
+const results = [];
+for (const value of values) {
+  try {
+    const compiler = await compile(["@theme { --shadow-pasika-probe: ", value, "; } @tailwind utilities;"].join(""));
+    const css = compiler.build(["shadow-pasika-probe"]);
+    const block = css.match(/\.shadow-pasika-probe\s*\{(?<body>[^}]+)\}/u)?.groups?.body ?? "";
+    results.push(/--tw-shadow\s*:/u.test(block) && /box-shadow\s*:/u.test(block));
+  } catch {
+    results.push(false);
+  }
+}
+process.stdout.write(JSON.stringify(results));
+`;
+
+const shadowSupportCache = new Map<string, boolean>();
+
+function themeSupportedShadows(values: string[], cwd: string): Set<string> {
+  const unique = [...new Set(values)];
+  const cacheKey = (value: string): string => `${cwd}\u0000${value}`;
+  const missing = unique.filter((value) => !shadowSupportCache.has(cacheKey(value)));
+  if (missing.length > 0) {
+    const child = spawnSync(process.execPath, ["--input-type=module", "--eval", SHADOW_THEME_WORKER], {
+      cwd,
+      input: JSON.stringify(missing),
+      encoding: "utf8",
+      timeout: 30000,
+      maxBuffer: 8 * 1024 * 1024,
+      windowsHide: true,
+    });
+    let supported: boolean[] = [];
+    if (!child.error && child.status === 0) {
+      try {
+        const parsed: unknown = JSON.parse(child.stdout);
+        if (
+          Array.isArray(parsed) &&
+          parsed.length === missing.length &&
+          parsed.every((value) => typeof value === "boolean")
+        ) {
+          supported = parsed.filter((value): value is boolean => typeof value === "boolean");
+        }
+      } catch {
+        // A missing or incompatible Tailwind compiler must not produce false positives.
+      }
+    }
+    missing.forEach((value, index) => shadowSupportCache.set(cacheKey(value), supported[index] === true));
+  }
+  return new Set(unique.filter((value) => shadowSupportCache.get(cacheKey(value))));
+}
 
 /**
  * Recognize one plain arbitrary-property or typed variable @apply,
@@ -413,6 +476,18 @@ export const utilityMappingRule: CSSRuleDefinition = {
           return undefined;
         }
 
+        const shadowCandidates = utilities
+          .map((utility) =>
+            themeCandidate(preludeIdentifiers(utility)[0] ?? "unknown", context.sourceCode.getText(utility)),
+          )
+          .filter((candidate): candidate is ThemeCandidate => candidate?.property === "box-shadow");
+        const physicalDir = path.dirname(context.physicalFilename);
+        const tailwindCwd = path.isAbsolute(physicalDir) && existsSync(physicalDir) ? physicalDir : context.cwd;
+        const themeShadows = themeSupportedShadows(
+          shadowCandidates.map((candidate) => candidate.value),
+          tailwindCwd,
+        );
+
         for (const utility of utilities) {
           const name = preludeIdentifiers(utility)[0] ?? "unknown";
           const source = context.sourceCode.getText(utility);
@@ -434,7 +509,11 @@ export const utilityMappingRule: CSSRuleDefinition = {
             });
             continue;
           }
-          const candidate = themeCandidate(name, source);
+          const possibleCandidate = themeCandidate(name, source);
+          const candidate =
+            possibleCandidate?.property === "box-shadow" && !themeShadows.has(possibleCandidate.value)
+              ? undefined
+              : possibleCandidate;
           const equivalent = candidate ? matchingThemeToken(candidate) : undefined;
           if (candidate && equivalent && nameCounts.get(name) === 1) {
             context.report({
@@ -462,7 +541,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
               node: utility,
               message:
                 `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ` +
-                `define an @theme token in the "--${candidate.namespace}-*" namespace and use its generated "${candidate.prefix}-*" class instead.`,
+                `define an @theme token in the "--${candidate.namespace}-*" namespace and use its generated "${candidate.prefix}-*" class instead.${candidate.property === "box-shadow" ? " Compare compiled CSS and ring/inset-shadow composition before migration." : ""}`,
             });
             continue;
           }

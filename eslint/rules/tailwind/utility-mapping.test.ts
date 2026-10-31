@@ -293,7 +293,6 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
     valid: [
       // Unhinted background variables are ambiguous: never guess color versus image.
       { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
-      { code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }" },
       { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
       { code: "@utility bg-photo { @apply [background-image:url(hero_file.png)]; }" },
       {
@@ -301,6 +300,18 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       },
     ],
     invalid: [
+      {
+        code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }",
+        errors: [{ message: /define a direct @theme token "--shadow-card"/u }],
+      },
+      {
+        code: "@theme { --shadow-retro-glow: 0 2px 4px #000; }\n@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }",
+        errors: [{ message: /duplicates theme-generated "shadow-retro-glow"/u }],
+      },
+      {
+        code: "@utility box-shadow-hash-67bf68a3e9ad { @apply [box-shadow:0_0_8px_hsl(var(--primary)_/_0.4),_0_0_16px_hsl(var(--accent)_/_0.2),_0_0_32px_hsl(var(--primary)_/_0.1)]; }",
+        errors: [{ message: /define an @theme token in the "--shadow-\*" namespace/u }],
+      },
       {
         code: "@utility rounded-complex { @apply [border-radius:calc(8px_+_2px)]; }",
         errors: [{ message: /define a direct @theme token "--radius-complex"/u }],
