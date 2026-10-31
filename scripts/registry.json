@@ -1183,9 +1183,21 @@
       "ref": "pasika/base-layer-pair"
     },
     {
+      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
+      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
+      "hash": "86f83ca119",
+      "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
+      "hash": "f0fae6c4e1",
+      "ref": "pasika/no-duplicate-jsx-classes"
+    },
+    {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.",
-      "hash": "ab9bc40242",
+      "text": "Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.",
+      "hash": "5f907a26f7",
       "ref": "pasika/root-variables"
     },
     {
@@ -1277,18 +1289,6 @@
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/inline-style-rule.md",
-      "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
-      "hash": "86f83ca119",
-      "ref": "pasika/no-literal-inline-style"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
-      "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
       "doc": "pasika-adoption-guide/rules/api-contract-rule.md",

@@ -1,7 +1,8 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Direct tokens use @theme; tokens using var() use @theme inline.
+ * Fixed values and aliases to other fixed theme tokens use plain @theme;
+ * runtime CSS-variable references use @theme inline.
  * Same-named runtime token mappings require a default :root declaration under
  * Pasika's policy, with scoped or programmed overrides. This is a repository
  * convention for predictable defaults, not a CSS or Tailwind requirement.
@@ -49,7 +50,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require @theme for fixed tokens, matching :root variables for @theme inline tokens, and no other token redeclarations.",
+        "Require @theme for fixed tokens and fixed-token aliases, matching :root variables for @theme inline tokens, and no other token redeclarations.",
     },
   },
   create(context) {
@@ -68,9 +69,28 @@ export const rootVariablesRule: CSSRuleDefinition = {
       modules: [],
       includeReferences: false,
     });
+    const themeValues = new Map(
+      graph.definitions
+        .filter((symbol) => symbol.kind === "theme-token" && symbol.value !== undefined)
+        .map((symbol) => [symbol.name, symbol.value ?? ""]),
+    );
     const names = new Set(
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
+
+    // A plain @theme token can safely alias another fixed @theme token.
+    // Both variables are emitted in the same root scope; unlike a runtime
+    // variable, the referenced token cannot be changed by a scoped override.
+    function isFixedThemeAlias(name: string, value: string, visited = new Set<string>()): boolean {
+      const match = /^var\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(value.trim());
+      const target = match?.groups?.target;
+      if (!target || target === name || visited.has(target)) return false;
+      const next = themeValues.get(target);
+      if (!next) return false;
+      if (!/\bvar\s*\(/u.test(next)) return true;
+      visited.add(target);
+      return isFixedThemeAlias(name, next, visited);
+    }
     // Collect all theme names, including one-line blocks the tolerant parser
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
@@ -189,7 +209,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
                 context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
               }
             }
-            if (inline === referencesVariable) continue;
+            if (inline === referencesVariable || (!inline && isFixedThemeAlias(name, unquoted))) continue;
             const offset = (theme.loc?.start.offset ?? 0) + match.index + match[0].indexOf(name);
             const preceding = context.sourceCode.text.slice(0, offset);
             const line = preceding.split("\n").length;

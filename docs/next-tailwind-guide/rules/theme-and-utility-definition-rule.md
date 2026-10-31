@@ -2,7 +2,7 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Tailwind tokens MUST use either `@theme` with direct values or `@theme inline` with `var()` references, consistently across the entire project.
+- Tailwind tokens MUST consistently use either plain `@theme` for fixed values (including aliases to fixed theme tokens), or `@theme inline` for runtime CSS-variable references.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -325,6 +325,28 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 ```
 
 Why: explicit semantic tokens generate available color utilities after the default palette is reset.
+
+## Incorrect — Fixed Color Value Duplicated Across Roles
+
+```css
+@theme {
+  --color-base-ink: #f9fafb;
+  --color-dialog-ink: #f9fafb;
+}
+```
+
+Why: both semantic roles copy the same fixed color value, making updates prone to drifting apart.
+
+## Correct — Fixed Semantic Alias Within the Theme
+
+```css
+@theme {
+  --color-base-ink: #f9fafb;
+  --color-dialog-ink: var(--color-base-ink);
+}
+```
+
+Why: the dialog keeps its semantic utility name while sharing a value owned by the same fixed theme. This reference is not a runtime override or an `@theme inline` mapping.
 
 ## Incorrect — Duplicate Configured Typography Utility
 
