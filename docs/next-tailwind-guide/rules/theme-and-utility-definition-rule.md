@@ -9,7 +9,8 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
-- Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.
+- Tailwind background-image tokens (`--background-image-*`) MUST end in `-canvas`, so their generated `bg-*` utilities identify background presentation.
+- Non-color custom properties MUST use descriptive domain names and MUST NOT use reserved color-role suffixes, except for `--background-image-*` theme tokens and their matching runtime defaults.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - A static custom `@utility` MUST use a name derived from its CSS property and value, including units.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
@@ -46,6 +47,34 @@ Why: a text-color token is being applied as a background, even though Tailwind g
 ```
 
 Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
+
+## Incorrect — Background Image Token Without a Canvas Role
+
+```css
+@theme {
+  --background-image-rainbow-gradient: linear-gradient(90deg, #ff00ff, #7c3aed);
+}
+```
+
+```tsx
+<div className="bg-rainbow-gradient">Featured</div>
+```
+
+Why: Tailwind generates the background-image utility, but the token name does not indicate its canvas role.
+
+## Correct — Canvas-Suffixed Background Image Token
+
+```css
+@theme {
+  --background-image-rainbow-gradient-canvas: linear-gradient(90deg, #ff00ff, #7c3aed);
+}
+```
+
+```tsx
+<div className="bg-rainbow-gradient-canvas">Featured</div>
+```
+
+Why: the token and its generated `bg-rainbow-gradient-canvas` utility identify the gradient as background presentation.
 
 ## Incorrect — Direct Theme Value Marked Inline
 

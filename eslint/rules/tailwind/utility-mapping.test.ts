@@ -318,8 +318,8 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
         errors: [{ message: /duplicates theme-generated "animate-wiggle"/u }],
       },
       {
-        code: "@theme { --background-image-magic: linear-gradient(red, blue); }\n@utility bg-gradient-alias { @apply [background-image:linear-gradient(red,_blue)]; }",
-        errors: [{ message: /duplicates theme-generated "bg-magic"/u }],
+        code: "@theme { --background-image-magic-canvas: linear-gradient(red, blue); }\n@utility bg-gradient-alias { @apply [background-image:linear-gradient(red,_blue)]; }",
+        errors: [{ message: /duplicates theme-generated "bg-magic-canvas"/u }],
       },
       {
         code: "@utility css-font-size-var-body { @apply text-(length:--body); }",
@@ -442,19 +442,19 @@ void describe("When Tailwind supports a theme-generated utility for a CSS value,
   tailwindRuleTester.run("utility-mapping:prefer-theme-first", utilityMappingRule, {
     valid: [
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--other-gradient); }
-@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--other-gradient); }
+@utility bg-rainbow-gradient-canvas { @apply [background-image:var(--rainbow-gradient)]; }`,
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 .banner { background-image: var(--rainbow-gradient); background-size: 200% 100%; }`,
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 @media (min-width: 50rem) { .banner { background-image: var(--rainbow-gradient); } }`,
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 .banner:hover { background-image: var(--rainbow-gradient); }`,
       },
     ],
@@ -470,83 +470,83 @@ void describe("When Tailwind supports a theme-generated utility for a CSS value,
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
-@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
+@utility bg-rainbow-gradient-canvas { @apply [background-image:var(--rainbow-gradient)]; }`,
         errors: [
           {
             message:
-              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+              'Custom utility "bg-rainbow-gradient-canvas" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `:root { --rainbow-gradient: linear-gradient(red, blue); --background-image-rainbow-gradient: var(--rainbow-gradient); }
-@theme inline { --background-image-rainbow-gradient: var(--background-image-rainbow-gradient); }
-@utility bg-rainbow-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
+        code: `:root { --rainbow-gradient: linear-gradient(red, blue); --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
+@theme inline { --background-image-rainbow-gradient-canvas: var(--background-image-rainbow-gradient-canvas); }
+@utility bg-rainbow-gradient-canvas { @apply [background-image:var(--rainbow-gradient)]; }`,
         errors: [
           {
             message:
-              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+              'Custom utility "bg-rainbow-gradient-canvas" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
-@utility bg-rainbow-gradient { background-image: var(--rainbow-gradient); }`,
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
+@utility bg-rainbow-gradient-canvas { background-image: var(--rainbow-gradient); }`,
         errors: [
           {
             message:
-              'Custom utility "bg-rainbow-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+              'Custom utility "bg-rainbow-gradient-canvas" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 @utility fancy-gradient { @apply [background-image:var(--rainbow-gradient)]; }`,
         errors: [
           {
             message:
-              'Custom utility "fancy-gradient" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient" instead.',
+              'Custom utility "fancy-gradient" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); reuse "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 .custom-banner { @apply [background-image:var(--rainbow-gradient)]; }`,
         errors: [
           {
             message:
-              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
-.custom-banner { @apply bg-rainbow-gradient; }`,
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
+.custom-banner { @apply bg-rainbow-gradient-canvas; }`,
         errors: [
           {
             message:
-              'CSS class ".custom-banner" only aliases theme-generated "bg-rainbow-gradient"; use "bg-rainbow-gradient" instead.',
+              'CSS class ".custom-banner" only aliases theme-generated "bg-rainbow-gradient-canvas"; use "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 @layer components { .custom-banner { background-image: var(--rainbow-gradient); } }`,
         errors: [
           {
             message:
-              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
       {
-        code: `@theme { --background-image-rainbow-gradient: var(--rainbow-gradient); }
+        code: `@theme { --background-image-rainbow-gradient-canvas: var(--rainbow-gradient); }
 .custom-banner { background-image: var(--rainbow-gradient); }`,
         errors: [
           {
             message:
-              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient" instead.',
+              'CSS class ".custom-banner" duplicates theme-generated "bg-rainbow-gradient-canvas" (background-image: var(--rainbow-gradient)); use "bg-rainbow-gradient-canvas" instead.',
           },
         ],
       },
