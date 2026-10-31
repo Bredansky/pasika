@@ -35,7 +35,7 @@ const GLOBALS = `@import "tailwindcss";
   --color-shiny-canvas: #2563eb;
   --color-brand-500: #123456;
   --radius-card: 1rem;
-  --background-image-rainbow-gradient: linear-gradient(red, blue);
+  --background-image-rainbow-gradient-canvas: linear-gradient(red, blue);
   --spacing-panel-26: 26rem;
   --spacing-viewport-10: 10%;
   --spacing-vortex-center: 6%;
@@ -158,7 +158,7 @@ void describe("Tailwind color utilities MUST match semantic roles: canvas for ba
 void describe("A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.", () => {
   ruleTester.run("unknown-utility", unknownUtilityRule, {
     valid: [
-      { code: '<div className="bg-rainbow-gradient" />', filename: srcFile("shared/gradient.tsx") },
+      { code: '<div className="bg-rainbow-gradient-canvas" />', filename: srcFile("shared/gradient.tsx") },
       {
         code: '<div className="lg:w-panel-26 p-viewport-10 h-vortex-center w-vortex-center w-full mx-auto" />',
         filename: srcFile("shared/spaced-panel.tsx"),

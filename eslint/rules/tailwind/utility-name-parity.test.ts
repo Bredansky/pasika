@@ -46,7 +46,7 @@ void describe("A static custom `@utility` MUST use a name derived from its CSS p
       { code: "@utility opacity-0p5 { @apply [opacity:0.5]; }" },
       { code: "@utility toolbar-* { width: --value(--toolbar-*); }" },
       { code: "@utility multi { @apply h-[3px]; @apply w-[4px]; }" },
-      { code: "@theme { --background-image-rainbow-gradient: linear-gradient(red, blue); }" },
+      { code: "@theme { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); }" },
     ],
     invalid: [
       {

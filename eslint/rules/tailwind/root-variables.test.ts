@@ -87,8 +87,8 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixe
     ],
     invalid: [
       {
-        code: ":root { --background-image-rainbow-gradient: linear-gradient(red, blue); } @theme inline { --background-image-rainbow-gradient: var(--background-image-rainbow-gradient); }",
-        errors: [{ message: redundant("--background-image-rainbow-gradient") }],
+        code: ":root { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); } @theme inline { --background-image-rainbow-gradient-canvas: var(--background-image-rainbow-gradient-canvas); }",
+        errors: [{ message: redundant("--background-image-rainbow-gradient-canvas") }],
       },
       {
         code: "@theme inline { --color-brand: #2563eb; }",

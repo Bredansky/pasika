@@ -136,11 +136,13 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
   it("tracks generated background image classes from theme variables", () => {
     const index = buildCssDependencyGraph({
       sourceRoot: root,
-      css: [{ path: tokens, content: "@theme { --background-image-rainbow-gradient: linear-gradient(red, blue); }" }],
-      modules: [{ path: component, content: 'const cls = "bg-rainbow-gradient";' }],
+      css: [
+        { path: tokens, content: "@theme { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); }" },
+      ],
+      modules: [{ path: component, content: 'const cls = "bg-rainbow-gradient-canvas";' }],
     });
-    expect(cssSymbolUsages(index, "theme-class", "bg-rainbow-gradient")).toEqual([
-      expect.objectContaining({ token: "--background-image-rainbow-gradient", file: component }),
+    expect(cssSymbolUsages(index, "theme-class", "bg-rainbow-gradient-canvas")).toEqual([
+      expect.objectContaining({ token: "--background-image-rainbow-gradient-canvas", file: component }),
     ]);
   });
 

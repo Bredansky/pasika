@@ -1238,8 +1238,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Non-color custom properties MUST use descriptive domain names and MUST NOT use the reserved color-role suffixes.",
-      "hash": "9b884cbcab",
+      "text": "Tailwind background-image tokens (`--background-image-*`) MUST end in `-canvas`, so their generated `bg-*` utilities identify background presentation.",
+      "hash": "43104b6cca",
+      "ref": "pasika/color-role-usage"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Non-color custom properties MUST use descriptive domain names and MUST NOT use reserved color-role suffixes, except for `--background-image-*` theme tokens and their matching runtime defaults.",
+      "hash": "9ade80b127",
       "note": "Review custom property names for domain specificity and reserved color-role suffixes; inferring whether an arbitrary CSS value is a color is not reliable from syntax alone."
     },
     {

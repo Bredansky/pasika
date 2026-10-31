@@ -3,8 +3,43 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const naming = (token: string): string =>
   `Color token "${token}" needs a semantic role ending in -canvas, -ink, or -edge.`;
+const backgroundImageNaming = (token: string): string =>
+  `Background-image token "${token}" needs a semantic role ending in -canvas.`;
 const mismatch = (className: string, role: string, purpose: string, expected: string): string =>
   `Color utility "${className}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
+
+void describe("Tailwind background-image tokens (`--background-image-*`) MUST end in `-canvas`, so their generated `bg-*` utilities identify background presentation.", () => {
+  tailwindRuleTester.run("color-role-usage-background-image-tokens", colorRoleUsageRule, {
+    valid: [
+      {
+        code: "@theme { --background-image-rainbow-gradient-canvas: linear-gradient(90deg, red, blue); }",
+      },
+      {
+        code: "@theme inline { --background-image-hero-canvas: var(--hero-image); }",
+      },
+      {
+        code: "@theme { /* --background-image-hidden: url('/old.png'); */ --background-image-card-canvas: url('/card.png'); }",
+      },
+      {
+        code: "@theme { --color-base-canvas: #000; --animate-pulse: pulse 2s infinite; }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --background-image-rainbow-gradient: linear-gradient(90deg, red, blue); }",
+        errors: [{ message: backgroundImageNaming("--background-image-rainbow-gradient") }],
+      },
+      {
+        code: "@theme inline { --background-image-hero: var(--hero-image); }",
+        errors: [{ message: backgroundImageNaming("--background-image-hero") }],
+      },
+      {
+        code: "@theme { --background-image-rainbow-gradient-ink: linear-gradient(red, blue); }",
+        errors: [{ message: backgroundImageNaming("--background-image-rainbow-gradient-ink") }],
+      },
+    ],
+  });
+});
 
 void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.", () => {
   tailwindRuleTester.run("color-role-usage-naming", colorRoleUsageRule, {
