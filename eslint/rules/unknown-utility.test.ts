@@ -39,6 +39,7 @@ const GLOBALS = `@import "tailwindcss";
   --spacing-panel-26: 26rem;
   --spacing-viewport-10: 10%;
   --spacing-vortex-center: 6%;
+  --inset-shadow-panel: inset 1px 1px 0 #a8a8a8, inset -1px -1px 0 #555555;
   --font-display: "Inter", sans-serif;
   --text-sm: 0.875rem;
   --blur-sm: 8px;
@@ -159,6 +160,7 @@ void describe("A utility class a component statically references MUST be a custo
   ruleTester.run("unknown-utility", unknownUtilityRule, {
     valid: [
       { code: '<div className="bg-rainbow-gradient-canvas" />', filename: srcFile("shared/gradient.tsx") },
+      { code: '<div className="inset-0 inset-shadow-panel" />', filename: srcFile("shared/shadow.tsx") },
       {
         code: '<div className="lg:w-panel-26 p-viewport-10 h-vortex-center w-vortex-center w-full mx-auto" />',
         filename: srcFile("shared/spaced-panel.tsx"),
