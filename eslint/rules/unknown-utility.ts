@@ -44,6 +44,7 @@ const PREFIX_NAMESPACES: Record<string, string[]> = {
   via: ["color"],
   to: ["color"],
   shadow: ["color", "shadow"],
+  "inset-shadow": ["inset-shadow"],
   rounded: ["radius"],
   font: ["font"],
   tracking: ["tracking"],
@@ -516,6 +517,10 @@ function readInventory(files: string[]): Inventory {
         if (namespace === "background" && token?.startsWith("image-")) {
           namespace = "background-image";
           token = token.slice("image-".length);
+        }
+        if (namespace === "inset" && token?.startsWith("shadow-")) {
+          namespace = "inset-shadow";
+          token = token.slice("shadow-".length);
         }
         if (!namespace || !token) continue;
         let set = themeTokensByNamespace.get(namespace);
