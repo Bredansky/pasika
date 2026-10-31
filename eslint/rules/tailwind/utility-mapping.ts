@@ -19,25 +19,51 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, themeClasses } from "./css-dependency-graph";
-import { atrulesNamed, blockChildren, preludeIdentifiers, rawValue, rules } from "./helpers";
+import { atrulesNamed, blockChildren, preludeIdentifiers, rules } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-function applyOperationCount(utility: CssNodePlain): number {
+function applyOperationCount(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): number {
   let count = 0;
-
   for (const apply of atrulesNamed(utility, "apply")) {
-    const identifiers = preludeIdentifiers(apply);
-    if (identifiers.length > 0) {
-      count += identifiers.length;
-      continue;
+    const value = textOf(apply)
+      .trim()
+      .replace(/^@apply\s+/u, "")
+      .replace(/;\s*$/u, "");
+    let brackets = 0;
+    let parentheses = 0;
+    let quote: "'" | '"' | undefined;
+    let escaped = false;
+    let inToken = false;
+    for (const character of value) {
+      if (escaped) {
+        escaped = false;
+        inToken = true;
+        continue;
+      }
+      if (character === "\\") {
+        escaped = true;
+        inToken = true;
+        continue;
+      }
+      if (character === '"' || character === "'") {
+        if (!quote) quote = character;
+        else if (quote === character) quote = undefined;
+      } else if (!quote) {
+        if (character === "[") brackets++;
+        if (character === "]") brackets--;
+        if (character === "(") parentheses++;
+        if (character === ")") parentheses--;
+      }
+      if (/\s/u.test(character) && brackets === 0 && parentheses === 0 && !quote) {
+        if (inToken) count++;
+        inToken = false;
+      } else {
+        inToken = true;
+      }
     }
-
-    const prelude = "prelude" in apply ? apply.prelude : undefined;
-    const raw = prelude ? rawValue(prelude) : "";
-    const rawOperations = raw.trim().split(/\s+/).filter(Boolean);
-    count += rawOperations.length > 0 ? rawOperations.length : 1;
+    if (inToken) count++;
+    if (!value.trim()) count++;
   }
-
   return count;
 }
 
@@ -47,6 +73,7 @@ interface ThemeCandidate {
   value: string;
   prefix: string;
   namespace: string;
+  probe?: boolean;
 }
 
 /** Only one-property operations whose Tailwind-generated class is equivalent. */
@@ -80,6 +107,9 @@ const themeOperations = [
   { property: "gap", prefix: "gap", namespace: "spacing" },
   { property: "width", prefix: "w", namespace: "spacing" },
   { property: "height", prefix: "h", namespace: "spacing" },
+  { property: "max-height", prefix: "max-h", namespace: "spacing" },
+  { property: "grid-template-columns", prefix: "grid-cols", namespace: "grid-template-columns" },
+  { property: "transition-property", prefix: "transition", namespace: "transition-property" },
   { property: "aspect-ratio", prefix: "aspect", namespace: "aspect" },
   { property: "transition-timing-function", prefix: "ease", namespace: "ease" },
   { property: "zoom", prefix: "zoom", namespace: "zoom" },
@@ -110,7 +140,7 @@ for (const probe of probes) {
     const property = new RegExp("(?:^|[;\\n])\\s*" + probe.property + "\\s*:", "u");
     const functionName = probe.property === "filter" ? probe.prefix
       : probe.property === "backdrop-filter" ? probe.prefix.slice("backdrop-".length) : "";
-    const marker = probe.property === "text-shadow" ? "" : "--tw-" + probe.prefix;
+    const marker = ["box-shadow", "filter", "backdrop-filter"].includes(probe.property) ? "--tw-" + probe.prefix : "";
     const recognized = property.test(block)
       && (!marker || block.includes(marker + ":"))
       && (!functionName || block.includes(functionName + "("));
@@ -129,7 +159,9 @@ function generatorProbeKey(candidate: ThemeCandidate): string {
 }
 
 function requiresGeneratorProbe(candidate: ThemeCandidate): boolean {
-  return ["box-shadow", "text-shadow", "filter", "backdrop-filter"].includes(candidate.property);
+  return (
+    candidate.probe === true || ["box-shadow", "text-shadow", "filter", "backdrop-filter"].includes(candidate.property)
+  );
 }
 
 function themeSupportedGenerators(candidates: ThemeCandidate[], cwd: string): Set<string> {
@@ -208,6 +240,40 @@ function boxShadowNamespace(value: string): "shadow" | "inset-shadow" | undefine
   return "shadow";
 }
 
+/** Decode Tailwind arbitrary values without corrupting quoted font names. */
+function decodeArbitraryValue(value: string): string | undefined {
+  if (/\\|\burl\(/iu.test(value) || /var\(--[^)]*_/iu.test(value)) return undefined;
+  let quote: "'" | '"' | undefined;
+  let decoded = "";
+  for (const character of value) {
+    if (character === '"' || character === "'") {
+      if (!quote) quote = character;
+      else if (quote === character) quote = undefined;
+      decoded += character;
+    } else if (character === "_") {
+      if (quote) return undefined;
+      decoded += " ";
+    } else {
+      decoded += character;
+    }
+  }
+  return quote ? undefined : decoded.trim();
+}
+
+/** Derive the CSS operation from an already-valid arbitrary Tailwind class. */
+function arbitraryApplyOperation(
+  prefix: string,
+  value: string,
+): { property: string; prefix: string; namespace: string } | undefined {
+  if (prefix === "bg") {
+    return /^(?:repeating-)?(?:linear|radial|conic)-gradient\(/u.test(value)
+      ? { property: "background-image", prefix: "bg", namespace: "background-image" }
+      : undefined;
+  }
+  const matched = themeOperations.filter((operation) => operation.prefix === prefix);
+  return matched.length === 1 ? matched[0] : undefined;
+}
+
 /**
  * Recognize one plain arbitrary-property or typed variable @apply,
  * without other declarations, modifiers or nested blocks. For CSS filter
@@ -219,21 +285,26 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   const arbitrary = /^@utility\s+[\w-]+\s*\{\s*@apply\s+\[(?<property>[a-z-]+):(?<value>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(
     source,
   );
+  const arbitraryApply =
+    /^@utility\s+[\w-]+\s*\{\s*@apply\s+(?<prefix>[a-z][a-z0-9-]*)-\[(?<value>[^\]\r\n;{}]+)\];?\s*\}$/u.exec(source);
   const typed =
     /^@utility\s+[\w-]+\s*\{\s*@apply\s+(?<kind>[a-z-]+)-\((?<hint>[a-z-]+:)?(?<variable>--[a-z][a-z0-9-]*)\);?\s*\}$/u.exec(
       source,
     );
   const direct = /^@utility\s+[\w-]+\s*\{\s*(?<property>[a-z-]+)\s*:\s*(?<value>[^;{}\r\n]+);?\s*\}$/u.exec(source);
-  const property = arbitrary?.groups?.property ?? direct?.groups?.property;
   const raw =
     arbitrary?.groups?.value?.trim() ??
     direct?.groups?.value?.trim() ??
+    arbitraryApply?.groups?.value?.trim() ??
     (typed?.groups?.variable ? `var(${typed.groups.variable})` : undefined);
   if (!raw) return undefined;
-  // Tailwind decodes underscores as spaces, but URLs, quotes, escapes and
-  // underscored custom property names need a full CSS parser to be safe.
-  if (arbitrary && (/\\|["']|\burl\(/iu.test(raw) || /var\(--[^)]*_/iu.test(raw))) return undefined;
-  const cssValue = arbitrary ? raw.replaceAll("_", " ") : raw;
+  const cssValue = arbitrary || arbitraryApply ? decodeArbitraryValue(raw) : raw;
+  if (!cssValue) return undefined;
+  const namedOperation = arbitraryApply?.groups?.prefix
+    ? arbitraryApplyOperation(arbitraryApply.groups.prefix, cssValue)
+    : undefined;
+  if (arbitraryApply && !namedOperation) return undefined;
+  const property = arbitrary?.groups?.property ?? direct?.groups?.property ?? namedOperation?.property;
   const functionValue =
     property === "filter" || property === "backdrop-filter" ? singleCssFunction(cssValue) : undefined;
   const shadowNamespace = property === "box-shadow" ? boxShadowNamespace(cssValue) : undefined;
@@ -250,6 +321,7 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   }
   const matched =
     inferred ??
+    namedOperation ??
     themeOperations.find((operation) => {
       if (property) return property === operation.property;
       if (typed?.groups?.kind !== operation.prefix) return false;
@@ -265,13 +337,17 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
   if (!matched) return undefined;
   const value = functionValue?.args ?? cssValue;
   if (matched.property === "font-size" && value.startsWith("-")) return undefined;
-  const stem = name.startsWith(`${matched.prefix}-`) ? name.slice(matched.prefix.length + 1) : undefined;
+  const stem =
+    name.startsWith(`${matched.prefix}-`) && !/-hash-[0-9a-f]{8,}$/u.test(name)
+      ? name.slice(matched.prefix.length + 1)
+      : undefined;
   return {
     token: stem ? `--${matched.namespace}-${stem}` : "",
     property: matched.property,
     value,
     prefix: matched.prefix,
     namespace: matched.namespace,
+    probe: Boolean(arbitraryApply) || matched.property === "transition-property",
   };
 }
 /** Names whose Tailwind classes are part of the common typography API. */
@@ -590,7 +666,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
             continue;
           }
 
-          const operationCount = applyOperationCount(utility);
+          const operationCount = applyOperationCount(utility, (apply) => context.sourceCode.getText(apply));
           if (operationCount !== 1) {
             context.report({
               node: utility,

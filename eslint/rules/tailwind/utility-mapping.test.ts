@@ -81,9 +81,7 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       {
         code: `@utility text-header-ink {\n  @apply text-(--header-ink);\n}`,
       },
-      {
-        code: `@utility content-grid {\n  @apply [grid-template-columns:2fr_max(0,var(--gutter-width))_calc(var(--gutter-width)+10px)];\n}`,
-      },
+
       // A pre-existing theme token must not receive a conflicting suggestion.
       {
         code: `@theme inline { --text-retro-11: var(--retro-text-size); }
@@ -149,6 +147,10 @@ void describe("A custom utility MUST map exactly one Tailwind utility operation;
       },
     ],
     invalid: [
+      {
+        code: `@utility content-grid {\n  @apply [grid-template-columns:2fr_max(0,var(--gutter-width))_calc(var(--gutter-width)+10px)];\n}`,
+        errors: [{ message: /define an @theme token in the "--grid-template-columns-\*" namespace/u }],
+      },
       {
         code: "@utility z-index-60 { @apply [z-index:60]; }",
         errors: [
@@ -294,6 +296,16 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       // Unhinted background variables are ambiguous: never guess color versus image.
       { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
       { code: "@utility filter-composite { @apply [filter:blur(8px)_contrast(1.2)]; }" },
+      { code: "@utility filter-stacked { @apply [filter:drop-shadow(1px_1px_0_red)_drop-shadow(2px_2px_0_blue)]; }" },
+      { code: "@utility box-shadow-mixed { @apply shadow-[inset_0_1px_red,0_2px_blue]; }" },
+      { code: "@utility glitch-split { @apply [clip-path:inset(0_0_50%_0)]; }" },
+      { code: "@utility mirrored { @apply [transform:scaleX(-1)]; }" },
+      { code: "@utility border-shorthand { @apply [border:2px_ridge_red]; }" },
+      { code: "@utility transition-shorthand { @apply [transition:width_0.8s_ease]; }" },
+      {
+        code: "@utility background-shorthand { @apply [background:repeating-linear-gradient(0deg,_transparent,_red_4px)]; }",
+      },
+      { code: "@utility background-asset { @apply [background:url(hero.png)_repeat]; }" },
       { code: "@utility shadow-mixed { @apply [box-shadow:inset_0_1px_#000,_0_2px_#fff]; }" },
       { code: "@utility filter-unknown { @apply [filter:made-up-effect(1)]; }" },
       { code: "@utility bg-photo { @apply [background-image:url(hero_file.png)]; }" },
@@ -302,6 +314,50 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       },
     ],
     invalid: [
+      {
+        code: "@utility bg-image-linear-gradient-hash-83e0818e457c { @apply bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_30%)]; }",
+        errors: [{ message: /define an @theme token in the "--background-image-\*" namespace/u }],
+      },
+      {
+        code: "@utility bg-image-radial-gradient-hash-afd3062c0bf4 { @apply bg-[radial-gradient(circle_at_top,rgba(255,0,255,0.16),transparent_55%)]; }",
+        errors: [{ message: /define an @theme token in the "--background-image-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --background-image-retro-canvas: linear-gradient(red, blue); }\n@utility bg-image-linear-gradient-hash-83e0818e457c { @apply bg-[linear-gradient(red,_blue)]; }",
+        errors: [{ message: /duplicates theme-generated "bg-retro-canvas"/u }],
+      },
+      {
+        code: "@utility box-shadow-hash-eab9c52f68c2 { @apply shadow-[inset_0_0_36px_rgba(0,0,0,0.55)]; }",
+        errors: [{ message: /define an @theme token in the "--inset-shadow-\*" namespace/u }],
+      },
+      {
+        code: "@utility box-shadow-hash-df43d74cde4b { @apply shadow-[0_18px_32px_rgba(0,0,0,0.45)]; }",
+        errors: [{ message: /define an @theme token in the "--shadow-\*" namespace/u }],
+      },
+      {
+        code: "@utility height-min-hash-721d316d8af5 { @apply h-[min(600px,80vw)]; }",
+        errors: [{ message: /define an @theme token in the "--spacing-\*" namespace/u }],
+      },
+      {
+        code: "@utility width-min-hash-721d316d8af5 { @apply w-[min(600px,80vw)]; }",
+        errors: [{ message: /define an @theme token in the "--spacing-\*" namespace/u }],
+      },
+      {
+        code: "@utility grid-template-columns-minmax-hash-88207f774793 { @apply grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]; }",
+        errors: [{ message: /define an @theme token in the "--grid-template-columns-\*" namespace/u }],
+      },
+      {
+        code: "@utility max-height-calc-hash-57227a565df2 { @apply [max-height:calc(100vh_-_200px)]; }",
+        errors: [{ message: /define an @theme token in the "--spacing-\*" namespace/u }],
+      },
+      {
+        code: '@utility font-family-hash-5845af77c70b { @apply [font-family:"minecraftiaregular",_"Code2000"]; }',
+        errors: [{ message: /define an @theme token in the "--font-\*" namespace/u }],
+      },
+      {
+        code: "@utility transition-property-hash-aeabbddf348b { @apply [transition-property:color,_border-color,_translate,_filter,_opacity]; }",
+        errors: [{ message: /define an @theme token in the "--transition-property-\*" namespace/u }],
+      },
       {
         code: "@utility filter-drop-shadow-hash-547e66e12c42 { @apply [filter:drop-shadow(0_0_2px_hsl(var(--magenta)))]; }",
         errors: [{ message: /define an @theme token in the "--drop-shadow-\*" namespace/u }],
