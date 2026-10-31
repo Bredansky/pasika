@@ -293,13 +293,47 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
     valid: [
       // Unhinted background variables are ambiguous: never guess color versus image.
       { code: "@utility bg-ambiguous { @apply bg-(--paint); }" },
-      { code: "@utility blur-card { @apply [filter:blur(8px)]; }" },
+      { code: "@utility filter-composite { @apply [filter:blur(8px)_contrast(1.2)]; }" },
+      { code: "@utility shadow-mixed { @apply [box-shadow:inset_0_1px_#000,_0_2px_#fff]; }" },
+      { code: "@utility filter-unknown { @apply [filter:made-up-effect(1)]; }" },
       { code: "@utility bg-photo { @apply [background-image:url(hero_file.png)]; }" },
       {
         code: "@theme { --radius-card: var(--border-radius); }\n@utility rounded-card { @apply [border-radius:12px]; }",
       },
     ],
     invalid: [
+      {
+        code: "@utility filter-drop-shadow-hash-547e66e12c42 { @apply [filter:drop-shadow(0_0_2px_hsl(var(--magenta)))]; }",
+        errors: [{ message: /define an @theme token in the "--drop-shadow-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --drop-shadow-chromatic: 0 0 2px hsl(var(--magenta)); }\n@utility filter-drop-shadow-hash-547e66e12c42 { @apply [filter:drop-shadow(0_0_2px_hsl(var(--magenta)))]; }",
+        errors: [{ message: /duplicates theme-generated "drop-shadow-chromatic"/u }],
+      },
+      {
+        code: "@utility blur-card { @apply [filter:blur(8px)]; }",
+        errors: [{ message: /define a direct @theme token "--blur-card"/u }],
+      },
+      {
+        code: "@utility filter-brightness-hash-cd9 { @apply [filter:brightness(1.3)]; }",
+        errors: [{ message: /define an @theme token in the "--brightness-\*" namespace/u }],
+      },
+      {
+        code: "@utility css-text-shadow-hash-d3 { @apply [text-shadow:2px_2px_0_#fff]; }",
+        errors: [{ message: /define an @theme token in the "--text-shadow-\*" namespace/u }],
+      },
+      {
+        code: "@utility backdrop-blur-card { @apply [backdrop-filter:blur(8px)]; }",
+        errors: [{ message: /define a direct @theme token "--backdrop-blur-card"/u }],
+      },
+      {
+        code: "@utility box-shadow-inset-hash-abc { @apply [box-shadow:inset_1px_1px_0_#000,_inset_-1px_-1px_0_#fff]; }",
+        errors: [{ message: /define an @theme token in the "--inset-shadow-\*" namespace/u }],
+      },
+      {
+        code: "@theme { --inset-shadow-mc-panel: inset 1px 1px 0 #000, inset -1px -1px 0 #fff; }\n@utility box-shadow-inset-hash-abc { @apply [box-shadow:inset_1px_1px_0_#000,_inset_-1px_-1px_0_#fff]; }",
+        errors: [{ message: /duplicates theme-generated "inset-shadow-mc-panel"/u }],
+      },
       {
         code: "@utility shadow-card { @apply [box-shadow:0_2px_4px_#000]; }",
         errors: [{ message: /define a direct @theme token "--shadow-card"/u }],

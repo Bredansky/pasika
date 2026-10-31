@@ -18,6 +18,30 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
+## Incorrect — Filter Drop Shadow Hidden in a Custom Utility
+
+```css
+@utility filter-drop-shadow-hash-547e66e12c42 {
+  @apply [filter:drop-shadow(0_0_2px_#d946ef)];
+}
+```
+
+Why: the installed Tailwind compiler can generate this drop-shadow operation from a theme token. A hashed wrapper obscures the styling intent.
+
+## Correct — Theme-Generated Drop Shadow
+
+```css
+@theme {
+  --drop-shadow-chromatic: 0 0 2px #d946ef;
+}
+```
+
+```tsx
+<span className="drop-shadow-chromatic">Chromatic text</span>
+```
+
+Why: the generated `drop-shadow-chromatic` class uses Tailwind's filter composition instead of a custom wrapper. The same compiler-backed check covers single-function filters, text shadows, and inset-only box shadows, but compound filters, mixed layers, and runtime overrides still need review.
+
 ## Incorrect — Background Using a Text Color
 
 ```css
