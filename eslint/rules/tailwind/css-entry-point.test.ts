@@ -65,20 +65,72 @@ void describe("Project stylesheets MUST live under `src/app/styles/`, with `glob
   });
 });
 
+void describe("Other than `globals.css`, a project stylesheet MUST be named `<feature>.css` for an existing `src/features/<feature>/` directory and live directly under `src/app/styles/`.", () => {
+  const valid = buildFixture({
+    "app/styles/globals.css": `${ENTRY}@import "./home.css";\\n@import "./mod-page.css";\\n`,
+    "app/styles/home.css": "@layer base { body { @apply bg-base-canvas; } }",
+    "app/styles/mod-page.css": "@keyframes book-open { to { opacity: 1; } }",
+    "app/layout.tsx": 'import "./styles/globals.css";',
+    "features/home/.keep": "",
+    "features/mod-page/.keep": "",
+  });
+  process.chdir(valid);
+  tailwindRuleTester.run("css-entry-point-feature-names", cssEntryPointRule, {
+    valid: [
+      { code: "@layer base { body { @apply bg-base-canvas; } }", filename: srcPath(valid, "app/styles/home.css") },
+      { code: "@keyframes book-open { to { opacity: 1; } }", filename: srcPath(valid, "app/styles/mod-page.css") },
+    ],
+    invalid: [],
+  });
+
+  const invalidNames = [
+    "base.css",
+    "effects.css",
+    "utilities.css",
+    "minecraft.css",
+    "missing-feature.css",
+    "Home.css",
+    "nested/home.css",
+  ];
+  const css = "/* imported project stylesheet */";
+  const invalidFiles: Record<string, string> = {
+    "app/styles/globals.css": `${ENTRY}${invalidNames.map((name) => `@import "./${name}";`).join("\\n")}\\n`,
+    "app/layout.tsx": 'import "./styles/globals.css";',
+    "features/home/.keep": "",
+  };
+  for (const name of invalidNames) invalidFiles[`app/styles/${name}`] = css;
+  const invalid = buildFixture(invalidFiles);
+  process.chdir(invalid);
+  tailwindRuleTester.run("css-entry-point-feature-names", cssEntryPointRule, {
+    valid: [],
+    invalid: invalidNames.map((name) => ({
+      code: css,
+      filename: srcPath(invalid, `app/styles/${name}`),
+      errors: [
+        {
+          message:
+            "Only globals.css and <feature>.css matching an existing src/features/<feature>/ directory are allowed in src/app/styles/.",
+        },
+      ],
+    })),
+  });
+});
+
 void describe("The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.", () => {
   // One entry, imported once by the root layout, with a stylesheet it imports.
   const valid = buildFixture({
-    "app/styles/globals.css": `${ENTRY}@import "./theme.css";\n`,
-    "app/styles/theme.css": `@theme {\n  --*: initial;\n}\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./home.css";\n`,
+    "app/styles/home.css": `@theme {\n  --*: initial;\n}\n`,
     "app/layout.tsx": `import "./styles/globals.css";\n`,
+    "features/home/.keep": "",
   });
   process.chdir(valid);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
     valid: [
-      // The entry point registered and imported exactly once, importing theme.css.
-      { code: `${ENTRY}@import "./theme.css";\n`, filename: srcPath(valid, "app/styles/globals.css") },
+      // The entry point registered and imported exactly once, importing home.css.
+      { code: `${ENTRY}@import "./home.css";\n`, filename: srcPath(valid, "app/styles/globals.css") },
       // A stylesheet the entry point imports directly may hold project CSS.
-      { code: `@theme {\n  --*: initial;\n}\n`, filename: srcPath(valid, "app/styles/theme.css") },
+      { code: `@theme {\n  --*: initial;\n}\n`, filename: srcPath(valid, "app/styles/home.css") },
     ],
     invalid: [],
   });
@@ -87,7 +139,8 @@ void describe("The root layout (`src/app/layout`) MUST be the sole importer of `
   const stray = buildFixture({
     "app/styles/globals.css": ENTRY,
     "app/layout.tsx": `import "./styles/globals.css";\n`,
-    "app/styles/stray.css": `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
+    "app/styles/home.css": `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
+    "features/home/.keep": "",
   });
   process.chdir(stray);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
@@ -95,7 +148,7 @@ void describe("The root layout (`src/app/layout`) MUST be the sole importer of `
     invalid: [
       {
         code: `@layer base {\n  body {\n    @apply bg-base-canvas;\n  }\n}\n`,
-        filename: srcPath(stray, "app/styles/stray.css"),
+        filename: srcPath(stray, "app/styles/home.css"),
         errors: [
           {
             message: "Every project stylesheet must be imported directly by src/app/styles/globals.css.",
@@ -108,21 +161,23 @@ void describe("The root layout (`src/app/layout`) MUST be the sole importer of `
   // Project CSS two hops from the entry: the midpoint is a direct child, but
   // the deep stylesheet holding CSS is not reached directly by the entry.
   const transitive = buildFixture({
-    "app/styles/globals.css": `${ENTRY}@import "./base.css";\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./home.css";\n`,
     "app/layout.tsx": `import "./styles/globals.css";\n`,
-    "app/styles/base.css": `@import "./deep.css";\n`,
-    "app/styles/deep.css": `:root {\n  --spacing: 0.25rem;\n}\n`,
+    "app/styles/home.css": `@import "./stream.css";\n`,
+    "app/styles/stream.css": `:root {\n  --spacing: 0.25rem;\n}\n`,
+    "features/home/.keep": "",
+    "features/stream/.keep": "",
   });
   process.chdir(transitive);
   tailwindRuleTester.run("css-entry-point", cssEntryPointRule, {
     valid: [
-      // The direct child is import-only and reaches deep.css.
-      { code: `@import "./deep.css";\n`, filename: srcPath(transitive, "app/styles/base.css") },
+      // The direct child is import-only and reaches stream.css.
+      { code: `@import "./stream.css";\n`, filename: srcPath(transitive, "app/styles/home.css") },
     ],
     invalid: [
       {
         code: `:root {\n  --spacing: 0.25rem;\n}\n`,
-        filename: srcPath(transitive, "app/styles/deep.css"),
+        filename: srcPath(transitive, "app/styles/stream.css"),
         errors: [
           {
             message: "Every project stylesheet must be imported directly by src/app/styles/globals.css.",
@@ -134,34 +189,38 @@ void describe("The root layout (`src/app/layout`) MUST be the sole importer of `
 
   // Even an import-only stylesheet must be directly imported by globals.css.
   const importOnly = buildFixture({
-    "app/styles/globals.css": `${ENTRY}@import "./bridge.css";\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./home.css";\n`,
     "app/layout.tsx": 'import "./styles/globals.css";',
-    "app/styles/bridge.css": '@import "./empty.css";',
-    "app/styles/empty.css": "/* no project declarations */",
+    "app/styles/home.css": '@import "./stream.css";',
+    "app/styles/stream.css": "/* no project declarations */",
+    "features/home/.keep": "",
+    "features/stream/.keep": "",
   });
   process.chdir(importOnly);
   tailwindRuleTester.run("css-entry-point-direct-imports", cssEntryPointRule, {
-    valid: [{ code: '@import "./empty.css";', filename: srcPath(importOnly, "app/styles/bridge.css") }],
+    valid: [{ code: '@import "./stream.css";', filename: srcPath(importOnly, "app/styles/home.css") }],
     invalid: [
       {
         code: "/* no project declarations */",
-        filename: srcPath(importOnly, "app/styles/empty.css"),
+        filename: srcPath(importOnly, "app/styles/stream.css"),
         errors: [{ message: "Every project stylesheet must be imported directly by src/app/styles/globals.css." }],
       },
     ],
   });
 
   const directImportOnly = buildFixture({
-    "app/styles/globals.css": `${ENTRY}@import "./bridge.css";\n@import "./empty.css";\n`,
+    "app/styles/globals.css": `${ENTRY}@import "./home.css";\n@import "./stream.css";\n`,
     "app/layout.tsx": 'import "./styles/globals.css";',
-    "app/styles/bridge.css": '@import "./empty.css";',
-    "app/styles/empty.css": "/* no project declarations */",
+    "app/styles/home.css": '@import "./stream.css";',
+    "app/styles/stream.css": "/* no project declarations */",
+    "features/home/.keep": "",
+    "features/stream/.keep": "",
   });
   process.chdir(directImportOnly);
   tailwindRuleTester.run("css-entry-point-direct-imports", cssEntryPointRule, {
     valid: [
-      { code: '@import "./empty.css";', filename: srcPath(directImportOnly, "app/styles/bridge.css") },
-      { code: "/* no project declarations */", filename: srcPath(directImportOnly, "app/styles/empty.css") },
+      { code: '@import "./stream.css";', filename: srcPath(directImportOnly, "app/styles/home.css") },
+      { code: "/* no project declarations */", filename: srcPath(directImportOnly, "app/styles/stream.css") },
     ],
     invalid: [],
   });

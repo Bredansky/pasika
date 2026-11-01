@@ -3,6 +3,7 @@
 Scattered stylesheets and competing Tailwind entry points obscure CSS ownership and ordering. A single entry point keeps imports and global defaults predictable.
 
 - Project stylesheets MUST live under `src/app/styles/`, with `globals.css` as the sole Tailwind entry point.
+- Other than `globals.css`, a project stylesheet MUST be named `<feature>.css` for an existing `src/features/<feature>/` directory and live directly under `src/app/styles/`.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.

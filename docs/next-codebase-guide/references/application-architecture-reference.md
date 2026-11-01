@@ -82,7 +82,7 @@ src/
 ├── app/                                   # Next.js framework-convention files and assets
 │   └── styles/                            # Project stylesheets
 │       ├── globals.css                    # Single Tailwind entry point
-│       └── <style>.css                    # Optional project stylesheet imported directly by globals.css
+│       └── <feature>.css                  # Optional stylesheet for a matching src/features/<feature>/ directory
 ├── compositions/                          # Components sit as flat siblings
 │   ├── <ComponentA>.tsx                   # Smart component (PascalCase-named)
 │   ├── <component-b>.tsx                  # Dumb component (kebab-case-named)
