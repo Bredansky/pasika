@@ -14,7 +14,7 @@
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
-import { statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
@@ -24,6 +24,9 @@ import { buildStylesheetGraph, resolveSpecifier } from "./stylesheet-graph";
 
 const APP_STYLES_DIR = path.join("app", "styles");
 const GLOBAL_STYLESHEET_PATH = path.join(APP_STYLES_DIR, "globals.css");
+const FEATURE_STYLESHEET_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.css$/u;
+const FEATURE_STYLESHEET_ERROR =
+  "Only globals.css and <feature>.css matching an existing src/features/<feature>/ directory are allowed in src/app/styles/.";
 
 export const cssEntryPointRule: CSSRuleDefinition = {
   meta: {
@@ -119,6 +122,18 @@ export const cssEntryPointRule: CSSRuleDefinition = {
             message: "Project stylesheets must live under src/app/styles/.",
           });
           return;
+        }
+
+        const basename = path.basename(current);
+        const featureName = basename.slice(0, -".css".length);
+        const featureDir = path.join(sourceRoot, "features", featureName);
+        const isFeatureStylesheet =
+          path.dirname(current) === path.join(sourceRoot, APP_STYLES_DIR) &&
+          FEATURE_STYLESHEET_NAME.test(basename) &&
+          existsSync(featureDir) &&
+          statSync(featureDir).isDirectory();
+        if (!isFeatureStylesheet) {
+          context.report({ node, message: FEATURE_STYLESHEET_ERROR });
         }
 
         if (!directChildren.has(current)) {
