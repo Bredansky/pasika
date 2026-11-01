@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 
-void describe("The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order, except for an isolated `--*: initial` theme reset immediately after the Tailwind import.", () => {
+void describe("The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.", () => {
   const globals = path.resolve("src/app/styles/globals.css");
   const partial = path.resolve("src/app/styles/tokens.css");
   tailwindRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {
