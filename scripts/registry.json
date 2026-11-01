@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.",
-      "hash": "05412e20a7",
+      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.",
+      "hash": "b02afbb354",
       "ref": "pasika/theme-reset"
     },
     {
@@ -1178,8 +1178,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
-      "hash": "aace35f033",
+      "text": "The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.",
+      "hash": "35ebc27286",
       "ref": "pasika/stylesheet-ordering"
     },
     {
