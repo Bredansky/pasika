@@ -29,6 +29,15 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixe
       { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
       { code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); }" },
       {
+        code: "@theme { --primary: 290 80% 65%; --retro-shadow: 270 40% 3%; --text-shadow-retro-emboss: 2px 2px 0 hsl(var(--retro-shadow)), -1px -1px 0 hsl(var(--primary) / 0.3); }",
+      },
+      {
+        code: "@theme { --color-primary-canvas: hsl(290 80% 65%); --shadow-primary: 0 0 8px color-mix(in srgb, var(--color-primary-canvas) 30%, transparent); }",
+      },
+      {
+        code: "@theme { --brand-hue: 290 80% 65%; --color-brand-canvas: hsl(var(--brand-hue)); --shadow-brand: 0 0 8px var(--color-brand-canvas); }",
+      },
+      {
         code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); --color-tertiary-ink: var(--color-secondary-ink); }",
       },
       {
@@ -121,6 +130,18 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixe
       {
         code: "@theme { --shadow-custom: calc(2px + var(--offset)); }",
         errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --primary: 290 80% 65%; --shadow-custom: 0 0 8px hsl(var(--primary)), 0 0 4px var(--runtime-color); }",
+        errors: [{ message: INDIRECT }],
+      },
+      {
+        code: "@theme { --alpha: hsl(var(--beta)); --beta: hsl(var(--alpha)); }",
+        errors: [{ message: INDIRECT }, { message: INDIRECT }],
+      },
+      {
+        code: "@theme { --brand: var(--not-in-theme); --shadow-brand: 0 0 8px var(--brand); }",
+        errors: [{ message: INDIRECT }, { message: INDIRECT }],
       },
       {
         code: "@theme { --color-surface: rgb(\n  var(--surface)\n); }",

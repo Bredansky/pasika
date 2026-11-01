@@ -79,18 +79,20 @@ export const rootVariablesRule: CSSRuleDefinition = {
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
 
-    // A plain @theme token can safely alias another fixed @theme token.
-    // Both variables are emitted in the same root scope; unlike a runtime
-    // variable, the referenced token cannot be changed by a scoped override.
-    function isFixedThemeAlias(name: string, value: string, visited = new Set<string>()): boolean {
-      const match = /^var\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(value.trim());
-      const target = match?.groups?.target;
-      if (!target || target === name || visited.has(target)) return false;
-      const next = themeValues.get(target);
-      if (!next) return false;
-      if (!/\bvar\s*\(/u.test(next)) return true;
-      visited.add(target);
-      return isFixedThemeAlias(name, next, visited);
+    // Fixed @theme values may compose other fixed @theme tokens in expressions
+    // such as hsl(var(--primary)) or multi-layer text shadows. Resolve every
+    // reference transitively, rejecting runtime variables and token cycles.
+    function isFixedThemeExpression(name: string, value: string, visited = new Set([name])): boolean {
+      const references = [...value.matchAll(/\bvar\s*\(\s*(?<target>--[a-z][\w-]*)/giu)].map(
+        (match) => match.groups?.target,
+      );
+      if (references.length === 0) return true;
+      return references.every((target) => {
+        if (!target || visited.has(target)) return false;
+        const next = themeValues.get(target);
+        if (!next) return false;
+        return isFixedThemeExpression(target, next, new Set([...visited, target]));
+      });
     }
     // Collect all theme names, including one-line blocks the tolerant parser
     // may truncate. Inline tokens backed by identically named variables may
@@ -243,7 +245,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
                 context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
               }
             }
-            if (inline === referencesVariable || (!inline && isFixedThemeAlias(name, unquoted))) continue;
+            if (inline === referencesVariable || (!inline && isFixedThemeExpression(name, unquoted))) continue;
             const offset = (theme.loc?.start.offset ?? 0) + match.index + match[0].indexOf(name);
             const preceding = context.sourceCode.text.slice(0, offset);
             const line = preceding.split("\n").length;
