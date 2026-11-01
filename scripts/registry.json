@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.",
-      "hash": "4a0190e52c",
+      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.",
+      "hash": "b02afbb354",
       "ref": "pasika/theme-reset"
     },
     {

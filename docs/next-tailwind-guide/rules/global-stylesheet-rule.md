@@ -6,7 +6,7 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - Other than `globals.css`, a project stylesheet MUST be named `<feature>.css` for an existing `src/features/<feature>/` directory and live directly under `src/app/styles/`.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
-- The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.
+- The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order, except for an isolated `--*: initial` theme reset immediately after the Tailwind import.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
@@ -67,6 +67,22 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 
 Why: resetting theme variables after importing `home.css` removes the feature's theme token and prevents Tailwind from generating its `bg-home-canvas` utility. The reset must come between the Tailwind import and feature imports.
 
+## Incorrect — Theme Reset Inside a Feature Stylesheet
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --*: initial;
+  --color-home-canvas: #123456;
+}
+```
+
+Why: the project-wide reset belongs exclusively in `globals.css`. A feature stylesheet may define its own tokens but must not reset the shared Tailwind theme.
+
 ## Correct — Reset Before Feature Theme Tokens
 
 ```css
@@ -84,6 +100,24 @@ Why: resetting theme variables after importing `home.css` removes the feature's 
 ```
 
 Why: Tailwind processes the reset before the feature stylesheet, preserving `--color-home-canvas` and its generated `bg-home-canvas` utility.
+
+## Correct — Feature Theme Without a Reset
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@theme {
+  --*: initial;
+}
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: the global stylesheet resets Tailwind once before importing feature tokens, and the feature stylesheet only adds its own theme variables.
 
 ## Correct — Project CSS Imported Directly by the Entry
 

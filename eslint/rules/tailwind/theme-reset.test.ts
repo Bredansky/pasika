@@ -4,72 +4,79 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeResetRule } from "./theme-reset";
 
-void describe("The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.", () => {
-  const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-reset-tree-")));
+void describe("The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.", () => {
+  const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-reset-global-")));
   const filename = (name: string): string => path.join(fixture, "src", "app", "styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
-  writeFileSync(filename("tokens.css"), "@theme { --*: initial; --color-brand: #2563eb; }");
+  writeFileSync(filename("home.css"), "@theme { --*: initial; --color-home-canvas: #123456; }");
+
+  const missingReset =
+    "globals.css must reset Tailwind's default theme with --*: initial inside @theme or @theme inline.";
+  const misplacedReset =
+    "Only globals.css may reset Tailwind's default theme with --*: initial; remove it from feature stylesheets.";
 
   const originalDirectory = process.cwd();
   process.chdir(fixture);
   try {
     tailwindRuleTester.run("theme-reset", themeResetRule, {
       valid: [
+        { filename: filename("globals.css"), code: "@theme { --*: initial; }" },
+        { filename: filename("globals.css"), code: "@theme { --*: initial }" },
+        { filename: filename("globals.css"), code: "@theme inline { --*: initial; }" },
         {
           filename: filename("globals.css"),
-          code: "@theme {\n  --*: initial;\n}",
+          code: '@import "tailwindcss";\n@theme { --*: initial; }\n@import "./home.css";',
         },
         {
           filename: filename("globals.css"),
-          code: "@theme {\n  --*: initial;\n  --color-brand: #2563eb;\n}",
+          code: "@theme { --*: initial; --color-base-canvas: #fff; }",
         },
         {
           filename: filename("globals.css"),
-          code: "@theme inline {\n  --*: initial;\n  --color-brand: var(--color-brand);\n}",
+          code: "@theme { --*: initial; --animate-pulse: pulse 2s infinite; @keyframes pulse { 50% { opacity: 0.5; } } }",
         },
+        { filename: filename("home.css"), code: "@theme { --color-home-canvas: #123456; }" },
         {
-          filename: filename("globals.css"),
-          code: "@theme {\n  --*: initial;\n  --animate-pulse: pulse 2s infinite;\n  @keyframes pulse {\n    50% { opacity: 0.5; }\n  }\n}",
-        },
-        {
-          filename: filename("globals.css"),
-          code: '@import "tailwindcss";\n@import "./tokens.css";',
-        },
-        {
-          filename: filename("tokens.css"),
-          code: "@theme { --color-brand: #2563eb; }",
+          filename: filename("home.css"),
+          code: "@theme { /* --*: initial; */ --color-home-canvas: #123456; }",
         },
       ],
       invalid: [
         {
           filename: filename("globals.css"),
-          code: "@theme {\n  --color-brand: #2563eb;\n}",
-          errors: [
-            {
-              message:
-                "The global stylesheet must reset Tailwind's default theme with --*: initial inside an @theme block.",
-            },
-          ],
+          // The imported home.css contains a reset, but that cannot substitute for globals.css.
+          code: '@import "tailwindcss";\n@import "./home.css";',
+          errors: [{ message: missingReset }],
         },
         {
           filename: filename("globals.css"),
-          code: ":root {\n  --color-brand: #2563eb;\n}",
-          errors: [
-            {
-              message:
-                "The global stylesheet must reset Tailwind's default theme with --*: initial inside an @theme block.",
-            },
-          ],
+          code: "@theme { --color-base-canvas: #fff; }",
+          errors: [{ message: missingReset }],
         },
         {
           filename: filename("globals.css"),
-          code: "@theme { --*: unset; --color-brand: #2563eb; }",
-          errors: [
-            {
-              message:
-                "The global stylesheet must reset Tailwind's default theme with --*: initial inside an @theme block.",
-            },
-          ],
+          code: "@theme { --*: unset; --color-base-canvas: #fff; }",
+          errors: [{ message: missingReset }],
+        },
+        {
+          filename: filename("home.css"),
+          code: "@theme { --*: initial; }",
+          errors: [{ message: misplacedReset }],
+        },
+        {
+          filename: filename("home.css"),
+          code: "@theme inline { --*: initial; }",
+          errors: [{ message: misplacedReset }],
+        },
+        {
+          filename: filename("home.css"),
+          code: "@theme { --*: initial }",
+          errors: [{ message: misplacedReset }],
+        },
+        {
+          filename: filename("home.css"),
+          code: "@theme { --*: initial; --color-home-canvas: #123456; }",
+          errors: [{ message: misplacedReset }],
         },
       ],
     });
