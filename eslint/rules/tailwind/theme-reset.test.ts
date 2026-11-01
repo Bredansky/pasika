@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeResetRule } from "./theme-reset";
 
-void describe("The global stylesheet import tree MUST reset Tailwind's default theme with --*: initial in either @theme or @theme inline.", () => {
+void describe("The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-reset-tree-")));
   const filename = (name: string): string => path.join(fixture, "src", "app", "styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });

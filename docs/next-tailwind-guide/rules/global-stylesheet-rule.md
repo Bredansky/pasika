@@ -6,10 +6,9 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - Other than `globals.css`, a project stylesheet MUST be named `<feature>.css` for an existing `src/features/<feature>/` directory and live directly under `src/app/styles/`.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
-- The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.
+- The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
 - The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order, except for an isolated `--*: initial` theme reset immediately after the Tailwind import.
-- A `--*: initial` theme reset in `globals.css` MUST precede directly imported feature stylesheets to preserve any `@theme` tokens they define.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
 ## Incorrect — Competing Global Stylesheet Entry Points

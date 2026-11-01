@@ -168,7 +168,7 @@ void describe("The global stylesheet entry point MUST order imports, `@custom-va
   });
 });
 
-void describe("A `--*: initial` theme reset in `globals.css` MUST precede directly imported feature stylesheets to preserve any `@theme` tokens they define.", () => {
+void describe("The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`; when the reset is in `globals.css`, it MUST precede directly imported feature stylesheets to preserve their `@theme` tokens.", () => {
   const globals = path.resolve("src/app/styles/globals.css");
   tailwindRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {
     valid: [
