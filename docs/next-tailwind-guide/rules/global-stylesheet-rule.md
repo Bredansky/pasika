@@ -8,7 +8,8 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
-- The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.
+- The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order, except for an isolated `--*: initial` theme reset immediately after the Tailwind import.
+- A `--*: initial` theme reset in `globals.css` MUST precede directly imported feature stylesheets to preserve any `@theme` tokens they define.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
@@ -49,14 +50,56 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 
 Why: `deep.css` is imported through `base.css` instead of directly by `globals.css`. Every project stylesheet must be a direct import, including import-only files.
 
-## Correct — Project CSS Imported Directly by the Entry
+## Incorrect — Theme Reset After Feature Imports
 
 ```css
 /* src/app/styles/globals.css */
 @import "tailwindcss";
 @import "./home.css";
+@theme {
+  --*: initial;
+}
 
 /* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: resetting theme variables after importing `home.css` removes the feature's theme token and prevents Tailwind from generating its `bg-home-canvas` utility. The reset must come between the Tailwind import and feature imports.
+
+## Correct — Reset Before Feature Theme Tokens
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@theme {
+  --*: initial;
+}
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: Tailwind processes the reset before the feature stylesheet, preserving `--color-home-canvas` and its generated `bg-home-canvas` utility.
+
+## Correct — Project CSS Imported Directly by the Entry
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@theme {
+  --*: initial;
+}
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
 @keyframes home-fade-in {
   from {
     opacity: 0;
@@ -72,7 +115,7 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 import "./styles/globals.css";
 ```
 
-Why: the root layout imports one global CSS entry point, which imports the feature stylesheet directly. Shared CSS stays in `globals.css`, and feature-specific definitions stay in their own stylesheet.
+Why: the root layout imports one global CSS entry point, which resets Tailwind before importing a feature stylesheet directly. The imported `--color-home-canvas` token survives and generates its utilities; shared CSS stays in `globals.css`.
 
 ## Incorrect — Direct Declarations Inside the Base Layer
 

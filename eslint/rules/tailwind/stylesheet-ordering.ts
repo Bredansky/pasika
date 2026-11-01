@@ -2,19 +2,49 @@
  * ESLint rule: pasika/stylesheet-ordering
  *
  * The global stylesheet MUST order imports, @custom-variant definitions, :root
- * variables and the selectors that override them, @theme definitions, custom
- * utilities, base styles, and keyframes in that order.
+ * variables, @theme definitions, custom utilities, base styles, and keyframes.
+ * A standalone --*: initial reset may follow the Tailwind import before feature
+ * stylesheet imports, without erasing their later @theme tokens.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
 
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
+import { generate } from "@eslint/css-tree";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { blockChildren, preludeIdentifiers, selectorNames } from "./helpers";
 
 const SECTION_ORDER = ["imports", "custom-variant", "root", "theme", "utility", "base styles", "keyframes"] as const;
+const LATE_RESET_ERROR =
+  "The global --*: initial theme reset must precede feature stylesheet imports, or it will erase their theme tokens.";
+
+/** Read only the top-level @theme body, ignoring comments in its declaration test. */
+function themeBody(node: CssNodePlain, source: string): string | undefined {
+  if (node.type !== "Atrule" || node.name !== "theme" || !node.loc) return undefined;
+  const raw = source.slice(node.loc.start.offset, node.loc.end.offset);
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start < 0 || end <= start) return undefined;
+  return raw
+    .slice(start + 1, end)
+    .replace(/\/\*[\s\S]*?\*\//gu, "")
+    .trim();
+}
+
+function containsThemeReset(body: string | undefined): boolean {
+  return body !== undefined && /(?:^|[;{])\s*--\*\s*:\s*initial\s*(?:;|$)/u.test(body);
+}
+
+function isStandaloneThemeReset(body: string | undefined): boolean {
+  return body !== undefined && /^--\*\s*:\s*initial\s*;?$/u.test(body);
+}
+
+function isTailwindImport(node: CssNodePlain): boolean {
+  if (node.type !== "Atrule" || node.name !== "import" || !node.prelude) return false;
+  return /^["']tailwindcss["'](?:\s|$)/u.test(generate(node.prelude).trim());
+}
 
 function scopesCustomProperties(node: CssNodePlain): boolean {
   if (node.type === "Declaration") return node.property.startsWith("--");
@@ -40,9 +70,32 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
         // Map each top-level child to its section name.
         const sections: { name: string; at?: number }[] = [];
         let index = 0;
+        let sawTailwindImport = false;
+        let sawFeatureImport = false;
+        let sawNonImport = false;
+        let sawEarlyReset = false;
         for (const child of node.children) {
+          const body = themeBody(child, context.sourceCode.text);
+          let isEarlyReset = false;
+          if (containsThemeReset(body) && sawFeatureImport) {
+            context.report({ node: child, message: LATE_RESET_ERROR });
+            return;
+          }
           if (child.type === "Atrule" && child.name === "import") {
             sections.push({ name: "imports", at: index });
+            if (isTailwindImport(child)) sawTailwindImport = true;
+            else sawFeatureImport = true;
+          } else if (
+            isStandaloneThemeReset(body) &&
+            sawTailwindImport &&
+            !sawFeatureImport &&
+            !sawNonImport &&
+            !sawEarlyReset
+          ) {
+            // This reset must precede the imported feature @theme declarations.
+            // It is the only permitted exception to the imports-first order.
+            sawEarlyReset = true;
+            isEarlyReset = true;
           } else if (child.type === "Atrule" && child.name === "custom-variant") {
             sections.push({ name: "custom-variant", at: index });
           } else if (child.type === "Atrule" && child.name === "theme") {
@@ -62,6 +115,9 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
             sections.push({ name: "root", at: index });
           } else if (child.type === "Atrule" && scopesCustomProperties(child)) {
             sections.push({ name: "root", at: index });
+          }
+          if (child.type !== "Comment" && !(child.type === "Atrule" && child.name === "import") && !isEarlyReset) {
+            sawNonImport = true;
           }
           index += 1;
         }
