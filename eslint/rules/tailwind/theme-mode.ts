@@ -14,8 +14,10 @@ import { sourceRootOf } from "../project-root";
 import { atrulesNamed, rules, walkNodes } from "./helpers";
 import { MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-const MODE_NAME = /^(?:dark|theme-[a-z][a-z0-9]*(?:-[a-z0-9]+)*)$/u;
-const MODE_REFERENCE = /(?:^|[^a-z0-9-])(?<name>dark|theme-[a-z][a-z0-9-]*):(?=[a-z[(])/gu;
+const MODE_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
+const MODE_REFERENCE = /(?:^|[^a-z0-9-])(?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*):(?=[a-z[(])/gu;
+const MODE_ATTRIBUTE = /data-theme\s*=\s*["'](?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']/gu;
+const CUSTOM_REGISTRATION = /@custom-variant\s+(?<name>[a-z][a-z0-9-]*)\b(?<selector>[^;]*);/gu;
 const SELECTOR_OVERRIDE =
   "Use a data-theme @custom-variant for mode-specific styles; direct [data-theme] selectors are not allowed.";
 const CLASS_OVERRIDE = "Use the data-theme @custom-variant instead of a .dark CSS selector.";
@@ -29,18 +31,17 @@ function variantName(prelude: string): string | undefined {
   return /^(?<name>[a-z][a-z0-9-]*)\b/u.exec(prelude.trim())?.groups?.name;
 }
 
-function isModeVariant(name: string): boolean {
-  return name === "dark" || name.startsWith("theme-");
+function isModeVariant(name: string, prelude: string): boolean {
+  return name === "dark" || name.startsWith("theme-") || /\[\s*data-theme\b/u.test(prelude);
 }
 
 function canonicalModePrelude(name: string, source: string): boolean {
   if (!MODE_NAME.test(name)) return false;
-  const mode = name === "dark" ? "dark" : name.slice("theme-".length);
   const normalized = source
     .replace(/\/\*[\s\S]*?\*\//gu, "")
     .replace(/["']/gu, "")
     .replace(/\s+/gu, "");
-  return normalized === `${name}(&:where([data-theme=${mode}],[data-theme=${mode}]*))`;
+  return normalized === `${name}(&:where([data-theme=${name}],[data-theme=${name}]*))`;
 }
 
 export const themeModeRule: CSSRuleDefinition = {
@@ -64,23 +65,19 @@ export const themeModeRule: CSSRuleDefinition = {
           const prelude = variant.prelude ? generate(variant.prelude) : "";
           const name = variantName(prelude);
           if (!name) continue;
-          if (!isModeVariant(name)) {
-            if (/\[\s*data-theme\b/u.test(prelude)) {
-              context.report({
-                node: variant,
-                message: `A data-theme variant must be named dark or theme-<mode>, not "${name}".`,
-              });
-            }
-            continue;
-          }
+          if (!isModeVariant(name, prelude)) continue;
           if (current !== globalFile) {
             context.report({ node: variant, message: MODE_LOCATION });
             continue;
           }
           if (!canonicalModePrelude(name, prelude)) {
+            const selected = /\[\s*data-theme\s*=\s*["']?(?<mode>[a-z][a-z0-9-]*)["']?\s*\]/u.exec(prelude)?.groups?.mode;
             context.report({
               node: variant,
-              message: `Theme variant "${name}" must match both [data-theme="${name === "dark" ? "dark" : name.slice(6)}"] and its descendants with &:where(...).`,
+              message:
+                selected && selected !== name
+                  ? `Theme variant "${name}" must be named "${selected}" to match its data-theme selector.`
+                  : `Theme variant "${name}" must match both [data-theme="${name}"] and its descendants with &:where(...).`,
             });
           }
           if (registered.has(name)) {
@@ -89,8 +86,15 @@ export const themeModeRule: CSSRuleDefinition = {
           registered.add(name);
         }
 
-        // CSS @variant uses the same registered mode selectors as TSX utilities.
-        // Imported feature stylesheets must resolve those registrations from globals.css.
+        // A short variant name is a mode only when its selector or a source
+        // data-theme attribute identifies it as one; built-in variants stay untouched.
+        const modeHints = new Set<string>();
+        for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
+          for (const match of read(file).matchAll(MODE_ATTRIBUTE)) {
+            if (match.groups?.name) modeHints.add(match.groups.name);
+          }
+        }
+        // CSS @variant references resolve against the named modes in globals.css.
         const globalRegistrations =
           current === globalFile
             ? registered
@@ -98,13 +102,20 @@ export const themeModeRule: CSSRuleDefinition = {
                 [
                   ...read(globalFile)
                     .replace(/\/\*[\s\S]*?\*\//gu, "")
-                    .matchAll(/@custom-variant\s+(?<name>dark|theme-[a-z][a-z0-9-]*)\b/gu),
-                ].flatMap((match) => (match.groups?.name ? [match.groups.name] : [])),
+                    .matchAll(CUSTOM_REGISTRATION),
+                ].flatMap((match) => {
+                  const name = match.groups?.name;
+                  return name && isModeVariant(name, `${name}${match.groups?.selector ?? ""}`) ? [name] : [];
+                }),
               );
         for (const variant of atrulesNamed(node, "variant")) {
           if (variant.type !== "Atrule" || !variant.prelude) continue;
           const name = variantName(generate(variant.prelude));
-          if (name && isModeVariant(name) && !globalRegistrations.has(name)) {
+          if (
+            name &&
+            (name === "dark" || name.startsWith("theme-") || globalRegistrations.has(name) || modeHints.has(name)) &&
+            !globalRegistrations.has(name)
+          ) {
             context.report({ node: variant, message: MISSING_CSS_VARIANT(name) });
           }
         }
@@ -130,7 +141,10 @@ export const themeModeRule: CSSRuleDefinition = {
         const referenced = new Set<string>();
         for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
           for (const match of read(file).matchAll(MODE_REFERENCE)) {
-            if (match.groups?.name) referenced.add(match.groups.name);
+            const name = match.groups?.name;
+            if (name && (name === "dark" || name.startsWith("theme-") || registered.has(name) || modeHints.has(name))) {
+              referenced.add(name);
+            }
           }
         }
         for (const name of referenced) {

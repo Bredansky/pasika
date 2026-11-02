@@ -3,7 +3,7 @@
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
-- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
+- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -110,16 +110,16 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 
 ```css
 /* src/app/styles/globals.css */
-@custom-variant theme-midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
+@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
 ```
 
 ```tsx
 <div data-theme="midnight">
-  <div className="bg-primary-canvas theme-midnight:bg-midnight-canvas">Content</div>
+  <div className="bg-primary-canvas midnight:bg-midnight-canvas">Content</div>
 </div>
 ```
 
-Why: `theme-midnight:` consistently identifies the mode in utility classes; the attribute works both on the styled element and its ancestors.
+Why: `midnight:` consistently identifies the mode in utility classes; the attribute works both on the styled element and its ancestors.
 
 ## Incorrect — Theme Overrides a Tailwind Token
 

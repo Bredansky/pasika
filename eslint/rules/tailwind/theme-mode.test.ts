@@ -8,9 +8,9 @@ import { themeModeRule } from "./theme-mode";
 
 const GLOBAL = '@import "tailwindcss";\n@theme { --*: initial; }\n';
 const DARK = '@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));';
-const MIDNIGHT = '@custom-variant theme-midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));';
+const MIDNIGHT = '@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));';
 const WRONG_MODE =
-  'Theme variant "theme-midnight" must match both [data-theme="midnight"] and its descendants with &:where(...).';
+  'Theme variant "midnight" must match both [data-theme="midnight"] and its descendants with &:where(...).';
 const WRONG_DARK = 'Theme variant "dark" must match both [data-theme="dark"] and its descendants with &:where(...).';
 const DIRECT =
   "Use a data-theme @custom-variant for mode-specific styles; direct [data-theme] selectors are not allowed.";
@@ -28,8 +28,8 @@ function fixture(files: Record<string, string> = {}): string {
   return root;
 }
 
-void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.", () => {
-  const root = fixture();
+void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.", () => {
+  const root = fixture({ "app/layout.tsx": '<html data-theme="ocean" />;' });
   const globals = path.join(root, "src", "app", "styles", "globals.css");
   const home = path.join(root, "src", "app", "styles", "home.css");
   mkdirSync(path.dirname(globals), { recursive: true });
@@ -46,7 +46,7 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         },
         {
           filename: globals,
-          code: `${GLOBAL}@custom-variant theme-ocean (&:where([data-theme=ocean], [data-theme=ocean] *));`,
+          code: `${GLOBAL}@custom-variant ocean (&:where([data-theme=ocean], [data-theme=ocean] *));`,
         },
         { filename: globals, code: `${GLOBAL}@custom-variant hocus (&:hover, &:focus);` },
         {
@@ -56,6 +56,10 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         {
           filename: home,
           code: ":root { --color-primary-canvas: white; @variant dark { --color-primary-canvas: black; } }",
+        },
+        {
+          filename: home,
+          code: ":root { --color-primary-canvas: white; @variant midnight { --color-primary-canvas: black; } }",
         },
         { filename: home, code: "@theme { --color-home-canvas: #123456; }" },
         {
@@ -72,9 +76,9 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         },
         {
           filename: home,
-          code: ":root { @variant theme-ocean { --color-primary-canvas: blue; } }",
+          code: ":root { @variant ocean { --color-primary-canvas: blue; } }",
           errors: [
-            { message: 'CSS @variant "theme-ocean" requires a matching @custom-variant declaration in globals.css.' },
+            { message: 'CSS @variant "ocean" requires a matching @custom-variant declaration in globals.css.' },
           ],
         },
         {
@@ -84,18 +88,18 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         },
         {
           filename: globals,
-          code: `${GLOBAL}@custom-variant theme-midnight (&:where([data-theme="midnight"] *));`,
+          code: `${GLOBAL}@custom-variant midnight (&:where([data-theme="midnight"] *));`,
           errors: [{ message: WRONG_MODE }],
         },
         {
           filename: globals,
-          code: `${GLOBAL}@custom-variant theme-midnight (&:where([data-theme="ocean"], [data-theme="ocean"] *));`,
-          errors: [{ message: WRONG_MODE }],
+          code: `${GLOBAL}@custom-variant midnight (&:where([data-theme="ocean"], [data-theme="ocean"] *));`,
+          errors: [{ message: 'Theme variant "midnight" must be named "ocean" to match its data-theme selector.' }],
         },
         {
           filename: globals,
-          code: `${GLOBAL}@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));`,
-          errors: [{ message: 'A data-theme variant must be named dark or theme-<mode>, not "midnight".' }],
+          code: `${GLOBAL}@custom-variant theme-midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));`,
+          errors: [{ message: 'Theme variant "theme-midnight" must be named "midnight" to match its data-theme selector.' }],
         },
         {
           filename: globals,
@@ -136,7 +140,8 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
 
 void describe("Mode-specific Tailwind classes require their registered data-theme custom variants.", () => {
   const root = fixture({
-    "features/home/ui.tsx": 'export const ui = <div className="dark:bg-base-canvas theme-midnight:text-base-ink" />;',
+    "features/home/ui.tsx": 'export const ui = <div className="dark:bg-base-canvas midnight:text-base-ink" />;',
+    "app/layout.tsx": '<html data-theme="midnight" />;',
   });
   const globals = path.join(root, "src", "app", "styles", "globals.css");
   const original = process.cwd();
@@ -155,7 +160,7 @@ void describe("Mode-specific Tailwind classes require their registered data-them
             },
             {
               message:
-                'Theme utility prefix "theme-midnight:" requires a matching @custom-variant in globals.css; Tailwind\'s default media-based dark mode is not allowed.',
+                'Theme utility prefix "midnight:" requires a matching @custom-variant in globals.css; Tailwind\'s default media-based dark mode is not allowed.',
             },
           ],
         },
@@ -181,4 +186,13 @@ it("Tailwind compiles a data-theme @variant override into a runtime semantic col
   expect(output).toContain("--color-primary-canvas: #18181b");
   expect(output).toContain(":where([data-theme=");
   expect(output).not.toContain("@variant dark");
+});
+
+it("Tailwind compiles a bare named data-theme variant for utilities", async () => {
+  const compiled = await compile(
+    ["@tailwind utilities;", MIDNIGHT, "@theme { --color-midnight-canvas: #18181b; }"].join("\n"),
+  );
+  const output = compiled.build(["midnight:bg-midnight-canvas"]);
+  expect(output).toContain("midnight\\:bg-midnight-canvas");
+  expect(output).toContain("[data-theme=");
 });
