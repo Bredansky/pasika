@@ -1,26 +1,23 @@
 /**
  * ESLint rule: pasika/theme-reset
  *
- * The CSS tree must reset Tailwind's default theme once with `--*: initial`.
- * The reset may live in globals.css or a directly imported stylesheet.
+ * Only globals.css may reset Tailwind's default theme with `--*: initial`.
+ * Feature stylesheets may define tokens but must never clear the shared theme.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
-import { existsSync } from "node:fs";
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
-import { generate, parse, toPlainObject } from "@eslint/css-tree";
+import { generate } from "@eslint/css-tree";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { atrulesNamed, blockChildren, walkNodes } from "./helpers";
-import { cachedTextReader } from "./source-files";
-import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 
 /** The tolerant parser may carry Tailwind's --*: initial as a Raw node. */
 function isThemeReset(node: CssNodePlain | undefined): boolean {
   if (!node) return false;
   if (node.type === "Declaration") return node.property === "--*" && generate(node.value).trim() === "initial";
-  if (node.type === "Raw") return /--\*\s*:\s*initial\s*;/u.test(node.value);
+  if (node.type === "Raw") return /(?:^|[;{])\s*--\*\s*:\s*initial\s*(?:;|$)/u.test(node.value);
   return false;
 }
 
@@ -40,44 +37,35 @@ export const themeResetRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require the CSS tree to reset Tailwind's default theme with --*: initial.",
+      description: "Require the default-theme reset in globals.css, never in feature stylesheets.",
     },
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
     const current = path.normalize(path.resolve(context.filename));
     const entryPoint = path.normalize(path.join(sourceRoot, "app", "styles", "globals.css"));
-    if (current !== entryPoint) return {};
+    if (path.dirname(current) !== path.dirname(entryPoint)) return {};
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        if (hasThemeReset(node)) return;
-
-        const textOf = cachedTextReader();
-        const seen = new Set<string>([current]);
-        const queue: { file: string; source: string }[] = [{ file: current, source: context.sourceCode.text }];
-
-        while (queue.length > 0) {
-          const from = queue.shift();
-          if (!from) continue;
-          for (const specifier of importedSpecifiers(from.source)) {
-            const target = resolveSpecifier(from.file, specifier, sourceRoot);
-            if (!target || path.extname(target) !== ".css") continue;
-            const filename = path.normalize(target);
-            if (seen.has(filename) || !existsSync(filename)) continue;
-            seen.add(filename);
-            const source = textOf(filename);
-            const parsed = toPlainObject(parse(source, { parseAtrulePrelude: false }));
-            if (parsed.type === "StyleSheet" && hasThemeReset(parsed)) return;
-            queue.push({ file: filename, source });
+        const hasReset = hasThemeReset(node);
+        if (current !== entryPoint) {
+          if (hasReset) {
+            context.report({
+              node,
+              message:
+                "Only globals.css may reset Tailwind's default theme with --*: initial; remove it from feature stylesheets.",
+            });
           }
+          return;
         }
-
-        context.report({
-          node,
-          message:
-            "The global stylesheet must reset Tailwind's default theme with --*: initial inside an @theme block.",
-        });
+        if (!hasReset) {
+          context.report({
+            node,
+            message:
+              "globals.css must reset Tailwind's default theme with --*: initial inside @theme or @theme inline.",
+          });
+        }
       },
     };
   },

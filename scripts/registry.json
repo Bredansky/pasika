@@ -1166,8 +1166,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet import tree MUST reset Tailwind's default theme with `--*: initial` in either `@theme` or `@theme inline`.",
-      "hash": "05412e20a7",
+      "text": "The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.",
+      "hash": "b02afbb354",
       "ref": "pasika/theme-reset"
     },
     {
@@ -1178,8 +1178,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet entry point MUST order imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, `@theme` definitions, custom utilities, base styles, and keyframes in that order.",
-      "hash": "aace35f033",
+      "text": "The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.",
+      "hash": "35ebc27286",
       "ref": "pasika/stylesheet-ordering"
     },
     {
@@ -1205,6 +1205,12 @@
       "text": "Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.",
       "hash": "a62ae78387",
       "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.",
+      "hash": "3724a73b38",
+      "ref": "pasika/theme-mode"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

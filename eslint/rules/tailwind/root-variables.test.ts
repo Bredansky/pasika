@@ -431,12 +431,19 @@ void describe("Tokens defined in plain `@theme` MUST NOT be redeclared outside `
         code: "@theme { --color-primary-canvas: #fafafa; }",
       },
       {
+        code: ":root { --color-primary-canvas: #fafafa; @variant dark { --color-primary-canvas: #18181b; } } @theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
+      },
+      {
         code: "@media (prefers-color-scheme: dark) { :root { --card-radius: 12px; } }",
       },
     ],
     invalid: [
       {
         code: '@theme { --color-primary-canvas: #fafafa; } [data-theme="dark"] { --color-primary-canvas: #18181b; }',
+        errors: [{ message: tokenOverride("--color-primary-canvas") }],
+      },
+      {
+        code: "@theme { --color-primary-canvas: #fafafa; } :root { @variant dark { --color-primary-canvas: #18181b; } }",
         errors: [{ message: tokenOverride("--color-primary-canvas") }],
       },
       {

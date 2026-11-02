@@ -3,6 +3,7 @@
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
+- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -94,29 +95,32 @@ Why: a literal token value does not need inline variable resolution and belongs 
 
 Why: a literal color belongs directly in `@theme`. Values with runtime overrides use a default `:root` variable and a matching `@theme inline` mapping.
 
-## Incorrect — Theme Overrides a Tailwind Token
+## Incorrect — Mode Styles Without a Custom Variant
 
 ```css
-@theme {
-  --color-primary-canvas: #fafafa;
-}
-
-[data-theme="dark"] {
+/* src/app/styles/home.css */
+[data-theme="midnight"] {
   --color-primary-canvas: #18181b;
 }
 ```
 
-Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
+Why: this adds a separate mode-switching mechanism through a CSS selector instead of using the project's registered Tailwind variant.
 
-## Correct — Theme Overrides the Runtime Color
+## Correct — Named Mode Overrides a Runtime Theme Token
 
 ```css
+/* src/app/styles/globals.css */
+@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
+```
+
+```css
+/* src/app/styles/home.css */
 :root {
   --color-primary-canvas: #fafafa;
-}
 
-[data-theme="dark"] {
-  --color-primary-canvas: #18181b;
+  @variant midnight {
+    --color-primary-canvas: #18181b;
+  }
 }
 
 @theme inline {
@@ -124,7 +128,13 @@ Why: Direct `@theme` tokens are intended to remain fixed. Values that change by 
 }
 ```
 
-Why: `:root` defines the runtime value, scoped selectors override it, and `@theme inline` makes it available as a Tailwind utility.
+```tsx
+<html data-theme="midnight">
+  <body className="bg-primary-canvas">Content</body>
+</html>
+```
+
+Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Setting `data-theme` on `html` ensures the override applies to `:root`.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 

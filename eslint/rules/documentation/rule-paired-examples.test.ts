@@ -8,6 +8,10 @@ void describe("A Rule MUST contain at least one Incorrect/Correct pair and MAY c
         filename: "foo-rule.md",
         code: "# Foo Rule\n\n- Values MUST be kebab-case.\n\n## Incorrect — Bad Name\n\n```\nBad\n```\n\n## Correct — Good Name\n\n```\nGood\n```",
       },
+      {
+        filename: "foo-rule.md",
+        code: "# Foo Rule\n\n- Values MUST be kebab-case.\n\n## Incorrect — First\n\n## Correct — First\n\n## Incorrect — Second\n\n## Correct — Second",
+      },
     ],
     invalid: [
       {
@@ -19,6 +23,20 @@ void describe("A Rule MUST contain at least one Incorrect/Correct pair and MAY c
         filename: "foo-rule.md",
         code: "# Foo Rule\n\n- Values MUST be kebab-case.\n\n## Incorrect — Bad Name\n\n```\nBad\n```",
         errors: [{ message: "1 Incorrect and 0 Correct examples" }],
+      },
+      {
+        filename: "foo-rule.md",
+        code: "# Foo Rule\n\n- Values MUST be kebab-case.\n\n## Incorrect — First\n\n## Incorrect — Second\n\n## Correct — First\n\n## Correct — Second",
+        errors: [
+          { message: 'Rule examples must alternate Incorrect then Correct; found "Incorrect — Second" at line 7.' },
+        ],
+      },
+      {
+        filename: "foo-rule.md",
+        code: "# Foo Rule\n\n- Values MUST be kebab-case.\n\n## Correct — First\n\n## Incorrect — First",
+        errors: [
+          { message: 'Rule examples must alternate Incorrect then Correct; found "Correct — First" at line 5.' },
+        ],
       },
     ],
   });

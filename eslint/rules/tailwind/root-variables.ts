@@ -268,19 +268,24 @@ export const rootVariablesRule: CSSRuleDefinition = {
             return;
           }
           const isConditional = conditional || (currentNode.type === "Atrule" && currentNode.name !== "layer");
-          if (currentNode.type === "Rule") {
-            const selector = context.sourceCode.getText(currentNode.prelude).trim();
-            const isDefaultRoot = selector === ":root" && !isConditional;
-            if (!isDefaultRoot) {
-              for (const declaration of blockChildren(currentNode)) {
-                if (declaration.type !== "Declaration") continue;
-                if (mirroredTokens.has(declaration.property)) continue;
-                if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
-                context.report({
-                  node: declaration,
-                  message: `Tailwind token "${declaration.property}" must not be redeclared outside @theme; map it through @theme inline to its same-named runtime variable instead.`,
-                });
-              }
+          const isDefaultRoot =
+            currentNode.type === "Rule" &&
+            context.sourceCode.getText(currentNode.prelude).trim() === ":root" &&
+            !isConditional;
+          // A nested @variant can set CSS variables directly without another
+          // selector. Check those declarations just like scoped selector overrides.
+          if (
+            (currentNode.type === "Rule" && !isDefaultRoot) ||
+            (currentNode.type === "Atrule" && currentNode.name === "variant")
+          ) {
+            for (const declaration of blockChildren(currentNode)) {
+              if (declaration.type !== "Declaration") continue;
+              if (mirroredTokens.has(declaration.property)) continue;
+              if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
+              context.report({
+                node: declaration,
+                message: `Tailwind token "${declaration.property}" must not be redeclared outside @theme; map it through @theme inline to its same-named runtime variable instead.`,
+              });
             }
           }
           const children = currentNode.type === "StyleSheet" ? currentNode.children : blockChildren(currentNode);
