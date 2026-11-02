@@ -71,15 +71,15 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 
 Why: the `-canvas` token describes the effect and generates `bg-crt-scanlines-canvas`. Check background-property resets before replacing the `background` shorthand.
 
-## Incorrect — Vague Complex Utility
+## Incorrect — Complex Value Encoded in a Utility Name
 
 ```css
-@utility clip-effect {
+@utility clip-path-polygon-0-0-100pct-0-95pct-100pct-5pct-100pct {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
-Why: `clip-effect` does not describe the shape and offers no useful distinction between clipping effects.
+Why: encoding every polygon coordinate produces a long, implementation-specific name instead of describing the intended shape.
 
 ## Correct — Semantic Complex Utility
 
