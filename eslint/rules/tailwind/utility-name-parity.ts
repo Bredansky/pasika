@@ -1,13 +1,12 @@
 /**
  * ESLint rule: pasika/utility-name-parity
  *
- * Require property/value parity for every static, single-@apply custom utility.
- * Readable literals retain units; complex expressions retain a stable digest.
+ * Require property/value parity for readable static, single-@apply utilities.
+ * Complex values use meaningful semantic names instead of opaque hashes.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
@@ -58,15 +57,6 @@ function readableValue(value: string): string | undefined {
   }
   const slug = parts.join("-");
   return slug.length <= 70 ? slug : undefined;
-}
-
-function compoundValue(value: string): string {
-  const readable = readableValue(value);
-  if (readable) return readable;
-  const candidate = /^(?<fn>[a-z][a-z0-9-]*)\(/iu.exec(value.trim())?.groups?.fn?.toLowerCase();
-  const hint = candidate?.endsWith("-") ? undefined : candidate;
-  const digest = createHash("sha256").update(value.trim()).digest("hex").slice(0, 12);
-  return [hint, "hash", digest].filter(Boolean).join("-");
 }
 
 interface Operation {
@@ -165,8 +155,9 @@ function compiledOperation(compiled: CompiledResult, index: number): Operation |
   return { property: declaration.property, value: generate(declaration.value).trim() };
 }
 
-function expectedName(operation: Operation): string {
-  const value = compoundValue(operation.value);
+function expectedName(operation: Operation): string | undefined {
+  const value = readableValue(operation.value);
+  if (!value) return undefined;
   // Mirror the actual CSS property. Only "background-*" uses the agreed
   // Tailwind-style "bg-*" spelling; all other property names stay explicit.
   const property = operation.property.replace(/^-+/u, "").replace(/^background-/u, "bg-");
@@ -186,7 +177,7 @@ export const utilityNameParityRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require single-operation custom utilities to have deterministic property/value-derived names.",
+      description: "Use property/value-derived names for readable values and semantic names for complex values.",
     },
   },
   create(context) {
@@ -218,6 +209,17 @@ export const utilityNameParityRule: CSSRuleDefinition = {
             continue;
           }
           const expected = expectedName(operation);
+          if (!expected) {
+            // An opaque digest encodes implementation rather than intent. Complex
+            // effects that cannot use a theme token should have readable names.
+            if (/-hash-[a-f0-9]{12}$/u.test(candidate.name)) {
+              context.report({
+                node: candidate.utility,
+                message: `Custom utility "${candidate.name}" uses an opaque hash for a complex ${operation.property} value; use a semantic name, or prefer a theme-generated utility where supported.`,
+              });
+            }
+            continue;
+          }
           if (candidate.name === expected) continue;
           context.report({
             node: candidate.utility,

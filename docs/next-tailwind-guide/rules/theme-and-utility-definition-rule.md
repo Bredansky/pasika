@@ -11,7 +11,7 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
-- A static custom `@utility` MUST use a name derived from its CSS property and value, including units.
+- Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
@@ -47,33 +47,69 @@ Why: a text-color token is being applied as a background, even though Tailwind g
 
 Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
 
-## Incorrect — Background Image Token Without a Canvas Role
+## Incorrect — Gradient Wrapped in a Custom Utility
+
+```css
+@utility bg-crt-scanlines {
+  @apply [background:repeating-linear-gradient(0deg,_transparent_0_2px,_#334155_2px_4px)];
+}
+```
+
+Why: a custom utility is unnecessary when Tailwind can generate the same background-image class from a semantic theme token.
+
+## Correct — Semantic Scanline Theme Token
 
 ```css
 @theme {
-  --background-image-rainbow-gradient: linear-gradient(90deg, #ff00ff, #7c3aed);
+  --background-image-crt-scanlines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, #334155 2px 4px);
 }
 ```
 
 ```tsx
-<div className="bg-rainbow-gradient">Featured</div>
+<span className="bg-crt-scanlines-canvas" />
 ```
 
-Why: Tailwind generates the background-image utility, but the token name does not indicate its canvas role.
+Why: the `-canvas` token describes the effect and generates `bg-crt-scanlines-canvas`. Check background-property resets before replacing the `background` shorthand.
 
-## Correct — Canvas-Suffixed Background Image Token
+## Incorrect — Complex Value Encoded in a Utility Name
 
 ```css
-@theme {
-  --background-image-rainbow-gradient-canvas: linear-gradient(90deg, #ff00ff, #7c3aed);
+@utility clip-path-polygon-0-0-100pct-0-95pct-100pct-5pct-100pct {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
-```tsx
-<div className="bg-rainbow-gradient-canvas">Featured</div>
+Why: encoding every polygon coordinate produces a long, implementation-specific name instead of describing the intended shape.
+
+## Correct — Semantic Complex Utility
+
+```css
+@utility clip-trapezoid {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
+}
 ```
 
-Why: the token and its generated `bg-rainbow-gradient-canvas` utility identify the gradient as background presentation.
+Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1–8 supported parts (numbers and units, hex colors, identifiers, or simple `var(--name)` references) and a slug of at most 70 characters. `clip-trapezoid` describes the intended shape; semantic naming quality still requires human review.
+
+## Incorrect — Vague Name for a Readable Mapping
+
+```css
+@utility bg-pixel-tiles {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: `24px 24px` is readable, so the name must preserve the property and units.
+
+## Correct — Readable Property and Value
+
+```css
+@utility bg-size-24px-24px {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: `bg-size-24px-24px` directly describes the single CSS operation.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
