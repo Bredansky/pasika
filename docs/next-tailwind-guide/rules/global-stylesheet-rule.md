@@ -18,8 +18,8 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 @theme {
   --color-base-canvas: white;
 }
-@utility bg-base-canvas {
-  background-color: var(--color-base-canvas);
+@utility clip-trapezoid {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
@@ -35,8 +35,8 @@ Why: two top-level directives run together without the required visual separator
   --color-base-canvas: white;
 }
 
-@utility bg-base-canvas {
-  background-color: var(--color-base-canvas);
+@utility clip-trapezoid {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
