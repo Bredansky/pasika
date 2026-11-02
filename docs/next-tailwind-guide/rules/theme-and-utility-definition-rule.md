@@ -19,8 +19,6 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-**Mechanical naming boundary.** `pasika/utility-name-parity` examines the single CSS property emitted by Tailwind for a custom utility. Its `readableValue()` parser turns commas into `comma` tokens and splits the value on whitespace and underscores. A value is readable only if it produces 1–8 parts, every part is a supported numeric value (with optional units), hex color, simple `var(--name)` reference, or CSS identifier, and the resulting slug is at most 70 characters. Otherwise the value is treated as complex (including most CSS functions and multi-layer effects). This classification is syntactic, not a measure of whether the effect is meaningful; a reviewer must still judge semantic utility names. A supported theme-generated utility takes precedence either way.
-
 ## Incorrect — Background Using a Text Color
 
 ```css
@@ -119,7 +117,7 @@ Why: the hash is not a meaningful name for a complex effect when no theme genera
 }
 ```
 
-Why: the name describes the effect; human review is still needed to judge whether a semantic name is sufficiently clear.
+Why: the name describes the effect; human review is still needed to judge whether a semantic name is sufficiently clear. Mechanically, `pasika/utility-name-parity` examines the single CSS property emitted by Tailwind. Its `readableValue()` parser represents commas as `comma` tokens and splits on underscores and whitespace. A value is readable only if it produces 1–8 parts, every part is a supported numeric value with an optional unit, hex color, simple `var(--name)` reference, or CSS identifier, and the resulting slug is at most 70 characters. Otherwise it is considered complex, including most CSS functions and layered effects. This is a syntactic boundary, not a semantic quality check; theme-generated utilities still take precedence.
 
 ## Incorrect — Vague Name for a Readable Mapping
 
