@@ -9,7 +9,38 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
 - The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.
+- Adjacent top-level CSS `@` directives MUST have a blank line between them, except consecutive `@import` directives.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
+
+## Incorrect — Adjacent At-Rules Without a Blank Line
+
+```css
+@theme {
+  --color-base-canvas: white;
+}
+@utility bg-base-canvas {
+  background-color: var(--color-base-canvas);
+}
+```
+
+Why: two top-level directives run together without the required visual separator.
+
+## Correct — At-Rules Separated, Imports Grouped
+
+```css
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme {
+  --color-base-canvas: white;
+}
+
+@utility bg-base-canvas {
+  background-color: var(--color-base-canvas);
+}
+```
+
+Why: each top-level section has a blank line before the next one; consecutive imports may stay grouped.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 
