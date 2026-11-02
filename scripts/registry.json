@@ -1208,6 +1208,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; direct `[data-theme]` style rules, `.dark` selectors, and CSS `prefers-color-scheme` queries MUST NOT style modes.",
+      "hash": "597c03d09f",
+      "ref": "pasika/theme-mode"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.",
       "hash": "e5fd3dff02",
       "ref": "pasika/root-variables"

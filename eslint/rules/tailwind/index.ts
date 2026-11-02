@@ -11,6 +11,7 @@ import { globalStylesheetRule } from "./global-stylesheet";
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
+import { themeModeRule } from "./theme-mode";
 import { themeResetRule } from "./theme-reset";
 import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { uniqueCssTokenValueRule } from "./unique-css-token-value";
@@ -20,6 +21,7 @@ import { utilityNameParityRule } from "./utility-name-parity";
 
 export const tailwindRules = {
   "theme-reset": themeResetRule,
+  "theme-mode": themeModeRule,
   "color-role-usage": colorRoleUsageRule,
   "root-variables": rootVariablesRule,
   "apply-usage": applyUsageRule,

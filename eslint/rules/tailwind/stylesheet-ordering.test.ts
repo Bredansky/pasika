@@ -10,7 +10,7 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
       // Full stylesheet in the documented order
       {
         filename: globals,
-        code: `@import "tailwindcss";\n\n@custom-variant dark (&:where(.dark, .dark *));\n\n:root {\n  --color-brand: #2563eb;\n}\n\n@theme {\n  --*: initial;\n}\n\n@utility card {\n  @apply rounded-xl bg-white;\n}\n\n@layer base {\n  body {\n    @apply bg-base-canvas text-base-ink;\n  }\n}\n\n@keyframes fade {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}`,
+        code: `@import "tailwindcss";\n\n@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));\n\n:root {\n  --color-brand: #2563eb;\n}\n\n@theme {\n  --*: initial;\n}\n\n@utility card {\n  @apply rounded-xl bg-white;\n}\n\n@layer base {\n  body {\n    @apply bg-base-canvas text-base-ink;\n  }\n}\n\n@keyframes fade {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}`,
       },
       // Partial stylesheet: only imports and :root
       {
@@ -33,7 +33,7 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
       },
       {
         filename: globals,
-        code: ':root { --color-brand: red; }\n[data-theme="dark"] { --color-brand: blue; }\n@theme inline { --color-brand: var(--color-brand); }',
+        code: ':root { --color-brand: red; }\n[data-density="compact"] { --color-brand: blue; }\n@theme inline { --color-brand: var(--color-brand); }',
       },
     ],
     invalid: [
