@@ -12,13 +12,14 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names instead of opaque hashes.
-- Gradient-only `background` shorthands in custom utilities MUST prefer semantic `--background-image-...-canvas` theme tokens and generated `bg-*` classes, with shorthand reset behavior reviewed before migration.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
+
+**Mechanical naming boundary.** `pasika/utility-name-parity` examines the single CSS property emitted by Tailwind for a custom utility. Its `readableValue()` parser turns commas into `comma` tokens and splits the value on whitespace and underscores. A value is readable only if it produces 1–8 parts, every part is a supported numeric value (with optional units), hex color, simple `var(--name)` reference, or CSS identifier, and the resulting slug is at most 70 characters. Otherwise the value is treated as complex (including most CSS functions and multi-layer effects). This classification is syntactic, not a measure of whether the effect is meaningful; a reviewer must still judge semantic utility names. A supported theme-generated utility takes precedence either way.
 
 ## Incorrect — Background Using a Text Color
 

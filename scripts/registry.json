@@ -1262,12 +1262,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Gradient-only `background` shorthands in custom utilities MUST prefer semantic `--background-image-...-canvas` theme tokens and generated `bg-*` classes, with shorthand reset behavior reviewed before migration.",
-      "hash": "4158edbea9",
-      "ref": "pasika/utility-mapping"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A custom utility MUST be statically referenced by at least one file in the repository's source.",
       "hash": "7f32f1f91b",
       "ref": "pasika/unused-utility"
