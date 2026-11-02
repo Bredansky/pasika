@@ -134,54 +134,7 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 </html>
 ```
 
-Why: `@variant midnight` overrides the same runtime CSS variable under the registered mode, while `@theme inline` exposes it as `bg-primary-canvas`. The mode is selected on `html` so the `:root` declaration can match the themed element.
-
-## Incorrect — Theme Overrides a Tailwind Token
-
-```css
-@theme {
-  --color-primary-canvas: #fafafa;
-}
-
-[data-theme="dark"] {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
-
-## Correct — Dark Mode Overrides a Runtime Color
-
-```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-
-@theme inline {
-  --*: initial;
-}
-
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
-:root {
-  --color-primary-canvas: #fafafa;
-
-  @variant dark {
-    --color-primary-canvas: #18181b;
-  }
-}
-
-@theme inline {
-  --color-primary-canvas: var(--color-primary-canvas);
-}
-```
-
-```tsx
-<html data-theme="dark">
-  <body className="bg-primary-canvas">Content</body>
-</html>
-```
-
-Why: Pasika combines Tailwind's documented [data-theme custom variant](https://tailwindcss.com/docs/dark-mode#using-a-data-attribute), [CSS `@variant`](https://tailwindcss.com/docs/functions-and-directives#variant), and [`@theme inline`](https://tailwindcss.com/docs/theme#referencing-other-variables), rather than reproducing a single Tailwind-recommended recipe. With `data-theme` on `html`, the registered `dark` variant overrides the runtime variable on `:root`, while the same `bg-primary-canvas` utility reads it in every mode.
+Why: Pasika combines Tailwind's documented [data-theme custom variant](https://tailwindcss.com/docs/dark-mode#using-a-data-attribute), [CSS `@variant`](https://tailwindcss.com/docs/functions-and-directives#variant), and [`@theme inline`](https://tailwindcss.com/docs/theme#referencing-other-variables) to override the same runtime color and expose it as `bg-primary-canvas`, rather than following a single Tailwind-prescribed recipe. The mode is selected on `html` so the `:root` declaration matches the themed element.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 
