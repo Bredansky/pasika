@@ -117,7 +117,7 @@ Why: the hash is not a meaningful name for a complex effect when no theme genera
 }
 ```
 
-Why: the name describes the effect; human review is still needed to judge whether a semantic name is sufficiently clear. Mechanically, `pasika/utility-name-parity` examines the single CSS property emitted by Tailwind. Its `readableValue()` parser represents commas as `comma` tokens and splits on underscores and whitespace. A value is readable only if it produces 1–8 parts, every part is a supported numeric value with an optional unit, hex color, simple `var(--name)` reference, or CSS identifier, and the resulting slug is at most 70 characters. Otherwise it is considered complex, including most CSS functions and layered effects. This is a syntactic boundary, not a semantic quality check; theme-generated utilities still take precedence.
+Why: the name describes the effect, although human review must still judge whether it is meaningful. Mechanically, `readableValue()` accepts a compiled single-property value only when splitting on whitespace and underscores (with commas represented as `comma`) produces 1–8 parts made of supported numeric values and units, hex colors, simple `var(--name)` references, or CSS identifiers, and the resulting slug is at most 70 characters; otherwise the value is complex and an opaque 12-hex-digit hash suffix is rejected.
 
 ## Incorrect — Vague Name for a Readable Mapping
 
