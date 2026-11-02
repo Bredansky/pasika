@@ -134,7 +134,7 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 </html>
 ```
 
-Why: Pasika combines Tailwind's documented [data-theme custom variant](https://tailwindcss.com/docs/dark-mode#using-a-data-attribute), [CSS `@variant`](https://tailwindcss.com/docs/functions-and-directives#variant), and [`@theme inline`](https://tailwindcss.com/docs/theme#referencing-other-variables) to override the same runtime color and expose it as `bg-primary-canvas`, rather than following a single Tailwind-prescribed recipe. The mode is selected on `html` so the `:root` declaration matches the themed element.
+Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Setting `data-theme` on `html` ensures the override applies to `:root`.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 
