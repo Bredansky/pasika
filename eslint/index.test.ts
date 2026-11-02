@@ -56,6 +56,7 @@ void describe("pasika presets", () => {
   it("applies theme utility mapping to CSS partials, not only globals.css", () => {
     const cssBlocks = pasikaNextjsApp.filter((block) => (block.files ?? []).includes("src/**/*.css"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/utility-mapping"] === "error"));
+    assert.ok(cssBlocks.some((block) => block.rules?.["pasika/at-rule-spacing"] === "error"));
   });
 
   it("pasikaNextjsApp runs every source rule on src/**", () => {

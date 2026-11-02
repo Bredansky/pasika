@@ -2,6 +2,7 @@
  * All Tailwind stylesheet rules (Tailwind v4 src/app/styles/globals.css).
  */
 import { applyUsageRule } from "./apply-usage";
+import { atRuleSpacingRule } from "./at-rule-spacing";
 import { baseLayerPairRule } from "./base-layer-pair";
 import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
@@ -20,6 +21,7 @@ import { utilityMappingRule } from "./utility-mapping";
 import { utilityNameParityRule } from "./utility-name-parity";
 
 export const tailwindRules = {
+  "at-rule-spacing": atRuleSpacingRule,
   "theme-reset": themeResetRule,
   "theme-mode": themeModeRule,
   "color-role-usage": colorRoleUsageRule,

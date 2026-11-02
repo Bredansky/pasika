@@ -1184,6 +1184,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Adjacent top-level CSS `@` directives MUST have a blank line between them, except consecutive `@import` directives.",
+      "hash": "cb9e3b0f27",
+      "ref": "pasika/at-rule-spacing"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.",
       "hash": "a3b7faf6da",
       "ref": "pasika/base-layer-pair"
