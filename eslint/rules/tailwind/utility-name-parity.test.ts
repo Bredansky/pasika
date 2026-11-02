@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names instead of opaque hashes.", () => {
+void describe("Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
