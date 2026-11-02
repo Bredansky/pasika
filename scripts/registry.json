@@ -1262,8 +1262,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A static custom `@utility` MUST use a name derived from its CSS property and value, including units.",
-      "hash": "a5a6e72091",
+      "text": "Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.",
+      "hash": "40d5d9aefd",
       "ref": "pasika/utility-name-parity"
     },
     {

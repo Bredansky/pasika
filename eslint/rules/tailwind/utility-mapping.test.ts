@@ -302,9 +302,6 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       { code: "@utility mirrored { @apply [transform:scaleX(-1)]; }" },
       { code: "@utility border-shorthand { @apply [border:2px_ridge_red]; }" },
       { code: "@utility transition-shorthand { @apply [transition:width_0.8s_ease]; }" },
-      {
-        code: "@utility background-shorthand { @apply [background:repeating-linear-gradient(0deg,_transparent,_red_4px)]; }",
-      },
       { code: "@utility background-asset { @apply [background:url(hero.png)_repeat]; }" },
       { code: "@utility shadow-mixed { @apply [box-shadow:inset_0_1px_#000,_0_2px_#fff]; }" },
       { code: "@utility filter-unknown { @apply [filter:made-up-effect(1)]; }" },
@@ -314,6 +311,15 @@ void describe("utility-mapping: theme namespaces beyond typography", () => {
       },
     ],
     invalid: [
+      {
+        code: "@utility background-shorthand { @apply [background:repeating-linear-gradient(0deg,_transparent,_red_4px)]; }",
+        errors: [
+          {
+            message:
+              /define a semantic @theme token in the "--background-image-\*-canvas" namespace.*background shorthand reset behavior/u,
+          },
+        ],
+      },
       {
         code: "@utility bg-image-linear-gradient-hash-83e0818e457c { @apply bg-[linear-gradient(135deg,rgba(255,255,255,0.16),transparent_30%)]; }",
         errors: [{ message: /define an @theme token in the "--background-image-\*" namespace/u }],
