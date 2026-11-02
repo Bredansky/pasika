@@ -22,6 +22,8 @@ const CLASS_OVERRIDE = "Use the data-theme @custom-variant instead of a .dark CS
 const SYSTEM_OVERRIDE =
   "Use data-theme with @custom-variant for mode styling; resolve system preferences in application code, not a prefers-color-scheme CSS media query.";
 const MODE_LOCATION = "Declare appearance-mode @custom-variant definitions in globals.css only.";
+const MISSING_CSS_VARIANT = (name: string): string =>
+  `CSS @variant "${name}" requires a matching @custom-variant declaration in globals.css.`;
 
 function variantName(prelude: string): string | undefined {
   return /^(?<name>[a-z][a-z0-9-]*)\b/u.exec(prelude.trim())?.groups?.name;
@@ -52,6 +54,7 @@ export const themeModeRule: CSSRuleDefinition = {
     const current = path.normalize(path.resolve(context.filename));
     const globalFile = path.normalize(path.join(sourceRoot, "app", "styles", "globals.css"));
     if (path.dirname(current) !== path.dirname(globalFile)) return {};
+    const read = cachedTextReader();
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
@@ -86,6 +89,26 @@ export const themeModeRule: CSSRuleDefinition = {
           registered.add(name);
         }
 
+        // CSS @variant uses the same registered mode selectors as TSX utilities.
+        // Imported feature stylesheets must resolve those registrations from globals.css.
+        const globalRegistrations =
+          current === globalFile
+            ? registered
+            : new Set(
+                [
+                  ...read(globalFile)
+                    .replace(/\/\*[\s\S]*?\*\//gu, "")
+                    .matchAll(/@custom-variant\s+(?<name>dark|theme-[a-z][a-z0-9-]*)\b/gu),
+                ].flatMap((match) => (match.groups?.name ? [match.groups.name] : [])),
+              );
+        for (const variant of atrulesNamed(node, "variant")) {
+          if (variant.type !== "Atrule" || !variant.prelude) continue;
+          const name = variantName(generate(variant.prelude));
+          if (name && isModeVariant(name) && !globalRegistrations.has(name)) {
+            context.report({ node: variant, message: MISSING_CSS_VARIANT(name) });
+          }
+        }
+
         for (const rule of rules(node)) {
           if (rule.type !== "Rule") continue;
           const selector = generate(rule.prelude);
@@ -104,7 +127,6 @@ export const themeModeRule: CSSRuleDefinition = {
         });
 
         if (current !== globalFile) return;
-        const read = cachedTextReader();
         const referenced = new Set<string>();
         for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
           for (const match of read(file).matchAll(MODE_REFERENCE)) {

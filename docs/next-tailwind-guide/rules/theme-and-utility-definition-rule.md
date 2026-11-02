@@ -3,7 +3,7 @@
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
-- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; direct `[data-theme]` style rules, `.dark` selectors, and CSS `prefers-color-scheme` queries MUST NOT style modes.
+- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
@@ -135,25 +135,38 @@ Why: `theme-midnight:` consistently identifies the mode in utility classes; the 
 
 Why: Direct `@theme` tokens are intended to remain fixed. Values that change by theme should use runtime CSS variables mapped through `@theme inline`.
 
-## Correct — Dark Mode Through a Custom Variant
+## Correct — Dark Mode Overrides a Runtime Color
 
 ```css
 /* src/app/styles/globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+}
+
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-@theme {
+:root {
   --color-primary-canvas: #fafafa;
-  --color-dark-canvas: #18181b;
+
+  @variant dark {
+    --color-primary-canvas: #18181b;
+  }
+}
+
+@theme inline {
+  --color-primary-canvas: var(--color-primary-canvas);
 }
 ```
 
 ```tsx
 <html data-theme="dark">
-  <body className="bg-primary-canvas dark:bg-dark-canvas">Content</body>
+  <body className="bg-primary-canvas">Content</body>
 </html>
 ```
 
-Why: the `data-theme` attribute selects the mode while the registered `dark:` variant applies its styling to the themed element and descendants, without replacing theme tokens directly.
+Why: the registered `dark` variant changes the runtime variable on the document root; `@theme inline` exposes that value as the same `bg-primary-canvas` utility in every mode. The `data-theme` attribute belongs on `html` for document-level variable overrides.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 

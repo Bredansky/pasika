@@ -1,6 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { compile } from "tailwindcss";
+import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeModeRule } from "./theme-mode";
 
@@ -26,10 +28,12 @@ function fixture(files: Record<string, string> = {}): string {
   return root;
 }
 
-void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; direct `[data-theme]` style rules, `.dark` selectors, and CSS `prefers-color-scheme` queries MUST NOT style modes.", () => {
+void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` (`dark` for dark mode, `theme-<mode>` otherwise) targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.", () => {
   const root = fixture();
   const globals = path.join(root, "src", "app", "styles", "globals.css");
   const home = path.join(root, "src", "app", "styles", "home.css");
+  mkdirSync(path.dirname(globals), { recursive: true });
+  writeFileSync(globals, `${GLOBAL + DARK}\n${MIDNIGHT}`);
   const original = process.cwd();
   process.chdir(root);
   try {
@@ -45,6 +49,14 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
           code: `${GLOBAL}@custom-variant theme-ocean (&:where([data-theme=ocean], [data-theme=ocean] *));`,
         },
         { filename: globals, code: `${GLOBAL}@custom-variant hocus (&:hover, &:focus);` },
+        {
+          filename: globals,
+          code: `${GLOBAL + DARK}\n:root { --color-primary-canvas: white; @variant dark { --color-primary-canvas: black; } }\n@theme inline { --color-primary-canvas: var(--color-primary-canvas); }`,
+        },
+        {
+          filename: home,
+          code: ":root { --color-primary-canvas: white; @variant dark { --color-primary-canvas: black; } }",
+        },
         { filename: home, code: "@theme { --color-home-canvas: #123456; }" },
         {
           filename: home,
@@ -53,6 +65,18 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         { filename: home, code: "@media (min-width: 800px) { .card { padding: 2rem; } }" },
       ],
       invalid: [
+        {
+          filename: globals,
+          code: `${GLOBAL}:root { @variant dark { --color-primary-canvas: black; } }`,
+          errors: [{ message: 'CSS @variant "dark" requires a matching @custom-variant declaration in globals.css.' }],
+        },
+        {
+          filename: home,
+          code: ":root { @variant theme-ocean { --color-primary-canvas: blue; } }",
+          errors: [
+            { message: 'CSS @variant "theme-ocean" requires a matching @custom-variant declaration in globals.css.' },
+          ],
+        },
         {
           filename: globals,
           code: `${GLOBAL}@custom-variant dark (&:where(.dark, .dark *));`,
@@ -140,4 +164,21 @@ void describe("Mode-specific Tailwind classes require their registered data-them
   } finally {
     process.chdir(original);
   }
+});
+
+it("Tailwind compiles a data-theme @variant override into a runtime semantic color", async () => {
+  const input = [
+    "@tailwind utilities;",
+    DARK,
+    ":root { --color-primary-canvas: #fafafa; @variant dark { --color-primary-canvas: #18181b; } }",
+    "@theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
+  ].join("\n");
+  const compiled = await compile(input);
+  const output = compiled.build(["bg-primary-canvas"]);
+  expect(output).toContain(".bg-primary-canvas");
+  expect(output).toContain("background-color: var(--color-primary-canvas)");
+  expect(output).toContain("--color-primary-canvas: #fafafa");
+  expect(output).toContain("--color-primary-canvas: #18181b");
+  expect(output).toContain(":where([data-theme=");
+  expect(output).not.toContain("@variant dark");
 });
