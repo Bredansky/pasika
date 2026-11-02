@@ -106,20 +106,35 @@ Why: a literal color belongs directly in `@theme`. Values with runtime overrides
 
 Why: this adds a separate mode-switching mechanism through a CSS selector instead of using the project's registered Tailwind variant.
 
-## Correct — Named Mode Uses a Custom Variant
+## Correct — Named Mode Overrides a Runtime Theme Token
 
 ```css
 /* src/app/styles/globals.css */
 @custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
 ```
 
-```tsx
-<div data-theme="midnight">
-  <div className="bg-primary-canvas midnight:bg-midnight-canvas">Content</div>
-</div>
+```css
+/* src/app/styles/home.css */
+:root {
+  --color-primary-canvas: #fafafa;
+
+  @variant midnight {
+    --color-primary-canvas: #18181b;
+  }
+}
+
+@theme inline {
+  --color-primary-canvas: var(--color-primary-canvas);
+}
 ```
 
-Why: `midnight:` consistently identifies the mode in utility classes; the attribute works both on the styled element and its ancestors.
+```tsx
+<html data-theme="midnight">
+  <body className="bg-primary-canvas">Content</body>
+</html>
+```
+
+Why: `@variant midnight` overrides the same runtime CSS variable under the registered mode, while `@theme inline` exposes it as `bg-primary-canvas`. The mode is selected on `html` so the `:root` declaration can match the themed element.
 
 ## Incorrect — Theme Overrides a Tailwind Token
 
