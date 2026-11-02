@@ -74,6 +74,7 @@ interface ThemeCandidate {
   prefix: string;
   namespace: string;
   probe?: boolean;
+  gradientShorthand?: boolean;
 }
 
 /** Only one-property operations whose Tailwind-generated class is equivalent. */
@@ -121,9 +122,9 @@ const themeOperations = [
 
 /**
  * Probe the installed Tailwind compiler for theme-generated alternatives to
- * single-operation custom utilities. CSS shorthands and multi-function filters
- * are excluded before probing; a generated candidate is not proof of cascade
- * or composition equivalence.
+ * single-operation custom utilities. Most CSS shorthands and multi-function
+ * filters are excluded; gradient-only backgrounds are considered separately
+ * with an explicit warning about shorthand reset behavior.
  */
 const THEME_GENERATOR_WORKER = String.raw`
 import { readFileSync } from "node:fs";
@@ -217,6 +218,32 @@ function singleCssFunction(value: string): { name: string; args: string } | unde
   return args ? { name, args } : undefined;
 }
 
+/** A background shorthand is image-only only when every top-level layer is a gradient.
+ * Do not reinterpret colors, urls, positions, sizes, or mixed shorthands.
+ * Changing to background-image still stops resetting unrelated background properties.
+ */
+function gradientOnlyBackground(value: string): boolean {
+  if (!value || /[;{}'"\\]/u.test(value)) return false;
+  const layers: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index++) {
+    if (value[index] === "(") depth++;
+    if (value[index] === ")") depth--;
+    if (depth < 0) return false;
+    if (value[index] === "," && depth === 0) {
+      layers.push(value.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  if (depth !== 0) return false;
+  layers.push(value.slice(start).trim());
+  return layers.every((layer) => {
+    const fn = singleCssFunction(layer);
+    return fn !== undefined && /^(?:repeating-)?(?:linear|radial|conic)-gradient$/u.test(fn.name);
+  });
+}
+
 /** Determine whether all box-shadow layers are inset, non-inset, or mixed. */
 function boxShadowNamespace(value: string): "shadow" | "inset-shadow" | undefined {
   const layers: string[] = [];
@@ -304,7 +331,9 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
     ? arbitraryApplyOperation(arbitraryApply.groups.prefix, cssValue)
     : undefined;
   if (arbitraryApply && !namedOperation) return undefined;
-  const property = arbitrary?.groups?.property ?? direct?.groups?.property ?? namedOperation?.property;
+  const declaredProperty = arbitrary?.groups?.property ?? direct?.groups?.property ?? namedOperation?.property;
+  const gradientShorthand = declaredProperty === "background" && gradientOnlyBackground(cssValue);
+  const property = gradientShorthand ? "background-image" : declaredProperty;
   const functionValue =
     property === "filter" || property === "backdrop-filter" ? singleCssFunction(cssValue) : undefined;
   const shadowNamespace = property === "box-shadow" ? boxShadowNamespace(cssValue) : undefined;
@@ -348,6 +377,7 @@ function themeCandidate(name: string, utilityText: string): ThemeCandidate | und
     prefix: matched.prefix,
     namespace: matched.namespace,
     probe: Boolean(arbitraryApply) || matched.property === "transition-property",
+    gradientShorthand,
   };
 }
 /** Names whose Tailwind classes are part of the common typography API. */
@@ -402,6 +432,9 @@ function isTypographySize(name: string): boolean {
 
 /** Suggestions must obey the same semantic color roles as declared @theme tokens. */
 function suggestedThemeToken(candidate: ThemeCandidate): string {
+  if (candidate.namespace === "background-image") {
+    return candidate.token.endsWith("-canvas") ? candidate.token : `${candidate.token}-canvas`;
+  }
   if (candidate.namespace !== "color") return candidate.token;
   let role = "edge";
   if (["bg", "fill"].includes(candidate.prefix)) {
@@ -424,7 +457,10 @@ function themeMigrationGuidance(candidate: ThemeCandidate, utilityName: string):
     : `define a direct @theme token "${token}" with value "${candidate.value}" rather than adding a :root bridge. `;
   const classGuidance =
     generatedClass === utilityName ? "Preserve the generated class name" : `Update class usages to "${generatedClass}"`;
-  return `${action}${classGuidance} and compare compiled CSS before removing the utility.`;
+  const resetWarning = candidate.gradientShorthand
+    ? " Replacing the background shorthand with background-image stops resetting other background properties; verify cascade and rendering."
+    : "";
+  return `${action}${classGuidance} and compare compiled CSS before removing the utility.${resetWarning}`;
 }
 
 export const utilityMappingRule: CSSRuleDefinition = {
@@ -661,7 +697,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
           if (candidate && equivalent && nameCounts.get(name) === 1) {
             context.report({
               node: utility,
-              message: `Custom utility "${name}" duplicates theme-generated "${equivalent}" (${candidate.property}: ${candidate.value}); reuse "${equivalent}" instead.`,
+              message: `Custom utility "${name}" duplicates theme-generated "${equivalent}" (${candidate.property}: ${candidate.value}); reuse "${equivalent}" instead.${candidate.gradientShorthand ? " Check background shorthand reset behavior before switching to background-image." : ""}`,
             });
             continue;
           }
@@ -684,7 +720,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
               node: utility,
               message:
                 `Custom utility "${name}" only maps ${candidate.property} (${candidate.value}); ` +
-                `define an @theme token in the "--${candidate.namespace}-*" namespace and use its generated "${candidate.prefix}-*" class instead.${candidate.property === "box-shadow" ? " Compare compiled CSS and ring/inset-shadow composition before migration." : ""}`,
+                `define ${candidate.gradientShorthand ? "a semantic" : "an"} @theme token in the "--${candidate.namespace}-*${candidate.gradientShorthand ? "-canvas" : ""}" namespace and use its generated "${candidate.prefix}-*" class instead.${candidate.property === "box-shadow" ? " Compare compiled CSS and ring/inset-shadow composition before migration." : ""}${candidate.gradientShorthand ? " Check background shorthand reset behavior before switching to background-image." : ""}`,
             });
             continue;
           }

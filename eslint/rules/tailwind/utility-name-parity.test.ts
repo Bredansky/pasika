@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("A static custom `@utility` MUST use a name derived from its CSS property and value, including units.", () => {
+void describe("Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names instead of opaque hashes.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
@@ -47,13 +47,23 @@ void describe("A static custom `@utility` MUST use a name derived from its CSS p
       { code: "@utility toolbar-* { width: --value(--toolbar-*); }" },
       { code: "@utility multi { @apply h-[3px]; @apply w-[4px]; }" },
       { code: "@theme { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); }" },
+      { code: "@utility shadow-soft-small { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; }" },
+      { code: "@utility shadow-soft-large { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }" },
+      { code: "@utility h-starfield { @apply h-[min(700px,90vw)]; }" },
+      { code: "@utility filter-border-glow { @apply [filter:drop-shadow(0_0_15px_hsl(var(--primary)_/_0.6))]; }" },
+      { code: "@utility bg-frame-glow { @apply bg-[linear-gradient(135deg,red,blue)]; }" },
+      { code: "@utility animation-long-sequence { @apply [animation:a_b_c_d_e_f_g_h_i]; }" },
+      {
+        code: "@utility font-legacy-fallback { @apply [font-family:veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryvery]; }",
+      },
+      { code: "@utility bg-photo { @apply bg-[url(hero.png)]; }" },
     ],
     invalid: [
       {
-        code: "@utility shadow-one { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; } @utility shadow-two { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }",
+        code: "@utility box-shadow-hash-000000000001 { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; } @utility box-shadow-hash-000000000002 { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }",
         errors: [
-          { message: /maps box-shadow: 0 0 12px .*; rename it "box-shadow-hash-[a-f0-9]{12}"/u },
-          { message: /maps box-shadow: 0 0 24px .*; rename it "box-shadow-hash-[a-f0-9]{12}"/u },
+          { message: /uses an opaque hash.*use a semantic name/u },
+          { message: /uses an opaque hash.*use a semantic name/u },
         ],
       },
       {
@@ -129,29 +139,26 @@ void describe("A static custom `@utility` MUST use a name derived from its CSS p
         ],
       },
       {
-        code: "@utility h-starfield { @apply h-[min(700px,90vw)]; }",
+        code: "@utility height-min-hash-000000000003 { @apply h-[min(700px,90vw)]; }",
         errors: [
           {
-            message:
-              /^Custom utility "h-starfield" maps height: min\(700px, 90vw\); rename it "height-min-hash-[a-f0-9]{12}" to preserve property\/value parity\.$/u,
+            message: /uses an opaque hash.*use a semantic name/u,
           },
         ],
       },
       {
-        code: "@utility filter-border-glow { @apply [filter:drop-shadow(0_0_15px_hsl(var(--primary)_/_0.6))]; }",
+        code: "@utility filter-drop-shadow-hash-000000000004 { @apply [filter:drop-shadow(0_0_15px_hsl(var(--primary)_/_0.6))]; }",
         errors: [
           {
-            message:
-              /^Custom utility "filter-border-glow" maps filter: drop-shadow.* rename it "filter-drop-shadow-hash-[a-f0-9]{12}" to preserve property\/value parity\.$/u,
+            message: /uses an opaque hash.*use a semantic name/u,
           },
         ],
       },
       {
-        code: "@utility bg-frame-glow { @apply bg-[linear-gradient(135deg,red,blue)]; }",
+        code: "@utility bg-image-linear-gradient-hash-000000000005 { @apply bg-[linear-gradient(135deg,red,blue)]; }",
         errors: [
           {
-            message:
-              /^Custom utility "bg-frame-glow" maps background-image: linear-gradient.* rename it "bg-image-linear-gradient-hash-[a-f0-9]{12}" to preserve property\/value parity\.$/u,
+            message: /uses an opaque hash.*use a semantic name/u,
           },
         ],
       },
@@ -215,16 +222,16 @@ void describe("A static custom `@utility` MUST use a name derived from its CSS p
         errors: [{ message: /Tailwind cannot resolve exactly one CSS property/u }],
       },
       {
-        code: "@utility unknown-words { @apply [animation:a_b_c_d_e_f_g_h_i]; }",
-        errors: [{ message: /animation-hash-[a-f0-9]{12}/u }],
+        code: "@utility animation-hash-000000000006 { @apply [animation:a_b_c_d_e_f_g_h_i]; }",
+        errors: [{ message: /uses an opaque hash.*use a semantic name/u }],
       },
       {
-        code: "@utility unknown-long { @apply [font-family:veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryverylong]; }",
-        errors: [{ message: /font-family-hash-[a-f0-9]{12}/u }],
+        code: "@utility font-family-hash-000000000007 { @apply [font-family:veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryvery]; }",
+        errors: [{ message: /uses an opaque hash.*use a semantic name/u }],
       },
       {
-        code: "@utility bg-photo { @apply bg-[url(hero.png)]; }",
-        errors: [{ message: /bg-image-url-hash-[a-f0-9]{12}/u }],
+        code: "@utility bg-image-url-hash-000000000008 { @apply bg-[url(hero.png)]; }",
+        errors: [{ message: /uses an opaque hash.*use a semantic name/u }],
       },
       {
         code: "@utility combined-size { @apply h-[3px] w-[4px]; }",

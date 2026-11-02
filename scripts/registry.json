@@ -1256,9 +1256,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A static custom `@utility` MUST use a name derived from its CSS property and value, including units.",
-      "hash": "a5a6e72091",
+      "text": "Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names instead of opaque hashes.",
+      "hash": "21fc9bc963",
       "ref": "pasika/utility-name-parity"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Gradient-only `background` shorthands in custom utilities MUST prefer semantic `--background-image-...-canvas` theme tokens and generated `bg-*` classes, with shorthand reset behavior reviewed before migration.",
+      "hash": "4158edbea9",
+      "ref": "pasika/utility-mapping"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

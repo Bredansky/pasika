@@ -11,7 +11,8 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
-- A static custom `@utility` MUST use a name derived from its CSS property and value, including units.
+- Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names instead of opaque hashes.
+- Gradient-only `background` shorthands in custom utilities MUST prefer semantic `--background-image-...-canvas` theme tokens and generated `bg-*` classes, with shorthand reset behavior reviewed before migration.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
@@ -74,6 +75,70 @@ Why: Tailwind generates the background-image utility, but the token name does no
 ```
 
 Why: the token and its generated `bg-rainbow-gradient-canvas` utility identify the gradient as background presentation.
+
+## Incorrect — Hashed Scanline Background
+
+```css
+@utility background-repeating-linear-gradient-hash-1242221ed83e {
+  @apply [background:repeating-linear-gradient(0deg,_transparent_0_2px,_#334155_2px_4px)];
+}
+```
+
+Why: the generated hash hides the scanline intent, and the gradient-only shorthand bypasses a Tailwind-generated background-image utility.
+
+## Correct — Semantic Scanline Theme Token
+
+```css
+@theme {
+  --background-image-crt-scanlines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, #334155 2px 4px);
+}
+```
+
+```tsx
+<span className="bg-crt-scanlines-canvas" />
+```
+
+Why: the token names the visual effect and Tailwind generates the utility; verify that removing the `background` shorthand's resets does not change rendering.
+
+## Incorrect — Opaque Non-Theme Utility
+
+```css
+@utility clip-path-hash-123456789abc {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
+}
+```
+
+Why: the hash is not a meaningful name for a complex effect when no theme generator is available.
+
+## Correct — Semantic Complex Utility
+
+```css
+@utility clip-retro-ticket {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
+}
+```
+
+Why: the name describes the effect; human review is still needed to judge whether a semantic name is sufficiently clear.
+
+## Incorrect — Vague Name for a Readable Mapping
+
+```css
+@utility bg-pixel-tiles {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: the dimensions are a readable single-property value, so the utility name should preserve the property and units.
+
+## Correct — Readable Property and Value
+
+```css
+@utility bg-size-24px-24px {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: simple values remain directly searchable, including their units.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
