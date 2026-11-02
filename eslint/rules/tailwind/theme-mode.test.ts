@@ -77,9 +77,7 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         {
           filename: home,
           code: ":root { @variant ocean { --color-primary-canvas: blue; } }",
-          errors: [
-            { message: 'CSS @variant "ocean" requires a matching @custom-variant declaration in globals.css.' },
-          ],
+          errors: [{ message: 'CSS @variant "ocean" requires a matching @custom-variant declaration in globals.css.' }],
         },
         {
           filename: globals,
