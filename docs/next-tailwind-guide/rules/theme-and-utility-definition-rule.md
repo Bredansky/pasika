@@ -166,7 +166,7 @@ Why: Direct `@theme` tokens are intended to remain fixed. Values that change by 
 </html>
 ```
 
-Why: the registered `dark` variant changes the runtime variable on the document root; `@theme inline` exposes that value as the same `bg-primary-canvas` utility in every mode. The `data-theme` attribute belongs on `html` for document-level variable overrides.
+Why: Pasika combines Tailwind's documented [data-theme custom variant](https://tailwindcss.com/docs/dark-mode#using-a-data-attribute), [CSS `@variant`](https://tailwindcss.com/docs/functions-and-directives#variant), and [`@theme inline`](https://tailwindcss.com/docs/theme#referencing-other-variables), rather than reproducing a single Tailwind-recommended recipe. With `data-theme` on `html`, the registered `dark` variant overrides the runtime variable on `:root`, while the same `bg-primary-canvas` utility reads it in every mode.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 
