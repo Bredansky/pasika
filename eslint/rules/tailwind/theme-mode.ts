@@ -18,6 +18,7 @@ const MODE_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
 const MODE_REFERENCE = /(?:^|[^a-z0-9-])(?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*):(?=[a-z[(])/gu;
 const MODE_ATTRIBUTE = /data-theme\s*=\s*["'](?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']/gu;
 const CUSTOM_REGISTRATION = /@custom-variant\s+(?<name>[a-z][a-z0-9-]*)\b(?<selector>[^;]*);/gu;
+const MODE_SELECTOR = /\[\s*data-theme\s*=\s*["']?(?<mode>[a-z][a-z0-9-]*)["']?\s*\]/u;
 const SELECTOR_OVERRIDE =
   "Use a data-theme @custom-variant for mode-specific styles; direct [data-theme] selectors are not allowed.";
 const CLASS_OVERRIDE = "Use the data-theme @custom-variant instead of a .dark CSS selector.";
@@ -42,6 +43,15 @@ function canonicalModePrelude(name: string, source: string): boolean {
     .replace(/["']/gu, "")
     .replace(/\s+/gu, "");
   return normalized === `${name}(&:where([data-theme=${name}],[data-theme=${name}]*))`;
+}
+
+function registeredModes(source: string): Set<string> {
+  const result = new Set<string>();
+  for (const match of source.replace(/\/\*[\s\S]*?\*\//gu, "").matchAll(CUSTOM_REGISTRATION)) {
+    const name = match.groups?.name;
+    if (name && isModeVariant(name, `${name}${match.groups?.selector ?? ""}`)) result.add(name);
+  }
+  return result;
 }
 
 export const themeModeRule: CSSRuleDefinition = {
@@ -71,7 +81,7 @@ export const themeModeRule: CSSRuleDefinition = {
             continue;
           }
           if (!canonicalModePrelude(name, prelude)) {
-            const selected = /\[\s*data-theme\s*=\s*["']?(?<mode>[a-z][a-z0-9-]*)["']?\s*\]/u.exec(prelude)?.groups?.mode;
+            const selected = MODE_SELECTOR.exec(prelude)?.groups?.mode;
             context.report({
               node: variant,
               message:
@@ -95,19 +105,7 @@ export const themeModeRule: CSSRuleDefinition = {
           }
         }
         // CSS @variant references resolve against the named modes in globals.css.
-        const globalRegistrations =
-          current === globalFile
-            ? registered
-            : new Set(
-                [
-                  ...read(globalFile)
-                    .replace(/\/\*[\s\S]*?\*\//gu, "")
-                    .matchAll(CUSTOM_REGISTRATION),
-                ].flatMap((match) => {
-                  const name = match.groups?.name;
-                  return name && isModeVariant(name, `${name}${match.groups?.selector ?? ""}`) ? [name] : [];
-                }),
-              );
+        const globalRegistrations = current === globalFile ? registered : registeredModes(read(globalFile));
         for (const variant of atrulesNamed(node, "variant")) {
           if (variant.type !== "Atrule" || !variant.prelude) continue;
           const name = variantName(generate(variant.prelude));
@@ -142,7 +140,8 @@ export const themeModeRule: CSSRuleDefinition = {
         for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
           for (const match of read(file).matchAll(MODE_REFERENCE)) {
             const name = match.groups?.name;
-            if (name && (name === "dark" || name.startsWith("theme-") || registered.has(name) || modeHints.has(name))) {
+            if (!name) continue;
+            if (name === "dark" || name.startsWith("theme-") || registered.has(name) || modeHints.has(name)) {
               referenced.add(name);
             }
           }

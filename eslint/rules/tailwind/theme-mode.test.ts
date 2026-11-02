@@ -94,12 +94,16 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         {
           filename: globals,
           code: `${GLOBAL}@custom-variant midnight (&:where([data-theme="ocean"], [data-theme="ocean"] *));`,
-          errors: [{ message: 'Theme variant "midnight" must be named "ocean" to match its data-theme selector.' }],
+          errors: [
+            { message: 'Theme variant "midnight" must be named "ocean" to match its data-theme selector.' },
+          ],
         },
         {
           filename: globals,
           code: `${GLOBAL}@custom-variant theme-midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));`,
-          errors: [{ message: 'Theme variant "theme-midnight" must be named "midnight" to match its data-theme selector.' }],
+          errors: [
+            { message: 'Theme variant "theme-midnight" must be named "midnight" to match its data-theme selector.' },
+          ],
         },
         {
           filename: globals,
@@ -189,9 +193,8 @@ it("Tailwind compiles a data-theme @variant override into a runtime semantic col
 });
 
 it("Tailwind compiles a bare named data-theme variant for utilities", async () => {
-  const compiled = await compile(
-    ["@tailwind utilities;", MIDNIGHT, "@theme { --color-midnight-canvas: #18181b; }"].join("\n"),
-  );
+  const input = ["@tailwind utilities;", MIDNIGHT, "@theme { --color-midnight-canvas: #18181b; }"].join("\n");
+  const compiled = await compile(input);
   const output = compiled.build(["midnight:bg-midnight-canvas"]);
   expect(output).toContain("midnight\\:bg-midnight-canvas");
   expect(output).toContain("[data-theme=");
