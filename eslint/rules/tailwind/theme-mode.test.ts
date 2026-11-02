@@ -94,9 +94,7 @@ void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-v
         {
           filename: globals,
           code: `${GLOBAL}@custom-variant midnight (&:where([data-theme="ocean"], [data-theme="ocean"] *));`,
-          errors: [
-            { message: 'Theme variant "midnight" must be named "ocean" to match its data-theme selector.' },
-          ],
+          errors: [{ message: 'Theme variant "midnight" must be named "ocean" to match its data-theme selector.' }],
         },
         {
           filename: globals,
