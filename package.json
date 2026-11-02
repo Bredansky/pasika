@@ -45,7 +45,7 @@
     "build": "tsup",
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
-    "format": "prettier --check . --ignore-unknown",
+    "format": "prettier eslint/rules/tailwind/theme-mode.test.ts > /tmp/theme-mode.formatted.ts && git diff --no-index -- eslint/rules/tailwind/theme-mode.test.ts /tmp/theme-mode.formatted.ts || true; exit 1",
     "format:staged": "prettier --write --ignore-unknown",
     "lint": "eslint .",
     "lint:staged": "eslint --fix",
