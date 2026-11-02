@@ -1,0 +1,35 @@
+name: Publish Pasika v0.10.131 (one-time)
+
+on:
+  push:
+    branches:
+      - automation/publish-pasika-v0.10.131-20261102
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: baa1b11cfba9ad69a22fb6943173f902f7c002c8
+      - name: Verify release and dispatch tag publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: baa1b11cfba9ad69a22fb6943173f902f7c002c8
+          RELEASE_TAG: v0.10.131
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$RELEASE_SHA"
+          test "$(node -p 'require("./package.json").version')" = "0.10.131"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release tag already exists; stopping to avoid a duplicate publish"
+            exit 1
+          fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+            -f "ref=refs/tags/$RELEASE_TAG" \
+            -f "sha=$RELEASE_SHA"
+          gh workflow run publish.yml --repo "$GITHUB_REPOSITORY" --ref "$RELEASE_TAG"
