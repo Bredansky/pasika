@@ -31,6 +31,29 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 
 Why: Tailwind and theme definitions are split across competing global entry points, so neither file clearly owns the system.
 
+## Correct — One Global Stylesheet Owns the System
+
+```css
+@import "tailwindcss";
+
+@theme {
+  --*: initial;
+}
+
+@theme {
+  --color-base-canvas: #ffffff;
+  --color-base-ink: #18181b;
+}
+
+@layer base {
+  body {
+    @apply bg-base-canvas text-base-ink;
+  }
+}
+```
+
+Why: one entry point registers Tailwind, resets the default theme, defines the page colors, and applies global base styling. Token mappings and runtime overrides are covered by the theme and utility definition rule.
+
 ## Incorrect — Project CSS Reached Only Through a Midpoint
 
 ```css
@@ -48,76 +71,6 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 ```
 
 Why: `deep.css` is imported through `base.css` instead of directly by `globals.css`. Every project stylesheet must be a direct import, including import-only files.
-
-## Incorrect — Theme Reset After Feature Imports
-
-```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@import "./home.css";
-@theme {
-  --*: initial;
-}
-
-/* src/app/styles/home.css */
-@theme {
-  --color-home-canvas: #123456;
-}
-```
-
-Why: resetting theme variables after importing `home.css` removes the feature's theme token and prevents Tailwind from generating its `bg-home-canvas` utility. The reset must come between the Tailwind import and feature imports.
-
-## Incorrect — Theme Reset Inside a Feature Stylesheet
-
-```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@import "./home.css";
-
-/* src/app/styles/home.css */
-@theme {
-  --*: initial;
-  --color-home-canvas: #123456;
-}
-```
-
-Why: the project-wide reset belongs exclusively in `globals.css`. A feature stylesheet may define its own tokens but must not reset the shared Tailwind theme.
-
-## Correct — Reset Before Feature Theme Tokens
-
-```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@theme {
-  --*: initial;
-}
-@import "./home.css";
-
-/* src/app/styles/home.css */
-@theme {
-  --color-home-canvas: #123456;
-}
-```
-
-Why: Tailwind processes the reset before the feature stylesheet, preserving `--color-home-canvas` and its generated `bg-home-canvas` utility.
-
-## Correct — Feature Theme Without a Reset
-
-```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@theme {
-  --*: initial;
-}
-@import "./home.css";
-
-/* src/app/styles/home.css */
-@theme {
-  --color-home-canvas: #123456;
-}
-```
-
-Why: the global stylesheet resets Tailwind once before importing feature tokens, and the feature stylesheet only adds its own theme variables.
 
 ## Correct — Project CSS Imported Directly by the Entry
 
@@ -150,6 +103,76 @@ import "./styles/globals.css";
 
 Why: the root layout imports one global CSS entry point, which resets Tailwind before importing a feature stylesheet directly. The imported `--color-home-canvas` token survives and generates its utilities; shared CSS stays in `globals.css`.
 
+## Incorrect — Theme Reset After Feature Imports
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@import "./home.css";
+@theme {
+  --*: initial;
+}
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: resetting theme variables after importing `home.css` removes the feature's theme token and prevents Tailwind from generating its `bg-home-canvas` utility. The reset must come between the Tailwind import and feature imports.
+
+## Correct — Reset Before Feature Theme Tokens
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@theme {
+  --*: initial;
+}
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: Tailwind processes the reset before the feature stylesheet, preserving `--color-home-canvas` and its generated `bg-home-canvas` utility.
+
+## Incorrect — Theme Reset Inside a Feature Stylesheet
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --*: initial;
+  --color-home-canvas: #123456;
+}
+```
+
+Why: the project-wide reset belongs exclusively in `globals.css`. A feature stylesheet may define its own tokens but must not reset the shared Tailwind theme.
+
+## Correct — Feature Theme Without a Reset
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+@theme {
+  --*: initial;
+}
+@import "./home.css";
+
+/* src/app/styles/home.css */
+@theme {
+  --color-home-canvas: #123456;
+}
+```
+
+Why: the global stylesheet resets Tailwind once before importing feature tokens, and the feature stylesheet only adds its own theme variables.
+
 ## Incorrect — Direct Declarations Inside the Base Layer
 
 ```css
@@ -174,23 +197,3 @@ Why: inside `@layer base`, global selectors may only use `@apply`. Define runtim
 ```
 
 Why: the base layer applies Tailwind utilities rather than declaring CSS properties or variables; runtime values are defined outside this layer.
-
-## Correct — One Global Stylesheet Owns the System
-
-```css
-@import "tailwindcss";
-
-@theme {
-  --*: initial;
-  --color-base-canvas: #ffffff;
-  --color-base-ink: #18181b;
-}
-
-@layer base {
-  body {
-    @apply bg-base-canvas text-base-ink;
-  }
-}
-```
-
-Why: one entry point registers Tailwind, resets the default theme, defines the page colors, and applies global base styling. Token mappings and runtime overrides are covered by the theme and utility definition rule.

@@ -88,6 +88,16 @@ export const rulePairedExamplesRule: MarkdownRuleDefinition = {
             node,
             message: `${String(incorrect.length)} Incorrect and ${String(correct.length)} Correct examples`,
           });
+        } else {
+          const misplaced = exampleHeadings.find(
+            (heading, index) => !heading.text.startsWith(index % 2 === 0 ? "Incorrect" : "Correct"),
+          );
+          if (misplaced) {
+            context.report({
+              node,
+              message: `Rule examples must alternate Incorrect then Correct; found "${misplaced.text}" at line ${String(misplaced.line)}.`,
+            });
+          }
         }
       },
     };
