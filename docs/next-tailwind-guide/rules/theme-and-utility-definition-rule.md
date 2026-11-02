@@ -47,34 +47,6 @@ Why: a text-color token is being applied as a background, even though Tailwind g
 
 Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
 
-## Incorrect — Background Image Token Without a Canvas Role
-
-```css
-@theme {
-  --background-image-rainbow-gradient: linear-gradient(90deg, #ff00ff, #7c3aed);
-}
-```
-
-```tsx
-<div className="bg-rainbow-gradient">Featured</div>
-```
-
-Why: Tailwind generates the background-image utility, but the token name does not indicate its canvas role.
-
-## Correct — Canvas-Suffixed Background Image Token
-
-```css
-@theme {
-  --background-image-rainbow-gradient-canvas: linear-gradient(90deg, #ff00ff, #7c3aed);
-}
-```
-
-```tsx
-<div className="bg-rainbow-gradient-canvas">Featured</div>
-```
-
-Why: the token and its generated `bg-rainbow-gradient-canvas` utility identify the gradient as background presentation.
-
 ## Incorrect — Hashed Scanline Background
 
 ```css
@@ -83,7 +55,7 @@ Why: the token and its generated `bg-rainbow-gradient-canvas` utility identify t
 }
 ```
 
-Why: the generated hash hides the scanline intent, and the gradient-only shorthand bypasses a Tailwind-generated background-image utility.
+Why: the hashed name hides the visual intent, and this gradient can use a theme-generated background-image utility.
 
 ## Correct — Semantic Scanline Theme Token
 
@@ -97,7 +69,7 @@ Why: the generated hash hides the scanline intent, and the gradient-only shortha
 <span className="bg-crt-scanlines-canvas" />
 ```
 
-Why: the token names the visual effect and Tailwind generates the utility; verify that removing the `background` shorthand's resets does not change rendering.
+Why: the `-canvas` token describes the effect and generates `bg-crt-scanlines-canvas`. Check background-property resets before replacing the `background` shorthand.
 
 ## Incorrect — Opaque Non-Theme Utility
 
@@ -112,12 +84,12 @@ Why: the hash is not a meaningful name for a complex effect when no theme genera
 ## Correct — Semantic Complex Utility
 
 ```css
-@utility clip-retro-ticket {
+@utility clip-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
-Why: the name describes the effect, although human review must still judge whether it is meaningful. Mechanically, `readableValue()` accepts a compiled single-property value only when splitting on whitespace and underscores (with commas represented as `comma`) produces 1–8 parts made of supported numeric values and units, hex colors, simple `var(--name)` references, or CSS identifiers, and the resulting slug is at most 70 characters; otherwise the value is complex and an opaque 12-hex-digit hash suffix is rejected.
+Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1–8 supported parts (numbers and units, hex colors, identifiers, or simple `var(--name)` references) and a slug of at most 70 characters. A semantic name communicates the shape better than a hash, though reviewers still judge naming quality.
 
 ## Incorrect — Vague Name for a Readable Mapping
 
@@ -127,7 +99,7 @@ Why: the name describes the effect, although human review must still judge wheth
 }
 ```
 
-Why: the dimensions are a readable single-property value, so the utility name should preserve the property and units.
+Why: `24px 24px` is readable, so the name must preserve the property and units.
 
 ## Correct — Readable Property and Value
 
@@ -137,7 +109,7 @@ Why: the dimensions are a readable single-property value, so the utility name sh
 }
 ```
 
-Why: simple values remain directly searchable, including their units.
+Why: `bg-size-24px-24px` directly describes the single CSS operation.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
