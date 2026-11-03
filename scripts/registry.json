@@ -1250,14 +1250,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, ring offsets, and background-image theme tokens (`--background-image-*`, which MUST end in `-canvas`); ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
-      "hash": "5a6834be63",
+      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "000bc1f0bd",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed CSS color literals MUST be defined in `--color-*` tokens and referenced with `var()` elsewhere, including inside gradients, shadows, and arbitrary CSS property values. Any CSS color format MAY be used. `transparent`, `currentColor`, inherited colors, and dynamically derived expressions are exempt.",
-      "hash": "d54f16cfe7",
+      "text": "Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.",
+      "hash": "dab7e497d2",
       "ref": "pasika/color-literal-usage"
     },
     {

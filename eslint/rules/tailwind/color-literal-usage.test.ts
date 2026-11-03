@@ -1,7 +1,7 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Fixed CSS color literals MUST be defined in `--color-*` tokens and referenced with `var()` elsewhere, including inside gradients, shadows, and arbitrary CSS property values. Any CSS color format MAY be used. `transparent`, `currentColor`, inherited colors, and dynamically derived expressions are exempt.", () => {
+void describe("Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
