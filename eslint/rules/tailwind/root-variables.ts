@@ -3,15 +3,14 @@
  *
  * Fixed values use plain @theme, without token-to-token aliases;
  * runtime values use @theme inline with a same-named var() mapping.
- * Same-named runtime token mappings require a default :root declaration under
- * Pasika's policy, with scoped or programmed overrides. This is a repository
- * convention for predictable defaults, not a CSS or Tailwind requirement.
+ * External CSS variable mappings may use a different name only with a
+ * nonempty literal fallback, including alongside plain @theme declarations.
+ * Runtime mappings require a default :root and a real override (Pasika convention).
  *
  * Tailwind emits @theme inside its lower-priority theme cascade layer.
  * Unlayered :root and scoped runtime declarations win over that layer, so an
  * intentional 1:1 @theme inline mapping is valid rather than a CSS var() cycle.
- * Without runtime overrides, however, the intermediate :root value is redundant:
- * the token's value belongs directly in @theme.
+ * Without overrides, the token belongs directly in @theme.
  * This convention applies to every Tailwind token namespace, not just colors.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
@@ -21,6 +20,7 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import { generate, parse, walk, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
+import { externalMapping } from "./external-mapping";
 import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
@@ -30,7 +30,9 @@ const TOKEN_ALIAS_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
 const INLINE_MAPPING_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" must use a direct var(${name}) mapping in @theme inline.`;
-const MIXED_THEME_MESSAGE = "Use either @theme or @theme inline across the project.";
+const MIXED_THEME_MESSAGE =
+  "Use either @theme or @theme inline across the project; external CSS variable mappings with fallbacks are the only exception.";
+
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 export const rootVariablesRule: CSSRuleDefinition = {
@@ -39,7 +41,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require direct fixed @theme values, same-named runtime mappings in @theme inline, and no token aliases or redeclarations.",
+        "Require fixed @theme values, same-named runtime @theme inline mappings, and fallback-backed external CSS variables.",
     },
   },
   create(context) {
@@ -113,6 +115,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
         }
       }
     }
+    // A CSS variable declared by this project cannot be presented as an
+    // external-provider mapping. Include scoped and conditional declarations.
+    const authoredVariables = new Set(names);
     // Runtime overrides make 1:1 mappings meaningful. An ordinary default
     // :root is not an override; scoped selectors and conditional :root are.
     // Scan every stylesheet, since an override can live outside this file.
@@ -127,6 +132,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
       walk(tree, {
         enter(node) {
           if (node.type !== "Declaration" || !node.property.startsWith("--")) return;
+          authoredVariables.add(node.property);
           if (this.rule?.type !== "Rule") return;
           if (generate(this.rule.prelude).trim() !== ":root") overriddenNames.add(node.property);
         },
@@ -141,6 +147,33 @@ export const rootVariablesRule: CSSRuleDefinition = {
       }
     }
 
+    const inlineBlocksAreExternal = [...stylesheets.filter((file) => path.normalize(file) !== current), current].every(
+      (file) => {
+        const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
+          /\/\*[\s\S]*?\*\//gu,
+          " ",
+        );
+        const headers = [...source.matchAll(/@theme\s+inline\s*\{/gu)];
+        const blocks = [...source.matchAll(/@theme\s+inline\s*\{(?<body>[^{}]*)\}/gu)];
+        return (
+          headers.length === blocks.length &&
+          blocks.every((block) => {
+            const declarations = (block.groups?.body ?? "")
+              .split(";")
+              .map((part) => part.trim())
+              .filter(Boolean);
+            return (
+              declarations.length > 0 &&
+              declarations.every((declaration) => {
+                const found = /^(?<token>--[a-z][\w-]*)\s*:\s*(?<value>.+)$/u.exec(declaration)?.groups;
+                return Boolean(found?.token && externalMapping(found.value ?? "", found.token, authoredVariables));
+              })
+            );
+          })
+        );
+      },
+    );
+
     const defaultRootNames = new Set(
       graph.definitions
         .filter((symbol) => symbol.kind === "root-variable" && symbol.scope === "default")
@@ -150,7 +183,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const localThemes = atrulesNamed(node, "theme");
-        if (hasPlainThemeBlocks && hasInlineThemeBlocks && localThemes[0]) {
+        if (hasPlainThemeBlocks && hasInlineThemeBlocks && !inlineBlocksAreExternal && localThemes[0]) {
           context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
         }
         for (const theme of localThemes) {
@@ -192,6 +225,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
               context.report({ node: theme, message: TOKEN_ALIAS_MESSAGE(name) });
               continue;
             }
+            if (inline && externalMapping(value, name, authoredVariables)) continue;
             if (inline && referencesVariable) {
               context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
               continue;

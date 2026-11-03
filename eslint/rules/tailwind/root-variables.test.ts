@@ -8,7 +8,8 @@ const INLINE = "Define design tokens with direct values in @theme, not @theme in
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
 const tokenAlias = (name: string): string =>
   `Tailwind token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
-const MIXED = "Use either @theme or @theme inline across the project.";
+const MIXED =
+  "Use either @theme or @theme inline across the project; external CSS variable mappings with fallbacks are the only exception.";
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const rootDuplicate = (name: string): string =>
@@ -164,10 +165,13 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values or `@the
   });
 });
 
-void describe("Mixed theme strategies are rejected.", () => {
+void describe("Mixed theme strategies are rejected except for fallback-backed external CSS variable mappings.", () => {
   tailwindRuleTester.run("root-variables-theme-strategy", rootVariablesRule, {
     valid: [
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
+      {
+        code: "@theme { --radius-base: 8px; } @theme inline { --font-sans: var(--font-inter, Arial); --color-brand-canvas: var(--vendor-brand-color, #2563eb); }",
+      },
       {
         code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme inline { --*: initial; --color-brand: var(--color-brand); }",
       },
@@ -205,13 +209,19 @@ void describe("Theme strategies MUST also remain exclusive across stylesheets.",
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-theme-strategies-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
-  writeFileSync(filename("tokens.css"), "@theme { --color-brand: blue; }");
+  writeFileSync(filename("tokens.css"), "@theme { --color-brand: blue; } :root { --vendor-brand-color: #f00; }");
 
   const originalDirectory = process.cwd();
   process.chdir(fixture);
   try {
     tailwindRuleTester.run("root-variables-cross-file-theme-strategy", rootVariablesRule, {
-      valid: [{ filename: filename("globals.css"), code: "@theme { --*: initial; }" }],
+      valid: [
+        { filename: filename("globals.css"), code: "@theme { --*: initial; }" },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --font-sans: var(--font-inter, Arial); --radius-brand: var(--vendor-radius, 8px); }",
+        },
+      ],
       invalid: [
         {
           filename: filename("globals.css"),
@@ -222,6 +232,11 @@ void describe("Theme strategies MUST also remain exclusive across stylesheets.",
           filename: filename("globals.css"),
           code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme inline { --color-surface: var(--color-surface); }",
           errors: [{ message: MIXED }],
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-brand-canvas: var(--vendor-brand-color, blue); }",
+          errors: [{ message: MIXED }, { message: inlineMapping("--color-brand-canvas") }],
         },
       ],
     });
@@ -287,7 +302,7 @@ void describe("A token in plain `@theme` MUST NOT be a direct `var()` alias of a
   });
 });
 
-void describe("An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable, without fallbacks, wrappers, or other expressions.", () => {
+void describe("An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable without fallbacks or wrappers, except when mapping an external CSS variable with a required fallback.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
@@ -315,12 +330,16 @@ void describe("An `@theme inline` token MUST use a direct `var()` reference to i
   });
 });
 
-void describe("Inline theme mappings reject external variable names, fallbacks, and expressions.", () => {
+void describe("Inline theme mappings reject expressions and local aliases, but permit external CSS variables with fallbacks.", () => {
   tailwindRuleTester.run("root-variables-direct-inline-mapping", rootVariablesRule, {
     valid: [
       {
         code: ":root { --font-sans: Arial; } .dark { --font-sans: Georgia; } @theme inline { --font-sans: var(--font-sans); }",
       },
+      { code: "@theme inline { --font-sans: var(--font-inter, Arial); }" },
+      { code: "@theme inline { --font-mono: var(--provider-font, ui-monospace, monospace); }" },
+      { code: "@theme inline { --color-brand-canvas: var(--vendor-brand, #2563eb); }" },
+      { code: "@theme inline { --radius-button: var(--vendor-radius, 8px); }" },
     ],
     invalid: [
       {
@@ -348,6 +367,18 @@ void describe("Inline theme mappings reject external variable names, fallbacks, 
         errors: [{ message: inlineMapping("--font-sans") }],
       },
       {
+        code: "@theme inline { --font-sans: var(--font-inter, ); }",
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
+        code: ":root { --vendor-radius: 4px; } @theme inline { --radius-button: var(--vendor-radius, 8px); }",
+        errors: [{ message: inlineMapping("--radius-button") }],
+      },
+      {
+        code: "@theme { --radius-base: 4px; } @theme inline { --radius-button: var(--radius-base, 8px); }",
+        errors: [{ message: MIXED }, { message: inlineMapping("--radius-button") }],
+      },
+      {
         code: "@theme inline { --font-sans: var(--font-inter); }",
         errors: [{ message: wrongVariable("--font-sans", "--font-inter") }],
       },
@@ -362,6 +393,49 @@ void describe("Inline theme mappings reject external variable names, fallbacks, 
       {
         code: ":root { --color-surface: #fff; } .dark { --color-surface: #000; } @theme inline { --color-surface: hsl(var(--color-surface)); }",
         errors: [{ message: inlineMapping("--color-surface") }],
+      },
+    ],
+  });
+});
+
+void describe("External CSS variable mappings MAY coexist with plain `@theme` when `@theme inline` references a variable not defined by the project in CSS and supplies a nonempty literal fallback within `var()`; project-defined token aliases remain forbidden.", () => {
+  tailwindRuleTester.run("root-variables-external-css-variables", rootVariablesRule, {
+    valid: [
+      {
+        code: "@theme { --radius-base: 8px; } @theme inline { --font-sans: var(--font-inter, Arial); --color-brand-canvas: var(--vendor-brand-color, #2563eb); }",
+      },
+      {
+        code: "@theme inline { --radius-button: var(--provider-radius, 8px); --shadow-soft: var(--vendor-shadow, 0 0 2px rgb(0 0 0 / 20%)); }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --radius-base: 8px; } @theme inline { --radius-button: var(--radius-base, 10px); }",
+        errors: [{ message: MIXED }, { message: inlineMapping("--radius-button") }],
+      },
+      {
+        code: ":root { --vendor-brand-color: red; } @theme inline { --color-brand-canvas: var(--vendor-brand-color, blue); }",
+        errors: [{ message: inlineMapping("--color-brand-canvas") }],
+      },
+      {
+        code: '[data-theme="dark"] { --vendor-brand-color: red; } @theme inline { --color-brand-canvas: var(--vendor-brand-color, blue); }',
+        errors: [{ message: inlineMapping("--color-brand-canvas") }],
+      },
+      {
+        code: "@theme inline { --color-brand-canvas: var(--vendor-brand-color); }",
+        errors: [{ message: wrongVariable("--color-brand-canvas", "--vendor-brand-color") }],
+      },
+      {
+        code: "@theme inline { --color-brand-canvas: var(--vendor-brand-color, ); }",
+        errors: [{ message: inlineMapping("--color-brand-canvas") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--vendor-font, var(--other-font, Arial)); }",
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
+        code: "@theme { --font-sans: var(--font-inter, Arial); }",
+        errors: [{ message: INDIRECT }],
       },
     ],
   });

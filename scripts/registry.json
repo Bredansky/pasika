@@ -1232,8 +1232,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable, without fallbacks, wrappers, or other expressions.",
-      "hash": "87ae221403",
+      "text": "An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable without fallbacks or wrappers, except when mapping an external CSS variable with a required fallback.",
+      "hash": "c410a669a6",
       "ref": "pasika/root-variables"
     },
     {
@@ -1253,6 +1253,12 @@
       "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.",
       "hash": "ea2574dded",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "External CSS variable mappings MAY coexist with plain `@theme` when `@theme inline` references a variable not defined by the project in CSS and supplies a nonempty literal fallback within `var()`; project-defined token aliases remain forbidden.",
+      "hash": "15fa813681",
+      "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
