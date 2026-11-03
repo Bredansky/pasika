@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/unique-css-token-value
  *
- * Distinct design tokens MUST NOT share a static CSS value, even if their
- * names or stylesheet files differ. Conditional overrides are not defaults.
+ * Duplicate static values are rejected unless color tokens have different
+ * semantic role suffixes. Conditional overrides are not defaults.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -125,7 +125,7 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Reject distinct CSS design tokens with duplicate static values across the project.",
+      description: "Reject duplicate static CSS token values except across different semantic color roles.",
     },
   },
   create(context) {
@@ -147,9 +147,15 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
     for (const definition of graph.definitions) {
       if (!isComparable(definition)) continue;
       const value = valueIdentity(definition.value ?? "");
-      const group = byValue.get(value) ?? [];
+      // Canvas, ink, and edge are independent contracts: equal rendered colors
+      // must not force an alias from one role to another.
+      const role = definition.name.startsWith("--color-")
+        ? (/-(?:canvas|ink|edge)$/u.exec(definition.name)?.[0] ?? "-unknown")
+        : "-other";
+      const key = `${role}:${value}`;
+      const group = byValue.get(key) ?? [];
       group.push(definition);
-      byValue.set(value, group);
+      byValue.set(key, group);
     }
 
     const redundant = new Map<CssSymbol, CssSymbol>();

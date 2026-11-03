@@ -1208,8 +1208,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.",
-      "hash": "a62ae78387",
+      "text": "Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.",
+      "hash": "eb67638ba1",
       "ref": "pasika/root-variables"
     },
     {
@@ -1256,6 +1256,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.",
+      "hash": "ae15290d48",
+      "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.",
       "hash": "dab7e497d2",
       "ref": "pasika/color-literal-usage"
@@ -1292,14 +1298,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.",
-      "hash": "98f922a79b",
+      "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).",
+      "hash": "6d2226c117",
       "ref": "pasika/unique-css-token-value"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token or a semantic alias when equivalence can be established without rounding or changing precision.",
-      "hash": "535f256742",
+      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token within a semantic color role when equivalence can be established without rounding or changing precision.",
+      "hash": "10b3458eb1",
       "ref": "pasika/unique-css-token-value"
     },
     {

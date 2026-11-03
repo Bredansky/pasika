@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Fixed values and aliases to other fixed theme tokens use plain @theme;
- * runtime CSS-variable references use @theme inline.
+ * Fixed values and non-color aliases to fixed theme tokens use plain @theme;
+ * runtime CSS-variable references use @theme inline. Direct color aliases are forbidden.
  * Same-named runtime token mappings require a default :root declaration under
  * Pasika's policy, with scoped or programmed overrides. This is a repository
  * convention for predictable defaults, not a CSS or Tailwind requirement.
@@ -26,6 +26,8 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const COLOR_ALIAS_MESSAGE = (name: string): string =>
+  `Color token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
 const MIXED_THEME_MESSAGE =
   "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
@@ -51,7 +53,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require @theme for fixed tokens and fixed-token aliases, matching :root variables for @theme inline tokens, and no other token redeclarations.",
+        "Require @theme for fixed tokens and non-color fixed-token aliases, matching :root variables for @theme inline tokens, and no other token redeclarations.",
     },
   },
   create(context) {
@@ -214,6 +216,11 @@ export const rootVariablesRule: CSSRuleDefinition = {
             // A quoted literal containing "var(" isn't a variable reference.
             const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
             const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
+            const directAlias = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(unquoted.trim())?.groups?.target;
+            if (!inline && name.startsWith("--color-") && directAlias && isFixedThemeExpression(name, unquoted)) {
+              context.report({ node: theme, message: COLOR_ALIAS_MESSAGE(name) });
+              continue;
+            }
             if (inline && referencesVariable) {
               for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
                 const runtime = reference.groups?.variable;

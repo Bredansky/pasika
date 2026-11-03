@@ -2,7 +2,7 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
+- Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
@@ -10,29 +10,19 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
+- A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
-- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token or a semantic alias when equivalence can be established without rounding or changing precision.
+- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).
+- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token within a semantic color role when equivalence can be established without rounding or changing precision.
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Duplicate Color Tokens for Different CSS Roles
-
-```css
-@theme {
-  --color-brand-canvas: #2563eb;
-  --color-brand-edge: #2563eb;
-}
-```
-
-Why: the same color has two fixed-value definitions just to satisfy different utility roles.
-
-## Correct — Reuse a Color with Semantic Role Aliases
+## Incorrect — Color Token Aliased to a Different Role
 
 ```css
 @theme {
@@ -41,11 +31,21 @@ Why: the same color has two fixed-value definitions just to satisfy different ut
 }
 ```
 
-```tsx
-<div className="bg-brand-canvas border-brand-edge" />
+Why: the edge token depends on an unrelated semantic role rather than owning its value.
+
+## Correct — Independent Fixed Color Token
+
+```css
+@theme {
+  --color-brand-canvas: #2563eb;
+}
 ```
 
-Why: the alias preserves the canvas and edge roles without duplicating the fixed color value.
+```tsx
+<div className="bg-brand-canvas" />
+```
+
+Why: the fixed canvas color is directly defined without introducing an unnecessary edge token or cross-role alias.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
@@ -420,16 +420,19 @@ Why: explicit semantic tokens generate available color utilities after the defau
 
 Why: both semantic roles copy the same fixed color value, making updates prone to drifting apart.
 
-## Correct — Fixed Semantic Alias Within the Theme
+## Correct — Reuse the Existing Ink Token
 
 ```css
 @theme {
   --color-base-ink: #f9fafb;
-  --color-dialog-ink: var(--color-base-ink);
 }
 ```
 
-Why: the dialog keeps its semantic utility name while sharing a value owned by the same fixed theme. This reference is not a runtime override or an `@theme inline` mapping.
+```tsx
+<p className="text-base-ink">Dialog content</p>
+```
+
+Why: the dialog reuses the existing ink token without creating a second color token or a cross-token alias.
 
 ## Incorrect — Duplicate Configured Typography Utility
 

@@ -44,7 +44,7 @@ void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-in
     valid: [
       { code: "@theme { --*: initial; --color-base-canvas: #fff; --color-base-ink: #111; --color-base-edge: #ccc; }" },
       { code: "@theme inline { --color-primary-canvas: var(--primary); }" },
-      { code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: var(--color-brand-canvas); }" },
+      { code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }" },
       { code: "@theme { --radius-md: 4px; --text-card-title: 1rem; }" },
     ],
     invalid: [

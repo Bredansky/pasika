@@ -6,6 +6,8 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
+const colorAlias = (name: string): string =>
+  `Color token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
 const MIXED =
   "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
 const redundant = (name: string): string =>
@@ -21,13 +23,13 @@ const wrongVariable = (token: string, variable: string): string =>
 const missingFontFallback = (token: string, variable: string): string =>
   `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
 
-void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.", () => {
+void describe("Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
       { code: "@theme { --color-brand: #2563eb; --color-ink: #111827 }" },
-      { code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); }" },
+      { code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: #18181b; }" },
       {
         code: "@theme { --primary: 290 80% 65%; --retro-shadow: 270 40% 3%; --text-shadow-retro-emboss: 2px 2px 0 hsl(var(--retro-shadow)), -1px -1px 0 hsl(var(--primary) / 0.3); }",
       },
@@ -38,7 +40,7 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixe
         code: "@theme { --brand-hue: 290 80% 65%; --color-brand-canvas: hsl(var(--brand-hue)); --shadow-brand: 0 0 8px var(--color-brand-canvas); }",
       },
       {
-        code: "@theme { --color-primary-ink: #ffffff; --color-secondary-ink: var(--color-primary-ink); --color-tertiary-ink: var(--color-secondary-ink); }",
+        code: "@theme { --radius-base: 8px; --radius-button: var(--radius-base); --radius-chip: var(--radius-button); }",
       },
       {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
@@ -95,6 +97,14 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and fixe
       },
     ],
     invalid: [
+      {
+        code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: var(--color-brand-canvas); }",
+        errors: [{ message: colorAlias("--color-brand-edge") }],
+      },
+      {
+        code: "@theme { --color-base-ink: #f9fafb; --color-dialog-ink: var(--color-base-ink); }",
+        errors: [{ message: colorAlias("--color-dialog-ink") }],
+      },
       {
         code: ":root { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); } @theme inline { --background-image-rainbow-gradient-canvas: var(--background-image-rainbow-gradient-canvas); }",
         errors: [{ message: redundant("--background-image-rainbow-gradient-canvas") }],
@@ -243,6 +253,27 @@ void describe("A CSS variable referenced by an `@theme inline` token with the sa
       {
         code: "@theme { --shadow-depth: calc(2px + var(--offset)); }",
         errors: [{ message: INDIRECT }],
+      },
+    ],
+  });
+});
+
+void describe("A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.", () => {
+  tailwindRuleTester.run("root-variables-color-aliases", rootVariablesRule, {
+    valid: [
+      { code: "@theme { --color-brand-canvas: #2563eb; }" },
+      {
+        code: ":root { --color-brand-edge: #2563eb; } .dark { --color-brand-edge: #1d4ed8; } @theme inline { --color-brand-edge: var(--color-brand-edge); }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: var(--color-brand-canvas); }",
+        errors: [{ message: colorAlias("--color-brand-edge") }],
+      },
+      {
+        code: "@theme { --color-base-ink: #f9fafb; --color-dialog-ink: var(--color-base-ink); }",
+        errors: [{ message: colorAlias("--color-dialog-ink") }],
       },
     ],
   });
