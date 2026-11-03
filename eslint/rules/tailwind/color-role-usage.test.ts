@@ -8,7 +8,7 @@ const backgroundImageNaming = (token: string): string =>
 const mismatch = (className: string, role: string, purpose: string, expected: string): string =>
   `Color utility "${className}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
 
-void describe("Tailwind color tokens used as role-specific utilities MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Effect-only color tokens referenced inside composite theme effects MAY omit role suffixes. Background-image theme tokens (`--background-image-*`) MUST still end in `-canvas`.", () => {
+void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and background-image theme tokens (`--background-image-*`) MUST end in `-canvas`; color utilities MUST match the token roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.", () => {
   tailwindRuleTester.run("color-role-usage-background-image-tokens", colorRoleUsageRule, {
     valid: [
       {
@@ -108,17 +108,17 @@ void describe("Tailwind color tokens used as role-specific utilities MUST use se
   });
 });
 
-void describe("Effect-only color tokens MAY omit canvas, ink and edge suffixes when referenced by a composite theme effect.", () => {
+void describe("Color tokens used in composite effects MUST retain a canvas, ink or edge role suffix.", () => {
   tailwindRuleTester.run("color-role-usage-effects", colorRoleUsageRule, {
     valid: [
       {
-        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
+        code: "@theme { --color-mc-dark-canvas: #2b2b2b; --color-mc-light-canvas: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark-canvas), inset -1px -1px 0 var(--color-mc-light-canvas); }",
       },
     ],
     invalid: [
       {
-        code: "@theme { --color-button: #123456; }",
-        errors: [{ message: naming("--color-button") }],
+        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
+        errors: [{ message: naming("--color-mc-dark") }, { message: naming("--color-mc-light") }],
       },
     ],
   });

@@ -1250,8 +1250,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color tokens used as role-specific utilities MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Effect-only color tokens referenced inside composite theme effects MAY omit role suffixes. Background-image theme tokens (`--background-image-*`) MUST still end in `-canvas`.",
-      "hash": "353e53e532",
+      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and background-image theme tokens (`--background-image-*`) MUST end in `-canvas`; color utilities MUST match the token roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.",
+      "hash": "b4d93937d8",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
     },
     {

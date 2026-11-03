@@ -9,7 +9,7 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens used as role-specific utilities MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Effect-only color tokens referenced inside composite theme effects MAY omit role suffixes. Background-image theme tokens (`--background-image-*`) MUST still end in `-canvas`.
+- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and background-image theme tokens (`--background-image-*`) MUST end in `-canvas`; color utilities MUST match the token roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
 - Fixed CSS color literals MUST be defined in `--color-*` tokens and referenced with `var()` elsewhere, including inside gradients, shadows, and arbitrary CSS property values. Any CSS color format MAY be used. `transparent`, `currentColor`, inherited colors, and dynamically derived expressions are exempt.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
@@ -463,11 +463,11 @@ Why: the effect is correctly modeled as a single shadow token, but its fixed col
 
 ```css
 @theme {
-  --color-mc-frame-dark: #2b2b2b;
-  --color-mc-frame-light: #545454;
+  --color-mc-frame-dark-canvas: #2b2b2b;
+  --color-mc-frame-light-canvas: #545454;
   --inset-shadow-mc-donation-frame:
-    inset 1px 1px 0 var(--color-mc-frame-dark), inset -1px -1px 0 var(--color-mc-frame-light);
+    inset 1px 1px 0 var(--color-mc-frame-dark-canvas), inset -1px -1px 0 var(--color-mc-frame-light-canvas);
 }
 ```
 
-Why: the shadow keeps its `--inset-shadow-*` identity while the colors use `--color-*` without artificial role suffixes. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.
+Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse explicitly named `--color-*-canvas` tokens. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.
