@@ -55,6 +55,18 @@ void describe("Fixed CSS colors MUST be defined in `--color-*` tokens and refere
         code: "@theme { --color-canvas: #ffffff; --text-shadow-card: 0 1px 0 #000; }",
         errors: [{ message: 'Move literal color "#000" into a --color-* token and reference it with var().' }],
       },
+      {
+        code: ".card { color: rgb(from color(display-p3 0.1 0.2 0.3) r g b); outline-color: rgb(from #123456 r g b); }",
+        errors: [
+          {
+            message:
+              'Move literal color "rgb(from color(display-p3 0.1 0.2 0.3) r g b)" into a --color-* token and reference it with var().',
+          },
+          {
+            message: 'Move literal color "rgb(from #123456 r g b)" into a --color-* token and reference it with var().',
+          },
+        ],
+      },
     ],
   });
 });

@@ -9,7 +9,6 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
@@ -21,33 +20,30 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Background Using a Text Color
+## Incorrect — Duplicate Color Tokens for Different CSS Roles
 
 ```css
 @theme {
-  --color-shiny-ink: #ffffff;
+  --color-brand-canvas: #2563eb;
+  --color-brand-edge: #2563eb;
+}
+```
+
+Why: the same color has two fixed-value definitions just to satisfy different utility roles.
+
+## Correct — Reuse One Named Color Across Utilities
+
+```css
+@theme {
+  --color-brand: #2563eb;
 }
 ```
 
 ```tsx
-<div className="bg-shiny-ink" />
+<div className="bg-brand border-brand text-brand" />
 ```
 
-Why: a text-color token is being applied as a background, even though Tailwind generates the class.
-
-## Correct — Background Using a Canvas Color
-
-```css
-@theme {
-  --color-shiny-canvas: #2563eb;
-}
-```
-
-```tsx
-<div className="bg-shiny-canvas" />
-```
-
-Why: the `-canvas` suffix identifies a color intended for backgrounds, matching the `bg-*` utility.
+Why: a single `--color-brand` produces background, border, and text utilities. Suffixes such as `-canvas`, `-ink`, and `-edge` are optional descriptive names, not required roles.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
@@ -63,15 +59,16 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 
 ```css
 @theme {
-  --background-image-crt-scanlines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, #334155 2px 4px);
+  --color-scanline: #334155;
+  --background-image-crt-scanlines: repeating-linear-gradient(0deg, transparent 0 2px, var(--color-scanline) 2px 4px);
 }
 ```
 
 ```tsx
-<span className="bg-crt-scanlines-canvas" />
+<span className="bg-crt-scanlines" />
 ```
 
-Why: the `-canvas` token describes the effect and generates `bg-crt-scanlines-canvas`. Check background-property resets before replacing the `background` shorthand.
+Why: the descriptive background-image token generates `bg-crt-scanlines` without a role suffix. Check background-property resets before replacing the `background` shorthand.
 
 ## Incorrect — Complex Value Encoded in a Utility Name
 
@@ -463,11 +460,11 @@ Why: the effect is correctly modeled as a single shadow token, but its fixed col
 
 ```css
 @theme {
-  --color-mc-frame-dark-canvas: #2b2b2b;
-  --color-mc-frame-light-canvas: #545454;
+  --color-mc-frame-dark: #2b2b2b;
+  --color-mc-frame-light: #545454;
   --inset-shadow-mc-donation-frame:
-    inset 1px 1px 0 var(--color-mc-frame-dark-canvas), inset -1px -1px 0 var(--color-mc-frame-light-canvas);
+    inset 1px 1px 0 var(--color-mc-frame-dark), inset -1px -1px 0 var(--color-mc-frame-light);
 }
 ```
 
-Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse explicitly named `--color-*-canvas` tokens. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.
+Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse named `--color-*` tokens. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.

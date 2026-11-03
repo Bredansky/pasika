@@ -57,19 +57,28 @@ function pushSymbol(
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
 export function themeClasses(name: string): string[] {
-  // Only map namespaces with predictable class names. A color token emits
-  // several classes; semantic suffixes constrain them to the relevant roles.
+  // Every --color-* token emits color utilities, irrespective of naming.
   if (name.includes("--", 2)) return [];
   if (name.startsWith("--color-")) {
     const stem = name.slice("--color-".length);
-    if (stem.endsWith("-canvas")) {
-      return ["bg", "fill", "from", "via", "to", "ring-offset"].map((prefix) => `${prefix}-${stem}`);
-    }
-    if (stem.endsWith("-ink")) return ["text", "caret", "decoration"].map((prefix) => `${prefix}-${stem}`);
-    if (stem.endsWith("-edge")) {
-      return ["border", "outline", "ring", "divide", "stroke"].map((prefix) => `${prefix}-${stem}`);
-    }
-    return ["bg", "text", "border", "fill", "stroke", "ring"].map((prefix) => `${prefix}-${stem}`);
+    return [
+      "bg",
+      "text",
+      "border",
+      "ring",
+      "fill",
+      "stroke",
+      "accent",
+      "caret",
+      "decoration",
+      "outline",
+      "divide",
+      "from",
+      "via",
+      "to",
+      "shadow",
+      "ring-offset",
+    ].map((prefix) => `${prefix}-${stem}`);
   }
   if (name.startsWith("--background-image-")) return [`bg-${name.slice("--background-image-".length)}`];
   if (name.startsWith("--spacing-")) {

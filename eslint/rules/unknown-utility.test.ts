@@ -104,57 +104,19 @@ const message = (className: string): string =>
 const plainMessage = (className: string): string =>
   `Utility class "${className}" is defined as a plain CSS selector in a stylesheet, not as an @utility (or @theme variable). Define it with @utility so the framework can own and validate it.`;
 
-void describe("Tailwind color utilities MUST match semantic roles: canvas for backgrounds, fills, and gradients; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes.", () => {
-  const invalidMessage = (cls: string, role: string, purpose: string, expected: string): string =>
-    `Color utility "${cls}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
-  ruleTester.run("unknown-utility-color-roles", unknownUtilityRule, {
+void describe("Any --color-* token can be used with compatible color utilities.", () => {
+  ruleTester.run("unknown-utility-color-reuse", unknownUtilityRule, {
     valid: [
       {
-        code: '<div className="bg-shiny-canvas text-shiny-ink border-primary-edge" />',
+        code: '<div className="bg-brand-500 text-brand-500 border-brand-500" />',
         filename: srcFile("shared/card.tsx"),
       },
       {
-        code: 'cn("hover:bg-shiny-canvas/50", { "focus:ring-primary-edge": active })',
+        code: 'cn("hover:bg-shiny-ink/50", { "focus:ring-shiny-canvas": active })',
         filename: srcFile("shared/card.tsx"),
       },
     ],
-    invalid: [
-      {
-        code: '<div className="bg-shiny-ink" />',
-        filename: srcFile("shared/card.tsx"),
-        errors: [{ message: invalidMessage("bg-shiny-ink", "ink", "backgrounds, fills, or gradients", "canvas") }],
-      },
-      {
-        code: '<div className="hover:bg-shiny-ink/50 text-shiny-canvas" />',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          { message: invalidMessage("hover:bg-shiny-ink/50", "ink", "backgrounds, fills, or gradients", "canvas") },
-          { message: invalidMessage("text-shiny-canvas", "canvas", "text, carets, or text decoration", "ink") },
-        ],
-      },
-      {
-        code: 'cn("border-shiny-ink", active && "focus:ring-shiny-canvas")',
-        filename: srcFile("shared/card.tsx"),
-        errors: [
-          {
-            message: invalidMessage(
-              "border-shiny-ink",
-              "ink",
-              "borders, outlines, rings, dividers, or strokes",
-              "edge",
-            ),
-          },
-          {
-            message: invalidMessage(
-              "focus:ring-shiny-canvas",
-              "canvas",
-              "borders, outlines, rings, dividers, or strokes",
-              "edge",
-            ),
-          },
-        ],
-      },
-    ],
+    invalid: [],
   });
 });
 

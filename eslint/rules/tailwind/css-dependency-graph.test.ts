@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildCssDependencyGraph, cssSymbolUsages } from "./css-dependency-graph";
+import { buildCssDependencyGraph, cssSymbolUsages, themeClasses } from "./css-dependency-graph";
 
 const root = path.resolve("fixtures/css-project/src");
 const globals = path.join(root, "app/styles/globals.css");
@@ -10,6 +10,20 @@ const component = path.join(root, "features/banner.tsx");
 const constants = path.join(root, "constants/control-classes.ts");
 
 describe("Cross-file CSS definitions and consumers share a single dependency graph.", () => {
+  it("maps a single color token to every supported color utility regardless of suffix", () => {
+    expect(themeClasses("--color-mc-frame-dark")).toEqual(
+      expect.arrayContaining([
+        "bg-mc-frame-dark",
+        "text-mc-frame-dark",
+        "border-mc-frame-dark",
+        "ring-mc-frame-dark",
+        "fill-mc-frame-dark",
+        "shadow-mc-frame-dark",
+      ]),
+    );
+    expect(themeClasses("--color-mc-frame-dark-ink")).toContain("bg-mc-frame-dark-ink");
+  });
+
   const graph = buildCssDependencyGraph({
     sourceRoot: root,
     css: [
