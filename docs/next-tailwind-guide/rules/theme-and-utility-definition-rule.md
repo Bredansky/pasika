@@ -2,15 +2,15 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
+- Tailwind tokens MUST use plain `@theme` for fixed values or `@theme inline` for runtime variables.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
-- An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
+- An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable, without fallbacks, wrappers, or other expressions.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
-- A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.
+- A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
@@ -209,30 +209,25 @@ Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a
 
 Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
 
-## Incorrect — A Font List Outside `var()` Is Not Its Fallback
+## Incorrect — External Font Alias in an Inline Theme
 
 ```css
 @theme inline {
-  --font-sans: var(--font-inter), Arial, sans-serif;
+  --font-sans: var(--font-inter, Arial);
 }
 ```
 
-Why: if the injected `--font-inter` variable is missing, the unresolved `var()` invalidates the whole `font-family` declaration. `Arial` after the closing parenthesis is not a CSS variable fallback.
+Why: an inline theme token must reference its same-named runtime variable directly; neither a different font variable nor a fallback changes that requirement.
 
-## Correct — External Font Alongside a Fixed Theme
+## Correct — Fixed Font Stack in the Theme
 
 ```css
 @theme {
-  --*: initial;
-  --color-base-ink: #fafafa;
-}
-
-@theme inline {
-  --font-sans: var(--font-inter, Arial), sans-serif;
+  --font-sans: Arial, sans-serif;
 }
 ```
 
-Why: fixed tokens stay in plain `@theme`, while the external font variable resolves where the utility is used. `Arial` is the fallback inside `var()`, `sans-serif` is the next family, and this exception supports `next/font` without making fixed colors runtime mappings.
+Why: a fixed font stack has a direct value in plain `@theme`, without an alias or an unnecessary runtime mapping.
 
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 

@@ -6,10 +6,9 @@ import { describe, tailwindRuleTester } from "./rule-tester";
 
 const INLINE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const colorAlias = (name: string): string =>
-  `Color token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
-const MIXED =
-  "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
+const tokenAlias = (name: string): string =>
+  `Tailwind token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
+const MIXED = "Use either @theme or @theme inline across the project.";
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
 const rootDuplicate = (name: string): string =>
@@ -20,10 +19,10 @@ const missingDefault = (token: string): string =>
   `Tailwind token "${token}" references "${token}" without a default :root declaration.`;
 const wrongVariable = (token: string, variable: string): string =>
   `Tailwind token "${token}" must reference its same-named CSS variable, not "${variable}".`;
-const missingFontFallback = (token: string, variable: string): string =>
-  `Tailwind font token "${token}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
+const inlineMapping = (name: string): string =>
+  `Tailwind token "${name}" must use a direct var(${name}) mapping in @theme inline.`;
 
-void describe("Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.", () => {
+void describe("Tailwind tokens MUST use plain `@theme` for fixed values or `@theme inline` for runtime variables.", () => {
   tailwindRuleTester.run("root-variables", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand: #2563eb; }" },
@@ -40,19 +39,19 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and non-
         code: "@theme { --brand-hue: 290 80% 65%; --color-brand-canvas: hsl(var(--brand-hue)); --shadow-brand: 0 0 8px var(--color-brand-canvas); }",
       },
       {
-        code: "@theme { --radius-base: 8px; --radius-button: var(--radius-base); --radius-chip: var(--radius-button); }",
+        code: "@theme { --radius-base: 8px; --radius-button: 10px; --radius-chip: 12px; }",
       },
       {
         code: ":root { --color-brand: #2563eb; } .dark { --color-brand: #1d4ed8; } @theme inline { --color-brand: var(--color-brand); }",
       },
       {
-        code: ":root { --shadow-custom: 2px; } .dark { --shadow-custom: 4px; } @theme inline { --shadow-custom: calc(2px + var(--shadow-custom)); }",
+        code: ":root { --shadow-custom: 2px; } .dark { --shadow-custom: 4px; } @theme inline { --shadow-custom: var(--shadow-custom); }",
       },
       {
-        code: ":root { --color-surface: 150 60% 50%; } .dark { --color-surface: 150 30% 30%; } @theme inline { --color-surface: hsl(var(--color-surface)); }",
+        code: ":root { --color-surface: hsl(150 60% 50%); } .dark { --color-surface: hsl(150 30% 30%); } @theme inline { --color-surface: var(--color-surface); }",
       },
       {
-        code: ":root { --color-brand: 37 99 235; } .dark { --color-brand: 29 78 216; } @theme inline { --color-brand: rgb(\n  var(--color-brand)\n); }",
+        code: ":root { --color-brand: rgb(37 99 235); } .dark { --color-brand: rgb(29 78 216); } @theme inline { --color-brand: var(--color-brand); }",
       },
       { code: "@theme { --color-brand: #2563eb; /* --color-comment: var(--nope); */ }" },
       { code: '@theme { --font-label: "var(--literal)"; }' },
@@ -99,11 +98,11 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and non-
     invalid: [
       {
         code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: var(--color-brand-canvas); }",
-        errors: [{ message: colorAlias("--color-brand-edge") }],
+        errors: [{ message: tokenAlias("--color-brand-edge") }],
       },
       {
         code: "@theme { --color-base-ink: #f9fafb; --color-dialog-ink: var(--color-base-ink); }",
-        errors: [{ message: colorAlias("--color-dialog-ink") }],
+        errors: [{ message: tokenAlias("--color-dialog-ink") }],
       },
       {
         code: ":root { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); } @theme inline { --background-image-rainbow-gradient-canvas: var(--background-image-rainbow-gradient-canvas); }",
@@ -165,13 +164,10 @@ void describe("Tailwind tokens MUST use plain `@theme` for fixed values and non-
   });
 });
 
-void describe("Mixed theme strategies are rejected except for external font-loader mappings.", () => {
+void describe("Mixed theme strategies are rejected.", () => {
   tailwindRuleTester.run("root-variables-theme-strategy", rootVariablesRule, {
     valid: [
       { code: "@theme { --*: initial; --color-brand: #2563eb; }" },
-      {
-        code: "@theme { --*: initial; --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial), sans-serif; --font-mono: var(--font-roboto-mono, monospace), monospace; }",
-      },
       {
         code: ":root { --color-brand: white; } .dark { --color-brand: black; } @theme inline { --*: initial; --color-brand: var(--color-brand); }",
       },
@@ -179,11 +175,15 @@ void describe("Mixed theme strategies are rejected except for external font-load
     invalid: [
       {
         code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter); }",
-        errors: [{ message: MIXED }, { message: missingFontFallback("--font-sans", "--font-inter") }],
+        errors: [{ message: MIXED }, { message: wrongVariable("--font-sans", "--font-inter") }],
       },
       {
         code: "@theme { --color-brand: blue; } @theme inline { --font-sans: var(--font-inter, Arial), sans-serif; --color-surface: var(--color-surface); }",
-        errors: [{ message: MIXED }, { message: missingDefault("--color-surface") }],
+        errors: [
+          { message: MIXED },
+          { message: inlineMapping("--font-sans") },
+          { message: missingDefault("--color-surface") },
+        ],
       },
       {
         code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme { --color-brand: blue; } @theme inline { --color-surface: var(--color-surface); }",
@@ -211,14 +211,13 @@ void describe("Theme strategies MUST also remain exclusive across stylesheets.",
   process.chdir(fixture);
   try {
     tailwindRuleTester.run("root-variables-cross-file-theme-strategy", rootVariablesRule, {
-      valid: [
-        { filename: filename("globals.css"), code: "@theme { --*: initial; }" },
+      valid: [{ filename: filename("globals.css"), code: "@theme { --*: initial; }" }],
+      invalid: [
         {
           filename: filename("globals.css"),
           code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }",
+          errors: [{ message: MIXED }, { message: inlineMapping("--font-sans") }],
         },
-      ],
-      invalid: [
         {
           filename: filename("globals.css"),
           code: ":root { --color-surface: white; } .dark { --color-surface: black; } @theme inline { --color-surface: var(--color-surface); }",
@@ -258,10 +257,11 @@ void describe("A CSS variable referenced by an `@theme inline` token with the sa
   });
 });
 
-void describe("A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.", () => {
-  tailwindRuleTester.run("root-variables-color-aliases", rootVariablesRule, {
+void describe("A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.", () => {
+  tailwindRuleTester.run("root-variables-no-token-aliases", rootVariablesRule, {
     valid: [
       { code: "@theme { --color-brand-canvas: #2563eb; }" },
+      { code: "@theme { --radius-base: 8px; }" },
       {
         code: ":root { --color-brand-edge: #2563eb; } .dark { --color-brand-edge: #1d4ed8; } @theme inline { --color-brand-edge: var(--color-brand-edge); }",
       },
@@ -269,17 +269,25 @@ void describe("A `--color-*` token in plain `@theme` MUST NOT alias another vari
     invalid: [
       {
         code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: var(--color-brand-canvas); }",
-        errors: [{ message: colorAlias("--color-brand-edge") }],
+        errors: [{ message: tokenAlias("--color-brand-edge") }],
       },
       {
         code: "@theme { --color-base-ink: #f9fafb; --color-dialog-ink: var(--color-base-ink); }",
-        errors: [{ message: colorAlias("--color-dialog-ink") }],
+        errors: [{ message: tokenAlias("--color-dialog-ink") }],
+      },
+      {
+        code: "@theme { --radius-base: 8px; --radius-button: var(--radius-base); }",
+        errors: [{ message: tokenAlias("--radius-button") }],
+      },
+      {
+        code: "@theme { --spacing-base: 1rem; --spacing-button: var(--spacing-base); }",
+        errors: [{ message: tokenAlias("--spacing-button") }],
       },
     ],
   });
 });
 
-void describe("An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.", () => {
+void describe("An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable, without fallbacks, wrappers, or other expressions.", () => {
   tailwindRuleTester.run("root-variables-theme-references", rootVariablesRule, {
     valid: [
       {
@@ -293,7 +301,7 @@ void describe("An `@theme inline` token MUST reference a same-named CSS variable
       },
       {
         code: "@theme { --font-heading: Georgia, serif; } @theme inline { --font-sans: var(--font-heading); }",
-        errors: [{ message: MIXED }, { message: missingFontFallback("--font-sans", "--font-heading") }],
+        errors: [{ message: MIXED }, { message: wrongVariable("--font-sans", "--font-heading") }],
       },
       {
         code: "@theme inline { --color-primary-edge: var(--unknown-primary); }",
@@ -307,29 +315,53 @@ void describe("An `@theme inline` token MUST reference a same-named CSS variable
   });
 });
 
-void describe("External font variables need a valid fallback inside var().", () => {
-  tailwindRuleTester.run("root-variables-external-font-fallbacks", rootVariablesRule, {
+void describe("Inline theme mappings reject external variable names, fallbacks, and expressions.", () => {
+  tailwindRuleTester.run("root-variables-direct-inline-mapping", rootVariablesRule, {
     valid: [
-      { code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }" },
-      { code: '@theme inline { --font-sans: var(--font-inter, "Helvetica Neue"), sans-serif; }' },
-      { code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)), sans-serif; }" },
+      {
+        code: ":root { --font-sans: Arial; } .dark { --font-sans: Georgia; } @theme inline { --font-sans: var(--font-sans); }",
+      },
     ],
     invalid: [
       {
+        code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }",
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
+        code: ":root { --font-sans: Arial; } .dark { --font-sans: Georgia; } @theme inline { --font-sans: var(--font-sans, Arial); }",
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
+        code: '@theme inline { --font-sans: var(--font-inter, "Helvetica Neue"), sans-serif; }',
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
+        code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)), sans-serif; }",
+        errors: [{ message: inlineMapping("--font-sans") }],
+      },
+      {
         code: "@theme inline { --font-sans: var(--font-inter), Arial, sans-serif; }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+        errors: [{ message: inlineMapping("--font-sans") }],
       },
       {
         code: "@theme inline { --font-sans: var(--font-inter, ), sans-serif; }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+        errors: [{ message: inlineMapping("--font-sans") }],
       },
       {
         code: "@theme inline { --font-sans: var(--font-inter); }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+        errors: [{ message: wrongVariable("--font-sans", "--font-inter") }],
       },
       {
         code: ":root { --font-heading: Arial; } .dark { --font-heading: Georgia; } @theme inline { --font-heading: var(--font-heading); --font-sans: var(--font-heading); }",
-        errors: [{ message: missingFontFallback("--font-sans", "--font-heading") }],
+        errors: [{ message: wrongVariable("--font-sans", "--font-heading") }],
+      },
+      {
+        code: ":root { --shadow-custom: 2px; } .dark { --shadow-custom: 4px; } @theme inline { --shadow-custom: calc(2px + var(--shadow-custom)); }",
+        errors: [{ message: inlineMapping("--shadow-custom") }],
+      },
+      {
+        code: ":root { --color-surface: #fff; } .dark { --color-surface: #000; } @theme inline { --color-surface: hsl(var(--color-surface)); }",
+        errors: [{ message: inlineMapping("--color-surface") }],
       },
     ],
   });
@@ -376,7 +408,7 @@ void describe("Runtime mappings require unconditional defaults and matching over
         },
         {
           filename: filename("globals.css"),
-          code: ":root { --color-primary-canvas: 255 255 255; } .dark { --color-primary-canvas: 0 0 0; } @theme inline { --color-primary-canvas: rgb(var(--color-primary-canvas)); }",
+          code: ":root { --color-primary-canvas: rgb(255 255 255); } .dark { --color-primary-canvas: rgb(0 0 0); } @theme inline { --color-primary-canvas: var(--color-primary-canvas); }",
         },
         {
           filename: filename("globals.css"),
@@ -396,7 +428,7 @@ void describe("Runtime mappings require unconditional defaults and matching over
         },
         {
           filename: filename("globals.css"),
-          code: ":root { --shadow-soft: 1px; } .dark { --shadow-soft: 2px; } @theme inline { --shadow-soft: calc(var(--shadow-soft) + var(--shadow-soft)); }",
+          code: ":root { --shadow-soft: 1px; } .dark { --shadow-soft: 2px; } @theme inline { --shadow-soft: var(--shadow-soft); }",
         },
       ],
       invalid: [
@@ -413,7 +445,7 @@ void describe("Runtime mappings require unconditional defaults and matching over
         {
           filename: filename("globals.css"),
           code: "@theme inline { --color-primary-canvas: rgb(var(--color-primary-canvas)); }",
-          errors: [{ message: missingDefault("--color-primary-canvas") }],
+          errors: [{ message: inlineMapping("--color-primary-canvas") }],
         },
         {
           filename: filename("globals.css"),
@@ -438,12 +470,12 @@ void describe("Runtime mappings require unconditional defaults and matching over
         {
           filename: filename("globals.css"),
           code: ":root { --font-inter: Arial, sans-serif; } @theme inline { --font-sans: var(--font-inter); }",
-          errors: [{ message: missingFontFallback("--font-sans", "--font-inter") }],
+          errors: [{ message: wrongVariable("--font-sans", "--font-inter") }],
         },
         {
           filename: filename("globals.css"),
           code: ":root { --shadow-soft: 1px; --shadow-extra: 2px; } @theme inline { --shadow-soft: calc(var(--shadow-soft) + var(--shadow-extra)); }",
-          errors: [{ message: wrongVariable("--shadow-soft", "--shadow-extra") }],
+          errors: [{ message: inlineMapping("--shadow-soft") }],
         },
       ],
     });

@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Fixed values and non-color aliases to fixed theme tokens use plain @theme;
- * runtime CSS-variable references use @theme inline. Direct color aliases are forbidden.
+ * Fixed values use plain @theme, without token-to-token aliases;
+ * runtime values use @theme inline with a same-named var() mapping.
  * Same-named runtime token mappings require a default :root declaration under
  * Pasika's policy, with scoped or programmed overrides. This is a repository
  * convention for predictable defaults, not a CSS or Tailwind requirement.
@@ -26,34 +26,20 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
 const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const COLOR_ALIAS_MESSAGE = (name: string): string =>
-  `Color token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
-const MIXED_THEME_MESSAGE =
-  "Use either @theme or @theme inline across the project; external font-loader mappings with valid fallbacks are the only exception.";
+const TOKEN_ALIAS_MESSAGE = (name: string): string =>
+  `Tailwind token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
+const INLINE_MAPPING_MESSAGE = (name: string): string =>
+  `Tailwind token "${name}" must use a direct var(${name}) mapping in @theme inline.`;
+const MIXED_THEME_MESSAGE = "Use either @theme or @theme inline across the project.";
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
-const EXTERNAL_FONT_FALLBACK_MESSAGE = (name: string, variable: string): string =>
-  `Tailwind font token "${name}" references external font "${variable}" without a fallback inside var(); use var(${variable}, Arial) or another font-family fallback.`;
-
-function hasVarFallback(source: string, variable: string): boolean {
-  // A comma after var(...) is not a fallback: the fallback must be the second
-  // argument of that var() call. Keep quoted font-family fallback values.
-  for (const match of source.matchAll(/\bvar\s*\(\s*(?<name>--[\w-]+)\s*,/gu)) {
-    if (match.groups?.name !== variable) continue;
-    const start = match.index + match[0].length;
-    const close = source.indexOf(")", start);
-    if (close !== -1 && /[^,\s]/u.test(source.slice(start, close))) return true;
-  }
-  return false;
-}
-
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require @theme for fixed tokens and non-color fixed-token aliases, matching :root variables for @theme inline tokens, and no other token redeclarations.",
+        "Require direct fixed @theme values, same-named runtime mappings in @theme inline, and no token aliases or redeclarations.",
     },
   },
   create(context) {
@@ -102,7 +88,6 @@ export const rootVariablesRule: CSSRuleDefinition = {
     const mirroredTokens = new Set<string>();
     let hasPlainThemeBlocks = false;
     let hasInlineThemeBlocks = false;
-    let inlineBlocksAreExternalFonts = true;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
@@ -113,38 +98,6 @@ export const rootVariablesRule: CSSRuleDefinition = {
       for (const header of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{/gu)) {
         if (/\binline\b/u.test(header.groups?.options ?? "")) hasInlineThemeBlocks = true;
         else hasPlainThemeBlocks = true;
-      }
-      // Fixed theme values can coexist with externally injected next/font
-      // variables. Those are the only safe @theme inline exceptions to a
-      // project's fixed-token @theme strategy.
-      const inlineHeaders = [...source.matchAll(/@theme\s+inline\s*\{/gu)];
-      const inlineBlocks = [...source.matchAll(/@theme\s+inline\s*\{(?<body>[^{}]*)\}/gu)];
-      if (inlineHeaders.length !== inlineBlocks.length) inlineBlocksAreExternalFonts = false;
-      for (const block of inlineBlocks) {
-        const declarations = (block.groups?.body ?? "")
-          .split(";")
-          .map((part) => part.trim())
-          .filter(Boolean);
-        if (declarations.length === 0) inlineBlocksAreExternalFonts = false;
-        for (const declaration of declarations) {
-          const match = /^(?<token>--font-[a-z][\w-]*)\s*:\s*(?<value>.+)$/u.exec(declaration);
-          const name = match?.groups?.token;
-          const value = match?.groups?.value ?? "";
-          const references = [...value.matchAll(/\bvar\s*\(\s*(?<name>--[\w-]+)/gu)].map(
-            (reference) => reference.groups?.name,
-          );
-          const runtime = references[0];
-          if (
-            !name ||
-            references.length !== 1 ||
-            !runtime?.startsWith("--font-") ||
-            runtime === name ||
-            names.has(runtime) ||
-            !hasVarFallback(value, runtime)
-          ) {
-            inlineBlocksAreExternalFonts = false;
-          }
-        }
       }
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
@@ -197,7 +150,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const localThemes = atrulesNamed(node, "theme");
-        if (hasPlainThemeBlocks && hasInlineThemeBlocks && !inlineBlocksAreExternalFonts && localThemes[0]) {
+        if (hasPlainThemeBlocks && hasInlineThemeBlocks && localThemes[0]) {
           context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
         }
         for (const theme of localThemes) {
@@ -216,43 +169,34 @@ export const rootVariablesRule: CSSRuleDefinition = {
             // A quoted literal containing "var(" isn't a variable reference.
             const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
             const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
-            const directAlias = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(unquoted.trim())?.groups?.target;
-            if (!inline && name.startsWith("--color-") && directAlias && isFixedThemeExpression(name, unquoted)) {
-              context.report({ node: theme, message: COLOR_ALIAS_MESSAGE(name) });
+            const directReference = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(unquoted.trim())?.groups?.target;
+            if (inline && directReference) {
+              if (directReference !== name) {
+                context.report({
+                  node: theme,
+                  message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${directReference}".`,
+                });
+              } else if (!defaultRootNames.has(name)) {
+                context.report({
+                  node: theme,
+                  message: `Tailwind token "${name}" references "${name}" without a default :root declaration.`,
+                });
+              } else if (!overriddenNames.has(name)) {
+                context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
+              }
+              continue;
+            }
+            // A fixed theme value can compose other fixed theme values (e.g.
+            // a shadow or gradient); a direct alias is never a value of its own.
+            if (!inline && directReference && isFixedThemeExpression(name, unquoted)) {
+              context.report({ node: theme, message: TOKEN_ALIAS_MESSAGE(name) });
               continue;
             }
             if (inline && referencesVariable) {
-              for (const reference of unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)) {
-                const runtime = reference.groups?.variable;
-                if (runtime && runtime !== name) {
-                  // Only external font variables may differ from the Tailwind
-                  // token name; next/font mappings require a var() fallback.
-                  const externalFont = name.startsWith("--font-") && runtime.startsWith("--font-");
-                  if (externalFont && !hasVarFallback(value, runtime)) {
-                    context.report({ node: theme, message: EXTERNAL_FONT_FALLBACK_MESSAGE(name, runtime) });
-                  } else if (!externalFont) {
-                    context.report({
-                      node: theme,
-                      message: `Tailwind token "${name}" must reference its same-named CSS variable, not "${runtime}".`,
-                    });
-                  }
-                } else if (runtime && !defaultRootNames.has(runtime)) {
-                  context.report({
-                    node: theme,
-                    message: `Tailwind token "${name}" references "${runtime}" without a default :root declaration.`,
-                  });
-                }
-              }
+              context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
+              continue;
             }
-            if (inline && referencesVariable && defaultRootNames.has(name) && !overriddenNames.has(name)) {
-              const references = [...unquoted.matchAll(/\bvar\(\s*(?<variable>--[\w-]+)/gu)].map(
-                (reference) => reference.groups?.variable,
-              );
-              if (references.length > 0 && references.every((variable) => variable === name)) {
-                context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
-              }
-            }
-            if (inline === referencesVariable || (!inline && isFixedThemeExpression(name, unquoted))) continue;
+            if (!inline && (!referencesVariable || isFixedThemeExpression(name, unquoted))) continue;
             const offset = (theme.loc?.start.offset ?? 0) + match.index + match[0].indexOf(name);
             const preceding = context.sourceCode.text.slice(0, offset);
             const line = preceding.split("\n").length;

@@ -1208,8 +1208,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind tokens MUST use plain `@theme` for fixed values and non-color fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.",
-      "hash": "eb67638ba1",
+      "text": "Tailwind tokens MUST use plain `@theme` for fixed values or `@theme inline` for runtime variables.",
+      "hash": "838969af3a",
       "ref": "pasika/root-variables"
     },
     {
@@ -1232,8 +1232,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.",
-      "hash": "5bd312518e",
+      "text": "An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable, without fallbacks, wrappers, or other expressions.",
+      "hash": "87ae221403",
       "ref": "pasika/root-variables"
     },
     {
@@ -1256,8 +1256,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A `--color-*` token in plain `@theme` MUST NOT alias another variable with a direct `var()` reference; runtime colors MUST use an `@theme inline` mapping to their own same-named variable.",
-      "hash": "ae15290d48",
+      "text": "A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.",
+      "hash": "08f7f3b043",
       "ref": "pasika/root-variables"
     },
     {
