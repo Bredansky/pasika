@@ -57,7 +57,8 @@ function pushSymbol(
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
 export function themeClasses(name: string): string[] {
-  // Every --color-* token emits color utilities, irrespective of naming.
+  // Tailwind generates classes for each --color-* token regardless of naming.
+  // Index every class so color-role-usage can report a mismatch rather than an unknown utility.
   if (name.includes("--", 2)) return [];
   if (name.startsWith("--color-")) {
     const stem = name.slice("--color-".length);

@@ -10,7 +10,7 @@ const component = path.join(root, "features/banner.tsx");
 const constants = path.join(root, "constants/control-classes.ts");
 
 describe("Cross-file CSS definitions and consumers share a single dependency graph.", () => {
-  it("maps a single color token to every supported color utility regardless of suffix", () => {
+  it("indexes generated color classes so semantic-role diagnostics can catch mismatches", () => {
     expect(themeClasses("--color-mc-frame-dark")).toEqual(
       expect.arrayContaining([
         "bg-mc-frame-dark",

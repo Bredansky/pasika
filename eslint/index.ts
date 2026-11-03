@@ -286,6 +286,7 @@ const tailwindStructureRules: Linter.Config = {
           id !== "pasika/utility-name-parity" &&
           id !== "pasika/no-utility-alias" &&
           id !== "pasika/root-variables" &&
+          id !== "pasika/color-role-usage" &&
           id !== "pasika/color-literal-usage" &&
           id !== "pasika/theme-mode",
       )
@@ -316,6 +317,7 @@ const tailwindImportGraph: Linter.Config = {
     "pasika/utility-name-parity": "error",
     "pasika/no-utility-alias": "error",
     "pasika/root-variables": "error",
+    "pasika/color-role-usage": "error",
     "pasika/color-literal-usage": "error",
     "pasika/theme-mode": "error",
   },

@@ -5,6 +5,7 @@ import { applyUsageRule } from "./apply-usage";
 import { atRuleSpacingRule } from "./at-rule-spacing";
 import { baseLayerPairRule } from "./base-layer-pair";
 import { colorLiteralUsageRule } from "./color-literal-usage";
+import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
 import { customUtilityApplyRule } from "./custom-utility-apply";
 import { featureCssPlacementRule } from "./feature-css-placement";
@@ -24,6 +25,7 @@ export const tailwindRules = {
   "at-rule-spacing": atRuleSpacingRule,
   "theme-reset": themeResetRule,
   "theme-mode": themeModeRule,
+  "color-role-usage": colorRoleUsageRule,
   "color-literal-usage": colorLiteralUsageRule,
   "root-variables": rootVariablesRule,
   "apply-usage": applyUsageRule,
