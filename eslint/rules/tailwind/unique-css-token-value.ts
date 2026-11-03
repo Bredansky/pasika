@@ -13,14 +13,99 @@ import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-/** Normalize only provably equivalent syntax, not dynamic var()/calc() values. */
+/** Compare fixed colors without changing their source format or rounding precision. */
+function normalizedColor(text: string): string | undefined {
+  const hex = /^#(?<digits>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(text)?.groups?.digits;
+  if (hex) {
+    const expanded = hex.length <= 4 ? Array.from(hex.matchAll(/./gu), (match) => match[0] + match[0]).join("") : hex;
+    const channels = [0, 2, 4].map((start) => Number.parseInt(expanded.slice(start, start + 2), 16));
+    const alpha = expanded.length === 8 ? Number.parseInt(expanded.slice(6, 8), 16) / 255 : 1;
+    return `srgb:${channels.join(",")}/${String(alpha)}`;
+  }
+  const named = new Map([
+    ["black", "#000000"],
+    ["white", "#ffffff"],
+    ["red", "#ff0000"],
+    ["lime", "#00ff00"],
+    ["blue", "#0000ff"],
+    ["yellow", "#ffff00"],
+    ["fuchsia", "#ff00ff"],
+    ["magenta", "#ff00ff"],
+    ["aqua", "#00ffff"],
+    ["cyan", "#00ffff"],
+    ["silver", "#c0c0c0"],
+    ["gray", "#808080"],
+    ["grey", "#808080"],
+    ["maroon", "#800000"],
+    ["green", "#008000"],
+    ["purple", "#800080"],
+    ["olive", "#808000"],
+    ["navy", "#000080"],
+    ["teal", "#008080"],
+  ]);
+  const alias = named.get(text.toLowerCase());
+  if (alias) return normalizedColor(alias);
+
+  const expression = /^(?<kind>rgba?|hsla?)\(\s*(?<body>[^()]*)\s*\)$/iu.exec(text);
+  if (!expression?.groups) return undefined;
+  const parts = (expression.groups.body ?? "").replace(/,/gu, " ").replace(/\//gu, " / ").trim().split(/\s+/u);
+  const alphaIndex = parts[3] === "/" ? 4 : 3;
+  if (parts.length !== 3 && !(parts.length === 4 && parts[3] !== "/") && !(parts.length === 5 && parts[3] === "/")) {
+    return undefined;
+  }
+  const alphaText = parts[alphaIndex];
+  const parseNumeric = (raw: string): number | undefined => {
+    if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)%?$/u.test(raw)) return undefined;
+    const numeric = Number.parseFloat(raw);
+    return Number.isFinite(numeric) ? numeric : undefined;
+  };
+  const alpha = alphaText === undefined ? 1 : parseNumeric(alphaText);
+  if (alpha === undefined || alpha < 0 || (alphaText?.endsWith("%") ? alpha > 100 : alpha > 1)) return undefined;
+  const opacity = alphaText?.endsWith("%") ? alpha / 100 : alpha;
+  const kind = expression.groups.kind?.toLowerCase();
+  let channels: number[];
+  if (kind === "rgb" || kind === "rgba") {
+    const rgb = parts.slice(0, 3).map((part) => {
+      const value = parseNumeric(part);
+      if (value === undefined) return Number.NaN;
+      if (part.endsWith("%")) return (value * 255) / 100;
+      return value;
+    });
+    if (rgb.some((value) => !Number.isFinite(value) || value < 0 || value > 255)) return undefined;
+    channels = rgb;
+  } else {
+    const hue = parseNumeric(parts[0] ?? "");
+    const saturation = parseNumeric(parts[1] ?? "");
+    const lightness = parseNumeric(parts[2] ?? "");
+    if (hue === undefined || saturation === undefined || lightness === undefined) return undefined;
+    if (parts[0]?.endsWith("%") || !parts[1]?.endsWith("%") || !parts[2]?.endsWith("%")) return undefined;
+    if (saturation < 0 || saturation > 100 || lightness < 0 || lightness > 100) return undefined;
+    const h = ((hue % 360) + 360) % 360;
+    const s = saturation / 100;
+    const l = lightness / 100;
+    const chroma = (1 - Math.abs(2 * l - 1)) * s;
+    const x = chroma * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = l - chroma / 2;
+    let rgb: number[];
+    if (h < 60) rgb = [chroma, x, 0];
+    else if (h < 120) rgb = [x, chroma, 0];
+    else if (h < 180) rgb = [0, chroma, x];
+    else if (h < 240) rgb = [0, x, chroma];
+    else if (h < 300) rgb = [x, 0, chroma];
+    else rgb = [chroma, 0, x];
+    const exact = rgb.map((channel) => (channel + m) * 255);
+    // Only compare HSL to other formats when conversion is unambiguously
+    // an exact 8-bit channel. Never round an arbitrary HSL color.
+    if (exact.some((channel) => Math.abs(channel - Math.round(channel)) > 1e-10)) return undefined;
+    channels = exact.map(Math.round);
+  }
+  return `srgb:${channels.join(",")}/${String(opacity)}`;
+}
+
+/** Normalize provably equivalent fixed syntax; leave dynamic values alone. */
 function valueIdentity(value: string): string {
   const text = value.trim();
-  const hex = /^#(?<digits>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(text)?.groups?.digits;
-  if (!hex) return text;
-  const lower = hex.toLowerCase();
-  const full = lower.length <= 4 ? Array.from(lower, (digit) => digit + digit).join("") : lower;
-  return `#${full.length === 8 && full.endsWith("ff") ? full.slice(0, -2) : full}`;
+  return normalizedColor(text) ?? text;
 }
 
 function isComparable(symbol: CssSymbol): boolean {

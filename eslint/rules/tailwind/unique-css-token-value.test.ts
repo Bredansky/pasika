@@ -27,6 +27,10 @@ const files = {
   ].join("\n"),
   "f.css": "@theme { --color-commented-ink: #aabbcc; /* --color-fake-ink: #aabbcc; */ }",
   "g.css": "@theme inline { --color-a-canvas: var(--shared); --color-b-canvas: var(--shared); }",
+  "h.css": "@theme { --color-rgb-ink: rgb(255 255 255); }",
+  "i.css": "@theme { --color-hsl-ink: hsl(0 0% 100%); }",
+  "j.css": "@theme { --color-alpha-one: rgba(0, 0, 0, 0.5); }",
+  "k.css": "@theme { --color-alpha-two: #00000080; }",
 };
 const root = fixture(files);
 process.chdir(root);
@@ -82,6 +86,30 @@ void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT 
         errors: [
           {
             message: `Token "--spacing-panel" duplicates the value of "--spacing-card" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token or a semantic alias when equivalence can be established without rounding or changing precision.", () => {
+  tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
+    valid: [atFile("j.css"), atFile("k.css")],
+    invalid: [
+      {
+        ...atFile("h.css"),
+        errors: [
+          {
+            message: `Token "--color-rgb-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
+          },
+        ],
+      },
+      {
+        ...atFile("i.css"),
+        errors: [
+          {
+            message: `Token "--color-hsl-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
           },
         ],
       },

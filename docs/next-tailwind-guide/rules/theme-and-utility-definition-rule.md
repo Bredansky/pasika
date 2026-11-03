@@ -9,13 +9,15 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - An `@theme inline` token MUST reference a same-named CSS variable, except `--font-*` tokens referencing external `--font-*` variables with a nonempty `var()` fallback.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
+- Tailwind color tokens used as role-specific utilities MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Effect-only color tokens referenced inside composite theme effects MAY omit role suffixes. Background-image theme tokens (`--background-image-*`) MUST still end in `-canvas`.
+- Fixed CSS color literals MUST be defined in `--color-*` tokens and referenced with `var()` elsewhere, including inside gradients, shadows, and arbitrary CSS property values. Any CSS color format MAY be used. `transparent`, `currentColor`, inherited colors, and dynamically derived expressions are exempt.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
+- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token or a semantic alias when equivalence can be established without rounding or changing precision.
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
@@ -446,3 +448,27 @@ Why: both classes emit the same font-size with no additional styling, so the ali
 ```
 
 Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.
+
+## Incorrect — Fixed Colors Embedded in a Shadow
+
+```css
+@theme {
+  --inset-shadow-mc-donation-frame: inset 1px 1px 0 #2b2b2b, inset -1px -1px 0 #545454;
+}
+```
+
+Why: the effect is correctly modeled as a single shadow token, but its fixed colors are not reusable design tokens.
+
+## Correct — Palette Colors Compose a Shadow
+
+```css
+@theme {
+  --color-mc-frame-dark: #2b2b2b;
+  --color-mc-frame-light: #545454;
+  --inset-shadow-mc-donation-frame:
+    inset 1px 1px 0 var(--color-mc-frame-dark),
+    inset -1px -1px 0 var(--color-mc-frame-light);
+}
+```
+
+Why: the shadow retains its semantic `--inset-shadow-*` name; its component colors use `--color-*` without inventing `-edge` or `-shadow` roles. HEX is used here for illustration, not as a required format. A matching color elsewhere should be shared through a token alias rather than defined twice. When two formats produce provably identical colors, the duplicate-value check reports them; otherwise it preserves the original values.

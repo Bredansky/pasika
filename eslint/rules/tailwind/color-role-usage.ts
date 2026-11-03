@@ -10,6 +10,9 @@ import { atrulesNamed } from "./helpers";
 
 const COLOR_TOKEN = /^--color-[a-z][a-z0-9-]*-(?:canvas|ink|edge)$/u;
 const BACKGROUND_IMAGE_TOKEN = /^--background-image-[a-z][a-z0-9-]*-canvas$/u;
+const COMPOSITE_COLOR_REFS =
+  /--(?:inset-shadow|shadow|drop-shadow|text-shadow|background-image)-[a-z][a-z0-9-]*\s*:\s*[^;}]*/gu;
+const TOKEN_REF = /\bvar\s*\(\s*(?<token>--color-[a-z][a-z0-9-]*)/gu;
 
 export const colorRoleUsageRule: CSSRuleDefinition = {
   meta: {
@@ -24,6 +27,11 @@ export const colorRoleUsageRule: CSSRuleDefinition = {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         for (const theme of atrulesNamed(node, "theme")) {
           const source = context.sourceCode.getText(theme).replace(/\/\*[\s\S]*?\*\//gu, " ");
+          const compositeRefs = new Set(
+            [...source.matchAll(COMPOSITE_COLOR_REFS)].flatMap((effect) =>
+              [...effect[0].matchAll(TOKEN_REF)].map((reference) => reference.groups?.token),
+            ),
+          );
           for (const match of source.matchAll(
             /(?:^|[{;\r\n])\s*(?<token>--(?:color|background-image)-[a-z][a-z0-9-]*)\s*:/gu,
           )) {
@@ -36,7 +44,7 @@ export const colorRoleUsageRule: CSSRuleDefinition = {
                   message: `Background-image token "${token}" needs a semantic role ending in -canvas.`,
                 });
               }
-            } else if (!COLOR_TOKEN.test(token)) {
+            } else if (!COLOR_TOKEN.test(token) && !compositeRefs.has(token)) {
               context.report({
                 node: theme,
                 message: `Color token "${token}" needs a semantic role ending in -canvas, -ink, or -edge.`,

@@ -1250,9 +1250,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.",
-      "hash": "ea2574dded",
+      "text": "Tailwind color tokens used as role-specific utilities MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Effect-only color tokens referenced inside composite theme effects MAY omit role suffixes. Background-image theme tokens (`--background-image-*`) MUST still end in `-canvas`.",
+      "hash": "353e53e532",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Fixed CSS color literals MUST be defined in `--color-*` tokens and referenced with `var()` elsewhere, including inside gradients, shadows, and arbitrary CSS property values. Any CSS color format MAY be used. `transparent`, `currentColor`, inherited colors, and dynamically derived expressions are exempt.",
+      "hash": "d54f16cfe7",
+      "ref": "pasika/color-literal-usage"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1288,6 +1294,12 @@
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.",
       "hash": "98f922a79b",
+      "ref": "pasika/unique-css-token-value"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token or a semantic alias when equivalence can be established without rounding or changing precision.",
+      "hash": "535f256742",
       "ref": "pasika/unique-css-token-value"
     },
     {
