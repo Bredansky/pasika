@@ -1298,14 +1298,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).",
-      "hash": "6d2226c117",
+      "text": "Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.",
+      "hash": "98f922a79b",
       "ref": "pasika/unique-css-token-value"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token within a semantic color role when equivalence can be established without rounding or changing precision.",
-      "hash": "10b3458eb1",
+      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.",
+      "hash": "60155845f0",
       "ref": "pasika/unique-css-token-value"
     },
     {

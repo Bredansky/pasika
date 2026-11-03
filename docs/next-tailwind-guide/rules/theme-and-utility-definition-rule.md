@@ -17,8 +17,8 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).
-- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token within a semantic color role when equivalence can be established without rounding or changing precision.
+- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
+- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 

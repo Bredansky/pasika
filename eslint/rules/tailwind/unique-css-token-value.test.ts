@@ -33,7 +33,6 @@ const files = {
   "j.css": "@theme { --color-alpha-one: rgba(0, 0, 0, 0.5); }",
   "k.css": "@theme { --color-alpha-two: #00000080; }",
   "l.css": "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }",
-  "m.css": "@theme { --color-outline-edge: #fff; --color-divider-edge: rgb(255 255 255); }",
 };
 const root = fixture(files);
 process.chdir(root);
@@ -42,15 +41,15 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).", () => {
+void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
-    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css"), atFile("h.css"), atFile("l.css")],
+    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
       {
-        ...atFile("m.css"),
+        ...atFile("l.css"),
         errors: [
           {
-            message: `Token "--color-divider-edge" duplicates the value of "--color-outline-edge" in app${path.sep}styles${path.sep}m.css:1; reuse one design token.`,
+            message: `Token "--color-brand-edge" duplicates the value of "--color-brand-canvas" in app${path.sep}styles${path.sep}l.css:1; reuse one design token.`,
           },
         ],
       },
@@ -88,7 +87,7 @@ void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT 
   });
 });
 
-void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value, except color tokens with different semantic role suffixes (`-canvas`, `-ink`, `-edge`).", () => {
+void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [
@@ -104,15 +103,23 @@ void describe("Distinct `@theme` tokens and default `:root` properties MUST NOT 
   });
 });
 
-void describe("Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token within a semantic color role when equivalence can be established without rounding or changing precision.", () => {
+void describe("Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
-    valid: [atFile("j.css"), atFile("k.css"), atFile("h.css"), atFile("l.css")],
+    valid: [atFile("j.css"), atFile("k.css")],
     invalid: [
+      {
+        ...atFile("h.css"),
+        errors: [
+          {
+            message: `Token "--color-rgb-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
+          },
+        ],
+      },
       {
         ...atFile("i.css"),
         errors: [
           {
-            message: `Token "--color-hsl-ink" duplicates the value of "--color-rgb-ink" in app${path.sep}styles${path.sep}h.css:1; reuse one design token.`,
+            message: `Token "--color-hsl-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
           },
         ],
       },
