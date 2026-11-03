@@ -1,6 +1,6 @@
 # Theme and Utility Definition Rule
 
-Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Semantic UI colors use `-canvas`, `-ink`, and `-edge` role suffixes; shared palette colors remain reusable across utilities, while components own reusable presentation.
+Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
