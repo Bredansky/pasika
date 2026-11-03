@@ -3,119 +3,25 @@
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values or `@theme inline` for runtime variables.
-- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
-- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
+- A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.
 - A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
 - An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable without fallbacks or wrappers, except when mapping an external CSS variable with a required fallback.
-- A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
-- A custom `@utility` MUST NOT simply alias an existing Tailwind class.
-- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - External CSS variable mappings MAY coexist with plain `@theme` when `@theme inline` references a variable not defined by the project in CSS and supplies a nonempty literal fallback within `var()`; project-defined token aliases remain forbidden.
-- A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.
+- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
+- Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
+- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
-- A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
-- Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
-- A custom utility MUST be statically referenced by at least one file in the repository's source.
 - `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
 - Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.
 - When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
+- A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
+- A custom `@utility` MUST NOT simply alias an existing Tailwind class.
+- A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
+- Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
+- A custom utility MUST be statically referenced by at least one file in the repository's source.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
-
-## Incorrect — Color Token Aliased to a Different Role
-
-```css
-@theme {
-  --color-brand-canvas: #2563eb;
-  --color-brand-edge: var(--color-brand-canvas);
-}
-```
-
-Why: the edge token depends on an unrelated semantic role rather than owning its value.
-
-## Correct — Independent Fixed Color Token
-
-```css
-@theme {
-  --color-brand-canvas: #2563eb;
-}
-```
-
-```tsx
-<div className="bg-brand-canvas" />
-```
-
-Why: the fixed canvas color is directly defined without introducing an unnecessary edge token or cross-role alias.
-
-## Incorrect — Gradient Wrapped in a Custom Utility
-
-```css
-@utility bg-crt-scanlines {
-  @apply [background:repeating-linear-gradient(0deg,_transparent_0_2px,_#334155_2px_4px)];
-}
-```
-
-Why: a custom utility is unnecessary when Tailwind can generate the same background-image class from a semantic theme token.
-
-## Correct — Semantic Scanline Theme Token
-
-```css
-@theme {
-  --color-scanline-canvas: #334155;
-  --background-image-crt-scanlines-canvas: repeating-linear-gradient(
-    0deg,
-    transparent 0 2px,
-    var(--color-scanline-canvas) 2px 4px
-  );
-}
-```
-
-```tsx
-<span className="bg-crt-scanlines-canvas" />
-```
-
-Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas` while its fixed color comes from a named color token. Check background-property resets before replacing the `background` shorthand.
-
-## Incorrect — Complex Value Encoded in a Utility Name
-
-```css
-@utility clip-path-polygon-0-0-100pct-0-95pct-100pct-5pct-100pct {
-  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
-}
-```
-
-Why: encoding every polygon coordinate produces a long, implementation-specific name instead of describing the intended shape.
-
-## Correct — Semantic Complex Utility
-
-```css
-@utility clip-trapezoid {
-  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
-}
-```
-
-Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1–8 supported parts (numbers and units, hex colors, identifiers, or simple `var(--name)` references) and a slug of at most 70 characters. `clip-trapezoid` describes the intended shape; semantic naming quality still requires human review.
-
-## Incorrect — Vague Name for a Readable Mapping
-
-```css
-@utility bg-pixel-tiles {
-  @apply [background-size:24px_24px];
-}
-```
-
-Why: `24px 24px` is readable, so the name must preserve the property and units.
-
-## Correct — Readable Property and Value
-
-```css
-@utility bg-size-24px-24px {
-  @apply [background-size:24px_24px];
-}
-```
-
-Why: `bg-size-24px-24px` directly describes the single CSS operation.
 
 ## Incorrect — Direct Theme Value Marked Inline
 
@@ -136,47 +42,6 @@ Why: a literal token value does not need inline variable resolution and belongs 
 ```
 
 Why: a literal color belongs directly in `@theme`. Values with runtime overrides use a default `:root` variable and a matching `@theme inline` mapping.
-
-## Incorrect — Mode Styles Without a Custom Variant
-
-```css
-/* src/app/styles/home.css */
-[data-theme="midnight"] {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: this adds a separate mode-switching mechanism through a CSS selector instead of using the project's registered Tailwind variant.
-
-## Correct — Named Mode Overrides a Runtime Theme Token
-
-```css
-/* src/app/styles/globals.css */
-@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
-```
-
-```css
-/* src/app/styles/home.css */
-:root {
-  --color-primary-canvas: #fafafa;
-
-  @variant midnight {
-    --color-primary-canvas: #18181b;
-  }
-}
-
-@theme inline {
-  --color-primary-canvas: var(--color-primary-canvas);
-}
-```
-
-```tsx
-<html data-theme="midnight">
-  <body className="bg-primary-canvas">Content</body>
-</html>
-```
-
-Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Setting `data-theme` on `html` ensures the override applies to `:root`.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 
@@ -234,6 +99,170 @@ Why: a value supplied by an external provider requires a fallback inside `var()`
 ```
 
 Why: `--font-inter` and `--vendor-brand-color` are supplied externally rather than declared as project CSS variables, and each mapping has a literal fallback. This exception applies to any external CSS variable, not only fonts.
+
+## Incorrect — Mode Styles Without a Custom Variant
+
+```css
+/* src/app/styles/home.css */
+[data-theme="midnight"] {
+  --color-primary-canvas: #18181b;
+}
+```
+
+Why: this adds a separate mode-switching mechanism through a CSS selector instead of using the project's registered Tailwind variant.
+
+## Correct — Named Mode Overrides a Runtime Theme Token
+
+```css
+/* src/app/styles/globals.css */
+@custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
+```
+
+```css
+/* src/app/styles/home.css */
+:root {
+  --color-primary-canvas: #fafafa;
+
+  @variant midnight {
+    --color-primary-canvas: #18181b;
+  }
+}
+
+@theme inline {
+  --color-primary-canvas: var(--color-primary-canvas);
+}
+```
+
+```tsx
+<html data-theme="midnight">
+  <body className="bg-primary-canvas">Content</body>
+</html>
+```
+
+Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Setting `data-theme` on `html` ensures the override applies to `:root`.
+
+## Incorrect — Color Token Aliased to Another Token
+
+```css
+@theme {
+  --color-brand-canvas: #2563eb;
+  --color-brand-edge: var(--color-brand-canvas);
+}
+```
+
+Why: a direct token-to-token alias is forbidden regardless of whether the two tokens share a semantic role.
+
+## Correct — Independent Fixed Color Token
+
+```css
+@theme {
+  --color-brand-canvas: #2563eb;
+}
+```
+
+```tsx
+<div className="bg-brand-canvas" />
+```
+
+Why: the fixed canvas color is defined directly and reused without an unnecessary second token or alias.
+
+## Incorrect — Duplicate Fixed Ink Tokens
+
+```css
+@theme {
+  --color-base-ink: #f9fafb;
+  --color-dialog-ink: #f9fafb;
+}
+```
+
+Why: both ink tokens define the same fixed color value, even though the dialog can reuse the existing token.
+
+## Correct — Reuse the Existing Ink Token
+
+```css
+@theme {
+  --color-base-ink: #f9fafb;
+}
+```
+
+```tsx
+<p className="text-base-ink">Dialog content</p>
+```
+
+Why: the dialog reuses the existing ink token without creating a second color token or a cross-token alias.
+
+## Incorrect — Duplicate Configured Typography Utility
+
+```css
+@theme {
+  --text-sm: 14px;
+  --text-retro-14: 14px;
+}
+```
+
+Why: both classes emit the same font-size with no additional styling, so the alias adds no capability.
+
+## Correct — Reuse an Equivalent Typography Utility
+
+```css
+@theme {
+  --text-sm: 14px;
+}
+```
+
+Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.
+
+## Incorrect — Fixed Colors Embedded in a Shadow
+
+```css
+@theme {
+  --inset-shadow-mc-donation-frame: inset 1px 1px 0 #2b2b2b, inset -1px -1px 0 #545454;
+}
+```
+
+Why: the effect is correctly modeled as a single shadow token, but its fixed colors are not reusable design tokens.
+
+## Correct — Palette Colors Compose a Shadow
+
+```css
+@theme {
+  --color-mc-frame-dark-canvas: #2b2b2b;
+  --color-mc-frame-light-canvas: #545454;
+  --inset-shadow-mc-donation-frame:
+    inset 1px 1px 0 var(--color-mc-frame-dark-canvas), inset -1px -1px 0 var(--color-mc-frame-light-canvas);
+}
+```
+
+Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse named `--color-*` tokens. Any CSS color format is allowed; equivalent colors must reuse an existing token directly, never an alias.
+
+## Incorrect — Gradient Wrapped in a Custom Utility
+
+```css
+@utility bg-crt-scanlines {
+  @apply [background:repeating-linear-gradient(0deg,_transparent_0_2px,_#334155_2px_4px)];
+}
+```
+
+Why: a custom utility is unnecessary when Tailwind can generate the same background-image class from a semantic theme token.
+
+## Correct — Semantic Scanline Theme Token
+
+```css
+@theme {
+  --color-scanline-canvas: #334155;
+  --background-image-crt-scanlines-canvas: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    var(--color-scanline-canvas) 2px 4px
+  );
+}
+```
+
+```tsx
+<span className="bg-crt-scanlines-canvas" />
+```
+
+Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas` while its fixed color comes from a named color token. Check background-property resets before replacing the `background` shorthand.
 
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 
@@ -371,6 +400,46 @@ Why: custom utilities use `@apply` rather than direct CSS declarations. Both exa
 
 Why: the utility maps one grid property, its name reflects the CSS value, and a component explicitly uses it.
 
+## Incorrect — Complex Value Encoded in a Utility Name
+
+```css
+@utility clip-path-polygon-0-0-100pct-0-95pct-100pct-5pct-100pct {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
+}
+```
+
+Why: encoding every polygon coordinate produces a long, implementation-specific name instead of describing the intended shape.
+
+## Correct — Semantic Complex Utility
+
+```css
+@utility clip-trapezoid {
+  @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
+}
+```
+
+Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1–8 supported parts (numbers and units, hex colors, identifiers, or simple `var(--name)` references) and a slug of at most 70 characters. `clip-trapezoid` describes the intended shape; semantic naming quality still requires human review.
+
+## Incorrect — Vague Name for a Readable Mapping
+
+```css
+@utility bg-pixel-tiles {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: `24px 24px` is readable, so the name must preserve the property and units.
+
+## Correct — Readable Property and Value
+
+```css
+@utility bg-size-24px-24px {
+  @apply [background-size:24px_24px];
+}
+```
+
+Why: `bg-size-24px-24px` directly describes the single CSS operation.
+
 ## Incorrect — Component References a Nonexistent Utility
 
 ```tsx
@@ -409,72 +478,3 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 ```
 
 Why: explicit semantic tokens generate available color utilities after the default palette is reset.
-
-## Incorrect — Fixed Color Value Duplicated Across Roles
-
-```css
-@theme {
-  --color-base-ink: #f9fafb;
-  --color-dialog-ink: #f9fafb;
-}
-```
-
-Why: both semantic roles copy the same fixed color value, making updates prone to drifting apart.
-
-## Correct — Reuse the Existing Ink Token
-
-```css
-@theme {
-  --color-base-ink: #f9fafb;
-}
-```
-
-```tsx
-<p className="text-base-ink">Dialog content</p>
-```
-
-Why: the dialog reuses the existing ink token without creating a second color token or a cross-token alias.
-
-## Incorrect — Duplicate Configured Typography Utility
-
-```css
-@theme {
-  --text-sm: 14px;
-  --text-retro-14: 14px;
-}
-```
-
-Why: both classes emit the same font-size with no additional styling, so the alias adds no capability.
-
-## Correct — Reuse an Equivalent Typography Utility
-
-```css
-@theme {
-  --text-sm: 14px;
-}
-```
-
-Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.
-
-## Incorrect — Fixed Colors Embedded in a Shadow
-
-```css
-@theme {
-  --inset-shadow-mc-donation-frame: inset 1px 1px 0 #2b2b2b, inset -1px -1px 0 #545454;
-}
-```
-
-Why: the effect is correctly modeled as a single shadow token, but its fixed colors are not reusable design tokens.
-
-## Correct — Palette Colors Compose a Shadow
-
-```css
-@theme {
-  --color-mc-frame-dark-canvas: #2b2b2b;
-  --color-mc-frame-light-canvas: #545454;
-  --inset-shadow-mc-donation-frame:
-    inset 1px 1px 0 var(--color-mc-frame-dark-canvas), inset -1px -1px 0 var(--color-mc-frame-light-canvas);
-}
-```
-
-Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse named `--color-*` tokens. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.
