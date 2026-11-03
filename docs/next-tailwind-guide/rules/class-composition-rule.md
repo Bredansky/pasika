@@ -21,7 +21,7 @@ Why: the condition and merge order are embedded in a string expression, which be
 
 ```tsx
 export function Card({ className, ...props }: CardProps): React.JSX.Element {
-  return <article className={cn("bg-card text-content rounded-lg p-4", className)} {...props} />;
+  return <article className={cn("bg-card-canvas text-card-ink rounded-lg p-4", className)} {...props} />;
 }
 
 <Card className="w-full max-w-lg self-center" />;
@@ -32,7 +32,7 @@ Why: every class source is explicit, and a consumer can add outer layout such as
 ## Incorrect — Long Static Class Literal
 
 ```tsx
-<article className="border-outline bg-card rounded-lg border px-6 py-4 shadow-sm transition-shadow hover:shadow-md" />
+<article className="border-panel-edge bg-card rounded-lg border px-6 py-4 shadow-sm transition-shadow hover:shadow-md" />
 ```
 
 Why: one static literal contains more than five class names, so its styling concerns are difficult to scan.
@@ -42,7 +42,7 @@ Why: one static literal contains more than five class names, so its styling conc
 ```tsx
 <article
   className={cn(
-    "border-outline rounded-lg border",
+    "border-panel-edge rounded-lg border",
     "bg-card shadow-sm",
     "px-6 py-4",
     "transition-shadow hover:shadow-md",

@@ -4,15 +4,12 @@ import path from "node:path";
 import { baseLayerPairRule } from "./base-layer-pair";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("The global base layer MUST apply project-defined semantic background and foreground color utilities to the document body.", () => {
+void describe("The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-global-base-")));
   const filename = (name: string): string => path.join(fixture, "src", "app", "styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
-  writeFileSync(
-    filename("base.css"),
-    "@theme { --color-surface: #fff; --color-content: #111; } @layer base { body { @apply bg-surface text-content; } }",
-  );
-  writeFileSync(filename("other.css"), "@layer base { html { @apply bg-surface; } }");
+  writeFileSync(filename("base.css"), "@layer base { body { @apply bg-base-canvas text-base-ink; } }");
+  writeFileSync(filename("other.css"), "@layer base { html { @apply bg-base-canvas; } }");
 
   const originalDirectory = process.cwd();
   process.chdir(fixture);
@@ -21,7 +18,7 @@ void describe("The global base layer MUST apply project-defined semantic backgro
       valid: [
         {
           filename: filename("globals.css"),
-          code: "@theme { --color-surface: #fff; --color-content: #111; }\n@layer base {\n  body {\n    @apply bg-surface text-content;\n  }\n}",
+          code: "@layer base {\n  body {\n    @apply bg-base-canvas text-base-ink;\n  }\n}",
         },
         {
           filename: filename("globals.css"),
@@ -33,37 +30,17 @@ void describe("The global base layer MUST apply project-defined semantic backgro
         },
         {
           filename: filename("other.css"),
-          code: "@layer base { html { @apply bg-surface; } }",
+          code: "@layer base { html { @apply bg-base-canvas; } }",
         },
       ],
       invalid: [
-        {
-          filename: filename("globals.css"),
-          code: "@theme { --color-surface: white; }\n@layer base { body { @apply bg-surface text-lg; } }",
-          errors: [
-            {
-              message:
-                "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
-            },
-          ],
-        },
-        {
-          filename: filename("globals.css"),
-          code: "@layer base { body { @apply bg-surface text-content; } }",
-          errors: [
-            {
-              message:
-                "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
-            },
-          ],
-        },
         {
           filename: filename("globals.css"),
           code: "@layer base {\n  body {\n    @apply bg-white;\n  }\n}",
           errors: [
             {
               message:
-                "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
+                "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
             },
           ],
         },
@@ -73,7 +50,7 @@ void describe("The global base layer MUST apply project-defined semantic backgro
           errors: [
             {
               message:
-                "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
+                "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
             },
           ],
         },
@@ -83,7 +60,7 @@ void describe("The global base layer MUST apply project-defined semantic backgro
           errors: [
             {
               message:
-                "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
+                "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
             },
           ],
         },

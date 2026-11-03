@@ -1190,8 +1190,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global base layer MUST apply project-defined semantic background and foreground color utilities to the document body.",
-      "hash": "74a3dcc36e",
+      "text": "The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.",
+      "hash": "a3b7faf6da",
       "ref": "pasika/base-layer-pair"
     },
     {
