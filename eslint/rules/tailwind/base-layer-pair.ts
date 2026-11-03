@@ -2,7 +2,7 @@
  * ESLint rule: pasika/base-layer-pair
  *
  * A single global CSS tree may split @layer base across multiple files.
- * Require the body canvas/ink pair across that tree, not in every partial.
+ * Require semantic background and foreground colors on the body across that tree.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -16,7 +16,14 @@ import { atrulesNamed, blockChildren, preludeIdentifiers, selectorNames } from "
 import { cachedTextReader } from "./source-files";
 import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 
-function collectBodyUtilities(node: StyleSheetPlain): { hasBaseLayer: boolean; names: string[] } {
+function collectBodyUtilities(node: StyleSheetPlain): { hasBaseLayer: boolean; names: string[]; colors: string[] } {
+  const colors = atrulesNamed(node, "theme").flatMap((theme) =>
+    blockChildren(theme).flatMap((child) =>
+      child.type === "Declaration" && child.property.startsWith("--color-")
+        ? [child.property.slice("--color-".length)]
+        : [],
+    ),
+  );
   const baseLayers = atrulesNamed(node, "layer").filter((layer) => preludeIdentifiers(layer).includes("base"));
   const names: string[] = [];
   for (const layer of baseLayers) {
@@ -29,7 +36,7 @@ function collectBodyUtilities(node: StyleSheetPlain): { hasBaseLayer: boolean; n
       }
     }
   }
-  return { hasBaseLayer: baseLayers.length > 0, names };
+  return { hasBaseLayer: baseLayers.length > 0, names, colors };
 }
 
 export const baseLayerPairRule: CSSRuleDefinition = {
@@ -37,7 +44,8 @@ export const baseLayerPairRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require the global CSS tree's base layer to apply canvas and ink utilities to body.",
+      description:
+        "Require the global CSS tree's base layer to apply theme-defined background and foreground colors to body.",
     },
   },
   create(context) {
@@ -68,18 +76,23 @@ export const baseLayerPairRule: CSSRuleDefinition = {
             const fragment = collectBodyUtilities(parsed);
             applied.hasBaseLayer ||= fragment.hasBaseLayer;
             applied.names.push(...fragment.names);
+            applied.colors.push(...fragment.colors);
             queue.push({ file: filename, source });
           }
         }
 
         if (!applied.hasBaseLayer) return;
-        const hasCanvas = applied.names.some((name) => name.includes("canvas"));
-        const hasInk = applied.names.some((name) => name.includes("ink"));
-        if (!hasCanvas || !hasInk) {
+        const colors = new Set(applied.colors);
+        const hasColorUtility = (prefix: "bg-" | "text-"): boolean =>
+          applied.names.some((name) => {
+            const utility = name.split(":").at(-1)?.split("/")[0] ?? "";
+            return utility.startsWith(prefix) && colors.has(utility.slice(prefix.length));
+          });
+        if (!hasColorUtility("bg-") || !hasColorUtility("text-")) {
           context.report({
             node,
             message:
-              "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
+              "The global base layer must apply theme-defined background and foreground color utilities to the document body.",
           });
         }
       },

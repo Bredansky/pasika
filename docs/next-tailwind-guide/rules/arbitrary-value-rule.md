@@ -55,7 +55,7 @@ Why: the component consumes a stable named utility while the stylesheet owns the
 ## Incorrect — Typed Color Custom Property
 
 ```tsx
-<p className="text-(color:--tweet-card-ink)" />
+<p className="text-(color:--tweet-card-content)" />
 ```
 
 Why: the type hint only disambiguates the custom property's meaning for Tailwind; the component still references the CSS variable directly.
@@ -64,16 +64,16 @@ Why: the type hint only disambiguates the custom property's meaning for Tailwind
 
 ```css
 :root {
-  --tweet-card-ink: #111827;
+  --tweet-card-content: #111827;
 }
 
-@utility text-tweet-card-ink {
-  @apply text-(color:--tweet-card-ink);
+@utility text-tweet-card-content {
+  @apply text-(color:--tweet-card-content);
 }
 ```
 
 ```tsx
-<p className="text-tweet-card-ink" />
+<p className="text-tweet-card-content" />
 ```
 
 Why: the component uses a named project utility while the stylesheet owns the typed custom-property reference.

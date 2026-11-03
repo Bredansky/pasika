@@ -1,6 +1,6 @@
 # Theme and Utility Definition Rule
 
-Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
+Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Semantic color names (such as `--color-primary` and `--color-on-primary`, without `-canvas`/`-ink`/`-edge` postfixes) and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Tailwind tokens MUST use plain `@theme` for fixed values and fixed-token aliases or `@theme inline` for runtime variables; external font-loader mappings with a `var()` fallback MAY coexist with plain `@theme`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
@@ -43,7 +43,7 @@ Why: the same color has two fixed-value definitions just to satisfy different ut
 <div className="bg-brand border-brand text-brand" />
 ```
 
-Why: a single `--color-brand` produces background, border, and text utilities. Suffixes such as `-canvas`, `-ink`, and `-edge` are optional descriptive names, not required roles.
+Why: a single `--color-brand` produces background, border, and text utilities. The semantic name is independent of how the color is applied; property-role postfixes are unnecessary.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
@@ -114,7 +114,7 @@ Why: `bg-size-24px-24px` directly describes the single CSS operation.
 
 ```css
 @theme inline {
-  --color-primary-canvas: #18181b;
+  --color-primary: #18181b;
 }
 ```
 
@@ -124,7 +124,7 @@ Why: a literal token value does not need inline variable resolution and belongs 
 
 ```css
 @theme {
-  --color-primary-canvas: #18181b;
+  --color-primary: #18181b;
 }
 ```
 
@@ -135,7 +135,7 @@ Why: a literal color belongs directly in `@theme`. Values with runtime overrides
 ```css
 /* src/app/styles/home.css */
 [data-theme="midnight"] {
-  --color-primary-canvas: #18181b;
+  --color-primary: #18181b;
 }
 ```
 
@@ -151,25 +151,25 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 ```css
 /* src/app/styles/home.css */
 :root {
-  --color-primary-canvas: #fafafa;
+  --color-primary: #fafafa;
 
   @variant midnight {
-    --color-primary-canvas: #18181b;
+    --color-primary: #18181b;
   }
 }
 
 @theme inline {
-  --color-primary-canvas: var(--color-primary-canvas);
+  --color-primary: var(--color-primary);
 }
 ```
 
 ```tsx
 <html data-theme="midnight">
-  <body className="bg-primary-canvas">Content</body>
+  <body className="bg-primary">Content</body>
 </html>
 ```
 
-Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Setting `data-theme` on `html` ensures the override applies to `:root`.
+Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary`. Setting `data-theme` on `html` ensures the override applies to `:root`.
 
 ## Incorrect — Scoped Radius Overrides a Fixed Token
 
@@ -218,7 +218,7 @@ Why: if the injected `--font-inter` variable is missing, the unresolved `var()` 
 ```css
 @theme {
   --*: initial;
-  --color-base-ink: #fafafa;
+  --color-content: #fafafa;
 }
 
 @theme inline {
@@ -231,22 +231,22 @@ Why: fixed tokens stay in plain `@theme`, while the external font variable resol
 ## Incorrect — Theme Color Wrapped in a Custom Utility
 
 ```css
-@utility border-control-edge {
-  @apply [border-color:var(--color-control-edge)];
+@utility border-outline {
+  @apply [border-color:var(--color-outline)];
 }
 ```
 
-Why: the color token belongs in `@theme`, which already generates `border-control-edge` without a custom utility.
+Why: the color token belongs in `@theme`, which already generates `border-outline` without a custom utility.
 
 ## Correct — A Theme-Generated Border Color
 
 ```css
 @theme {
-  --color-control-edge: #d1d5db;
+  --color-outline: #d1d5db;
 }
 ```
 
-Why: Tailwind generates `border-control-edge` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
+Why: Tailwind generates `border-outline` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
 
 ## Incorrect — Complex Animation Hidden in a Custom Utility
 
@@ -316,7 +316,7 @@ Why: use the built-in utility directly instead of creating an alias.
 
 ```css
 @utility primary-action {
-  @apply bg-primary-canvas text-primary-ink rounded-md px-4;
+  @apply bg-primary text-on-primary rounded-md px-4;
 }
 ```
 
@@ -331,7 +331,7 @@ Why: the utility bundles presentation only to reuse it across UI instances.
 
 ```tsx
 export function PrimaryButton(props: React.ComponentProps<"button">): React.JSX.Element {
-  return <button className="bg-primary-canvas text-primary-ink rounded-md px-4" {...props} />;
+  return <button className="bg-primary text-on-primary rounded-md px-4" {...props} />;
 }
 
 <PrimaryButton>Save</PrimaryButton>
@@ -367,15 +367,15 @@ Why: the utility maps one grid property, its name reflects the CSS value, and a 
 ## Incorrect — Component References a Nonexistent Utility
 
 ```tsx
-<button className="bg-primay-canvas text-primary-ink">Save</button>
+<button className="bg-primay text-on-primary">Save</button>
 ```
 
-Why: `bg-primay-canvas` is a typo — no theme variable or custom utility generates it.
+Why: `bg-primay` is a typo — no theme variable or custom utility generates it.
 
 ## Correct — Component References Utilities That Exist
 
 ```tsx
-<button className="bg-primary-canvas text-primary-ink">Save</button>
+<button className="bg-primary text-on-primary">Save</button>
 ```
 
 Why: both utilities are part of the project's Tailwind API.
@@ -392,13 +392,13 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 
 ```css
 @theme {
-  --color-danger-canvas: #ef4444;
-  --color-danger-ink: #ffffff;
+  --color-danger: #ef4444;
+  --color-on-danger: #ffffff;
 }
 ```
 
 ```tsx
-<button className="bg-danger-canvas text-danger-ink">Delete</button>
+<button className="bg-danger text-on-danger">Delete</button>
 ```
 
 Why: explicit semantic tokens generate available color utilities after the default palette is reset.
@@ -407,8 +407,8 @@ Why: explicit semantic tokens generate available color utilities after the defau
 
 ```css
 @theme {
-  --color-base-ink: #f9fafb;
-  --color-dialog-ink: #f9fafb;
+  --color-content: #f9fafb;
+  --color-dialog-content: #f9fafb;
 }
 ```
 
@@ -418,8 +418,8 @@ Why: both semantic roles copy the same fixed color value, making updates prone t
 
 ```css
 @theme {
-  --color-base-ink: #f9fafb;
-  --color-dialog-ink: var(--color-base-ink);
+  --color-content: #f9fafb;
+  --color-dialog-content: var(--color-content);
 }
 ```
 
