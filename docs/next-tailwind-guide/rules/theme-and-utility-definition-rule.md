@@ -466,9 +466,8 @@ Why: the effect is correctly modeled as a single shadow token, but its fixed col
   --color-mc-frame-dark: #2b2b2b;
   --color-mc-frame-light: #545454;
   --inset-shadow-mc-donation-frame:
-    inset 1px 1px 0 var(--color-mc-frame-dark),
-    inset -1px -1px 0 var(--color-mc-frame-light);
+    inset 1px 1px 0 var(--color-mc-frame-dark), inset -1px -1px 0 var(--color-mc-frame-light);
 }
 ```
 
-Why: the shadow retains its semantic `--inset-shadow-*` name; its component colors use `--color-*` without inventing `-edge` or `-shadow` roles. HEX is used here for illustration, not as a required format. A matching color elsewhere should be shared through a token alias rather than defined twice. When two formats produce provably identical colors, the duplicate-value check reports them; otherwise it preserves the original values.
+Why: the shadow keeps its `--inset-shadow-*` identity while the colors use `--color-*` without artificial role suffixes. Any CSS color format is allowed, and equivalent colors should reuse an existing token or alias.

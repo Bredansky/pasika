@@ -14,7 +14,7 @@ import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph"
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 /** Compare fixed colors without changing their source format or rounding precision. */
-function normalizedColor(text: string): string | undefined {
+export function normalizedColor(text: string): string | undefined {
   const hex = /^#(?<digits>[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.exec(text)?.groups?.digits;
   if (hex) {
     const expanded = hex.length <= 4 ? Array.from(hex.matchAll(/./gu), (match) => match[0] + match[0]).join("") : hex;
