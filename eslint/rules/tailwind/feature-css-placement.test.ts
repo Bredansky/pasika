@@ -154,6 +154,22 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
     "app/styles/globals.css",
     [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\.css/],
   );
+  // Inset-shadow classes propagate feature ownership to the colors composing the shadow.
+  // The bevel color is also used by a shared control, so it stays global.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@import "./donation.css";\n@theme inline { --color-mc-bevel-dark: #2b2b2b; --color-donation-frame-light: #545454; }',
+      "app/styles/donation.css":
+        "@theme inline { --inset-shadow-mc-donation-frame: inset 1px 1px 0 var(--color-mc-bevel-dark), inset -1px -1px 0 var(--color-donation-frame-light); }",
+      "features/donation/widget.tsx": 'const frame = "inset-shadow-mc-donation-frame";',
+      "constants/minecraft-control.ts": 'const control = "border-mc-bevel-dark";',
+    },
+    "app/styles/globals.css",
+    [
+      /CSS theme token "--color-donation-frame-light" is consumed only by feature "donation"; define it in donation\.css/,
+    ],
+  );
   // A theme token depends on its runtime :root variable, not the other way around.
   check(
     {
