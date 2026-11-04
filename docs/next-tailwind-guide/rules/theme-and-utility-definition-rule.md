@@ -1,7 +1,8 @@
 # Theme and Utility Definition Rule
 
-Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
+Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable token names and single-operation utilities keep the styling API maintainable while components own reusable presentation.
 
+- Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.
 - Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
 - A theme token MUST NOT directly alias a different theme token through `var()`.
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
@@ -13,7 +14,6 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
-- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST replace an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token when needed.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT merely rename an existing Tailwind class.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.

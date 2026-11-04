@@ -1208,6 +1208,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.",
+      "hash": "36107c49ca",
+      "ref": "pasika/utility-mapping"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.",
       "hash": "d1371b6c7e",
       "ref": "pasika/root-variables"
@@ -1271,12 +1277,6 @@
       "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.",
       "hash": "b5adb378a6",
       "ref": "pasika/unique-css-token-value"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "When Tailwind supports a theme-generated utility for a CSS value, that utility MUST replace an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token when needed.",
-      "hash": "770037cf2e",
-      "ref": "pasika/utility-mapping"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
