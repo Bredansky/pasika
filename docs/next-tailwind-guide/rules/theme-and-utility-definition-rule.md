@@ -2,7 +2,7 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`; plain `@theme` MUST NOT be used.
+- Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
 - A theme token MUST NOT directly alias another project-defined token through `var()`, regardless of token type.
 - A project-owned runtime token MUST map to its same-named CSS variable, which MUST have a default `:root` declaration and at least one `@variant` override.
 - An `@theme inline` token MUST use a fixed value when it has no `@variant` override, a direct same-named `var()` for a variant-driven value, or a fallback-backed `var()` referencing an external CSS variable. Fixed composite effects MAY reference other fixed tokens without being direct aliases.

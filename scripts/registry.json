@@ -1208,8 +1208,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`; plain `@theme` MUST NOT be used.",
-      "hash": "62cf44d84b",
+      "text": "Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.",
+      "hash": "d1371b6c7e",
       "ref": "pasika/root-variables"
     },
     {

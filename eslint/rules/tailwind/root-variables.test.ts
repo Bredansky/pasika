@@ -22,7 +22,7 @@ const tokenOverride = (name: string): string =>
     name
   }" must not be redeclared outside @theme; map it through @theme inline to its same-named runtime variable instead.`;
 
-void describe("Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`; plain `@theme` MUST NOT be used.", () => {
+void describe("Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-inline-only", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --*: initial; }" },
