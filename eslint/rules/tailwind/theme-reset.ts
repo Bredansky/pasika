@@ -11,7 +11,7 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import { generate } from "@eslint/css-tree";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
-import { atrulesNamed, blockChildren, walkNodes } from "./helpers";
+import { atrulesNamed, blockChildren, preludeIdentifiers, walkNodes } from "./helpers";
 
 /** The tolerant parser may carry Tailwind's --*: initial as a Raw node. */
 function isThemeReset(node: CssNodePlain | undefined): boolean {
@@ -21,8 +21,9 @@ function isThemeReset(node: CssNodePlain | undefined): boolean {
   return false;
 }
 
-function hasThemeReset(node: StyleSheetPlain): boolean {
+function hasThemeReset(node: StyleSheetPlain, inlineOnly = false): boolean {
   return atrulesNamed(node, "theme").some((theme) => {
+    if (inlineOnly && !preludeIdentifiers(theme).includes("inline")) return false;
     if (blockChildren(theme).some(isThemeReset)) return true;
     let nested = false;
     walkNodes(theme, (child) => {
@@ -59,11 +60,10 @@ export const themeResetRule: CSSRuleDefinition = {
           }
           return;
         }
-        if (!hasReset) {
+        if (!hasThemeReset(node, true)) {
           context.report({
             node,
-            message:
-              "globals.css must reset Tailwind's default theme with --*: initial inside @theme or @theme inline.",
+            message: "globals.css must reset Tailwind's default theme with --*: initial inside @theme inline.",
           });
         }
       },

@@ -2,9 +2,9 @@
  * ESLint rule: pasika/stylesheet-ordering
  *
  * The global stylesheet MUST order imports, @custom-variant definitions, :root
- * variables, @theme definitions, custom utilities, base styles, and keyframes.
+ * variables, @theme inline definitions, custom utilities, base styles, and keyframes.
  * A standalone --*: initial reset may follow the Tailwind import before feature
- * stylesheet imports, without erasing their later @theme tokens.
+ * stylesheet imports, without erasing their later @theme inline tokens.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */

@@ -1,47 +1,34 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * Fixed values use plain @theme, without token-to-token aliases;
- * runtime values use @theme inline with a same-named var() mapping.
- * External CSS variable mappings may use a different name only with a
- * nonempty literal fallback, including alongside plain @theme declarations.
- * Runtime mappings require a default :root and a real override (Pasika convention).
- *
- * Tailwind emits @theme inside its lower-priority theme cascade layer.
- * Unlayered :root and scoped runtime declarations win over that layer, so an
- * intentional 1:1 @theme inline mapping is valid rather than a CSS var() cycle.
- * Without overrides, the token belongs directly in @theme.
- * This convention applies to every Tailwind token namespace, not just colors.
+ * All tokens use @theme inline. Fixed values are literal or compose fixed
+ * tokens; runtime values map var(--same-name) to a :root default and an
+ * @variant override. External CSS variables require a literal fallback.
+ * Project token-to-token aliases are forbidden in all namespaces.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
-import { generate, parse, walk, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
+import { parse, walk, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { externalMapping } from "./external-mapping";
 import { atrulesNamed, blockChildren, preludeIdentifiers } from "./helpers";
-import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
+import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-const INLINE_MESSAGE = "Define design tokens with direct values in @theme, not @theme inline.";
-const INDIRECT_MESSAGE = "Define design tokens that reference CSS variables via var() in @theme inline.";
-const TOKEN_ALIAS_MESSAGE = (name: string): string =>
-  `Tailwind token "${name}" must define its own fixed value in @theme, not alias another theme token.`;
+const INLINE_ONLY_MESSAGE = "Define all Tailwind theme tokens in @theme inline, including fixed values and resets.";
 const INLINE_MAPPING_MESSAGE = (name: string): string =>
-  `Tailwind token "${name}" must use a direct var(${name}) mapping in @theme inline.`;
-const MIXED_THEME_MESSAGE =
-  "Use either @theme or @theme inline across the project; external CSS variable mappings with fallbacks are the only exception.";
-
+  `Tailwind token "${name}" must use a fixed value, same-named var(${name}), or an external var() with fallback in @theme inline.`;
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
-  `Tailwind token "${name}" has no runtime overrides; define its value directly in @theme instead of using :root and @theme inline.`;
+  `Tailwind token "${name}" has no @variant override; define its fixed value directly in @theme inline.`;
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
       description:
-        "Require fixed @theme values, same-named runtime @theme inline mappings, and fallback-backed external CSS variables.",
+        "Require @theme inline for fixed tokens, variant-driven same-name mappings, and external variables with fallbacks.",
     },
   },
   create(context) {
@@ -88,19 +75,11 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // may truncate. Inline tokens backed by identically named variables may
     // be overridden at runtime regardless of their Tailwind namespace.
     const mirroredTokens = new Set<string>();
-    let hasPlainThemeBlocks = false;
-    let hasInlineThemeBlocks = false;
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
         /\/\*[\s\S]*?\*\//gu,
         " ",
       );
-      // A theme containing nested @keyframes cannot match the flat-body regex.
-      // Detect each theme header independently before collecting declarations.
-      for (const header of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{/gu)) {
-        if (/\binline\b/u.test(header.groups?.options ?? "")) hasInlineThemeBlocks = true;
-        else hasPlainThemeBlocks = true;
-      }
       for (const theme of source.matchAll(/@theme(?<options>(?:\s+[\w-]+)*)\s*\{(?<body>[^{}]*)\}/gu)) {
         const inline = /\binline\b/u.test(theme.groups?.options ?? "");
         for (const declaration of (theme.groups?.body ?? "").matchAll(
@@ -109,7 +88,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
           const { name, value } = declaration.groups ?? {};
           if (!name) continue;
           names.add(name);
-          if (inline && /\bvar\s*\(/u.test(value ?? "")) {
+          if (inline && new RegExp(`^\\s*var\\(\\s*${name}\\s*\\)\\s*$`, "u").test(value ?? "")) {
             mirroredTokens.add(name);
           }
         }
@@ -118,61 +97,25 @@ export const rootVariablesRule: CSSRuleDefinition = {
     // A CSS variable declared by this project cannot be presented as an
     // external-provider mapping. Include scoped and conditional declarations.
     const authoredVariables = new Set(names);
-    // Runtime overrides make 1:1 mappings meaningful. An ordinary default
-    // :root is not an override; scoped selectors and conditional :root are.
-    // Scan every stylesheet, since an override can live outside this file.
-    const overriddenNames = new Set<string>(
-      graph.definitions
-        .filter((symbol) => symbol.kind === "root-variable" && symbol.scope === "conditional")
-        .map((symbol) => symbol.name),
-    );
+    // Project-owned runtime tokens require an actual @variant override.
+    // Scoped selectors, media queries, and setProperty do not qualify.
+    const variantNames = new Set<string>();
     for (const file of [...stylesheets.filter((candidate) => path.normalize(candidate) !== current), current]) {
       const css = path.normalize(file) === current ? context.sourceCode.text : textOf(file);
       const tree = parse(css, { parseAtrulePrelude: false });
+      let variantDepth = 0;
       walk(tree, {
         enter(node) {
+          if (node.type === "Atrule" && node.name === "variant") variantDepth += 1;
           if (node.type !== "Declaration" || !node.property.startsWith("--")) return;
           authoredVariables.add(node.property);
-          if (this.rule?.type !== "Rule") return;
-          if (generate(this.rule.prelude).trim() !== ":root") overriddenNames.add(node.property);
+          if (variantDepth > 0) variantNames.add(node.property);
+        },
+        leave(node) {
+          if (node.type === "Atrule" && node.name === "variant") variantDepth -= 1;
         },
       });
     }
-
-    // CSS-in-JS may deliberately update an otherwise unscoped runtime variable.
-    // Do not label an explicit setProperty target as a static-only token.
-    for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
-      for (const found of textOf(file).matchAll(/\.setProperty\s*\(\s*["'\x60](?<name>--[\w-]+)["'\x60]/gu)) {
-        if (found.groups?.name) overriddenNames.add(found.groups.name);
-      }
-    }
-
-    const inlineBlocksAreExternal = [...stylesheets.filter((file) => path.normalize(file) !== current), current].every(
-      (file) => {
-        const source = (path.normalize(file) === current ? context.sourceCode.text : textOf(file)).replace(
-          /\/\*[\s\S]*?\*\//gu,
-          " ",
-        );
-        const headers = [...source.matchAll(/@theme\s+inline\s*\{/gu)];
-        const blocks = [...source.matchAll(/@theme\s+inline\s*\{(?<body>[^{}]*)\}/gu)];
-        return (
-          headers.length === blocks.length &&
-          blocks.every((block) => {
-            const declarations = (block.groups?.body ?? "")
-              .split(";")
-              .map((part) => part.trim())
-              .filter(Boolean);
-            return (
-              declarations.length > 0 &&
-              declarations.every((declaration) => {
-                const found = /^(?<token>--[a-z][\w-]*)\s*:\s*(?<value>.+)$/u.exec(declaration)?.groups;
-                return Boolean(found?.token && externalMapping(found.value ?? "", found.token, authoredVariables));
-              })
-            );
-          })
-        );
-      },
-    );
 
     const defaultRootNames = new Set(
       graph.definitions
@@ -183,11 +126,11 @@ export const rootVariablesRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const localThemes = atrulesNamed(node, "theme");
-        if (hasPlainThemeBlocks && hasInlineThemeBlocks && !inlineBlocksAreExternal && localThemes[0]) {
-          context.report({ node: localThemes[0], message: MIXED_THEME_MESSAGE });
-        }
         for (const theme of localThemes) {
-          const inline = preludeIdentifiers(theme).includes("inline");
+          if (!preludeIdentifiers(theme).includes("inline")) {
+            context.report({ node: theme, message: INLINE_ONLY_MESSAGE });
+            continue;
+          }
           // Tailwind's theme declarations can be Raw nodes in the tolerant CSS
           // parser. Inspect each declaration separately, including multiline
           // values and declarations without a final semicolon.
@@ -203,7 +146,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
             const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
             const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
             const directReference = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(unquoted.trim())?.groups?.target;
-            if (inline && directReference) {
+            if (directReference) {
               if (directReference !== name) {
                 context.report({
                   node: theme,
@@ -214,45 +157,33 @@ export const rootVariablesRule: CSSRuleDefinition = {
                   node: theme,
                   message: `Tailwind token "${name}" references "${name}" without a default :root declaration.`,
                 });
-              } else if (!overriddenNames.has(name)) {
+              } else if (!variantNames.has(name)) {
                 context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
               }
               continue;
             }
-            // A fixed theme value can compose other fixed theme values (e.g.
-            // a shadow or gradient); a direct alias is never a value of its own.
-            if (!inline && directReference && isFixedThemeExpression(name, unquoted)) {
-              context.report({ node: theme, message: TOKEN_ALIAS_MESSAGE(name) });
-              continue;
-            }
-            if (inline && externalMapping(value, name, authoredVariables)) continue;
-            if (inline && referencesVariable) {
+            if (externalMapping(value, name, authoredVariables)) continue;
+            // A fallback cannot turn a project-owned token into an external mapping.
+            const fallbackTarget = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*,/u.exec(unquoted.trim())?.groups?.target;
+            if (fallbackTarget && authoredVariables.has(fallbackTarget)) {
               context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
               continue;
             }
-            if (!inline && (!referencesVariable || isFixedThemeExpression(name, unquoted))) continue;
-            const offset = (theme.loc?.start.offset ?? 0) + match.index + match[0].indexOf(name);
-            const preceding = context.sourceCode.text.slice(0, offset);
-            const line = preceding.split("\n").length;
-            const column = offset - preceding.lastIndexOf("\n");
-            context.report({
-              node: theme,
-              loc: {
-                start: { line, column },
-                end: { line, column: column + name.length },
-              },
-              message: inline ? INLINE_MESSAGE : INDIRECT_MESSAGE,
-            });
+            // Shadows and gradients may compose fixed theme tokens, but
+            // a direct var(--other-token) reference is always a forbidden alias.
+            if (referencesVariable && !isFixedThemeExpression(name, unquoted)) {
+              context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
+            }
           }
         }
 
-        // Scoped overrides are allowed only for the same-named variables
-        // exposed by @theme inline, regardless of namespace.
-        function checkTokenRedeclarations(currentNode: CssNodePlain, conditional = false): void {
+        // Variant-driven runtime tokens may be overridden only in @variant.
+        function checkTokenRedeclarations(currentNode: CssNodePlain, conditional = false, inVariant = false): void {
           if (currentNode.type === "Atrule" && ["theme", "utility", "keyframes"].includes(currentNode.name)) {
             return;
           }
           const isConditional = conditional || (currentNode.type === "Atrule" && currentNode.name !== "layer");
+          const isVariant = inVariant || (currentNode.type === "Atrule" && currentNode.name === "variant");
           const isDefaultRoot =
             currentNode.type === "Rule" &&
             context.sourceCode.getText(currentNode.prelude).trim() === ":root" &&
@@ -265,7 +196,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
           ) {
             for (const declaration of blockChildren(currentNode)) {
               if (declaration.type !== "Declaration") continue;
-              if (mirroredTokens.has(declaration.property)) continue;
+              if (mirroredTokens.has(declaration.property) && (isVariant || !variantNames.has(declaration.property))) {
+                continue;
+              }
               if (!names.has(declaration.property) && !declaration.property.startsWith("--color-")) continue;
               context.report({
                 node: declaration,
@@ -275,7 +208,9 @@ export const rootVariablesRule: CSSRuleDefinition = {
           }
           const children = currentNode.type === "StyleSheet" ? currentNode.children : blockChildren(currentNode);
           for (const child of children) {
-            if (child.type === "Atrule" || child.type === "Rule") checkTokenRedeclarations(child, isConditional);
+            if (child.type === "Atrule" || child.type === "Rule") {
+              checkTokenRedeclarations(child, isConditional, isVariant);
+            }
           }
         }
         checkTokenRedeclarations(node);

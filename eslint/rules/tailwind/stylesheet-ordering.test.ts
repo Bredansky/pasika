@@ -2,7 +2,7 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 
-void describe("The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.", () => {
+void describe("The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` `@theme inline` reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, remaining `@theme inline` definitions, custom utilities, base styles, and keyframes.", () => {
   const globals = path.resolve("src/app/styles/globals.css");
   const partial = path.resolve("src/app/styles/tokens.css");
   tailwindRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {
@@ -168,7 +168,7 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
   });
 });
 
-void describe("The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.", () => {
+void describe("The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `@theme inline` in `globals.css`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.", () => {
   const globals = path.resolve("src/app/styles/globals.css");
   tailwindRuleTester.run("stylesheet-ordering", stylesheetOrderingRule, {
     valid: [

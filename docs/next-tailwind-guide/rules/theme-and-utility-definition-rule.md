@@ -2,20 +2,20 @@
 
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
-- Tailwind tokens MUST use plain `@theme` for fixed values or `@theme inline` for runtime variables.
-- A token in plain `@theme` MUST NOT be a direct `var()` alias of another token, regardless of token type.
-- A CSS variable referenced by an `@theme inline` token with the same name MUST have a default `:root` declaration and at least one scoped, conditional, or programmatic override.
-- An `@theme inline` token MUST use a direct `var()` reference to its same-named CSS variable without fallbacks or wrappers, except when mapping an external CSS variable with a required fallback.
-- External CSS variable mappings MAY coexist with plain `@theme` when `@theme inline` references a variable not defined by the project in CSS and supplies a nonempty literal fallback within `var()`; project-defined token aliases remain forbidden.
-- Tokens defined in plain `@theme` MUST NOT be redeclared outside `@theme`.
+- Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`; plain `@theme` MUST NOT be used.
+- A theme token MUST NOT directly alias another project-defined token through `var()`, regardless of token type.
+- A project-owned runtime token MUST map to its same-named CSS variable, which MUST have a default `:root` declaration and at least one `@variant` override.
+- An `@theme inline` token MUST use a fixed value when it has no `@variant` override, a direct same-named `var()` for a variant-driven value, or a fallback-backed `var()` referencing an external CSS variable. Fixed composite effects MAY reference other fixed tokens without being direct aliases.
+- External CSS variable mappings MAY coexist with fixed and variant-driven tokens in `@theme inline` when they reference variables not defined by the project in CSS and supply nonempty literal fallbacks within `var()`.
+- Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`; variant-driven tokens MUST use matching `@variant` overrides.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
-- `@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.
+- `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme` tokens and default `:root` properties MUST NOT share the same static CSS value.
+- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share the same static CSS value.
 - Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.
-- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme` token if it does not yet exist.
+- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token if it does not yet exist.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom `@utility` MUST NOT simply alias an existing Tailwind class.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
@@ -23,7 +23,17 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Direct Theme Value Marked Inline
+## Incorrect — Fixed Token Uses Plain Theme
+
+```css
+@theme {
+  --color-primary-canvas: #18181b;
+}
+```
+
+Why: the project uses only `@theme inline`, even for fixed values.
+
+## Correct — Literal Color Token Declared Inline
 
 ```css
 @theme inline {
@@ -31,22 +41,12 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 }
 ```
 
-Why: a literal token value does not need inline variable resolution and belongs in regular `@theme`.
+Why: a fixed color has its value directly in `@theme inline`. Variant-driven tokens instead use a matching runtime variable.
 
-## Correct — Literal Color Token Declared Directly
-
-```css
-@theme {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: a literal color belongs directly in `@theme`. Values with runtime overrides use a default `:root` variable and a matching `@theme inline` mapping.
-
-## Incorrect — Scoped Radius Overrides a Fixed Token
+## Incorrect — Direct Selector Overrides a Fixed Radius
 
 ```css
-@theme {
+@theme inline {
   --radius-card: 8px;
 }
 
@@ -55,17 +55,20 @@ Why: a literal color belongs directly in `@theme`. Values with runtime overrides
 }
 ```
 
-Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a runtime CSS variable and a matching `@theme inline` mapping for scoped values.
+Why: a fixed token must not be overridden through a selector; a runtime token requires `@variant` and a same-named `:root` default.
 
-## Correct — Scoped Radius Uses the Same Token Name
+## Correct — Radius Changes Through a Variant
 
 ```css
+/* globals.css */
+@custom-variant compact (&:where([data-density="compact"], [data-density="compact"] *));
+
 :root {
   --radius-card: 8px;
-}
 
-[data-density="compact"] {
-  --radius-card: 4px;
+  @variant compact {
+    --radius-card: 4px;
+  }
 }
 
 @theme inline {
@@ -73,7 +76,7 @@ Why: A fixed `@theme` token should not be overridden by a scoped selector. Use a
 }
 ```
 
-Why: the matching `:root` default and scoped override provide runtime values for `rounded-card`. Without an override, this mapping adds unnecessary indirection; define `--radius-card: 8px` directly in `@theme` instead.
+Why: the matching `:root` default and `@variant compact` override make `rounded-card` dynamic. Without the variant, define `--radius-card: 8px` directly in `@theme inline`.
 
 ## Incorrect — External Mapping Without a Fallback
 
@@ -85,20 +88,17 @@ Why: the matching `:root` default and scoped override provide runtime values for
 
 Why: a value supplied by an external provider requires a fallback inside `var()` so the utility still has a valid value when the provider variable is missing.
 
-## Correct — External CSS Variables Alongside a Fixed Theme
+## Correct — External CSS Variables Share the Inline Theme
 
 ```css
-@theme {
-  --radius-base: 8px;
-}
-
 @theme inline {
+  --radius-base: 8px;
   --font-sans: var(--font-inter, Arial);
   --color-brand-canvas: var(--vendor-brand-color, #2563eb);
 }
 ```
 
-Why: `--font-inter` and `--vendor-brand-color` are supplied externally rather than declared as project CSS variables, and each mapping has a literal fallback. This exception applies to any external CSS variable, not only fonts.
+Why: fixed tokens and external mappings share `@theme inline`. Each external variable has a literal fallback, and the exception is not limited to fonts.
 
 ## Incorrect — Mode Styles Without a Custom Variant
 
@@ -144,7 +144,7 @@ Why: `@variant midnight` overrides the runtime color, while `@theme inline` expo
 ## Incorrect — Color Token Aliased to Another Token
 
 ```css
-@theme {
+@theme inline {
   --color-brand-canvas: #2563eb;
   --color-brand-edge: var(--color-brand-canvas);
 }
@@ -155,7 +155,7 @@ Why: a direct token-to-token alias is forbidden regardless of whether the two to
 ## Correct — Independent Fixed Color Token
 
 ```css
-@theme {
+@theme inline {
   --color-brand-canvas: #2563eb;
 }
 ```
@@ -169,7 +169,7 @@ Why: the fixed canvas color is defined directly and reused without an unnecessar
 ## Incorrect — Duplicate Fixed Ink Tokens
 
 ```css
-@theme {
+@theme inline {
   --color-base-ink: #f9fafb;
   --color-dialog-ink: #f9fafb;
 }
@@ -180,7 +180,7 @@ Why: both ink tokens define the same fixed color value, even though the dialog c
 ## Correct — Reuse the Existing Ink Token
 
 ```css
-@theme {
+@theme inline {
   --color-base-ink: #f9fafb;
 }
 ```
@@ -194,7 +194,7 @@ Why: the dialog reuses the existing ink token without creating a second color to
 ## Incorrect — Duplicate Configured Typography Utility
 
 ```css
-@theme {
+@theme inline {
   --text-sm: 14px;
   --text-retro-14: 14px;
 }
@@ -205,7 +205,7 @@ Why: both classes emit the same font-size with no additional styling, so the ali
 ## Correct — Reuse an Equivalent Typography Utility
 
 ```css
-@theme {
+@theme inline {
   --text-sm: 14px;
 }
 ```
@@ -215,7 +215,7 @@ Why: reuse `text-sm` instead of registering a second token for the same value; s
 ## Incorrect — Fixed Colors Embedded in a Shadow
 
 ```css
-@theme {
+@theme inline {
   --inset-shadow-mc-donation-frame: inset 1px 1px 0 #2b2b2b, inset -1px -1px 0 #545454;
 }
 ```
@@ -225,7 +225,7 @@ Why: the effect is correctly modeled as a single shadow token, but its fixed col
 ## Correct — Palette Colors Compose a Shadow
 
 ```css
-@theme {
+@theme inline {
   --color-mc-frame-dark-canvas: #2b2b2b;
   --color-mc-frame-light-canvas: #545454;
   --inset-shadow-mc-donation-frame:
@@ -248,7 +248,7 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 ## Correct — Semantic Scanline Theme Token
 
 ```css
-@theme {
+@theme inline {
   --color-scanline-canvas: #334155;
   --background-image-crt-scanlines-canvas: repeating-linear-gradient(
     0deg,
@@ -272,12 +272,12 @@ Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas` wh
 }
 ```
 
-Why: the color token belongs in `@theme`, which already generates `border-control-edge` without a custom utility.
+Why: the color token belongs in `@theme inline`, which already generates `border-control-edge` without a custom utility.
 
 ## Correct — A Theme-Generated Border Color
 
 ```css
-@theme {
+@theme inline {
   --color-control-edge: #d1d5db;
 }
 ```
@@ -297,7 +297,7 @@ Why: Tailwind can generate the same single-property animation class from a theme
 ## Correct — Theme-Generated Animation
 
 ```css
-@theme {
+@theme inline {
   --animate-wiggle: wiggle 2s ease-in-out infinite;
 }
 
@@ -323,7 +323,7 @@ Why: a simple font-size mapping belongs in Tailwind's `--text-*` theme namespace
 ## Correct — A Descriptive Typography Token
 
 ```css
-@theme {
+@theme inline {
   --text-card-title: 0.875rem;
 }
 ```
@@ -467,7 +467,7 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 ## Correct — Semantic Color Defined in the Theme
 
 ```css
-@theme {
+@theme inline {
   --color-danger-canvas: #ef4444;
   --color-danger-ink: #ffffff;
 }
