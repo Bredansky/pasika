@@ -1178,8 +1178,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` `@theme inline` reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, remaining `@theme inline` definitions, custom utilities, base styles, and keyframes.",
-      "hash": "d714937ca9",
+      "text": "The global stylesheet entry point MUST order the Tailwind import, one `@theme inline` block containing `--*: initial` as its first declaration and all global tokens, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, custom utilities, base styles, and keyframes.",
+      "hash": "790ae084de",
       "ref": "pasika/stylesheet-ordering"
     },
     {

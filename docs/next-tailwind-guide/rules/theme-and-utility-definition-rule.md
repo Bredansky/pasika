@@ -61,6 +61,13 @@ Why: a fixed token must not be overridden through a selector; a runtime token re
 
 ```css
 /* globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+  --radius-card: var(--radius-card);
+}
+
 @custom-variant compact (&:where([data-density="compact"], [data-density="compact"] *));
 
 :root {
@@ -69,10 +76,6 @@ Why: a fixed token must not be overridden through a selector; a runtime token re
   @variant compact {
     --radius-card: 4px;
   }
-}
-
-@theme inline {
-  --radius-card: var(--radius-card);
 }
 ```
 
@@ -115,6 +118,14 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 
 ```css
 /* src/app/styles/globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+}
+
+@import "./home.css";
+
 @custom-variant midnight (&:where([data-theme="midnight"], [data-theme="midnight"] *));
 ```
 

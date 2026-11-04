@@ -1,10 +1,10 @@
 /**
  * ESLint rule: pasika/stylesheet-ordering
  *
- * The global stylesheet MUST order imports, @custom-variant definitions, :root
- * variables, @theme inline definitions, custom utilities, base styles, and keyframes.
- * A standalone --*: initial reset may follow the Tailwind import before feature
- * stylesheet imports, without erasing their later @theme inline tokens.
+ * The global stylesheet MUST place one @theme inline block (reset and global
+ * tokens) immediately after its Tailwind import, before feature CSS imports.
+ * Feature imports then precede @custom-variant, :root/@variant, utilities,
+ * base styles, and keyframes.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -16,9 +16,24 @@ import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { blockChildren, preludeIdentifiers, selectorNames } from "./helpers";
 
-const SECTION_ORDER = ["imports", "custom-variant", "root", "theme", "utility", "base styles", "keyframes"] as const;
+const SECTION_ORDER = [
+  "Tailwind import",
+  "theme",
+  "feature imports",
+  "custom-variant",
+  "root",
+  "utility",
+  "base styles",
+  "keyframes",
+] as const;
 const LATE_RESET_ERROR =
   "The global --*: initial theme reset must precede feature stylesheet imports, or it will erase their theme tokens.";
+const DUPLICATE_THEME_ERROR =
+  "globals.css must use one @theme inline block for the reset and all global tokens; merge the theme blocks.";
+const RESET_FIRST_ERROR =
+  "The --*: initial reset must be the first declaration in the globals.css @theme inline block.";
+const ORDER_ERROR =
+  "Global stylesheet sections must be ordered: Tailwind import, one @theme inline block, feature imports, @custom-variant, :root/@variant, custom utilities, base styles, keyframes.";
 
 /** Read only the top-level @theme body, ignoring comments in its declaration test. */
 function themeBody(node: CssNodePlain, source: string): string | undefined {
@@ -35,10 +50,6 @@ function themeBody(node: CssNodePlain, source: string): string | undefined {
 
 function containsThemeReset(body: string | undefined): boolean {
   return body !== undefined && /(?:^|[;{])\s*--\*\s*:\s*initial\s*(?:;|$)/u.test(body);
-}
-
-function isStandaloneThemeReset(body: string | undefined): boolean {
-  return body !== undefined && /^--\*\s*:\s*initial\s*;?$/u.test(body);
 }
 
 function isTailwindImport(node: CssNodePlain): boolean {
@@ -68,99 +79,63 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         // Map each top-level child to its section name.
-        const sections: { name: string; at?: number }[] = [];
-        let index = 0;
-        let sawTailwindImport = false;
+        const sections: string[] = [];
         let sawFeatureImport = false;
-        let sawNonImport = false;
-        let sawEarlyReset = false;
+        let themeBlocks = 0;
         for (const child of node.children) {
           const body = themeBody(child, context.sourceCode.text);
-          let isEarlyReset = false;
+          if (containsThemeReset(body) && !/^--\*\s*:\s*initial\s*(?:;|$)/u.test(body ?? "")) {
+            context.report({ node: child, message: RESET_FIRST_ERROR });
+            return;
+          }
           if (containsThemeReset(body) && sawFeatureImport) {
             context.report({ node: child, message: LATE_RESET_ERROR });
             return;
           }
           if (child.type === "Atrule" && child.name === "import") {
-            sections.push({ name: "imports", at: index });
-            if (isTailwindImport(child)) sawTailwindImport = true;
-            else sawFeatureImport = true;
-          } else if (
-            isStandaloneThemeReset(body) &&
-            sawTailwindImport &&
-            !sawFeatureImport &&
-            !sawNonImport &&
-            !sawEarlyReset
-          ) {
-            // This reset must precede the imported feature @theme declarations.
-            // It is the only permitted exception to the imports-first order.
-            sawEarlyReset = true;
-            isEarlyReset = true;
-          } else if (child.type === "Atrule" && child.name === "custom-variant") {
-            sections.push({ name: "custom-variant", at: index });
+            if (isTailwindImport(child)) {
+              sections.push("Tailwind import");
+            } else {
+              sawFeatureImport = true;
+              sections.push("feature imports");
+            }
           } else if (child.type === "Atrule" && child.name === "theme") {
-            sections.push({ name: "theme", at: index });
+            themeBlocks += 1;
+            sections.push("theme");
+          } else if (child.type === "Atrule" && child.name === "custom-variant") {
+            sections.push("custom-variant");
           } else if (child.type === "Atrule" && child.name === "utility") {
-            sections.push({ name: "utility", at: index });
+            sections.push("utility");
           } else if (child.type === "Atrule" && child.name === "keyframes") {
-            sections.push({ name: "keyframes", at: index });
+            sections.push("keyframes");
           } else if (child.type === "Atrule" && child.name === "layer") {
             if (preludeIdentifiers(child).includes("base")) {
-              sections.push({ name: "base styles", at: index });
+              sections.push("base styles");
             }
           } else if (
             child.type === "Rule" &&
             (selectorNames(child).includes("root") || scopesCustomProperties(child))
           ) {
-            sections.push({ name: "root", at: index });
+            sections.push("root");
           } else if (child.type === "Atrule" && scopesCustomProperties(child)) {
-            sections.push({ name: "root", at: index });
+            sections.push("root");
           }
-          if (child.type !== "Comment" && !(child.type === "Atrule" && child.name === "import") && !isEarlyReset) {
-            sawNonImport = true;
-          }
-          index += 1;
         }
 
-        // The first occurrence of each section must not appear after a later
-        // section has already started.
-        const firstAt = new Map<string, number>();
-        for (const section of sections) {
-          if (!firstAt.has(section.name)) firstAt.set(section.name, section.at ?? 0);
+        if (themeBlocks > 1) {
+          context.report({ node, message: DUPLICATE_THEME_ERROR });
+          return;
         }
 
-        let lastSeen = -1;
-        for (const name of SECTION_ORDER) {
-          const at = firstAt.get(name);
-          if (at === undefined) continue;
-          if (at < lastSeen) {
-            context.report({
-              node,
-              message: `Global stylesheet sections must be ordered: imports, @custom-variant, :root, @theme, custom utilities, base styles, keyframes. Found "${name}" before an earlier section.`,
-            });
-            return;
-          }
-          lastSeen = at;
-        }
-
-        // The first-occurrence check above misses a later reappearance of an
-        // earlier section, e.g. @import after @theme. Check EVERY occurrence
-        // so the ESLint preset owns the full ordering contract.
+        // Validate every occurrence, including a misplaced import after utilities.
         let furthestSection = -1;
-        let furthestName: string | undefined;
         for (const section of sections) {
-          const order = SECTION_ORDER.findIndex((name) => name === section.name);
+          const order = SECTION_ORDER.findIndex((name) => name === section);
           if (order < furthestSection) {
-            context.report({
-              node,
-              message: `Global stylesheet section "${section.name}" cannot reappear after "${String(furthestName)}". Keep all section occurrences in the required order.`,
-            });
+            context.report({ node, message: ORDER_ERROR });
             return;
           }
-          if (order > furthestSection) {
-            furthestSection = order;
-            furthestName = section.name;
-          }
+          furthestSection = order;
         }
       },
     };
