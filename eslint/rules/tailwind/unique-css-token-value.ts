@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/unique-css-token-value
  *
- * Distinct design tokens MUST NOT share a static CSS value, even if their
- * names or stylesheet files differ. Conditional overrides are not defaults.
+ * Static values are unique within each semantic color role and among non-color
+ * tokens; cross-role color reuse is intentional. Conditional overrides are not defaults.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -11,6 +11,7 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
+import { CSS_NAMED_COLORS } from "./css-named-colors";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 /** Compare fixed colors without changing their source format or rounding precision. */
@@ -22,29 +23,8 @@ export function normalizedColor(text: string): string | undefined {
     const alpha = expanded.length === 8 ? Number.parseInt(expanded.slice(6, 8), 16) / 255 : 1;
     return `srgb:${channels.join(",")}/${String(alpha)}`;
   }
-  const named = new Map([
-    ["black", "#000000"],
-    ["white", "#ffffff"],
-    ["red", "#ff0000"],
-    ["lime", "#00ff00"],
-    ["blue", "#0000ff"],
-    ["yellow", "#ffff00"],
-    ["fuchsia", "#ff00ff"],
-    ["magenta", "#ff00ff"],
-    ["aqua", "#00ffff"],
-    ["cyan", "#00ffff"],
-    ["silver", "#c0c0c0"],
-    ["gray", "#808080"],
-    ["grey", "#808080"],
-    ["maroon", "#800000"],
-    ["green", "#008000"],
-    ["purple", "#800080"],
-    ["olive", "#808000"],
-    ["navy", "#000080"],
-    ["teal", "#008080"],
-  ]);
-  const alias = named.get(text.toLowerCase());
-  if (alias) return normalizedColor(alias);
+  const named = CSS_NAMED_COLORS[text.toLowerCase()];
+  if (Array.isArray(named)) return `srgb:${named.join(",")}/1`;
 
   const expression = /^(?<kind>rgba?|hsla?)\(\s*(?<body>[^()]*)\s*\)$/iu.exec(text);
   if (!expression?.groups) return undefined;
@@ -115,6 +95,14 @@ function isComparable(symbol: CssSymbol): boolean {
   return symbol.kind === "theme-token" || (symbol.kind === "root-variable" && symbol.scope === "default");
 }
 
+function differentSemanticColorRoles(left: CssSymbol, right: CssSymbol): boolean {
+  const roleOf = (name: string): string | undefined =>
+    /^--color-[a-z][a-z0-9-]*-(?<role>canvas|ink|edge)$/u.exec(name)?.groups?.role;
+  const a = roleOf(left.name);
+  const b = roleOf(right.name);
+  return a !== undefined && b !== undefined && a !== b;
+}
+
 function compareLocations(left: CssSymbol, right: CssSymbol): number {
   const file = left.file.localeCompare(right.file);
   return file || left.line - right.line;
@@ -155,11 +143,15 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
     const redundant = new Map<CssSymbol, CssSymbol>();
     for (const group of byValue.values()) {
       group.sort(compareLocations);
-      const first = group[0];
-      if (!first) continue;
-      for (const definition of group.slice(1)) {
-        // The name-uniqueness checks report same-name collisions separately.
-        if (definition.name !== first.name) redundant.set(definition, first);
+      const seen: CssSymbol[] = [];
+      for (const definition of group) {
+        // Equal colors across different roles are intentional. Same-role
+        // duplicate colors and non-color duplicate values are not.
+        const original = seen.find(
+          (prior) => prior.name !== definition.name && !differentSemanticColorRoles(prior, definition),
+        );
+        if (original) redundant.set(definition, original);
+        seen.push(definition);
       }
     }
 

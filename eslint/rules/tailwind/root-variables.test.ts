@@ -171,6 +171,7 @@ void describe("Tokens without their own `@variant` overrides MUST define fixed v
       { code: "@theme inline { --font-mono: var(--vendor-mono, ui-monospace, monospace); }" },
       { code: "@theme inline { --color-brand-canvas: var(--vendor-color, #2563eb); }" },
       { code: "@theme inline { --radius-button: var(--vendor-radius, 8px); }" },
+      { code: "@theme inline { --color-brand-canvas: var(--vendor-color, rgb(0 0 0 / 50%)); }" },
       { code: "@theme inline { --shadow-soft: var(--vendor-shadow, 0 0 2px rgb(0 0 0 / 20%)); }" },
       {
         code: "@theme inline { --radius-base: 8px; --font-sans: var(--font-inter, Arial); --color-brand-canvas: var(--vendor-color, #2563eb); }",
@@ -189,6 +190,18 @@ void describe("Tokens without their own `@variant` overrides MUST define fixed v
       {
         code: "@theme inline { --font-sans: var(--font-inter, var(--font-system, Arial)); }",
         errors: [{ message: mapping("--font-sans") }],
+      },
+      {
+        code: "@theme inline { --color-brand-canvas: var(--vendor-color, env(safe-area-inset-left)); }",
+        errors: [{ message: mapping("--color-brand-canvas") }],
+      },
+      {
+        code: "@theme inline { --color-brand-canvas: var(--vendor-color, attr(data-color)); }",
+        errors: [{ message: mapping("--color-brand-canvas") }],
+      },
+      {
+        code: "@theme inline { --radius-button: var(--vendor-radius, calc(2px * 3)); }",
+        errors: [{ message: mapping("--radius-button") }],
       },
       {
         code: ":root { --vendor-color: red; } @theme inline { --color-brand-canvas: var(--vendor-color, blue); }",

@@ -22,6 +22,7 @@ const GLOBALS = `@import "tailwindcss";
 
 @theme {
   --*: initial;
+  --spacing: 0.25rem;
   --color-primary-canvas: #d87943;
   --color-control-edge: #cbd5e1;
   --color-base-edge: #333333;

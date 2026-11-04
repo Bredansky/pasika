@@ -1172,6 +1172,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "Each project stylesheet MUST contain at most one `@theme inline` block.",
+      "hash": "9cbad37edc",
+      "ref": "pasika/stylesheet-ordering"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "Global selectors inside `@layer base` MUST contain only `@apply` directives.",
       "hash": "3e4883d186",
       "ref": "pasika/apply-usage"
@@ -1217,6 +1223,12 @@
       "text": "Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.",
       "hash": "d1371b6c7e",
       "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Numeric spacing utilities MUST be backed by the base `--spacing` token or corresponding named `--spacing-*` tokens after the global theme reset.",
+      "hash": "8653515849",
+      "ref": "pasika/unknown-utility"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1274,8 +1286,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.",
-      "hash": "b5adb378a6",
+      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.",
+      "hash": "e3a013d4b2",
       "ref": "pasika/unique-css-token-value"
     },
     {

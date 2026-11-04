@@ -30,6 +30,8 @@ const LATE_RESET_ERROR =
   "The global --*: initial theme reset must precede feature stylesheet imports, or it will erase their theme tokens.";
 const DUPLICATE_THEME_ERROR =
   "globals.css must use one @theme inline block for the reset and all global tokens; merge the theme blocks.";
+const FEATURE_DUPLICATE_THEME_ERROR =
+  "Each feature stylesheet must use at most one @theme inline block; merge the theme blocks.";
 const RESET_FIRST_ERROR =
   "The --*: initial reset must be the first declaration in the globals.css @theme inline block.";
 const ORDER_ERROR =
@@ -75,9 +77,41 @@ export const stylesheetOrderingRule: CSSRuleDefinition = {
   create(context) {
     const sourceRoot = sourceRootOf(context);
     const entryPoint = path.normalize(path.join(sourceRoot, "app", "styles", "globals.css"));
-    if (path.normalize(path.resolve(context.filename)) !== entryPoint) return {};
+    const current = path.normalize(path.resolve(context.filename));
+    if (path.dirname(current) !== path.dirname(entryPoint)) return {};
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
+        if (current !== entryPoint) {
+          const count = [...node.children].filter((child) => child.type === "Atrule" && child.name === "theme").length;
+          if (count > 1) context.report({ node, message: FEATURE_DUPLICATE_THEME_ERROR });
+          return;
+        }
+        const topLevel = [...node.children];
+        // The theme block must immediately follow Tailwind, with no unclassified
+        // selectors, @font-face or other @layer blocks in between.
+        const first = topLevel[0];
+        const second = topLevel[1];
+        if (
+          first &&
+          isTailwindImport(first) &&
+          second?.type === "Atrule" &&
+          second.name === "import" &&
+          !isTailwindImport(second) &&
+          topLevel.some((child) => containsThemeReset(themeBody(child, context.sourceCode.text)))
+        ) {
+          context.report({ node, message: LATE_RESET_ERROR });
+          return;
+        }
+        if (
+          !first ||
+          !isTailwindImport(first) ||
+          second?.type !== "Atrule" ||
+          second.name !== "theme" ||
+          !preludeIdentifiers(second).includes("inline")
+        ) {
+          context.report({ node, message: ORDER_ERROR });
+          return;
+        }
         // Map each top-level child to its section name.
         const sections: string[] = [];
         let sawFeatureImport = false;

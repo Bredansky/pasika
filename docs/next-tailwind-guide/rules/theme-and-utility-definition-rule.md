@@ -1,9 +1,10 @@
 # Theme and Utility Definition Rule
 
-Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable token names and single-operation utilities keep the styling API maintainable while components own reusable presentation.
+Prefer Tailwind utilities and theme tokens before introducing custom CSS, with fixed colors defined in `--color-*` tokens rather than raw declarations, including composite effects. Stable token names and single-operation utilities keep the styling API maintainable while components own reusable presentation.
 
 - Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.
 - Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
+- Numeric spacing utilities MUST be backed by the base `--spacing` token or corresponding named `--spacing-*` tokens after the global theme reset.
 - A theme token MUST NOT directly alias a different theme token through `var()`.
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
@@ -13,7 +14,7 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable
 - Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
+- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.

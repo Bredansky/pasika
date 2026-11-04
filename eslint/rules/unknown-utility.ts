@@ -99,6 +99,8 @@ const SPACING_UTILITY_PREFIXES = new Set([
   "end",
   "space-x",
   "space-y",
+  "translate-x",
+  "translate-y",
 ]);
 
 /** Built-in utilities in a checked prefix that are not theme tokens. */
@@ -356,6 +358,8 @@ interface Inventory {
   themeTokens: Map<string, Set<string>>;
   /** The stylesheets reset Tailwind's default theme with `--*: initial`, disabling the default tokens. */
   defaultsReset: boolean;
+  /** An explicit --spacing base token survives the default theme reset. */
+  baseSpacing: boolean;
   /** Class names defined as plain CSS selectors (not `@utility`), so existing-but-unregistered classes get an accurate message. */
   plainClasses: Set<string>;
 }
@@ -497,6 +501,7 @@ function readInventory(files: string[]): Inventory {
   const themeTokensByNamespace = new Map<string, Set<string>>();
   const plainClasses = new Set<string>();
   let defaultsReset = false;
+  let baseSpacing = false;
   for (const file of files) {
     let css: string;
     try {
@@ -515,6 +520,7 @@ function readInventory(files: string[]): Inventory {
     for (const plainClass of classSelectors(css)) plainClasses.add(plainClass);
     for (const block of themeBlocks(css)) {
       if (/--\*\s*:\s*initial\b/.test(block)) defaultsReset = true;
+      if (/(?:^|[;{])\s*--spacing\s*:/.test(block)) baseSpacing = true;
       for (const decl of block.matchAll(/--(?<namespace>[a-z][a-z0-9]*)-(?<token>[a-z0-9][a-z0-9_-]*)\s*:/g)) {
         let namespace = decl.groups?.namespace;
         let token = decl.groups?.token;
@@ -550,6 +556,7 @@ function readInventory(files: string[]): Inventory {
     utilityPrefixes,
     themeTokens: themeTokensByNamespace,
     defaultsReset,
+    baseSpacing,
     plainClasses,
   };
 }
@@ -591,7 +598,15 @@ function isKnown(className: string, inventory: Inventory): boolean {
     // known even when the project resets the default theme — the project may
     // also define its own tokens in the same namespace (`--aspect-video`).
     if (STATIC_VALUE_TOKENS[prefix]?.includes(token)) return true;
-    if (SPACING_UTILITY_PREFIXES.has(prefix) && inventory.themeTokens.get("spacing")?.has(token)) return true;
+    if (SPACING_UTILITY_PREFIXES.has(prefix)) {
+      const spacing = inventory.themeTokens.get("spacing");
+      if (spacing?.has(token)) return true;
+      // The default reset removes --spacing, which numeric spacing classes
+      // require. Named --spacing-N tokens remain usable without the base scale.
+      if (/^(?:\d+(?:\.\d+)?|\.\d+)$/u.test(token) && inventory.defaultsReset && !inventory.baseSpacing) {
+        return false;
+      }
+    }
     // A bare prefix may be a theme namespace the project defines itself
     // (`--animate-float` makes `animate-float` valid). Otherwise ask
     // tailwind-merge whether Tailwind itself recognizes the utility instead of

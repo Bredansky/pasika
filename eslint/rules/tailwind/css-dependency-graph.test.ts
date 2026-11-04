@@ -49,6 +49,31 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     ],
   });
 
+  it("indexes complete multiline theme values, including nested function arguments", () => {
+    const indexed = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: tokens,
+          content:
+            "@theme inline {\n  --background-image-waves-canvas: linear-gradient(\n    red,\n    blue\n  );\n  --color-brand-canvas: #123456;\n}",
+        },
+      ],
+      modules: [],
+      includeReferences: false,
+    });
+    expect(indexed.definitions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "theme-token",
+          name: "--background-image-waves-canvas",
+          value: "linear-gradient(\n    red,\n    blue\n  )",
+        }),
+        expect.objectContaining({ kind: "theme-token", name: "--color-brand-canvas", value: "#123456" }),
+      ]),
+    );
+  });
+
   it("supports definition-only indexing for structural rules", () => {
     const definitionsOnly = buildCssDependencyGraph({
       sourceRoot: root,

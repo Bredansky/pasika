@@ -33,6 +33,8 @@ const files = {
   "j.css": "@theme { --color-alpha-one: rgba(0, 0, 0, 0.5); }",
   "k.css": "@theme { --color-alpha-two: #00000080; }",
   "l.css": "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }",
+  "m.css": "@theme inline { --color-purple-ink: rebeccapurple; --color-ice-edge: aliceblue; }",
+  "n.css": "@theme inline { --color-purple-copy-ink: #663399; --color-ice-copy-edge: #f0f8ff; }",
 };
 const root = fixture(files);
 process.chdir(root);
@@ -41,18 +43,10 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
-    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
+    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css"), atFile("l.css")],
     invalid: [
-      {
-        ...atFile("l.css"),
-        errors: [
-          {
-            message: `Token "--color-brand-edge" duplicates the value of "--color-brand-canvas" in app${path.sep}styles${path.sep}l.css:1; reuse one design token.`,
-          },
-        ],
-      },
       {
         ...atFile("b.css"),
         errors: [
@@ -87,7 +81,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [
@@ -103,23 +97,26 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
-    valid: [atFile("j.css"), atFile("k.css")],
+    valid: [atFile("j.css"), atFile("k.css"), atFile("h.css")],
     invalid: [
-      {
-        ...atFile("h.css"),
-        errors: [
-          {
-            message: `Token "--color-rgb-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
-          },
-        ],
-      },
       {
         ...atFile("i.css"),
         errors: [
           {
-            message: `Token "--color-hsl-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
+            message: `Token "--color-hsl-ink" duplicates the value of "--color-rgb-ink" in app${path.sep}styles${path.sep}h.css:1; reuse one design token.`,
+          },
+        ],
+      },
+      {
+        ...atFile("n.css"),
+        errors: [
+          {
+            message: `Token "--color-purple-copy-ink" duplicates the value of "--color-purple-ink" in app${path.sep}styles${path.sep}m.css:1; reuse one design token.`,
+          },
+          {
+            message: `Token "--color-ice-copy-edge" duplicates the value of "--color-ice-edge" in app${path.sep}styles${path.sep}m.css:1; reuse one design token.`,
           },
         ],
       },
@@ -148,6 +145,9 @@ void describe("Exact static color comparison never changes CSS format or rounds 
     ["hsla(0, 100%, 50%, 0.5)", "srgb:255,0,0/0.5"],
     ["red", "srgb:255,0,0/1"],
     ["magenta", "srgb:255,0,255/1"],
+    ["rebeccapurple", "srgb:102,51,153/1"],
+    ["aliceblue", "srgb:240,248,255/1"],
+    ["darkslategrey", "srgb:47,79,79/1"],
   ])("recognizes the exact identity of %s", (source, expected) => {
     expect(normalizedColor(source)).toBe(expected);
   });
@@ -168,6 +168,8 @@ void describe("Exact static color comparison never changes CSS format or rounds 
     "color(display-p3 1 0 0)",
     "var(--color-runtime)",
     "rgb(1 2 3 / invalid)",
+    "constructor",
+    "toString",
   ])("avoids guessing or rounding for %s", (source) => {
     expect(normalizedColor(source)).toBeUndefined();
   });
