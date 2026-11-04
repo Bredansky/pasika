@@ -1214,8 +1214,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A theme token MUST NOT directly alias a different theme token through `var()`; composite values MAY reference other theme tokens.",
-      "hash": "41be20db59",
+      "text": "A theme token MUST NOT directly alias a different theme token through `var()`.",
+      "hash": "00820fd72d",
       "ref": "pasika/root-variables"
     },
     {
@@ -1250,8 +1250,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.",
-      "hash": "dab7e497d2",
+      "text": "Composite values such as shadows and gradients MUST reference fixed colors through `var()`.",
+      "hash": "2e7c5a5a32",
       "ref": "pasika/color-literal-usage"
     },
     {

@@ -1,7 +1,7 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.", () => {
+void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()`.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {

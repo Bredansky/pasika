@@ -237,7 +237,7 @@ void describe("Fixed theme tokens MUST NOT be overridden outside `@theme inline`
   });
 });
 
-void describe("A theme token MUST NOT directly alias a different theme token through `var()`; composite values MAY reference other theme tokens.", () => {
+void describe("A theme token MUST NOT directly alias a different theme token through `var()`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-inline-only-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
