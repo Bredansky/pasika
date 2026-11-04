@@ -129,6 +129,7 @@ export function themeClasses(name: string): string[] {
   if (name.startsWith("--aspect-")) return [`aspect-${name.slice("--aspect-".length)}`];
   if (name.startsWith("--leading-")) return [`leading-${name.slice("--leading-".length)}`];
   if (name.startsWith("--animate-")) return [`animate-${name.slice("--animate-".length)}`];
+  if (name.startsWith("--inset-shadow-")) return [`inset-shadow-${name.slice("--inset-shadow-".length)}`];
   if (name.startsWith("--radius-")) return [`rounded-${name.slice("--radius-".length)}`];
   if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {
     return [name.slice(2)];
