@@ -4,7 +4,7 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS, with f
 
 - Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.
 - Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
-- Numeric spacing utilities MUST be backed by the base `--spacing` token or corresponding named `--spacing-*` tokens after the global theme reset.
+- Numeric spacing utilities MUST be backed by the base `--spacing` token after the global theme reset.
 - A theme token MUST NOT directly alias a different theme token through `var()`.
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.

@@ -1220,8 +1220,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Numeric spacing utilities MUST be backed by the base `--spacing` token or corresponding named `--spacing-*` tokens after the global theme reset.",
-      "hash": "8653515849",
+      "text": "Numeric spacing utilities MUST be backed by the base `--spacing` token after the global theme reset.",
+      "hash": "1009f2fa06",
       "ref": "pasika/unknown-utility"
     },
     {

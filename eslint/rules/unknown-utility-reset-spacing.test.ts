@@ -13,15 +13,20 @@ process.chdir(root);
 const missing = (name: string): string =>
   `Utility class "${name}" is not a custom @utility, a theme-generated utility, or a built-in Tailwind utility.`;
 
-void describe("Numeric spacing utilities MUST be backed by the base `--spacing` token or corresponding named `--spacing-*` tokens after the global theme reset.", () => {
+void describe("Numeric spacing utilities MUST be backed by the base `--spacing` token after the global theme reset.", () => {
   ruleTester.run("unknown-utility-reset-spacing", unknownUtilityRule, {
     valid: [
       {
-        code: '<div className="p-4 px-4 gap-4 size-4 inset-4 w-full mx-auto p-px border-2" />',
+        code: '<div className="w-full mx-auto p-px border-2" />',
         filename: srcFile("shared/spaced.tsx"),
       },
     ],
     invalid: [
+      {
+        code: '<div className="p-4 px-4 gap-4 size-4 inset-4" />',
+        filename: srcFile("shared/spaced.tsx"),
+        errors: ["p-4", "px-4", "gap-4", "size-4", "inset-4"].map((name) => ({ message: missing(name) })),
+      },
       {
         code: '<div className="p-2 px-2 gap-2 inset-0 size-0 translate-x-2" />',
         filename: srcFile("shared/spaced.tsx"),

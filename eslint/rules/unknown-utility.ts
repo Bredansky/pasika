@@ -600,12 +600,12 @@ function isKnown(className: string, inventory: Inventory): boolean {
     if (STATIC_VALUE_TOKENS[prefix]?.includes(token)) return true;
     if (SPACING_UTILITY_PREFIXES.has(prefix)) {
       const spacing = inventory.themeTokens.get("spacing");
-      if (spacing?.has(token)) return true;
-      // The default reset removes --spacing, which numeric spacing classes
-      // require. Named --spacing-N tokens remain usable without the base scale.
+      // Numeric spacing utilities require a base scale after the reset, even
+      // when a named --spacing-N token happens to exist.
       if (/^(?:\d+(?:\.\d+)?|\.\d+)$/u.test(token) && inventory.defaultsReset && !inventory.baseSpacing) {
         return false;
       }
+      if (spacing?.has(token)) return true;
     }
     // A bare prefix may be a theme namespace the project defines itself
     // (`--animate-float` makes `animate-float` valid). Otherwise ask
