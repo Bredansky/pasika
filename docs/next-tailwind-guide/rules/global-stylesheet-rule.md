@@ -171,24 +171,10 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 
 @theme inline {
   --*: initial;
-  --color-base-canvas: #ffffff;
 }
 
 @import "./home.css";
-
-/* src/app/styles/home.css */
-@theme inline {
-  --color-home-canvas: #123456;
-}
-
-@keyframes home-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+@import "./player.css";
 ```
 
 ```tsx
@@ -196,7 +182,7 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 import "./styles/globals.css";
 ```
 
-Why: the root layout imports one global CSS entry point, which resets Tailwind before importing a feature stylesheet directly. The imported `--color-home-canvas` token survives and generates its utilities; shared CSS stays in `globals.css`.
+Why: the root layout imports the sole Tailwind entry point, which directly imports each feature stylesheet rather than relying on an intermediary.
 
 ## Incorrect — Theme Reset After Feature Imports
 
@@ -240,16 +226,6 @@ Why: the single global theme block resets Tailwind and defines shared tokens bef
 ## Incorrect — Theme Reset Inside a Feature Stylesheet
 
 ```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-
-@theme inline {
-  --*: initial;
-  --color-base-canvas: #ffffff;
-}
-
-@import "./home.css";
-
 /* src/app/styles/home.css */
 @theme inline {
   --*: initial;
@@ -262,23 +238,13 @@ Why: a feature stylesheet must not reset the shared Tailwind theme, even when `g
 ## Correct — Feature Theme Without a Reset
 
 ```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-
-@theme inline {
-  --*: initial;
-  --color-base-canvas: #ffffff;
-}
-
-@import "./home.css";
-
 /* src/app/styles/home.css */
 @theme inline {
   --color-home-canvas: #123456;
 }
 ```
 
-Why: one global `@theme inline` block defines the shared tokens before the feature stylesheet adds its own tokens without a reset.
+Why: feature stylesheets contribute their own tokens without resetting the global theme.
 
 ## Incorrect — Direct Declarations Inside the Base Layer
 
