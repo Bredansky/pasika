@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { buildCssDependencyGraph, cssSymbolUsages } from "./css-dependency-graph";
+import { buildCssDependencyGraph, cssSymbolUsages, themeClasses } from "./css-dependency-graph";
 
 const root = path.resolve("fixtures/css-project/src");
 const globals = path.join(root, "app/styles/globals.css");
@@ -10,6 +10,20 @@ const component = path.join(root, "features/banner.tsx");
 const constants = path.join(root, "constants/control-classes.ts");
 
 describe("Cross-file CSS definitions and consumers share a single dependency graph.", () => {
+  it("indexes generated color classes so semantic-role diagnostics can catch mismatches", () => {
+    expect(themeClasses("--color-mc-frame-dark")).toEqual(
+      expect.arrayContaining([
+        "bg-mc-frame-dark",
+        "text-mc-frame-dark",
+        "border-mc-frame-dark",
+        "ring-mc-frame-dark",
+        "fill-mc-frame-dark",
+        "shadow-mc-frame-dark",
+      ]),
+    );
+    expect(themeClasses("--color-mc-frame-dark-ink")).toContain("bg-mc-frame-dark-ink");
+  });
+
   const graph = buildCssDependencyGraph({
     sourceRoot: root,
     css: [
@@ -33,6 +47,31 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
       { path: constants, content: 'export const cls = "bg-mc-button-surface";' },
       { path: component, content: 'const cls = "text-retro-8 animate-sparkle";' },
     ],
+  });
+
+  it("indexes complete multiline theme values, including nested function arguments", () => {
+    const indexed = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: tokens,
+          content:
+            "@theme inline {\n  --background-image-waves-canvas: linear-gradient(\n    red,\n    blue\n  );\n  --color-brand-canvas: #123456;\n}",
+        },
+      ],
+      modules: [],
+      includeReferences: false,
+    });
+    expect(indexed.definitions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "theme-token",
+          name: "--background-image-waves-canvas",
+          value: "linear-gradient(\n    red,\n    blue\n  )",
+        }),
+        expect.objectContaining({ kind: "theme-token", name: "--color-brand-canvas", value: "#123456" }),
+      ]),
+    );
   });
 
   it("supports definition-only indexing for structural rules", () => {

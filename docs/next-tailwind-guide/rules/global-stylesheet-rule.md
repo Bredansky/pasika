@@ -6,19 +6,19 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - Other than `globals.css`, a project stylesheet MUST be named `<feature>.css` for an existing `src/features/<feature>/` directory and live directly under `src/app/styles/`.
 - The root layout (`src/app/layout`) MUST be the sole importer of `globals.css`, which MUST directly `@import` every other project stylesheet.
 - CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.
-- The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `globals.css`, using either `@theme` or `@theme inline`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
+- The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `@theme inline` in `globals.css`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
-- The global stylesheet entry point MUST order the Tailwind import, a standalone `--*: initial` theme reset, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and selectors or conditions that override them, remaining `@theme` definitions, custom utilities, base styles, and keyframes.
+- The global stylesheet entry point MUST order the Tailwind import, one `@theme inline` block containing `--*: initial` as its first declaration and all global tokens, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, custom utilities, base styles, and keyframes.
 - Adjacent top-level CSS `@` directives MUST have a blank line between them, except consecutive `@import` directives.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
 
 ## Incorrect — Adjacent At-Rules Without a Blank Line
 
 ```css
-@theme {
+@theme inline {
   --color-base-canvas: white;
 }
-@utility clip-trapezoid {
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
@@ -29,13 +29,16 @@ Why: two top-level directives run together without the required visual separator
 
 ```css
 @import "tailwindcss";
-@import "./tokens.css";
 
-@theme {
+@theme inline {
+  --*: initial;
   --color-base-canvas: white;
 }
 
-@utility clip-trapezoid {
+@import "./home.css";
+@import "./player.css";
+
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
@@ -48,14 +51,14 @@ Why: each top-level section has a blank line before the next one; consecutive im
 /* src/app/styles/globals.css */
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --spacing: 0.25rem;
 }
 
 /* src/app/styles/editor.css */
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --font-editor: Georgia, serif;
 }
 ```
@@ -67,11 +70,8 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 ```css
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --*: initial;
-}
-
-@theme {
   --color-base-canvas: #ffffff;
   --color-base-ink: #18181b;
 }
@@ -83,13 +83,73 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 }
 ```
 
-Why: one entry point registers Tailwind, resets the default theme, defines the page colors, and applies global base styling. Token mappings and runtime overrides are covered by the theme and utility definition rule.
+Why: a single global `@theme inline` block resets Tailwind and defines shared tokens; the base layer then applies the generated utilities.
+
+## Incorrect — Global Theme Split Around Feature Imports
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+}
+
+@import "./home.css";
+
+@theme inline {
+  --radius-base: 8px;
+  --color-base-canvas: #ffffff;
+}
+```
+
+Why: placing feature imports between the reset and global tokens splits the global theme into two blocks. Keep the reset and all shared tokens together before feature imports.
+
+## Correct — Reset and Shared Tokens in One Inline Block
+
+```css
+/* src/app/styles/globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+
+  /* Fixed */
+  --radius-base: 8px;
+  --color-base-canvas: #f8fafc;
+
+  /* Variant-driven */
+  --color-primary-canvas: var(--color-primary-canvas);
+
+  /* External provider */
+  --font-sans: var(--font-inter, Arial);
+}
+
+@import "./home.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --color-primary-canvas: #ffffff;
+
+  @variant dark {
+    --color-primary-canvas: #18181b;
+  }
+}
+```
+
+Why: one block groups the reset with fixed, variant-driven, and fallback-backed external tokens, while feature styles add their own `@theme inline` tokens without a reset. Tailwind [inlines CSS imports at build time](https://tailwindcss.com/docs/functions-and-directives#import), so the compiled browser CSS does not retain the `@import` after the theme block.
 
 ## Incorrect — Project CSS Reached Only Through a Midpoint
 
 ```css
 /* src/app/styles/globals.css */
 @import "tailwindcss";
+
+@theme inline {
+  --*: initial;
+}
+
 @import "./base.css";
 
 /* src/app/styles/base.css — import-only shim */
@@ -108,23 +168,13 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 ```css
 /* src/app/styles/globals.css */
 @import "tailwindcss";
-@theme {
+
+@theme inline {
   --*: initial;
 }
-@import "./home.css";
 
-/* src/app/styles/home.css */
-@theme {
-  --color-home-canvas: #123456;
-}
-@keyframes home-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+@import "./home.css";
+@import "./player.css";
 ```
 
 ```tsx
@@ -132,7 +182,7 @@ Why: `deep.css` is imported through `base.css` instead of directly by `globals.c
 import "./styles/globals.css";
 ```
 
-Why: the root layout imports one global CSS entry point, which resets Tailwind before importing a feature stylesheet directly. The imported `--color-home-canvas` token survives and generates its utilities; shared CSS stays in `globals.css`.
+Why: the root layout imports the sole Tailwind entry point, which directly imports each feature stylesheet rather than relying on an intermediary.
 
 ## Incorrect — Theme Reset After Feature Imports
 
@@ -140,12 +190,12 @@ Why: the root layout imports one global CSS entry point, which resets Tailwind b
 /* src/app/styles/globals.css */
 @import "tailwindcss";
 @import "./home.css";
-@theme {
+@theme inline {
   --*: initial;
 }
 
 /* src/app/styles/home.css */
-@theme {
+@theme inline {
   --color-home-canvas: #123456;
 }
 ```
@@ -157,52 +207,44 @@ Why: resetting theme variables after importing `home.css` removes the feature's 
 ```css
 /* src/app/styles/globals.css */
 @import "tailwindcss";
-@theme {
+
+@theme inline {
   --*: initial;
+  --color-base-canvas: #ffffff;
 }
+
 @import "./home.css";
 
 /* src/app/styles/home.css */
-@theme {
+@theme inline {
   --color-home-canvas: #123456;
 }
 ```
 
-Why: Tailwind processes the reset before the feature stylesheet, preserving `--color-home-canvas` and its generated `bg-home-canvas` utility.
+Why: the single global theme block resets Tailwind and defines shared tokens before importing the feature stylesheet.
 
 ## Incorrect — Theme Reset Inside a Feature Stylesheet
 
 ```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@import "./home.css";
-
 /* src/app/styles/home.css */
-@theme {
+@theme inline {
   --*: initial;
   --color-home-canvas: #123456;
 }
 ```
 
-Why: the project-wide reset belongs exclusively in `globals.css`. A feature stylesheet may define its own tokens but must not reset the shared Tailwind theme.
+Why: a feature stylesheet must not reset the shared Tailwind theme, even when `globals.css` has already reset it.
 
 ## Correct — Feature Theme Without a Reset
 
 ```css
-/* src/app/styles/globals.css */
-@import "tailwindcss";
-@theme {
-  --*: initial;
-}
-@import "./home.css";
-
 /* src/app/styles/home.css */
-@theme {
+@theme inline {
   --color-home-canvas: #123456;
 }
 ```
 
-Why: the global stylesheet resets Tailwind once before importing feature tokens, and the feature stylesheet only adds its own theme variables.
+Why: feature stylesheets contribute their own tokens without resetting the global theme.
 
 ## Incorrect — Direct Declarations Inside the Base Layer
 

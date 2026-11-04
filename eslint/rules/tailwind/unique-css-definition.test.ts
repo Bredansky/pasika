@@ -97,16 +97,16 @@ function runRule(kind: keyof typeof duplicates, label: string, name: string, che
   }
 }
 
-void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
+void describe("`@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.", () => {
   runRule("utility", "Custom utility", "custom-panel");
 });
-void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
+void describe("`@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.", () => {
   runRule("theme", "Theme token", "--color-accent");
 });
-void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
+void describe("`@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.", () => {
   runRule("root", "Default :root variable", "--layout-gap", true);
 });
-void describe("`@utility`, `@theme`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; scoped or conditional `:root` overrides are allowed.", () => {
+void describe("`@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.", () => {
   runRule("keyframes", "@keyframes", "fade");
 });
 void describe("`@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.", () => {

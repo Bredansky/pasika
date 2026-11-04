@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/utility-name-parity
  *
- * Require property/value parity for readable static, single-@apply utilities.
- * Complex values use meaningful semantic names instead of opaque hashes.
+ * Require property/value parity for simple static, single-@apply utilities.
+ * Complex values use property-prefixed semantic names instead of opaque hashes.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -25,7 +25,7 @@ function numericPart(value: string): string | undefined {
   return sign + number + (match.groups.unit === "%" ? "pct" : (match.groups.unit ?? ""));
 }
 
-function readableValue(value: string): string | undefined {
+function simpleValueSlug(value: string): string | undefined {
   const words = value
     .trim()
     .replace(/,/gu, "_comma_")
@@ -155,13 +155,14 @@ function compiledOperation(compiled: CompiledResult, index: number): Operation |
   return { property: declaration.property, value: generate(declaration.value).trim() };
 }
 
+/** Preserve the CSS property in utility names, using the agreed bg-* shorthand. */
+function propertyPrefix(property: string): string {
+  return property.replace(/^-+/u, "").replace(/^background-/u, "bg-");
+}
+
 function expectedName(operation: Operation): string | undefined {
-  const value = readableValue(operation.value);
-  if (!value) return undefined;
-  // Mirror the actual CSS property. Only "background-*" uses the agreed
-  // Tailwind-style "bg-*" spelling; all other property names stay explicit.
-  const property = operation.property.replace(/^-+/u, "").replace(/^background-/u, "bg-");
-  return `${property}-${value}`;
+  const value = simpleValueSlug(operation.value);
+  return value ? `${propertyPrefix(operation.property)}-${value}` : undefined;
 }
 
 function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): string | undefined {
@@ -177,7 +178,8 @@ export const utilityNameParityRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Use property/value-derived names for readable values and semantic names for complex values.",
+      description:
+        "Use property/value-derived names for simple values and property-prefixed semantic names for complex values.",
     },
   },
   create(context) {
@@ -210,13 +212,21 @@ export const utilityNameParityRule: CSSRuleDefinition = {
           }
           const expected = expectedName(operation);
           if (!expected) {
-            // An opaque digest encodes implementation rather than intent. Complex
-            // effects that cannot use a theme token should have readable names.
+            // Complex values need a semantic suffix, but must still identify
+            // the exact CSS property rather than just the general effect.
             if (/-hash-[a-f0-9]{12}$/u.test(candidate.name)) {
               context.report({
                 node: candidate.utility,
-                message: `Custom utility "${candidate.name}" uses an opaque hash for a complex ${operation.property} value; use a semantic name, or prefer a theme-generated utility where supported.`,
+                message: `Custom utility "${candidate.name}" uses an opaque hash for a complex ${operation.property} value; use a semantic name with a property prefix, or prefer a theme-generated utility where supported.`,
               });
+            } else {
+              const prefix = `${propertyPrefix(operation.property)}-`;
+              if (!candidate.name.startsWith(prefix) || candidate.name.length === prefix.length) {
+                context.report({
+                  node: candidate.utility,
+                  message: `Custom utility "${candidate.name}" maps a complex ${operation.property} value; use a semantic name starting with "${prefix}" to preserve the CSS property.`,
+                });
+              }
             }
             continue;
           }

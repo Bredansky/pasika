@@ -57,19 +57,29 @@ function pushSymbol(
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
 export function themeClasses(name: string): string[] {
-  // Only map namespaces with predictable class names. A color token emits
-  // several classes; semantic suffixes constrain them to the relevant roles.
+  // Tailwind generates classes for each --color-* token regardless of naming.
+  // Index every class so color-role-usage can report a mismatch rather than an unknown utility.
   if (name.includes("--", 2)) return [];
   if (name.startsWith("--color-")) {
     const stem = name.slice("--color-".length);
-    if (stem.endsWith("-canvas")) {
-      return ["bg", "fill", "from", "via", "to", "ring-offset"].map((prefix) => `${prefix}-${stem}`);
-    }
-    if (stem.endsWith("-ink")) return ["text", "caret", "decoration"].map((prefix) => `${prefix}-${stem}`);
-    if (stem.endsWith("-edge")) {
-      return ["border", "outline", "ring", "divide", "stroke"].map((prefix) => `${prefix}-${stem}`);
-    }
-    return ["bg", "text", "border", "fill", "stroke", "ring"].map((prefix) => `${prefix}-${stem}`);
+    return [
+      "bg",
+      "text",
+      "border",
+      "ring",
+      "fill",
+      "stroke",
+      "accent",
+      "caret",
+      "decoration",
+      "outline",
+      "divide",
+      "from",
+      "via",
+      "to",
+      "shadow",
+      "ring-offset",
+    ].map((prefix) => `${prefix}-${stem}`);
   }
   if (name.startsWith("--background-image-")) return [`bg-${name.slice("--background-image-".length)}`];
   if (name.startsWith("--spacing-")) {
@@ -200,7 +210,7 @@ export function buildCssDependencyGraph(options: {
               // preserving offsets so diagnostics still point to real lines.
               .replace(/\/\*[\s\S]*?\*\//gu, (comment) => comment.replace(/[^\r\n]/gu, " "));
             for (const found of source.matchAll(
-              /(?:^|(?<=[{;\r\n]))\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;}\r\n]+)(?=;|[}])/gu,
+              /(?:^|(?<=[{;\r\n]))\s*(?<name>--[a-z][\w-]*)\s*:\s*(?<value>[^;}]+)(?=;|[}])/gu,
             )) {
               const name = found.groups?.name;
               const value = found.groups?.value;

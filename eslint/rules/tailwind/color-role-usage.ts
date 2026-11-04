@@ -8,7 +8,7 @@ import type { StyleSheetPlain } from "@eslint/css-tree";
 import { colorRoleUsageMessage } from "../color-role";
 import { atrulesNamed } from "./helpers";
 
-const COLOR_TOKEN = /^--color-[a-z][a-z0-9-]*-(?:canvas|ink|edge)$/u;
+const COLOR_TOKEN = /^--color-[a-z][a-z0-9-]*(?:-(?:canvas|ink|edge))?$/u;
 const BACKGROUND_IMAGE_TOKEN = /^--background-image-[a-z][a-z0-9-]*-canvas$/u;
 
 export const colorRoleUsageRule: CSSRuleDefinition = {
@@ -16,7 +16,7 @@ export const colorRoleUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require semantic color and background-image token names and matching Tailwind color utilities.",
+      description: "Allow shared color tokens while enforcing explicit semantic roles and background-image naming.",
     },
   },
   create(context) {
@@ -39,7 +39,7 @@ export const colorRoleUsageRule: CSSRuleDefinition = {
             } else if (!COLOR_TOKEN.test(token)) {
               context.report({
                 node: theme,
-                message: `Color token "${token}" needs a semantic role ending in -canvas, -ink, or -edge.`,
+                message: `Color token "${token}" must use a valid --color-* name, optionally ending in -canvas, -ink, or -edge.`,
               });
             }
           }

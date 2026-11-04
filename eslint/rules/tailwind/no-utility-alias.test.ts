@@ -1,7 +1,7 @@
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("A custom @utility MUST NOT simply alias an existing Tailwind class.", () => {
+void describe("Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.", () => {
   tailwindRuleTester.run("no-utility-alias", noUtilityAliasRule, {
     valid: [
       { code: "@utility bg-mc-button { @apply bg-(--mc-button-surface); }" },
