@@ -15,7 +15,6 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
-- A custom `@utility` MUST NOT merely rename an existing Tailwind class.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
@@ -273,24 +272,6 @@ Why: the color token belongs in `@theme inline`, which already generates `border
 ```
 
 Why: Tailwind generates `border-control-edge` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
-
-## Incorrect — Utility Only Renames Another Class
-
-```css
-@utility full-width {
-  @apply w-full;
-}
-```
-
-Why: `w-full` already expresses this operation, so a custom alias adds no value.
-
-## Correct — Reuse the Existing Utility Directly
-
-```tsx
-<div className="w-full" />
-```
-
-Why: use the built-in utility directly instead of creating an alias.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 

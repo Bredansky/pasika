@@ -1210,7 +1210,7 @@
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.",
       "hash": "36107c49ca",
-      "ref": "pasika/utility-mapping"
+      "ref": "pasika/utility-mapping, pasika/no-utility-alias"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
@@ -1283,12 +1283,6 @@
       "text": "A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.",
       "hash": "db98dd359c",
       "ref": "pasika/utility-mapping"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom `@utility` MUST NOT merely rename an existing Tailwind class.",
-      "hash": "be561326fc",
-      "ref": "pasika/no-utility-alias"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
