@@ -43,7 +43,7 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
     valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
@@ -89,7 +89,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [
@@ -105,7 +105,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
     valid: [atFile("j.css"), atFile("k.css")],
     invalid: [

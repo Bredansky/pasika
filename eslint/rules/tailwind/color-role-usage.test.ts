@@ -6,7 +6,7 @@ const backgroundImageNaming = (token: string): string =>
 const mismatch = (className: string, role: string, purpose: string, expected: string): string =>
   `Color utility "${className}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
 
-void describe("Tailwind color tokens MAY omit a semantic suffix when shared across color roles; suffixed tokens (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST end in `-canvas`.", () => {
+void describe("Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.", () => {
   tailwindRuleTester.run("color-role-usage-background-image-tokens", colorRoleUsageRule, {
     valid: [
       {

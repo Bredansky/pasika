@@ -1256,8 +1256,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tailwind color tokens MAY omit a semantic suffix when shared across color roles; suffixed tokens (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST end in `-canvas`.",
-      "hash": "923ee4a156",
+      "text": "Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.",
+      "hash": "8c13966574",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"
     },
     {
@@ -1280,8 +1280,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.",
-      "hash": "7192941f77",
+      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.",
+      "hash": "7fdb357523",
       "ref": "pasika/unique-css-token-value"
     },
     {
