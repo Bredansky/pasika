@@ -161,7 +161,7 @@ void describe("Only tokens with `@variant` overrides MUST map to a same-named `v
   });
 });
 
-void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.", () => {
   tailwindRuleTester.run("root-variables-external", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --font-sans: var(--font-inter, Arial); }" },
@@ -283,7 +283,7 @@ void describe("A theme token MUST NOT directly alias a different theme token thr
   }
 });
 
-void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.", () => {
   tailwindRuleTester.run("root-variables-three-value-forms", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --radius-base: 8px; --font-sans: var(--font-inter, Arial); }" },

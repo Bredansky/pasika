@@ -1226,8 +1226,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.",
-      "hash": "bc8ec066cd",
+      "text": "Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.",
+      "hash": "ee3518909c",
       "ref": "pasika/root-variables"
     },
     {
