@@ -33,6 +33,9 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
       { code: "@theme inline { --radius-base: 8px; --radius-chip: 10px; --radius-button: 12px; }" },
       { code: "@theme inline { --color-brand-canvas: #2563eb; --shadow-brand: 0 0 3px var(--color-brand-canvas); }" },
       {
+        code: "@theme inline { --color-brand-canvas: #2563eb; --spacing-shadow: 2px; --shadow-brand: 0 var(--spacing-shadow) 3px var(--color-brand-canvas); }",
+      },
+      {
         code: "@theme inline { --color-brand-canvas: #2563eb; --shadow-brand: 0 0 3px color-mix(in srgb, var(--color-brand-canvas) 30%, transparent); }",
       },
       {

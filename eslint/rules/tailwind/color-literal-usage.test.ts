@@ -1,13 +1,16 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()`.", () => {
+void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
         code: "@theme { --color-base-canvas: #fff; --color-primary-ink: rgb(10 20 30 / 50%); --color-tint: hsl(300 100% 50%); }",
       },
       { code: "@theme { --color-base-ink: black; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-base-ink); }" },
+      {
+        code: "@theme inline { --spacing-mc-frame: 1px; --color-base-ink: black; --inset-shadow-mc-frame: inset var(--spacing-mc-frame) var(--spacing-mc-frame) 0 var(--color-base-ink); }",
+      },
       { code: "@theme { --background-image-gradient-canvas: linear-gradient(var(--color-tint), transparent); }" },
       {
         code: "@theme { --color-base-canvas: #fefefe; --shadow-card: 0 0 0 rgb(from var(--color-base-canvas) r g b / 50%); }",

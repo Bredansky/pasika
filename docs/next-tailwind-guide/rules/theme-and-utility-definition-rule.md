@@ -9,7 +9,7 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
-- Composite values such as shadows and gradients MUST reference fixed colors through `var()`.
+- Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
@@ -210,18 +210,20 @@ Why: the dialog reuses the existing ink token without creating a second color to
 
 Why: the effect is correctly modeled as a single shadow token, but its fixed colors are not reusable design tokens.
 
-## Correct — Palette Colors Compose a Shadow
+## Correct — Theme Tokens Compose a Shadow
 
 ```css
 @theme inline {
   --color-mc-frame-dark-canvas: #2b2b2b;
   --color-mc-frame-light-canvas: #545454;
+  --spacing-mc-frame: 1px;
   --inset-shadow-mc-donation-frame:
-    inset 1px 1px 0 var(--color-mc-frame-dark-canvas), inset -1px -1px 0 var(--color-mc-frame-light-canvas);
+    inset var(--spacing-mc-frame) var(--spacing-mc-frame) 0 var(--color-mc-frame-dark-canvas),
+    inset -1px -1px 0 var(--color-mc-frame-light-canvas);
 }
 ```
 
-Why: the shadow remains one `--inset-shadow-*` token and references reusable `--color-*` values; the colors can also be variant-driven. Direct token-to-token aliases are still disallowed.
+Why: the shadow must reuse color tokens and may also reuse spacing tokens. The colors can be variant-driven; direct token-to-token aliases remain disallowed.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
