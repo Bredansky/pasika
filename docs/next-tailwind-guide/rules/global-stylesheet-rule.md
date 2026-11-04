@@ -85,7 +85,7 @@ Why: Tailwind and theme definitions are split across competing global entry poin
 
 Why: a single global `@theme inline` block resets Tailwind and defines shared tokens; the base layer then applies the generated utilities.
 
-## Incorrect — Global Theme Split Into Two Inline Blocks
+## Incorrect — Global Theme Split Around Feature Imports
 
 ```css
 /* src/app/styles/globals.css */
@@ -95,15 +95,15 @@ Why: a single global `@theme inline` block resets Tailwind and defines shared to
   --*: initial;
 }
 
+@import "./home.css";
+
 @theme inline {
   --radius-base: 8px;
   --color-base-canvas: #ffffff;
 }
-
-@import "./home.css";
 ```
 
-Why: two global theme blocks unnecessarily separate the reset from shared tokens and violate the single-block convention.
+Why: placing feature imports between the reset and global tokens splits the global theme into two blocks. Keep the reset and all shared tokens together before feature imports.
 
 ## Correct — Reset and Shared Tokens in One Inline Block
 
