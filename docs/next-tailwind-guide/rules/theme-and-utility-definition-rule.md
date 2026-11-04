@@ -20,26 +20,6 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Fixed Token Uses Plain Theme
-
-```css
-@theme {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: the project uses only `@theme inline`, even for fixed values.
-
-## Correct — Literal Color Token Declared Inline
-
-```css
-@theme inline {
-  --color-primary-canvas: #18181b;
-}
-```
-
-Why: a fixed color has its value directly in `@theme inline`. Variant-driven tokens instead use a matching runtime variable.
-
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
 ```css
