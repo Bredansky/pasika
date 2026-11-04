@@ -35,6 +35,12 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
       {
         code: "@theme inline { --color-brand-canvas: #2563eb; --shadow-brand: 0 0 3px color-mix(in srgb, var(--color-brand-canvas) 30%, transparent); }",
       },
+      {
+        code: ":root { --color-primary-canvas: #fff; @variant dark { --color-primary-canvas: #000; } } @theme inline { --color-primary-canvas: var(--color-primary-canvas); --shadow-card: 0 0 3px var(--color-primary-canvas); --background-image-card-canvas: linear-gradient(var(--color-primary-canvas), transparent); }",
+      },
+      {
+        code: "@theme inline { --color-brand-canvas: var(--vendor-brand, #2563eb); --inset-shadow-brand: inset 0 1px 2px var(--color-brand-canvas); }",
+      },
       { code: "@theme inline { --brand-hue: 270 70% 50%; --color-brand-canvas: hsl(var(--brand-hue)); }" },
       {
         code: "@theme inline { --color-line-canvas: #334155; --background-image-lines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, var(--color-line-canvas) 2px 4px); }",
@@ -75,6 +81,10 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
         errors: [{ message: mapping("--color-surface") }],
       },
       {
+        code: ":root { --color-primary-canvas: #fff; @variant dark { --color-primary-canvas: #000; } } @theme inline { --color-primary-canvas: var(--color-primary-canvas); --color-derived-canvas: hsl(var(--color-primary-canvas)); }",
+        errors: [{ message: mapping("--color-derived-canvas") }],
+      },
+      {
         code: "@theme inline { --alpha: hsl(var(--beta)); --beta: hsl(var(--alpha)); }",
         errors: [{ message: mapping("--alpha") }, { message: mapping("--beta") }],
       },
@@ -82,7 +92,7 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
   });
 });
 
-void describe("A project-owned runtime token MUST map to its same-named CSS variable, which MUST have a default `:root` declaration and at least one `@variant` override.", () => {
+void describe("Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.", () => {
   tailwindRuleTester.run("root-variables-variant-runtime", rootVariablesRule, {
     valid: [
       {
@@ -151,7 +161,7 @@ void describe("A project-owned runtime token MUST map to its same-named CSS vari
   });
 });
 
-void describe("External CSS variable mappings MAY coexist with fixed and variant-driven tokens in `@theme inline` when they reference variables not defined by the project in CSS and supply nonempty literal fallbacks within `var()`.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.", () => {
   tailwindRuleTester.run("root-variables-external", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --font-sans: var(--font-inter, Arial); }" },
@@ -193,7 +203,7 @@ void describe("External CSS variable mappings MAY coexist with fixed and variant
   });
 });
 
-void describe("Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`; variant-driven tokens MUST use matching `@variant` overrides.", () => {
+void describe("Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-redeclarations", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --color-primary-canvas: #fff; }" },
@@ -227,7 +237,7 @@ void describe("Fixed tokens defined in `@theme inline` MUST NOT be redeclared ou
   });
 });
 
-void describe("A theme token MUST NOT directly alias another project-defined token through `var()`, regardless of token type.", () => {
+void describe("Theme tokens MUST NOT directly alias other project-defined tokens through `var()`; composite values such as shadows and gradients MAY reference other theme tokens through `var()`.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-inline-only-")));
   const filename = (name: string): string => path.join(fixture, "src/app/styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
@@ -246,7 +256,7 @@ void describe("A theme token MUST NOT directly alias another project-defined tok
       valid: [
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-primary-canvas: var(--color-primary-canvas); --radius-base: 8px; --font-sans: var(--font-loader, Arial); }",
+          code: "@theme inline { --color-primary-canvas: var(--color-primary-canvas); --shadow-card: 0 0 3px var(--color-primary-canvas); --radius-base: 8px; --font-sans: var(--font-loader, Arial); }",
         },
       ],
       invalid: [
@@ -273,7 +283,7 @@ void describe("A theme token MUST NOT directly alias another project-defined tok
   }
 });
 
-void describe("An `@theme inline` token MUST use a fixed value when it has no `@variant` override, a direct same-named `var()` for a variant-driven value, or a fallback-backed `var()` referencing an external CSS variable. Fixed composite effects MAY reference other fixed tokens without being direct aliases.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.", () => {
   tailwindRuleTester.run("root-variables-three-value-forms", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --radius-base: 8px; --font-sans: var(--font-inter, Arial); }" },

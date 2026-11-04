@@ -3,21 +3,19 @@
 Theme tokens and custom utilities can overlap, making the styling API harder to maintain. Stable token names and single-operation utilities prevent redundant definitions while components own reusable presentation.
 
 - Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
-- A theme token MUST NOT directly alias another project-defined token through `var()`, regardless of token type.
-- A project-owned runtime token MUST map to its same-named CSS variable, which MUST have a default `:root` declaration and at least one `@variant` override.
-- An `@theme inline` token MUST use a fixed value when it has no `@variant` override, a direct same-named `var()` for a variant-driven value, or a fallback-backed `var()` referencing an external CSS variable. Fixed composite effects MAY reference other fixed tokens without being direct aliases.
-- External CSS variable mappings MAY coexist with fixed and variant-driven tokens in `@theme inline` when they reference variables not defined by the project in CSS and supply nonempty literal fallbacks within `var()`.
-- Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`; variant-driven tokens MUST use matching `@variant` overrides.
+- Theme tokens MUST NOT directly alias other project-defined tokens through `var()`; composite values such as shadows and gradients MAY reference other theme tokens through `var()`.
+- Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
+- Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.
+- Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share the same static CSS value.
-- Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.
-- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token if it does not yet exist.
+- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
+- When Tailwind supports a theme-generated utility for a CSS value, that utility MUST replace an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token when needed.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
-- A custom `@utility` MUST NOT simply alias an existing Tailwind class.
+- A custom `@utility` MUST NOT merely rename an existing Tailwind class.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
@@ -79,7 +77,7 @@ Why: a fixed token must not be overridden through a selector; a runtime token re
 }
 ```
 
-Why: the matching `:root` default and `@variant compact` override make `rounded-card` dynamic. Without the variant, define `--radius-card: 8px` directly in `@theme inline`.
+Why: because the radius varies, `@theme inline` maps it to its same-named `:root` default and `@variant compact` override. A fixed radius needs only its literal `@theme inline` value.
 
 ## Incorrect — External Mapping Without a Fallback
 
@@ -161,7 +159,7 @@ Why: `@variant midnight` overrides the runtime color, while `@theme inline` expo
 }
 ```
 
-Why: a direct token-to-token alias is forbidden regardless of whether the two tokens share a semantic role.
+Why: a bare `var(--other-token)` alias creates another token instead of reusing the original. This restriction does not apply to composite values such as shadows or gradients that reference existing color tokens.
 
 ## Correct — Independent Fixed Color Token
 
@@ -202,27 +200,6 @@ Why: both ink tokens define the same fixed color value, even though the dialog c
 
 Why: the dialog reuses the existing ink token without creating a second color token or a cross-token alias.
 
-## Incorrect — Duplicate Configured Typography Utility
-
-```css
-@theme inline {
-  --text-sm: 14px;
-  --text-retro-14: 14px;
-}
-```
-
-Why: both classes emit the same font-size with no additional styling, so the alias adds no capability.
-
-## Correct — Reuse an Equivalent Typography Utility
-
-```css
-@theme inline {
-  --text-sm: 14px;
-}
-```
-
-Why: reuse `text-sm` instead of registering a second token for the same value; sizes with different units or additional line-height and letter-spacing remain distinct.
-
 ## Incorrect — Fixed Colors Embedded in a Shadow
 
 ```css
@@ -244,7 +221,7 @@ Why: the effect is correctly modeled as a single shadow token, but its fixed col
 }
 ```
 
-Why: the shadow remains one `--inset-shadow-*` token, while its colors reuse named `--color-*` tokens. Any CSS color format is allowed; equivalent colors must reuse an existing token directly, never an alias.
+Why: the shadow remains one `--inset-shadow-*` token and references reusable `--color-*` values; the colors can also be variant-driven. Direct token-to-token aliases are still disallowed.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
@@ -294,52 +271,6 @@ Why: the color token belongs in `@theme inline`, which already generates `border
 ```
 
 Why: Tailwind generates `border-control-edge` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
-
-## Incorrect — Complex Animation Hidden in a Custom Utility
-
-```css
-@utility animate-wiggle {
-  @apply [animation:wiggle_2s_ease-in-out_infinite];
-}
-```
-
-Why: Tailwind can generate the same single-property animation class from a theme variable, even though the value has several CSS tokens.
-
-## Correct — Theme-Generated Animation
-
-```css
-@theme inline {
-  --animate-wiggle: wiggle 2s ease-in-out infinite;
-}
-
-@keyframes wiggle {
-  to {
-    transform: rotate(3deg);
-  }
-}
-```
-
-Why: `animate-wiggle` is generated from `--animate-wiggle` and references the existing keyframes. Complex CSS values do not by themselves justify a custom `@utility`.
-
-## Incorrect — Typography Size Hidden in Custom Utility
-
-```css
-@utility text-card-title {
-  @apply [font-size:0.875rem];
-}
-```
-
-Why: a simple font-size mapping belongs in Tailwind's `--text-*` theme namespace.
-
-## Correct — A Descriptive Typography Token
-
-```css
-@theme inline {
-  --text-card-title: 0.875rem;
-}
-```
-
-Why: a direct theme value requires no extra `:root` variable, and the Tailwind typography namespace determines the generated utility.
 
 ## Incorrect — Utility Only Renames Another Class
 

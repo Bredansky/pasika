@@ -1214,32 +1214,26 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A theme token MUST NOT directly alias another project-defined token through `var()`, regardless of token type.",
-      "hash": "2ebc6a62bc",
+      "text": "Theme tokens MUST NOT directly alias other project-defined tokens through `var()`; composite values such as shadows and gradients MAY reference other theme tokens through `var()`.",
+      "hash": "8a5486263b",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A project-owned runtime token MUST map to its same-named CSS variable, which MUST have a default `:root` declaration and at least one `@variant` override.",
-      "hash": "64ff5c31d5",
+      "text": "Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.",
+      "hash": "d1f66639be",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "An `@theme inline` token MUST use a fixed value when it has no `@variant` override, a direct same-named `var()` for a variant-driven value, or a fallback-backed `var()` referencing an external CSS variable. Fixed composite effects MAY reference other fixed tokens without being direct aliases.",
-      "hash": "bbac6e1d48",
+      "text": "Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks; external variables MUST NOT be defined in project CSS.",
+      "hash": "bc8ec066cd",
       "ref": "pasika/root-variables"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "External CSS variable mappings MAY coexist with fixed and variant-driven tokens in `@theme inline` when they reference variables not defined by the project in CSS and supply nonempty literal fallbacks within `var()`.",
-      "hash": "171f0e952b",
-      "ref": "pasika/root-variables"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`; variant-driven tokens MUST use matching `@variant` overrides.",
-      "hash": "4a52cf6ed5",
+      "text": "Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.",
+      "hash": "12527ff02f",
       "ref": "pasika/root-variables"
     },
     {
@@ -1274,20 +1268,14 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share the same static CSS value.",
-      "hash": "07da891950",
+      "text": "Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.",
+      "hash": "b5adb378a6",
       "ref": "pasika/unique-css-token-value"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.",
-      "hash": "60155845f0",
-      "ref": "pasika/unique-css-token-value"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "When Tailwind supports a theme-generated utility for a CSS value, that utility MUST be used instead of an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token if it does not yet exist.",
-      "hash": "7c097b810d",
+      "text": "When Tailwind supports a theme-generated utility for a CSS value, that utility MUST replace an equivalent custom `@utility` or standalone CSS class; define the required `@theme inline` token when needed.",
+      "hash": "770037cf2e",
       "ref": "pasika/utility-mapping"
     },
     {
@@ -1298,8 +1286,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom `@utility` MUST NOT simply alias an existing Tailwind class.",
-      "hash": "3c8e5d4545",
+      "text": "A custom `@utility` MUST NOT merely rename an existing Tailwind class.",
+      "hash": "be561326fc",
       "ref": "pasika/no-utility-alias"
     },
     {

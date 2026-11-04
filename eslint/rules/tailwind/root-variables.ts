@@ -1,10 +1,10 @@
 /**
  * ESLint rule: pasika/root-variables
  *
- * All tokens use @theme inline. Fixed values are literal or compose fixed
- * tokens; runtime values map var(--same-name) to a :root default and an
- * @variant override. External CSS variables require a literal fallback.
- * Project token-to-token aliases are forbidden in all namespaces.
+ * All tokens use @theme inline. Fixed values may compose theme tokens,
+ * including variant-backed colors inside effects. Variant-driven tokens map
+ * var(--same-name) to a :root default and an @variant override. External CSS
+ * variables need literal fallbacks; direct token-to-token aliases are forbidden.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -56,10 +56,19 @@ export const rootVariablesRule: CSSRuleDefinition = {
       graph.definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name),
     );
 
-    // Fixed @theme values may compose other fixed @theme tokens in expressions
-    // such as hsl(var(--primary)) or multi-layer text shadows. Resolve every
-    // reference transitively, rejecting runtime variables and token cycles.
-    function isFixedThemeExpression(name: string, value: string, visited = new Set([name])): boolean {
+    // Composite expressions can reuse existing theme tokens without becoming
+    // direct aliases. Effects may also reference variant-backed and external-
+    // provider colors; scalar/derived tokens still require fixed values.
+    function isComposableThemeExpression(
+      name: string,
+      value: string,
+      allowRuntimeReferences: boolean,
+      visited = new Set([name]),
+    ): boolean {
+      if (externalMapping(value, name, authoredVariables)) return true;
+      if (mirroredTokens.has(name) && new RegExp(`^\\s*var\\(\\s*${name}\\s*\\)\\s*$`, "u").test(value)) {
+        return allowRuntimeReferences && defaultRootNames.has(name) && variantNames.has(name);
+      }
       const references = [...value.matchAll(/\bvar\s*\(\s*(?<target>--[a-z][\w-]*)/giu)].map(
         (match) => match.groups?.target,
       );
@@ -68,7 +77,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
         if (!target || visited.has(target)) return false;
         const next = themeValues.get(target);
         if (!next) return false;
-        return isFixedThemeExpression(target, next, new Set([...visited, target]));
+        return isComposableThemeExpression(target, next, allowRuntimeReferences, new Set([...visited, target]));
       });
     }
     // Collect all theme names, including one-line blocks the tolerant parser
@@ -169,9 +178,10 @@ export const rootVariablesRule: CSSRuleDefinition = {
               context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
               continue;
             }
-            // Shadows and gradients may compose fixed theme tokens, but
-            // a direct var(--other-token) reference is always a forbidden alias.
-            if (referencesVariable && !isFixedThemeExpression(name, unquoted)) {
+            // Expressions may compose theme tokens, including runtime colors
+            // in effects. A direct var(--other-token) remains a forbidden alias.
+            const runtimeEffect = /^--(?:shadow|inset-shadow|drop-shadow|text-shadow|background-image)-/u.test(name);
+            if (referencesVariable && !isComposableThemeExpression(name, unquoted, runtimeEffect)) {
               context.report({ node: theme, message: INLINE_MAPPING_MESSAGE(name) });
             }
           }

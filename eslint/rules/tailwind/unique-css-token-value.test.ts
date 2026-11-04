@@ -41,7 +41,7 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
     valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
@@ -87,7 +87,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share the same static CSS value.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [
@@ -103,7 +103,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Equivalent fixed colors in different syntaxes (such as HEX, RGB, HSL, or named colors) MUST reuse the same token when equivalence can be established without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
     valid: [atFile("j.css"), atFile("k.css")],
     invalid: [
