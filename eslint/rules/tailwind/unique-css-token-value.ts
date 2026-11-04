@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/unique-css-token-value
  *
- * Static values are unique within each semantic color role and among non-color
- * tokens; cross-role color reuse is intentional. Conditional overrides are not defaults.
+ * Static values are unique across all tokens, including cross-role colors.
+ * Conditional overrides are not defaults.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -95,14 +95,6 @@ function isComparable(symbol: CssSymbol): boolean {
   return symbol.kind === "theme-token" || (symbol.kind === "root-variable" && symbol.scope === "default");
 }
 
-function differentSemanticColorRoles(left: CssSymbol, right: CssSymbol): boolean {
-  const roleOf = (name: string): string | undefined =>
-    /^--color-[a-z][a-z0-9-]*-(?<role>canvas|ink|edge)$/u.exec(name)?.groups?.role;
-  const a = roleOf(left.name);
-  const b = roleOf(right.name);
-  return a !== undefined && b !== undefined && a !== b;
-}
-
 function compareLocations(left: CssSymbol, right: CssSymbol): number {
   const file = left.file.localeCompare(right.file);
   return file || left.line - right.line;
@@ -145,11 +137,7 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
       group.sort(compareLocations);
       const seen: CssSymbol[] = [];
       for (const definition of group) {
-        // Equal colors across different roles are intentional. Same-role
-        // duplicate colors and non-color duplicate values are not.
-        const original = seen.find(
-          (prior) => prior.name !== definition.name && !differentSemanticColorRoles(prior, definition),
-        );
+        const original = seen.find((prior) => prior.name !== definition.name);
         if (original) redundant.set(definition, original);
         seen.push(definition);
       }

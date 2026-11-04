@@ -1,6 +1,6 @@
 # Theme and Utility Definition Rule
 
-Prefer Tailwind utilities and theme tokens before introducing custom CSS, with fixed colors defined in `--color-*` tokens rather than raw declarations, including composite effects. Stable token names and single-operation utilities keep the styling API maintainable while components own reusable presentation.
+Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, duplicate values, and unclear ownership of reusable presentation.
 
 - Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.
 - Every Tailwind theme token, including fixed values and the default theme reset, MUST use `@theme inline`.
@@ -10,11 +10,11 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS, with f
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
-- Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
+- Tailwind color tokens MAY omit a semantic suffix when shared across color roles; suffixed tokens (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST end in `-canvas`.
 - Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
-- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.
+- Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.

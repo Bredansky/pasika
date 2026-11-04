@@ -1,14 +1,12 @@
 import { colorRoleUsageRule } from "./color-role-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-const naming = (token: string): string =>
-  `Color token "${token}" needs a semantic role ending in -canvas, -ink, or -edge.`;
 const backgroundImageNaming = (token: string): string =>
   `Background-image token "${token}" needs a semantic role ending in -canvas.`;
 const mismatch = (className: string, role: string, purpose: string, expected: string): string =>
   `Color utility "${className}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
 
-void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.", () => {
+void describe("Tailwind color tokens MAY omit a semantic suffix when shared across color roles; suffixed tokens (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST end in `-canvas`.", () => {
   tailwindRuleTester.run("color-role-usage-background-image-tokens", colorRoleUsageRule, {
     valid: [
       {
@@ -44,14 +42,11 @@ void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-in
     valid: [
       { code: "@theme { --*: initial; --color-base-canvas: #fff; --color-base-ink: #111; --color-base-edge: #ccc; }" },
       { code: "@theme inline { --color-primary-canvas: var(--primary); }" },
-      { code: "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }" },
+      { code: "@theme { --color-brand: #2563eb; }" },
+      { code: "@theme { --color-button: #123456; --color-border: #ccc; }" },
       { code: "@theme { --radius-md: 4px; --text-card-title: 1rem; }" },
     ],
-    invalid: [
-      { code: "@theme { --color-blue-600: #2563eb; }", errors: [{ message: naming("--color-blue-600") }] },
-      { code: "@theme { --color-button: #123456; }", errors: [{ message: naming("--color-button") }] },
-      { code: "@theme { --color-border: #ccc; }", errors: [{ message: naming("--color-border") }] },
-    ],
+    invalid: [],
   });
 
   tailwindRuleTester.run("color-role-usage-apply", colorRoleUsageRule, {
@@ -63,6 +58,7 @@ void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-in
         code: "@apply hover:bg-shiny-canvas/50 divide-shiny-edge ring-offset-shiny-canvas from-shiny-canvas to-shiny-canvas;",
       },
       { code: "@apply p-4 border-2 text-lg bg-[color:var(--runtime)] bg-(--runtime);" },
+      { code: "@apply bg-brand text-brand border-brand hover:ring-brand;" },
     ],
     invalid: [
       {
@@ -109,17 +105,17 @@ void describe("Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-in
   });
 });
 
-void describe("Color tokens used in composite effects MUST retain a canvas, ink or edge role suffix.", () => {
+void describe("Shared color tokens MAY be used without role suffixes in composite effects.", () => {
   tailwindRuleTester.run("color-role-usage-effects", colorRoleUsageRule, {
     valid: [
       {
-        code: "@theme { --color-mc-dark-canvas: #2b2b2b; --color-mc-light-canvas: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark-canvas), inset -1px -1px 0 var(--color-mc-light-canvas); }",
+        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
       },
     ],
     invalid: [
       {
-        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
-        errors: [{ message: naming("--color-mc-dark") }, { message: naming("--color-mc-light") }],
+        code: "@theme { --background-image-hero: linear-gradient(red, blue); }",
+        errors: [{ message: backgroundImageNaming("--background-image-hero") }],
       },
     ],
   });

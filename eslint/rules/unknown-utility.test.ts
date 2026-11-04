@@ -35,6 +35,7 @@ const GLOBALS = `@import "tailwindcss";
   --color-shiny-ink: #ffffff;
   --color-shiny-canvas: #2563eb;
   --color-brand-500: #123456;
+  --color-shared: #abcdef;
   --radius-card: 1rem;
   --background-image-rainbow-gradient-canvas: linear-gradient(red, blue);
   --spacing-panel-26: 26rem;
@@ -111,7 +112,7 @@ void describe("Tailwind color utilities MUST match semantic roles: canvas for ba
   ruleTester.run("unknown-utility-color-roles", unknownUtilityRule, {
     valid: [
       {
-        code: '<div className="bg-shiny-canvas text-shiny-ink border-primary-edge" />',
+        code: '<div className="bg-shiny-canvas text-shiny-ink border-primary-edge bg-shared text-shared border-shared" />',
         filename: srcFile("shared/card.tsx"),
       },
       {

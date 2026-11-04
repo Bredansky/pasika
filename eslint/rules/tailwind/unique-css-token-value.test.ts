@@ -43,10 +43,18 @@ function atFile(name: keyof typeof files): { code: string; filename: string } {
   return { code: files[name], filename: path.join(root, "src", "app", "styles", name) };
 }
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value", uniqueCssTokenValueRule, {
-    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css"), atFile("l.css")],
+    valid: [atFile("a.css"), atFile("e.css"), atFile("f.css"), atFile("g.css")],
     invalid: [
+      {
+        ...atFile("l.css"),
+        errors: [
+          {
+            message: `Token "--color-brand-edge" duplicates the value of "--color-brand-canvas" in app${path.sep}styles${path.sep}l.css:1; reuse one design token.`,
+          },
+        ],
+      },
       {
         ...atFile("b.css"),
         errors: [
@@ -81,7 +89,7 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value:root", uniqueCssTokenValueRule, {
     valid: [atFile("e.css")],
     invalid: [
@@ -97,15 +105,23 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
   });
 });
 
-void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values within the same semantic color role or among non-color tokens; equal colors across different roles (`-canvas`, `-ink`, `-edge`) are allowed. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
+void describe("Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, even across different color roles; shared colors MUST reuse one unsuffixed `--color-*` token. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.", () => {
   tailwindRuleTester.run("unique-css-token-value-colors", uniqueCssTokenValueRule, {
-    valid: [atFile("j.css"), atFile("k.css"), atFile("h.css")],
+    valid: [atFile("j.css"), atFile("k.css")],
     invalid: [
+      {
+        ...atFile("h.css"),
+        errors: [
+          {
+            message: `Token "--color-rgb-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
+          },
+        ],
+      },
       {
         ...atFile("i.css"),
         errors: [
           {
-            message: `Token "--color-hsl-ink" duplicates the value of "--color-rgb-ink" in app${path.sep}styles${path.sep}h.css:1; reuse one design token.`,
+            message: `Token "--color-hsl-ink" duplicates the value of "--color-page-canvas" in app${path.sep}styles${path.sep}a.css:1; reuse one design token.`,
           },
         ],
       },
