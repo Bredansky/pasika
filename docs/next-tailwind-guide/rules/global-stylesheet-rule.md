@@ -18,7 +18,7 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 @theme inline {
   --color-base-canvas: white;
 }
-@utility clip-trapezoid {
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
@@ -38,7 +38,7 @@ Why: two top-level directives run together without the required visual separator
 @import "./home.css";
 @import "./player.css";
 
-@utility clip-trapezoid {
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```

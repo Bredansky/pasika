@@ -16,7 +16,7 @@ Prefer Tailwind utilities and theme tokens before introducing custom CSS. Stable
 - Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values, including colors expressed in different syntaxes (HEX, RGB, HSL, or named colors) when equivalence is exact without rounding or changing precision.
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
-- Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.
+- Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.
 - A custom utility MUST be statically referenced by at least one file in the repository's source.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
@@ -298,14 +298,14 @@ Why: encoding every polygon coordinate produces a long, implementation-specific 
 ## Correct — Semantic Complex Utility
 
 ```css
-@utility clip-trapezoid {
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 ```
 
-Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1–8 supported parts (numbers and units, hex colors, identifiers, or simple `var(--name)` references) and a slug of at most 70 characters. `clip-trapezoid` describes the intended shape; semantic naming quality still requires human review.
+Why: `polygon(...)` contains a function rather than 1–8 supported simple parts. `clip-path-trapezoid` preserves the CSS property and describes the shape; whether the semantic suffix is meaningful still requires review.
 
-## Incorrect — Vague Name for a Readable Mapping
+## Incorrect — Semantic Name for a Simple Value
 
 ```css
 @utility bg-pixel-tiles {
@@ -313,9 +313,9 @@ Why: `polygon(...)` is complex because `readableValue()` cannot reduce it to 1�
 }
 ```
 
-Why: `24px 24px` is readable, so the name must preserve the property and units.
+Why: `24px 24px` contains two supported simple parts and produces a value slug shorter than 70 characters, so the name must encode the property, both values, and their units.
 
-## Correct — Readable Property and Value
+## Correct — Property and Value in the Utility Name
 
 ```css
 @utility bg-size-24px-24px {

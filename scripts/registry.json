@@ -1292,8 +1292,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.",
-      "hash": "40d5d9aefd",
+      "text": "Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.",
+      "hash": "fc1465757b",
       "ref": "pasika/utility-name-parity"
     },
     {

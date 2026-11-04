@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Custom utilities with readable single-property values MUST use a property/value-derived name, including units; complex values without a theme-generated equivalent MUST use semantic names.", () => {
+void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
@@ -47,18 +47,37 @@ void describe("Custom utilities with readable single-property values MUST use a 
       { code: "@utility toolbar-* { width: --value(--toolbar-*); }" },
       { code: "@utility multi { @apply h-[3px]; @apply w-[4px]; }" },
       { code: "@theme { --background-image-rainbow-gradient-canvas: linear-gradient(red, blue); }" },
-      { code: "@utility shadow-soft-small { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; }" },
-      { code: "@utility shadow-soft-large { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }" },
-      { code: "@utility h-starfield { @apply h-[min(700px,90vw)]; }" },
+      { code: "@utility box-shadow-soft-small { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; }" },
+      { code: "@utility box-shadow-soft-large { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }" },
+      { code: "@utility height-starfield { @apply h-[min(700px,90vw)]; }" },
       { code: "@utility filter-border-glow { @apply [filter:drop-shadow(0_0_15px_hsl(var(--primary)_/_0.6))]; }" },
-      { code: "@utility bg-frame-glow { @apply bg-[linear-gradient(135deg,red,blue)]; }" },
+      { code: "@utility bg-image-frame-glow { @apply bg-[linear-gradient(135deg,red,blue)]; }" },
       { code: "@utility animation-long-sequence { @apply [animation:a_b_c_d_e_f_g_h_i]; }" },
       {
-        code: "@utility font-legacy-fallback { @apply [font-family:veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryvery]; }",
+        code: "@utility font-family-legacy-fallback { @apply [font-family:veryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryveryvery]; }",
       },
-      { code: "@utility bg-photo { @apply bg-[url(hero.png)]; }" },
+      { code: "@utility bg-image-photo { @apply bg-[url(hero.png)]; }" },
+      { code: "@utility clip-path-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }" },
     ],
     invalid: [
+      {
+        code: "@utility clip-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "clip-trapezoid" maps a complex clip-path value; use a semantic name starting with "clip-path-" to preserve the CSS property.',
+          },
+        ],
+      },
+      {
+        code: "@utility bg-photo { @apply bg-[url(hero.png)]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "bg-photo" maps a complex background-image value; use a semantic name starting with "bg-image-" to preserve the CSS property.',
+          },
+        ],
+      },
       {
         code: "@utility box-shadow-hash-000000000001 { @apply shadow-[0_0_12px_rgba(0,0,0,0.5)]; } @utility box-shadow-hash-000000000002 { @apply shadow-[0_0_24px_rgba(0,0,0,0.5)]; }",
         errors: [

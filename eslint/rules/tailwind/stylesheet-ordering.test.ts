@@ -43,7 +43,7 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
   }
 }
 
-@utility clip-trapezoid {
+@utility clip-path-trapezoid {
   @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)];
 }
 
