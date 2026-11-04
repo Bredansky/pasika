@@ -203,7 +203,7 @@ void describe("Tokens without their own `@variant` overrides MUST define fixed v
   });
 });
 
-void describe("Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.", () => {
+void describe("Fixed theme tokens MUST NOT be overridden outside `@theme inline`.", () => {
   tailwindRuleTester.run("root-variables-redeclarations", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --color-primary-canvas: #fff; }" },

@@ -1232,8 +1232,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.",
-      "hash": "12527ff02f",
+      "text": "Fixed theme tokens MUST NOT be overridden outside `@theme inline`.",
+      "hash": "c8bf409215",
       "ref": "pasika/root-variables"
     },
     {

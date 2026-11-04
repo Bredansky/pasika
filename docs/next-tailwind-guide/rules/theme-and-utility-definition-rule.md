@@ -6,7 +6,7 @@ Theme tokens and custom utilities can overlap, making the styling API harder to 
 - A theme token MUST NOT directly alias a different theme token through `var()`; composite values MAY reference other theme tokens.
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
-- Fixed tokens defined in `@theme inline` MUST NOT be redeclared outside `@theme inline`.
+- Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tailwind color tokens MUST use semantic suffixes (`-canvas`, `-ink`, `-edge`), and color utilities MUST match those roles: canvas for backgrounds, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Background-image theme tokens (`--background-image-*`) MUST also end in `-canvas`.
 - Fixed CSS colors MUST be defined in `--color-*` tokens and referenced through `var()` elsewhere.
