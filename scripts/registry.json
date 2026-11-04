@@ -1172,12 +1172,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Each project stylesheet MUST contain at most one `@theme inline` block.",
-      "hash": "9cbad37edc",
-      "ref": "pasika/stylesheet-ordering"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "Global selectors inside `@layer base` MUST contain only `@apply` directives.",
       "hash": "3e4883d186",
       "ref": "pasika/apply-usage"

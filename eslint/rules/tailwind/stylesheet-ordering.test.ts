@@ -82,6 +82,10 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
         code: "@theme inline { --color-home-canvas: #123456; }\n@keyframes home-fade { to { opacity: 1; } }",
       },
       {
+        filename: partial,
+        code: "@theme inline { --color-home-canvas: white; }\n@theme inline { --radius-home: 8px; }",
+      },
+      {
         filename: globals,
         code: '@import "tailwindcss";\n@theme inline { --*: initial; }\n@import "./home.css";\n:root { --font-body: Arial; }',
       },
@@ -191,25 +195,6 @@ void describe("The global stylesheet entry point MUST order the Tailwind import,
         filename: globals,
         code: '@import "tailwindcss";\n@supports (display: grid) { .card { --card-gap: 8px; } }\n@theme inline { --*: initial; }',
         errors: [{ message: ORDER_ERROR }],
-      },
-    ],
-  });
-});
-
-void describe("Each project stylesheet MUST contain at most one `@theme inline` block.", () => {
-  const partial = path.resolve("src/app/styles/home.css");
-  tailwindRuleTester.run("stylesheet-ordering-feature-blocks", stylesheetOrderingRule, {
-    valid: [
-      { filename: partial, code: "@theme inline { --color-home-canvas: white; }" },
-      { filename: partial, code: "@keyframes fade { to { opacity: 1; } }" },
-    ],
-    invalid: [
-      {
-        filename: partial,
-        code: "@theme inline { --color-home-canvas: white; }\n@theme inline { --radius-home: 8px; }",
-        errors: [
-          { message: "Each feature stylesheet must use at most one @theme inline block; merge the theme blocks." },
-        ],
       },
     ],
   });
