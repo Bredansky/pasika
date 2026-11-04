@@ -1214,8 +1214,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Theme tokens MUST NOT directly alias other project-defined tokens through `var()`; composite values such as shadows and gradients MAY reference other theme tokens through `var()`.",
-      "hash": "8a5486263b",
+      "text": "A theme token MUST NOT directly alias a different theme token through `var()`; composite values MAY reference other theme tokens.",
+      "hash": "41be20db59",
       "ref": "pasika/root-variables"
     },
     {
