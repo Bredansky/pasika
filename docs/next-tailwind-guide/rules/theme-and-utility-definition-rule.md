@@ -233,26 +233,6 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 
 Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas` while its fixed color comes from a named color token. Check background-property resets before replacing the `background` shorthand.
 
-## Incorrect — Theme Color Wrapped in a Custom Utility
-
-```css
-@utility border-control-edge {
-  @apply [border-color:var(--color-control-edge)];
-}
-```
-
-Why: the color token belongs in `@theme inline`, which already generates `border-control-edge` without a custom utility.
-
-## Correct — A Theme-Generated Border Color
-
-```css
-@theme inline {
-  --color-control-edge: #d1d5db;
-}
-```
-
-Why: Tailwind generates `border-control-edge` directly from the static theme token; a `:root` bridge is unnecessary without runtime overrides.
-
 ## Incorrect — Reusable Presentation Hidden in a Utility
 
 ```css
