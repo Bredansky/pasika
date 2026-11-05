@@ -19,9 +19,9 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
-import { themeClassesForTokens } from "./tailwind-theme-classes";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rules } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
 
 function applyOperationCount(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): number {
   let count = 0;
@@ -487,7 +487,10 @@ export const utilityMappingRule: CSSRuleDefinition = {
       includeReferences: false,
     });
     const projectTokens = graph.definitions.filter((symbol) => symbol.kind === "theme-token");
-    const classesByToken = themeClassesForTokens(projectTokens.map((token) => token.name), sourceRoot);
+    const classesByToken = themeClassesForTokens(
+      projectTokens.map((token) => token.name),
+      sourceRoot,
+    );
     const rootDefinitions = new Map<string, { value: string; scope: string }[]>();
     for (const symbol of graph.definitions) {
       if (symbol.kind !== "root-variable" || !symbol.value) continue;
