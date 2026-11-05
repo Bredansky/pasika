@@ -149,7 +149,6 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet,
     [/CSS utility "home-badge" is consumed only by feature "home"; define it in home\.css/],
   );
 
-
   // Theme-generated utilities require a feature stylesheet even if none exists yet.
   check(
     {
