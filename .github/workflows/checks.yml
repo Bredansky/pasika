@@ -33,10 +33,7 @@ jobs:
         run: npm ci
 
       - name: Format
-        run: |
-          npx prettier --write eslint/project/shared-class-compositions.test.ts
-          git diff -- eslint/project/shared-class-compositions.test.ts
-          npm run format
+        run: npm run format
 
       - name: Lint
         run: npm run lint
