@@ -1160,8 +1160,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.",
-      "hash": "02530dfd11",
+      "text": "CSS used by a single feature MUST live in its feature stylesheet. CSS shared across features MUST live in `globals.css`.",
+      "hash": "f2a2b713ba",
       "ref": "pasika/feature-css-placement"
     },
     {
