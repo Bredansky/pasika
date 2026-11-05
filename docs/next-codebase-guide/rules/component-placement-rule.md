@@ -6,7 +6,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
 - A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
-- A component whose CCF is `src/features/` MUST live in `src/shared/`.
+- A component whose CCF is `src/features/` MUST live in `src/shared/` (or one level below it in a named shared component family with related runtime modules). This exception does not apply if a single feature owns the component.
 - `src/app/` MUST contain [Next.js App Router framework-convention files and assets](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), plus styles required by routing files, but MUST NOT contain ordinary components or support folders.
 
 ## Incorrect — Cross-Feature Component Duplicated
