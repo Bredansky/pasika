@@ -487,10 +487,6 @@ export const utilityMappingRule: CSSRuleDefinition = {
       includeReferences: false,
     });
     const projectTokens = graph.definitions.filter((symbol) => symbol.kind === "theme-token");
-    const classesByToken = themeClassesForTokens(
-      projectTokens.map((token) => token.name),
-      sourceRoot,
-    );
     const rootDefinitions = new Map<string, { value: string; scope: string }[]>();
     for (const symbol of graph.definitions) {
       if (symbol.kind !== "root-variable" || !symbol.value) continue;
@@ -554,6 +550,13 @@ export const utilityMappingRule: CSSRuleDefinition = {
             themeDefinitions.set(child.property, definitions);
           }
         }
+
+        // Include the stylesheet being linted: RuleTester and unsaved edits
+        // may not be present in the on-disk project dependency graph.
+        const classesByToken = themeClassesForTokens(
+          [...projectTokens.map((token) => token.name), ...themeDefinitions.keys()],
+          sourceRoot,
+        );
 
         // RuleTester supplies the current stylesheet in memory; include its
         // top-level roots even when it has not been written into the project graph.
