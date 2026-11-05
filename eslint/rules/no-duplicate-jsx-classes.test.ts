@@ -174,7 +174,12 @@ test("Shared class compositions follow a barrel, aliases, local cn() values and 
   const shared = getJsxReuseAnalysis(root).shared;
   expect(shared.get(sharedFixture("shared/minecraft-link.tsx").filename)).toHaveLength(1);
   expect(shared.get(sharedFixture("features/showcase/minecraft-button.tsx").filename)).toBeUndefined();
-  for (const name of ["shared/one-off.tsx", "shared/non-style-use.tsx", "shared/custom-component.tsx", "shared/local-classes.tsx"]) {
+  for (const name of [
+    "shared/one-off.tsx",
+    "shared/non-style-use.tsx",
+    "shared/custom-component.tsx",
+    "shared/local-classes.tsx",
+  ]) {
     expect(shared.get(sharedFixture(name).filename)).toBeUndefined();
   }
 });
