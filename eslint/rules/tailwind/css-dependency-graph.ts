@@ -193,6 +193,15 @@ export function buildCssDependencyGraph(options: {
   const utilities = new Set(definitions.filter((item) => item.kind === "utility").map((item) => item.name));
   const selectors = new Set(definitions.filter((item) => item.kind === "selector").map((item) => item.name));
   const keyframes = new Set(definitions.filter((item) => item.kind === "keyframes").map((item) => item.name));
+  // Tailwind v4 animations link @keyframes through @theme --animate-* values.
+  // A keyframe is used even when no plain CSS animation declaration exists.
+  for (const token of definitions) {
+    if (token.kind !== "theme-token" || !token.name.startsWith("--animate-") || !token.value) continue;
+    for (const name of keyframes) {
+      if (tokenLines(token.value, name).length === 0) continue;
+      references.push({ kind: "keyframes", name, file: token.file, line: token.line, source: "css" });
+    }
+  }
   const generatedClasses = new Map<string, string>();
   const themeNames = definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name);
   const classesByToken = themeClassesForTokens(themeNames, options.sourceRoot);

@@ -57,6 +57,7 @@ void describe("pasika presets", () => {
     const cssBlocks = pasikaNextjsApp.filter((block) => (block.files ?? []).includes("src/**/*.css"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/utility-mapping"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/at-rule-spacing"] === "error"));
+    assert.ok(cssBlocks.some((block) => block.rules?.["pasika/unused-css-definition"] === "error"));
   });
 
   it("pasikaNextjsApp runs every source rule on src/**", () => {

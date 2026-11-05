@@ -309,6 +309,7 @@ const tailwindImportGraph: Linter.Config = {
   languageOptions: { tolerant: true },
   rules: {
     "pasika/at-rule-spacing": "error",
+    "pasika/unused-css-definition": "error",
     "pasika/css-entry-point": "error",
     "pasika/feature-css-placement": "error",
     "pasika/unique-css-definition": "error",
