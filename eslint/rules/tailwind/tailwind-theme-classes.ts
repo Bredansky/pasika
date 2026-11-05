@@ -30,7 +30,7 @@ if (typeof __unstable__loadDesignSystem !== "function") {
 const css = "@theme inline {\n" + names.map((name, index) =>
   name + "-pasika-owner-" + index + ": 1px;"
 ).join("\n") + "\n}";
-const designSystem = await __unstable__loadDesignSystem(css);
+const designSystem = await __unstable__loadDesignSystem(css, { base: projectRoot });
 const available = designSystem.getClassList().map(([name]) => name);
 const result = names.map((_, index) => {
   const marker = "-pasika-owner-" + index;
