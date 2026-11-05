@@ -6,9 +6,9 @@
 import path from "node:path";
 import { generate, parse, walk } from "@eslint/css-tree";
 import { escapeRegExp } from "./source-files";
+import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 import { themeClassesForTokens } from "./tailwind-theme-classes";
 export { themeClasses } from "./tailwind-theme-classes";
-import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 
 export type CssSymbolKind = "utility" | "theme-token" | "root-variable" | "keyframes" | "font-face" | "selector";
 export type CssReferenceKind = "utility" | "variable" | "keyframes" | "theme-class" | "selector";
