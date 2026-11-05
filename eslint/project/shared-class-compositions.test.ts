@@ -2,8 +2,8 @@ import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { expect, test } from "vitest";
-import { getProjectIndex } from "./index";
 import { sharedClassReuses } from "./shared-class-compositions";
+import { getProjectIndex } from "./index";
 
 function project(fixtures: Record<string, string>): {
   sourceRoot: string;
@@ -45,9 +45,15 @@ test("Shared class contracts resolve renamed reexports, star barrels, clsx and m
   const link = path.join(sourceRoot, "shared/minecraft-link.tsx");
   const card = path.join(sourceRoot, "shared/minecraft-card.tsx");
   const first = path.join(sourceRoot, "features/minecraft/control.tsx");
-  expect(matches.get(link)?.[0]?.occurrence.classes).toEqual(
-    ["bg-mc-button", "border-2", "cursor-pointer", "px-2", "py-1", "shadow-sm", "text-white"],
-  );
+  expect(matches.get(link)?.[0]?.occurrence.classes).toEqual([
+    "bg-mc-button",
+    "border-2",
+    "cursor-pointer",
+    "px-2",
+    "py-1",
+    "shadow-sm",
+    "text-white",
+  ]);
   expect(matches.get(card)).toHaveLength(1);
   expect(matches.get(first)).toBeUndefined();
   expect(matches.get(path.join(sourceRoot, "shared/uses-as-title.tsx"))).toBeUndefined();
