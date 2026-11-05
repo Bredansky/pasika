@@ -19,13 +19,13 @@ import { pathToFileURL } from "node:url";
 const { names, projectRoot, moduleUrl } = JSON.parse(readFileSync(0, "utf8"));
 let resolved;
 try {
-  resolved = createRequire(path.join(projectRoot, "package.json")).resolve("tailwindcss");
+  resolved = createRequire(path.join(projectRoot, "package.json")).resolve("@tailwindcss/node");
 } catch {
-  resolved = createRequire(moduleUrl).resolve("tailwindcss");
+  resolved = createRequire(moduleUrl).resolve("@tailwindcss/node");
 }
 const { __unstable__loadDesignSystem } = await import(pathToFileURL(resolved).href);
 if (typeof __unstable__loadDesignSystem !== "function") {
-  throw new Error("Tailwind CSS v4 design-system API is unavailable");
+  throw new Error("@tailwindcss/node design-system API is unavailable");
 }
 const css = "@theme inline {\n" + names.map((name, index) =>
   name + "-pasika-owner-" + index + ": 1px;"
