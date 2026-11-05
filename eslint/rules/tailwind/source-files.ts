@@ -1,7 +1,7 @@
 /**
  * Filesystem helpers shared by the cross-file Tailwind rules.
  *
- * Both `css-entry-point` and `unused-utility` read the `src/` tree from
+ * Both `css-entry-point` and `unused-css-definition` read the `src/` tree from
  * disk — a single stylesheet cannot see what other files import it or use a
  * utility. These helpers keep the recursive walk and the one-kept-read-once
  * text cache in one place so the rules only describe what to scan and what to

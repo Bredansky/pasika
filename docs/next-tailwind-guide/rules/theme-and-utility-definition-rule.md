@@ -18,8 +18,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - A custom utility MUST map exactly one Tailwind utility operation; reusable presentation MUST be expressed through a component rather than a utility that combines styles.
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.
-- A custom utility MUST be statically referenced by at least one file in the repository's source.
-- Non-foundational `@theme inline` tokens and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.
+- Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
@@ -366,11 +365,15 @@ Why: the global stylesheet resets Tailwind's default theme with `--*: initial`, 
 
 Why: explicit semantic tokens generate available color utilities after the default palette is reset.
 
-## Incorrect — Orphaned Theme Token and Keyframes
+## Incorrect — Unused Utility, Theme Token, and Keyframes
 
 ```css
 @theme inline {
   --color-never-used-canvas: #123456;
+}
+
+@utility bg-size-12px-6px {
+  @apply [background-size:12px_6px];
 }
 
 @keyframes float-sideways {
@@ -380,14 +383,18 @@ Why: explicit semantic tokens generate available color utilities after the defau
 }
 ```
 
-Why: neither definition is referenced by a class, CSS variable, animation declaration, or application source.
+Why: none of these definitions is referenced by a class, CSS variable, animation declaration, or application source.
 
-## Correct — Theme Class and Animation Are Referenced
+## Correct — Utility, Theme Token, and Animation Are Referenced
 
 ```css
 @theme inline {
   --color-card-canvas: #123456;
   --animate-card-float: card-float 3s ease-in-out infinite;
+}
+
+@utility bg-size-24px-24px {
+  @apply [background-size:24px_24px];
 }
 
 @keyframes card-float {
@@ -398,7 +405,7 @@ Why: neither definition is referenced by a class, CSS variable, animation declar
 ```
 
 ```tsx
-<div className="bg-card-canvas animate-card-float">Content</div>
+<div className="bg-card-canvas bg-size-24px-24px animate-card-float">Content</div>
 ```
 
-Why: the class names consume the theme tokens; the animation token links the keyframes to an active utility.
+Why: the class names consume the custom utility and theme tokens; the animation token references the keyframes.

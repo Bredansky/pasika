@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/unused-css-definition
  *
- * Find unreferenced keyframes and Tailwind theme tokens across CSS and source
- * modules. Custom @utility definitions are covered by unused-utility.
+ * Find unused @utility declarations, @keyframes and Tailwind theme tokens
+ * through one project-wide CSS and source-module dependency graph.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -37,6 +37,9 @@ function isUnused(
   references: ReturnType<typeof buildCssDependencyGraph>["references"],
   moduleContents: string[],
 ): boolean {
+  if (symbol.kind === "utility") {
+    return !references.some((reference) => reference.kind === "utility" && reference.name === symbol.name);
+  }
   if (symbol.kind === "keyframes") {
     return !references.some((reference) => reference.kind === "keyframes" && reference.name === symbol.name);
   }
@@ -53,12 +56,23 @@ function isUnused(
   return !moduleContents.some((content) => staticMention(content, symbol.name));
 }
 
+function unusedMessage(symbol: CssSymbol): string {
+  if (symbol.kind === "utility") {
+    return `Custom utility "${symbol.name}" is never referenced by project CSS or source.`;
+  }
+  if (symbol.kind === "keyframes") {
+    return `@keyframes "${symbol.name}" is never referenced by project CSS or source.`;
+  }
+  return `Theme token "${symbol.name}" is never referenced by project CSS or source.`;
+}
+
 export const unusedCssDefinitionRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
     docs: {
-      description: "Report unused @keyframes and non-foundational @theme tokens across the project's CSS and modules.",
+      description:
+        "Report unused @utility, @keyframes and non-foundational @theme tokens across project CSS and modules.",
     },
   },
   create(context) {
@@ -98,10 +112,7 @@ export const unusedCssDefinitionRule: CSSRuleDefinition = {
               start: { line: symbol.line, column: 1 },
               end: { line: symbol.line, column: 2 },
             },
-            message:
-              symbol.kind === "keyframes"
-                ? `@keyframes "${symbol.name}" is never referenced by project CSS or source.`
-                : `Theme token "${symbol.name}" is never referenced by project CSS or source.`,
+            message: unusedMessage(symbol),
           });
         }
       },
