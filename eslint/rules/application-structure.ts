@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import { hasComponentOwner, hasExactEntry, isSharedComponentFamily, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
+import { hasComponentOwner, hasExactEntry, segmentsOf, SUPPORT_FOLDERS } from "../project/ccf";
 import { parseModule, type ExportKind } from "../project/parse-module";
 import { parseComponentInfo } from "./component-conventions";
 import { sourceRootOf } from "./project-root";
@@ -274,9 +274,6 @@ export const applicationStructureRule: Rule.RuleModule = {
     const kinds = exportedKinds(filename);
     const isConfigModuleRoot = topLevel === "config" && segments.length === 3 && path.basename(filename) === "index.ts";
     if (isConfigModuleRoot) return {};
-    // Named shared families colocate reusable UI and its companion constants.
-    // The family must contain multiple runtime modules, including a component.
-    if (isSharedComponentFamily(segments, sourceRoot)) return {};
     if (!SUPPORT_FOLDERS.has(currentFolder)) {
       const expected = expectedSupportFolder(kinds);
       if (expected !== undefined && segments.length > 2) {

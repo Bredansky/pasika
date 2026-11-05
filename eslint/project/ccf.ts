@@ -112,34 +112,6 @@ export function hasComponentOwner(folderPath: string, folderName: string): boole
   return hasExactEntry(folderPath, `${folderName}.tsx`);
 }
 
-/**
- * A one-level namespace of related shared components and their local support.
- * Unlike an ordinary component folder, a family has no same-named owner and
- * must contain multiple runtime modules, including at least one component file.
- * Single-component folders still follow the named-owner + index convention.
- */
-export function isSharedComponentFamily(segments: string[], sourceRoot: string): boolean {
-  const [layer, family, file] = segments;
-  if (layer !== "shared" || segments.length !== 3 || !family || !file || SUPPORT_FOLDERS.has(family)) {
-    return false;
-  }
-
-  const directory = path.join(sourceRoot, "shared", family);
-  if (hasComponentOwner(directory, family)) return false;
-
-  let entries: string[];
-  try {
-    entries = fs.readdirSync(directory);
-  } catch {
-    return false;
-  }
-
-  const members = entries.filter(
-    (entry) => /\.[jt]sx?$/.test(entry) && entry !== "index.ts" && !/\.(?:test|spec)\.[jt]sx?$/.test(entry),
-  );
-  return members.includes(file) && members.length >= 2 && members.some((entry) => /\.[jt]sx$/.test(entry));
-}
-
 /** Whether a folder is a structurally valid named component folder. */
 function isValidComponentFolder(folder: string[], sourceRoot: string): boolean {
   const name = folder[folder.length - 1];
