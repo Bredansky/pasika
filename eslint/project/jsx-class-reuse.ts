@@ -5,8 +5,8 @@
  */
 import { readFileSync } from "node:fs";
 import ts from "typescript";
-import { getProjectIndex, type ProjectIndex } from "./index";
 import { sharedClassReuses, type SharedClassReuse } from "./shared-class-compositions";
+import { getProjectIndex, type ProjectIndex } from "./index";
 
 const MIN_SHARED_CLASSES = 5;
 
