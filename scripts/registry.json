@@ -1160,8 +1160,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.",
-      "hash": "02530dfd11",
+      "text": "CSS used by a single feature MUST live in its feature stylesheet. CSS shared across features MUST live in `globals.css`.",
+      "hash": "f2a2b713ba",
       "ref": "pasika/feature-css-placement"
     },
     {
@@ -1202,8 +1202,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.",
-      "hash": "f0fae6c4e1",
+      "text": "Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.",
+      "hash": "1bc215c3a7",
       "ref": "pasika/no-duplicate-jsx-classes"
     },
     {

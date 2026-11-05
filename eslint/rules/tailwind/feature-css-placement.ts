@@ -7,7 +7,6 @@
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
-import { existsSync } from "node:fs";
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
@@ -18,7 +17,6 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 const STYLES_DIR = path.join("app", "styles");
 const GLOBALS = "globals.css";
-const FEATURE_CSS = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*\.css$/u;
 const LABELS: Record<string, string> = {
   utility: "utility",
   "theme-token": "theme token",
@@ -42,12 +40,6 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
     const relative = path.relative(sourceRoot, current);
     const styles = path.join(sourceRoot, STYLES_DIR);
     if (!relative.startsWith(`${STYLES_DIR}${path.sep}`)) return {};
-    const basename = path.basename(current);
-    const featureName = basename.slice(0, -".css".length);
-    const isFeatureFile =
-      path.dirname(current) === styles &&
-      FEATURE_CSS.test(basename) &&
-      existsSync(path.join(sourceRoot, "features", featureName));
     const read = cachedTextReader();
     const css = findFiles(sourceRoot, CSS_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
     const modules = findFiles(sourceRoot, MODULE_EXTENSIONS).map((file) => ({ path: file, content: read(file) }));
@@ -61,16 +53,7 @@ export const featureCssPlacementRule: CSSRuleDefinition = {
           const owner = owners.get(symbolId(definition));
           if (!owner) continue;
           const expected = owner === GLOBALS ? GLOBALS : `${owner}.css`;
-          // Without a feature stylesheet, unowned CSS need not be relocated.
-          // A definition in another feature's stylesheet still has the wrong owner.
-          if (
-            owner !== GLOBALS &&
-            (basename === GLOBALS || !isFeatureFile) &&
-            !existsSync(path.join(styles, expected))
-          ) {
-            continue;
-          }
-          if (basename === expected) continue;
+          if (current === path.join(styles, expected)) continue;
           const kind = LABELS[definition.kind] ?? definition.kind;
           context.report({
             node,

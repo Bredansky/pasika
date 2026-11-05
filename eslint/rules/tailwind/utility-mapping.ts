@@ -18,9 +18,10 @@ import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
-import { buildCssDependencyGraph, themeClasses } from "./css-dependency-graph";
+import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rules } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
 
 function applyOperationCount(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): number {
   let count = 0;
@@ -550,6 +551,13 @@ export const utilityMappingRule: CSSRuleDefinition = {
           }
         }
 
+        // Include the stylesheet being linted: RuleTester and unsaved edits
+        // may not be present in the on-disk project dependency graph.
+        const classesByToken = themeClassesForTokens(
+          [...projectTokens.map((token) => token.name), ...themeDefinitions.keys()],
+          sourceRoot,
+        );
+
         // RuleTester supplies the current stylesheet in memory; include its
         // top-level roots even when it has not been written into the project graph.
         for (const cssRule of node.children) {
@@ -650,7 +658,8 @@ export const utilityMappingRule: CSSRuleDefinition = {
               continue;
             }
             const generatedClass = `${candidate.prefix}-${token.name.slice(namespacePrefix.length)}`;
-            if (candidate.namespace === "color" && !themeClasses(token.name).includes(generatedClass)) continue;
+            const generatesClass = (classesByToken.get(token.name) ?? []).includes(generatedClass);
+            if (candidate.namespace === "color" && !generatesClass) continue;
             return generatedClass;
           }
           return undefined;
@@ -756,7 +765,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
             if (
               alias &&
               [...projectTokens.map((token) => token.name), ...themeDefinitions.keys()].some((name) =>
-                themeClasses(name).includes(alias),
+                (classesByToken.get(name) ?? []).includes(alias),
               )
             ) {
               context.report({

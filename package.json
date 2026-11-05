@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.10.136",
+  "version": "0.10.137",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -70,6 +70,7 @@
   },
   "dependencies": {
     "@eslint/css-tree": "4.0.5",
+    "@tailwindcss/node": "4.3.3",
     "@typescript-eslint/parser": "8.68.0",
     "typescript": "6.0.3",
     "yaml": "2.9.0"
