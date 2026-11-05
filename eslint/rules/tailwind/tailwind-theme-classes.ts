@@ -42,6 +42,13 @@ process.stdout.write(JSON.stringify(result));
 const cache = new Map<string, string[]>();
 const TOKEN = /^--[a-z][a-z0-9-]*$/u;
 
+function isStringGroups(value: unknown): value is string[][] {
+  return (
+    Array.isArray(value) &&
+    value.every((group: unknown) => Array.isArray(group) && group.every((item) => typeof item === "string"))
+  );
+}
+
 export function themeClassesForTokens(names: readonly string[], sourceRoot: string): Map<string, string[]> {
   const projectRoot = path.dirname(sourceRoot);
   const unique = [...new Set(names)].filter((name) => TOKEN.test(name) && name !== "--spacing");
@@ -60,15 +67,13 @@ export function themeClassesForTokens(names: readonly string[], sourceRoot: stri
       throw new Error(`Cannot resolve Tailwind theme classes: ${detail}`);
     }
     const result: unknown = JSON.parse(child.stdout);
-    if (
-      !Array.isArray(result) ||
-      result.length !== missing.length ||
-      !result.every((group: unknown) => Array.isArray(group) && group.every((value) => typeof value === "string"))
-    ) {
+    if (!isStringGroups(result) || result.length !== missing.length) {
       throw new Error("Unexpected Tailwind theme class resolver output");
     }
     for (const [index, name] of missing.entries()) {
-      cache.set(`${projectRoot}\u0000${name}`, result[index] as string[]);
+      const classes = result[index];
+      if (!classes) throw new Error("Missing Tailwind theme class result");
+      cache.set(`${projectRoot}\u0000${name}`, classes);
     }
   }
   return new Map(unique.map((name) => [name, cache.get(`${projectRoot}\u0000${name}`) ?? []]));
