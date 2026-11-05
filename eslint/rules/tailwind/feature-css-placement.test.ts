@@ -193,6 +193,28 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet,
       /CSS theme token "--color-donation-frame-light" is consumed only by feature "donation"; define it in donation\.css/,
     ],
   );
+  // Tailwind's --shadow-* classes propagate feature ownership to their color dependencies.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@import "./home.css";\n@theme inline { --color-home-shadow: #333333; }',
+      "app/styles/home.css":
+        "@theme inline { --shadow-minecraft-embed: 0 18px 32px var(--color-home-shadow); }",
+      "features/home/minecraft-banner.tsx": 'const cls = "shadow-minecraft-embed";',
+    },
+    "app/styles/globals.css",
+    [/CSS theme token "--color-home-shadow" is consumed only by feature "home"; define it in home\.css/],
+  );
+  // Other Tailwind shadow namespaces must also create the corresponding feature stylesheet.
+  check(
+    {
+      "app/styles/globals.css":
+        '@import "tailwindcss";\n@theme inline { --drop-shadow-ember: 0 0 8px red; }',
+      "features/home/minecraft-banner.tsx": 'const cls = "drop-shadow-ember";',
+    },
+    "app/styles/globals.css",
+    [/CSS theme token "--drop-shadow-ember" is consumed only by feature "home"; define it in home\.css/],
+  );
   // A theme token depends on its runtime :root variable, not the other way around.
   check(
     {
