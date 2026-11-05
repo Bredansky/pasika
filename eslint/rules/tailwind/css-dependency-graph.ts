@@ -6,6 +6,8 @@
 import path from "node:path";
 import { generate, parse, walk } from "@eslint/css-tree";
 import { escapeRegExp } from "./source-files";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
+export { themeClasses } from "./tailwind-theme-classes";
 import { importedSpecifiers, resolveSpecifier } from "./stylesheet-graph";
 
 export type CssSymbolKind = "utility" | "theme-token" | "root-variable" | "keyframes" | "font-face" | "selector";
@@ -56,87 +58,6 @@ function pushSymbol(
 ): void {
   if (name) symbols.push({ kind, name, file, line, ...(value === undefined ? {} : { value }) });
 }
-export function themeClasses(name: string): string[] {
-  // Tailwind generates classes for each --color-* token regardless of naming.
-  // Index every class so color-role-usage can report a mismatch rather than an unknown utility.
-  if (name.includes("--", 2)) return [];
-  if (name.startsWith("--color-")) {
-    const stem = name.slice("--color-".length);
-    return [
-      "bg",
-      "text",
-      "border",
-      "ring",
-      "fill",
-      "stroke",
-      "accent",
-      "caret",
-      "decoration",
-      "outline",
-      "divide",
-      "from",
-      "via",
-      "to",
-      "shadow",
-      "ring-offset",
-    ].map((prefix) => `${prefix}-${stem}`);
-  }
-  if (name.startsWith("--background-image-")) return [`bg-${name.slice("--background-image-".length)}`];
-  if (name.startsWith("--spacing-")) {
-    const stem = name.slice("--spacing-".length);
-    return [
-      "p",
-      "px",
-      "py",
-      "pt",
-      "pr",
-      "pb",
-      "pl",
-      "ps",
-      "pe",
-      "m",
-      "mx",
-      "my",
-      "mt",
-      "mr",
-      "mb",
-      "ml",
-      "ms",
-      "me",
-      "w",
-      "h",
-      "size",
-      "min-w",
-      "min-h",
-      "max-w",
-      "max-h",
-      "gap",
-      "gap-x",
-      "gap-y",
-      "inset",
-      "inset-x",
-      "inset-y",
-      "top",
-      "right",
-      "bottom",
-      "left",
-      "start",
-      "end",
-      "space-x",
-      "space-y",
-    ].map((prefix) => `${prefix}-${stem}`);
-  }
-  if (name.startsWith("--aspect-")) return [`aspect-${name.slice("--aspect-".length)}`];
-  if (name.startsWith("--leading-")) return [`leading-${name.slice("--leading-".length)}`];
-  if (name.startsWith("--animate-")) return [`animate-${name.slice("--animate-".length)}`];
-  if (name.startsWith("--inset-shadow-")) return [`inset-shadow-${name.slice("--inset-shadow-".length)}`];
-  if (name.startsWith("--radius-")) return [`rounded-${name.slice("--radius-".length)}`];
-  if (name.startsWith("--text-") || name.startsWith("--tracking-") || name.startsWith("--font-")) {
-    return [name.slice(2)];
-  }
-  return [];
-}
-
 /** Build one deterministic index over all stylesheets and their consumers. */
 export function buildCssDependencyGraph(options: {
   css: readonly CssSource[];
@@ -273,9 +194,13 @@ export function buildCssDependencyGraph(options: {
   const selectors = new Set(definitions.filter((item) => item.kind === "selector").map((item) => item.name));
   const keyframes = new Set(definitions.filter((item) => item.kind === "keyframes").map((item) => item.name));
   const generatedClasses = new Map<string, string>();
+  const themeNames = definitions.filter((symbol) => symbol.kind === "theme-token").map((symbol) => symbol.name);
+  const classesByToken = themeClassesForTokens(themeNames, options.sourceRoot);
   for (const symbol of definitions) {
     if (symbol.kind !== "theme-token") continue;
-    for (const className of themeClasses(symbol.name)) generatedClasses.set(className, symbol.name);
+    for (const className of classesByToken.get(symbol.name) ?? []) {
+      generatedClasses.set(className, symbol.name);
+    }
   }
 
   for (const file of options.css) {
