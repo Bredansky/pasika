@@ -4,7 +4,6 @@
  * project's index rather than treating exported styling strings as components.
  */
 import { readFileSync } from "node:fs";
-import path from "node:path";
 import ts from "typescript";
 import { resolveSpecifier, type ProjectIndex } from "./index";
 
