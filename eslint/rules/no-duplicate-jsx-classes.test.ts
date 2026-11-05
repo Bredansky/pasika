@@ -171,7 +171,7 @@ void describe("Exported static class sets of at least five classes used by nativ
 });
 
 test("Shared class compositions follow a barrel, aliases, local cn() values and dynamic consumer variants.", () => {
-  const shared = getJsxReuseAnalysis(root).shared;
+  const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
   expect(shared.get(sharedFixture("shared/minecraft-link.tsx").filename)).toHaveLength(1);
   expect(shared.get(sharedFixture("features/showcase/minecraft-button.tsx").filename)).toBeUndefined();
   for (const name of [
