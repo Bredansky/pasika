@@ -6,7 +6,7 @@
 import path from "node:path";
 import { generate, parse, walk } from "@eslint/css-tree";
 import type { CssDependencyGraph, CssSource, CssSymbol } from "./css-dependency-graph";
-import { themeClasses } from "./css-dependency-graph";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
 import { escapeRegExp } from "./source-files";
 
 const GLOBAL = "globals.css";
@@ -22,7 +22,11 @@ function contains(text: string, name: string): boolean {
 }
 
 /** Find names referenced inside a single definition, not the whole file. */
-function dependencies(text: string, defs: readonly CssSymbol[]): Set<string> {
+function dependencies(
+  text: string,
+  defs: readonly CssSymbol[],
+  classesByToken: ReadonlyMap<string, string[]>,
+): Set<string> {
   const result = new Set<string>();
   const variables = new Set([...text.matchAll(/var\(\s*(?<name>--[\w-]+)/gu)].map((m) => m.groups?.name));
   const applied = [...text.matchAll(/@apply\s+(?<value>[^;}]+)/gu)].map((m) => m.groups?.value ?? "");
@@ -41,7 +45,7 @@ function dependencies(text: string, defs: readonly CssSymbol[]): Set<string> {
         (families.some((part) => contains(part, def.name)) ||
           new RegExp(`^\\s*["']?${escapeRegExp(def.name)}["']?\\s*(?:,|$)`, "iu").test(text))) ||
       (def.kind === "theme-token" &&
-        applied.some((part) => themeClasses(def.name).some((name) => contains(part, name))));
+        applied.some((part) => (classesByToken.get(def.name) ?? []).some((name) => contains(part, name))));
     if (match) result.add(symbolId(def));
   }
   return result;
@@ -85,6 +89,10 @@ export function inferCssOwners(options: {
 }): Map<string, string | undefined> {
   const { graph, css, modules, sourceRoot } = options;
   const defs = graph.definitions;
+  const classesByToken = themeClassesForTokens(
+    defs.filter((def) => def.kind === "theme-token").map((def) => def.name),
+    sourceRoot,
+  );
   const owners = new Map(defs.map((def) => [symbolId(def), new Set<string>()]));
   const counts = new Map<string, number>();
   for (const def of defs) {
@@ -133,7 +141,7 @@ export function inferCssOwners(options: {
 
   const links = new Map<string, Set<string>>();
   for (const [key, content] of bodiesOf(css, defs)) {
-    const targets = dependencies(content, defs);
+    const targets = dependencies(content, defs, classesByToken);
     const def = defs.find((candidate) => symbolId(candidate) === key);
     // Tailwind --animate-* values are animation shorthands without an
     // "animation:" declaration prefix; resolve the referenced keyframes.
@@ -163,7 +171,7 @@ export function inferCssOwners(options: {
         continue;
       }
       const body = src.content.slice(node.loc.start.offset, node.loc.end.offset);
-      for (const key of dependencies(body, defs)) owners.get(key)?.add(GLOBAL);
+      for (const key of dependencies(body, defs, classesByToken)) owners.get(key)?.add(GLOBAL);
     }
   }
 
