@@ -36,26 +36,3 @@ function Panel({ children }: { children: React.ReactNode }): React.JSX.Element {
 ```
 
 Why: the full six-class set has one owner while the content remains independent.
-
-## Incorrect — Shared Class Composition Exported From Constants
-
-```tsx
-// src/constants/minecraft-control-classes.ts
-export const minecraftControlClassName = "border-2 bg-mc-button p-2 shadow-mc text-sm";
-
-// Two separate components import the classes to style their own native elements:
-<button className={minecraftControlClassName} />;
-<a className={minecraftControlClassName} />;
-```
-
-Why: the exported styling string becomes a public styling API. Reusing it bypasses the shared component requirement.
-
-## Correct — Shared Component Owns Its Classes
-
-```tsx
-function MinecraftControl({ as: Tag = "button", ...props }: MinecraftControlProps): React.JSX.Element {
-  return <Tag className="bg-mc-button shadow-mc border-2 p-2 text-sm" {...props} />;
-}
-```
-
-Why: separate consumers reuse a UI component with typed behavior instead of importing the component's styling. Local class variables and component-local CVA variants remain valid.
