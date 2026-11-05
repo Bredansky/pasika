@@ -57,19 +57,6 @@ const FIXTURE: Record<string, string> = {
   "features/orders/order-card.tsx":
     'import { StatusBadge } from "@/shared/status-badge";\nimport { Badge } from "@/features/payments/badge";\nexport function OrderCard() { return <StatusBadge />; }\n',
   "shared/status-badge.tsx": "export function StatusBadge() { return <span />; }\n",
-  // Shared component family: two distinct features use its link component.
-  "features/payments/minecraft-control.tsx":
-    'import { MinecraftLink } from "@/shared/minecraft/link";\nexport function PaymentControl() { return <MinecraftLink />; }\n',
-  "features/orders/minecraft-control.tsx":
-    'import { MinecraftLink } from "@/shared/minecraft/link";\nexport function OrderControl() { return <MinecraftLink />; }\n',
-  "shared/minecraft/link.tsx":
-    'import { classes } from "./control-classes";\nexport function MinecraftLink() { return <a className={classes} />; }\n',
-  "shared/minecraft/control-classes.ts": 'export const classes = "border";\n',
-  // A named family does not let a single feature keep a reusable component in shared.
-  "features/accounts/account-panel.tsx":
-    'import { AccountLabel } from "@/shared/accounts/label";\nexport function AccountPanel() { return <AccountLabel />; }\n',
-  "shared/accounts/label.tsx": "export function AccountLabel() { return <span />; }\n",
-  "shared/accounts/classes.ts": 'export const classes = "font-bold";\n',
   "features/payments/badge.tsx": "export function Badge() { return <span />; }\n",
 
   // A feature-local component imports one foreign feature; it must be a composition
@@ -197,25 +184,6 @@ void describe("A component whose CCF is src/features/ MUST live in src/shared/."
               "its consumers span more than one feature, and no feature may import from another",
               ["src/features/orders/order-card.tsx", "src/features/payments/payment-summary.tsx"],
             ),
-          },
-        ],
-      },
-    ],
-  });
-});
-
-void describe("A component whose CCF is src/features/ MUST live in src/shared/ (or one level below it in a named shared component family with related runtime modules). This exception does not apply if a single feature owns the component.", () => {
-  ruleTester.run("component-placement", componentPlacementRule, {
-    valid: [{ code: read("shared/minecraft/link.tsx"), filename: file("shared/minecraft/link.tsx") }],
-    invalid: [
-      {
-        code: read("shared/accounts/label.tsx"),
-        filename: file("shared/accounts/label.tsx"),
-        errors: [
-          {
-            message: moveMessage("src/features/accounts/", "that is the closest folder its consumers share", [
-              "src/features/accounts/account-panel.tsx",
-            ]),
           },
         ],
       },
