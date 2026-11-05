@@ -1,8 +1,9 @@
 # Tailwind Class Reuse Rule
 
-Identical class sets on native JSX elements across files duplicate ownership of the same styling. Reuse one component to keep that styling in one place.
+Identical class sets on native JSX elements across files duplicate ownership of the same styling. Exporting class compositions for multiple components also bypasses component ownership. Reuse a component to keep that styling in one place.
 
 - Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.
+- Exported static class sets of at least five classes used by native JSX elements in multiple source files MUST be encapsulated by a shared component.
 
 ## Incorrect — Identical Class Sets In Separate Files
 
@@ -35,3 +36,26 @@ function Panel({ children }: { children: React.ReactNode }): React.JSX.Element {
 ```
 
 Why: the full six-class set has one owner while the content remains independent.
+
+## Incorrect — Shared Class Composition Exported From Constants
+
+```tsx
+// src/constants/minecraft-control-classes.ts
+export const minecraftControlClassName = "border-2 bg-mc-button p-2 shadow-mc text-sm";
+
+// Two separate components import the classes to style their own native elements:
+<button className={minecraftControlClassName} />;
+<a className={minecraftControlClassName} />;
+```
+
+Why: the exported styling string becomes a public styling API. Reusing it bypasses the shared component requirement.
+
+## Correct — Shared Component Owns Its Classes
+
+```tsx
+function MinecraftControl({ as: Tag = "button", ...props }: MinecraftControlProps): React.JSX.Element {
+  return <Tag className="border-2 bg-mc-button p-2 shadow-mc text-sm" {...props} />;
+}
+```
+
+Why: separate consumers reuse a UI component with typed behavior instead of importing the component's styling. Local class variables and component-local CVA variants remain valid.
