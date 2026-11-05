@@ -24,6 +24,14 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     expect(themeClasses("--color-mc-frame-dark-ink")).toContain("bg-mc-frame-dark-ink");
   });
 
+  it("derives shadow, drop-shadow, text-shadow and color utilities from Tailwind itself", () => {
+    expect(themeClasses("--shadow-minecraft-embed")).toContain("shadow-minecraft-embed");
+    expect(themeClasses("--drop-shadow-minecraft-ember")).toContain("drop-shadow-minecraft-ember");
+    expect(themeClasses("--text-shadow-minecraft-heading")).toContain("text-shadow-minecraft-heading");
+    expect(themeClasses("--color-minecraft-edge")).toContain("border-b-minecraft-edge");
+    expect(themeClasses("--spacing")).toEqual([]);
+  });
+
   const graph = buildCssDependencyGraph({
     sourceRoot: root,
     css: [
