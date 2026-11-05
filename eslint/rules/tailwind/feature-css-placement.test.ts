@@ -157,7 +157,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet,
       "features/home/banner.tsx": 'const cls = "bg-portal";',
     },
     "app/styles/globals.css",
-    [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\\.css/],
+    [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\.css/],
   );
   // Cross-feature tokens may remain global even without individual feature stylesheets.
   check(
