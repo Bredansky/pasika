@@ -7,6 +7,7 @@
  * async. Resolve tokens in one bounded subprocess per uncached batch.
  */
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 const WORKER = String.raw`
@@ -47,7 +48,7 @@ export function themeClassesForTokens(names: readonly string[], sourceRoot: stri
   const missing = unique.filter((name) => !cache.has(`${projectRoot}\u0000${name}`));
   if (missing.length > 0) {
     const child = spawnSync(process.execPath, ["--input-type=module", "--eval", WORKER], {
-      cwd: projectRoot,
+      cwd: existsSync(projectRoot) ? projectRoot : process.cwd(),
       input: JSON.stringify({ names: missing, projectRoot, moduleUrl: import.meta.url }),
       encoding: "utf8",
       timeout: 30_000,
