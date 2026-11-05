@@ -1,6 +1,6 @@
 # Tailwind Class Reuse Rule
 
-Identical class sets on native JSX elements across files duplicate ownership of the same styling. Exporting class compositions for multiple components also bypasses component ownership. Reuse a component to keep that styling in one place.
+Identical class sets across native JSX elements and exported class compositions used by multiple components duplicate styling ownership. Reuse one component to keep that styling in one place.
 
 - Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.
 - Exported static class sets of at least five classes used by native JSX elements in multiple source files MUST be encapsulated by a shared component.
@@ -54,7 +54,7 @@ Why: the exported styling string becomes a public styling API. Reusing it bypass
 
 ```tsx
 function MinecraftControl({ as: Tag = "button", ...props }: MinecraftControlProps): React.JSX.Element {
-  return <Tag className="border-2 bg-mc-button p-2 shadow-mc text-sm" {...props} />;
+  return <Tag className="bg-mc-button shadow-mc border-2 p-2 text-sm" {...props} />;
 }
 ```
 
