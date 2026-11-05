@@ -18,7 +18,8 @@ import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { CssNodePlain, StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
-import { buildCssDependencyGraph, themeClasses } from "./css-dependency-graph";
+import { buildCssDependencyGraph } from "./css-dependency-graph";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
 import { atrulesNamed, blockChildren, preludeIdentifiers, rules } from "./helpers";
 import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
@@ -486,6 +487,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
       includeReferences: false,
     });
     const projectTokens = graph.definitions.filter((symbol) => symbol.kind === "theme-token");
+    const classesByToken = themeClassesForTokens(projectTokens.map((token) => token.name), sourceRoot);
     const rootDefinitions = new Map<string, { value: string; scope: string }[]>();
     for (const symbol of graph.definitions) {
       if (symbol.kind !== "root-variable" || !symbol.value) continue;
@@ -650,7 +652,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
               continue;
             }
             const generatedClass = `${candidate.prefix}-${token.name.slice(namespacePrefix.length)}`;
-            if (candidate.namespace === "color" && !themeClasses(token.name).includes(generatedClass)) continue;
+            if (candidate.namespace === "color" && !(classesByToken.get(token.name) ?? []).includes(generatedClass)) continue;
             return generatedClass;
           }
           return undefined;
@@ -756,7 +758,7 @@ export const utilityMappingRule: CSSRuleDefinition = {
             if (
               alias &&
               [...projectTokens.map((token) => token.name), ...themeDefinitions.keys()].some((name) =>
-                themeClasses(name).includes(alias),
+                (classesByToken.get(name) ?? []).includes(alias),
               )
             ) {
               context.report({
