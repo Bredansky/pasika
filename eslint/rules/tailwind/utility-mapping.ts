@@ -652,7 +652,8 @@ export const utilityMappingRule: CSSRuleDefinition = {
               continue;
             }
             const generatedClass = `${candidate.prefix}-${token.name.slice(namespacePrefix.length)}`;
-            if (candidate.namespace === "color" && !(classesByToken.get(token.name) ?? []).includes(generatedClass)) continue;
+            const generatesClass = (classesByToken.get(token.name) ?? []).includes(generatedClass);
+            if (candidate.namespace === "color" && !generatesClass) continue;
             return generatedClass;
           }
           return undefined;
