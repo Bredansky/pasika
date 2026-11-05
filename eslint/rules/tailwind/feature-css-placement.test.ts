@@ -208,8 +208,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet,
   // Other Tailwind shadow namespaces must also create the corresponding feature stylesheet.
   check(
     {
-      "app/styles/globals.css":
-        '@import "tailwindcss";\n@theme inline { --drop-shadow-ember: 0 0 8px red; }',
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme inline { --drop-shadow-ember: 0 0 8px red; }',
       "features/home/minecraft-banner.tsx": 'const cls = "drop-shadow-ember";',
     },
     "app/styles/globals.css",
