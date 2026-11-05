@@ -6,6 +6,7 @@
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { getProjectIndex, type ProjectIndex } from "./index";
+import { sharedClassReuses, type SharedClassReuse } from "./shared-class-compositions";
 
 const MIN_SHARED_CLASSES = 5;
 
@@ -32,6 +33,7 @@ export interface JsxClassReuse {
 interface JsxReuseAnalysis {
   matches: Map<string, JsxClassReuse[]>;
   groups: JsxClassReuseGroup[];
+  shared: Map<string, SharedClassReuse[]>;
 }
 
 const cache = new WeakMap<ProjectIndex, JsxReuseAnalysis>();
@@ -127,13 +129,13 @@ function reuseIndex(index: ProjectIndex): JsxReuseAnalysis {
       matches.set(occurrence.file, entries);
     }
   }
-  return { matches, groups };
+  return { matches, groups, shared: sharedClassReuses(index) };
 }
 
 /** Uses Pasika's file-index lifetime, so unchanged projects are only scanned once. */
 export function getJsxReuseAnalysis(sourceRoot: string): JsxReuseAnalysis {
   const index = getProjectIndex(sourceRoot);
-  if (!index) return { matches: new Map(), groups: [] };
+  if (!index) return { matches: new Map(), groups: [], shared: new Map() };
   const existing = cache.get(index);
   if (existing) return existing;
   const result = reuseIndex(index);
@@ -143,4 +145,8 @@ export function getJsxReuseAnalysis(sourceRoot: string): JsxReuseAnalysis {
 
 export function getJsxClassReuses(sourceRoot: string): Map<string, JsxClassReuse[]> {
   return getJsxReuseAnalysis(sourceRoot).matches;
+}
+
+export function getSharedClassReuses(sourceRoot: string): Map<string, SharedClassReuse[]> {
+  return getJsxReuseAnalysis(sourceRoot).shared;
 }
