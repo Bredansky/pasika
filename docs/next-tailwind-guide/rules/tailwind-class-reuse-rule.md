@@ -1,9 +1,8 @@
 # Tailwind Class Reuse Rule
 
-Identical class sets across native JSX elements and exported class compositions used by multiple components duplicate styling ownership. Reuse one component to keep that styling in one place.
+Repeated static class sets across native JSX elements duplicate styling ownership. Exporting the classes through a constant does not eliminate the duplication.
 
-- Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.
-- Exported static class sets of at least five classes used by native JSX elements in multiple source files MUST be encapsulated by a shared component.
+- Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.
 
 ## Incorrect — Identical Class Sets In Separate Files
 
