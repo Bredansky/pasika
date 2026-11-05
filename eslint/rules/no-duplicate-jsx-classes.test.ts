@@ -50,6 +50,30 @@ for (const [name, code] of Object.entries(examples)) {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, code);
 }
+const sharedClasses: Record<string, string> = {
+  "constants/control-classes.ts":
+    'import { cn } from "pasika/cn"; const surface = "border-2 bg-mc-button p-2 shadow-mc text-sm"; const behavior = "cursor-pointer hover:bg-mc-button-hover focus-visible:ring-2"; export const minecraftControlClassName = cn(surface, behavior);',
+  "constants/index.ts": 'export { minecraftControlClassName } from "./control-classes";',
+  "features/showcase/minecraft-button.tsx":
+    'import { minecraftControlClassName } from "@/constants"; export function MinecraftButton({ className }: { className?: string }) { return <button className={cn(minecraftControlClassName, "text-sm", className)} />; }',
+  "shared/minecraft-link.tsx":
+    'import { minecraftControlClassName as buttonClasses } from "@/constants"; export function MinecraftLink({ className, compact }: { className?: string; compact?: boolean }) { return <a className={cn(buttonClasses, compact ? "text-xs" : "text-sm", className)} />; }',
+  "constants/one-off.ts": 'export const oneOffClasses = "border-2 bg-card p-2 shadow-card text-sm";',
+  "shared/one-off.tsx":
+    'import { oneOffClasses } from "@/constants/one-off"; export function OneOff() { return <article className={oneOffClasses} />; }',
+  "shared/non-style-use.tsx":
+    'import { minecraftControlClassName } from "@/constants"; export function Label() { return <p title={minecraftControlClassName} />; }',
+  "shared/custom-component.tsx":
+    'import { minecraftControlClassName } from "@/constants"; export function Wrapper() { return <Button className={minecraftControlClassName} />; }',
+  "shared/local-classes.tsx":
+    'export function Local() { const localClasses = "p-2 bg-green-500 border-2 rounded-md shadow-md"; return <div className={localClasses} />; }',
+};
+for (const [name, code] of Object.entries(sharedClasses)) {
+  const file = path.join(root, "src", name);
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, code);
+}
+
 process.chdir(root);
 
 function fixture(name: string): { code: string; filename: string } {
@@ -57,6 +81,10 @@ function fixture(name: string): { code: string; filename: string } {
     code: examples[name] ?? "",
     filename: path.join(root, "src", "features", "examples", name),
   };
+}
+
+function sharedFixture(name: string): { code: string; filename: string } {
+  return { code: sharedClasses[name] ?? "", filename: path.join(root, "src", name) };
 }
 
 function message(tag: string, amount: number, reference: string): string {
@@ -116,5 +144,37 @@ test("Adding or replacing even one class cannot form a reuse group.", () => {
   );
   for (const name of ["b-extra.tsx", "b-replace.tsx", "b-partial-long.tsx", "b-cn-extra.tsx", "b-four.tsx"]) {
     expect(grouped.has(fixture(name).filename)).toBe(false);
+  }
+});
+
+void describe("Exported static class sets of at least five classes used by native JSX elements in multiple source files MUST be encapsulated by a shared component.", () => {
+  ruleTester.run("no-duplicate-jsx-classes:shared-constants", noDuplicateJsxClassesRule, {
+    valid: [
+      sharedFixture("features/showcase/minecraft-button.tsx"),
+      sharedFixture("shared/one-off.tsx"),
+      sharedFixture("shared/non-style-use.tsx"),
+      sharedFixture("shared/custom-component.tsx"),
+      sharedFixture("shared/local-classes.tsx"),
+    ],
+    invalid: [
+      {
+        ...sharedFixture("shared/minecraft-link.tsx"),
+        errors: [
+          {
+            message:
+              '<a> reuses exported class composition "minecraftControlClassName" (8 classes) from src/features/showcase/minecraft-button.tsx:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md',
+          },
+        ],
+      },
+    ],
+  });
+});
+
+test("Shared class compositions follow a barrel, aliases, local cn() values and dynamic consumer variants.", () => {
+  const shared = getJsxReuseAnalysis(root).shared;
+  expect(shared.get(sharedFixture("shared/minecraft-link.tsx").filename)).toHaveLength(1);
+  expect(shared.get(sharedFixture("features/showcase/minecraft-button.tsx").filename)).toBeUndefined();
+  for (const name of ["shared/one-off.tsx", "shared/non-style-use.tsx", "shared/custom-component.tsx", "shared/local-classes.tsx"]) {
+    expect(shared.get(sharedFixture(name).filename)).toBeUndefined();
   }
 });
