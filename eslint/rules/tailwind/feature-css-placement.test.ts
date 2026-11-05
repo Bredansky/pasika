@@ -25,7 +25,7 @@ function check(files: Record<string, string>, target: string, errors: RegExp[] =
   });
 }
 
-void describe("CSS used by a single feature MUST live in its feature stylesheet, creating it when necessary. CSS shared across features MUST live in `globals.css`.", () => {
+void describe("CSS used by a single feature MUST live in its feature stylesheet. CSS shared across features MUST live in `globals.css`.", () => {
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@utility mc-badge { display: block; }',
