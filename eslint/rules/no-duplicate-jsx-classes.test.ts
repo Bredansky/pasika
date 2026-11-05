@@ -91,7 +91,7 @@ function message(tag: string, amount: number, reference: string): string {
   return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md`;
 }
 
-void describe("Native JSX elements in different source files with the same tag and identical static sets of at least five classes MUST share a component.", () => {
+void describe("Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.", () => {
   ruleTester.run("no-duplicate-jsx-classes", noDuplicateJsxClassesRule, {
     valid: [
       "a-equal.tsx",
@@ -147,7 +147,7 @@ test("Adding or replacing even one class cannot form a reuse group.", () => {
   }
 });
 
-void describe("Exported static class sets of at least five classes used by native JSX elements in multiple source files MUST be encapsulated by a shared component.", () => {
+void describe("Exported class compositions are detected across different native elements even when the styling is imported through a barrel.", () => {
   ruleTester.run("no-duplicate-jsx-classes:shared-constants", noDuplicateJsxClassesRule, {
     valid: [
       sharedFixture("features/showcase/minecraft-button.tsx"),
