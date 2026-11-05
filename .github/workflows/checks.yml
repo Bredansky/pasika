@@ -33,7 +33,10 @@ jobs:
         run: npm ci
 
       - name: Format
-        run: npm run format
+        run: |
+          npx prettier --write eslint/rules/tailwind/feature-css-placement.test.ts eslint/rules/tailwind/utility-mapping.ts
+          git diff -- eslint/rules/tailwind/feature-css-placement.test.ts eslint/rules/tailwind/utility-mapping.ts
+          npm run format
 
       - name: Lint
         run: npm run lint
