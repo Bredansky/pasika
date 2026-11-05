@@ -25,13 +25,14 @@ function check(files: Record<string, string>, target: string, errors: RegExp[] =
   });
 }
 
-void describe("CSS used by a single feature MUST live in its feature stylesheet when one exists. CSS shared across features MUST live in `globals.css`.", () => {
+void describe("CSS used by a single feature MUST live in its feature stylesheet, creating it when necessary. CSS shared across features MUST live in `globals.css`.", () => {
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@utility mc-badge { display: block; }',
       "features/home/badge.tsx": 'const badge = "mc-badge";',
     },
     "app/styles/globals.css",
+    [/CSS utility "mc-badge" is consumed only by feature "home"; define it in home\.css/],
   );
   check(
     {
@@ -94,6 +95,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/shared.css",
+    [/CSS utility "glow" is consumed only by feature "home"; define it in home\.css/],
   );
   check(
     {
@@ -102,6 +104,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/effects.css",
+    [/CSS utility "glow" is consumed only by feature "home"; define it in home\.css/],
   );
   check(
     {
@@ -110,6 +113,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
       "features/home/badge.tsx": 'const badge = "glow";',
     },
     "app/styles/features/home.css",
+    [/CSS utility "glow" is consumed only by feature "home"; define it in home\.css/],
   );
 
   // Shared CSS belongs in globals regardless of the stylesheet's name.
@@ -134,7 +138,7 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
     "app/styles/shared.css",
     [/CSS utility "home-badge" is consumed only by feature "home"; define it in home\.css/],
   );
-  // A feature stylesheet is not mandatory until one has been created.
+  // Single-feature CSS must be moved even when the destination stylesheet does not exist.
   check(
     {
       "app/styles/globals.css": '@import "tailwindcss";\n@import "./shared.css";',
@@ -142,8 +146,28 @@ void describe("CSS used by a single feature MUST live in its feature stylesheet 
       "features/home/badge.tsx": 'const cls = "home-badge";',
     },
     "app/styles/shared.css",
+    [/CSS utility "home-badge" is consumed only by feature "home"; define it in home\.css/],
   );
 
+
+  // Theme-generated utilities require a feature stylesheet even if none exists yet.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme inline { --color-portal: #a855f7; }',
+      "features/home/banner.tsx": 'const cls = "bg-portal";',
+    },
+    "app/styles/globals.css",
+    [/CSS theme token "--color-portal" is consumed only by feature "home"; define it in home\\.css/],
+  );
+  // Cross-feature tokens may remain global even without individual feature stylesheets.
+  check(
+    {
+      "app/styles/globals.css": '@import "tailwindcss";\n@theme inline { --color-shared: #a855f7; }',
+      "features/home/banner.tsx": 'const cls = "bg-shared";',
+      "features/donation/widget.tsx": 'const cls = "text-shared";',
+    },
+    "app/styles/globals.css",
+  );
   // Generated Tailwind classes provide direct ownership evidence for @theme.
   check(
     {
