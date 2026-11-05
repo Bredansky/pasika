@@ -6,8 +6,8 @@
 import path from "node:path";
 import { generate, parse, walk } from "@eslint/css-tree";
 import type { CssDependencyGraph, CssSource, CssSymbol } from "./css-dependency-graph";
-import { themeClassesForTokens } from "./tailwind-theme-classes";
 import { escapeRegExp } from "./source-files";
+import { themeClassesForTokens } from "./tailwind-theme-classes";
 
 const GLOBAL = "globals.css";
 export function symbolId(def: CssSymbol): string {
