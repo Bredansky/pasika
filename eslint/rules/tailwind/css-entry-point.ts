@@ -8,7 +8,7 @@
  * directly imports every other project stylesheet (even import-only files).
  *
  * The rule builds the stylesheet import graph from disk (like
- * `unused-utility`), because a single stylesheet cannot see what other files
+ * `unused-css-definition`), because a single stylesheet cannot see what other files
  * import it or what the entry point pulls in.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md

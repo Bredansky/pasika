@@ -232,6 +232,26 @@ describe("Cross-file CSS definitions and consumers share a single dependency gra
     expect(signatures[2]).not.toBe(signatures[1]);
   });
 
+  it("links Tailwind animation theme tokens to their @keyframes definitions", () => {
+    const index = buildCssDependencyGraph({
+      sourceRoot: root,
+      css: [
+        {
+          path: globals,
+          content:
+            "@theme inline { --animate-star-fade: star-fade 3s ease-in-out infinite; }" +
+            "@keyframes star-fade { to { opacity: 1; } }" +
+            "@keyframes unused-fade { to { opacity: 1; } }",
+        },
+      ],
+      modules: [{ path: component, content: 'const cls = "animate-star-fade";' }],
+    });
+    expect(cssSymbolUsages(index, "keyframes", "star-fade")).toEqual([
+      expect.objectContaining({ file: globals, source: "css" }),
+    ]);
+    expect(cssSymbolUsages(index, "keyframes", "unused-fade")).toEqual([]);
+  });
+
   it("tracks plain animation declarations and skips non-generating token namespaces", () => {
     const index = buildCssDependencyGraph({
       sourceRoot: root,

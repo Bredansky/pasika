@@ -1304,9 +1304,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "A custom utility MUST be statically referenced by at least one file in the repository's source.",
-      "hash": "7f32f1f91b",
-      "ref": "pasika/unused-utility"
+      "text": "Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.",
+      "hash": "6b03cdba9d",
+      "ref": "pasika/unused-css-definition"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

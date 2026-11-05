@@ -17,7 +17,7 @@ import { themeModeRule } from "./theme-mode";
 import { themeResetRule } from "./theme-reset";
 import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { uniqueCssTokenValueRule } from "./unique-css-token-value";
-import { unusedUtilityRule } from "./unused-utility";
+import { unusedCssDefinitionRule } from "./unused-css-definition";
 import { utilityMappingRule } from "./utility-mapping";
 import { utilityNameParityRule } from "./utility-name-parity";
 
@@ -37,7 +37,7 @@ export const tailwindRules = {
   "css-entry-point": cssEntryPointRule,
   "feature-css-placement": featureCssPlacementRule,
   "global-stylesheet": globalStylesheetRule,
-  "unused-utility": unusedUtilityRule,
+  "unused-css-definition": unusedCssDefinitionRule,
   "unique-css-definition": uniqueCssDefinitionRule,
   "unique-css-token-value": uniqueCssTokenValueRule,
   "no-utility-alias": noUtilityAliasRule,
