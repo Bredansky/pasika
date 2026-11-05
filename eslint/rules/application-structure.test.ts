@@ -75,6 +75,13 @@ write("shared/dialog-root.tsx", "export function Dialog() { return <div />; }\n"
 write("shared/dialog-content.tsx", "export function DialogContent() { return <div />; }\n");
 write("shared/public-dialog/index.ts", 'export { PublicDialog } from "./public-dialog";\n');
 write("shared/public-dialog/public-dialog.tsx", "export function PublicDialog() { return <div />; }\n");
+// Named shared component families group multiple reusable modules, without a
+// fabricated same-named owner or a support folder around companion constants.
+write("shared/minecraft/link.tsx", "export function MinecraftLink() { return <a />; }\n");
+write("shared/minecraft/control-classes.ts", 'export const minecraftControlClasses = "border";\n');
+// A one-file grouping folder is not a shared family.
+write("shared/lonely/button.tsx", "export function Button() { return <button />; }\n");
+write("shared/stray/control-classes.ts", 'export const controlClasses = "border";\n');
 
 process.chdir(root);
 
@@ -95,6 +102,35 @@ void describe("src/ MUST contain only the app/, compositions/, features/, and sh
               'Move this source file under an allowed src/ folder; "src/lib/" is not part of the application structure.',
           },
         ],
+      },
+    ],
+  });
+});
+
+void describe("src/shared/<family>/ MAY group at least two related runtime modules, including a .tsx component, with companion constants beside it. It MUST be directly under src/shared/, MUST NOT also be a same-named component folder, and MUST NOT become a general-purpose grouping convention under features or compositions.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [
+      { filename: file("shared/minecraft/link.tsx"), code: "export function MinecraftLink() { return <a />; }" },
+      {
+        filename: file("shared/minecraft/control-classes.ts"),
+        code: 'export const minecraftControlClasses = "border";',
+      },
+    ],
+    invalid: [
+      {
+        filename: file("shared/lonely/button.tsx"),
+        code: "export function Button() { return <button />; }",
+        errors: [
+          {
+            message:
+              'A folder that is not a support folder must be a component folder; add "lonely.tsx" to src/shared/lonely/ or move its files into a support folder.',
+          },
+        ],
+      },
+      {
+        filename: file("shared/stray/control-classes.ts"),
+        code: 'export const controlClasses = "border";',
+        errors: [{ message: "Move this file to a constants/ folder; stray/ is not a recognized support folder." }],
       },
     ],
   });
@@ -240,7 +276,7 @@ void describe("An extracted configuration type, schema, or utility MUST live in 
   });
 });
 
-void describe("A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a .tsx file with the same name and an index.ts that named-re-exports that component.", () => {
+void describe("A feature folder, src/compositions/, src/shared/, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a .tsx file with the same name and an index.ts that named-re-exports that component, **except a named shared component family**.", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
     valid: [
       {
