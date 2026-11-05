@@ -43,7 +43,7 @@ const TOKEN = /^--[a-z][a-z0-9-]*$/u;
 
 export function themeClassesForTokens(names: readonly string[], sourceRoot: string): Map<string, string[]> {
   const projectRoot = path.dirname(sourceRoot);
-  const unique = [...new Set(names)].filter((name) => TOKEN.test(name));
+  const unique = [...new Set(names)].filter((name) => TOKEN.test(name) && name !== "--spacing");
   const missing = unique.filter((name) => !cache.has(`${projectRoot}\u0000${name}`));
   if (missing.length > 0) {
     const child = spawnSync(process.execPath, ["--input-type=module", "--eval", WORKER], {
