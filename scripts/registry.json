@@ -368,8 +368,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.",
-      "hash": "42f258782a",
+      "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component, **except a named shared component family**.",
+      "hash": "dd84c9e805",
+      "ref": "pasika/application-structure"
+    },
+    {
+      "doc": "next-codebase-guide/rules/application-structure-rule.md",
+      "text": "`src/shared/<family>/` MAY group at least two related runtime modules, including a `.tsx` component, with companion constants beside it. It MUST be directly under `src/shared/`, MUST NOT also be a same-named component folder, and MUST NOT become a general-purpose grouping convention under features or compositions.",
+      "hash": "c59f4650aa",
       "ref": "pasika/application-structure"
     },
     {
@@ -398,8 +404,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A component whose CCF is `src/features/` MUST live in `src/shared/`.",
-      "hash": "b1a3a85205",
+      "text": "A component whose CCF is `src/features/` MUST live in `src/shared/` (or one level below it in a named shared component family with related runtime modules). This exception does not apply if a single feature owns the component.",
+      "hash": "c346bb3fb5",
       "ref": "pasika/component-placement"
     },
     {

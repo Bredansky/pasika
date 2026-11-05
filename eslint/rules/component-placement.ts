@@ -17,6 +17,7 @@ import {
   formatFolder,
   isConfigModule,
   isUnderApp,
+  isSharedComponentFamily,
   resolveComponentPlacement,
   segmentsOf,
 } from "../project/ccf";
@@ -120,6 +121,9 @@ export const componentPlacementRule: Rule.RuleModule = {
         }
 
         if (sameFolder(currentFolder, placement.expectedFolder)) return;
+        // A component whose consumers require shared ownership may live inside
+        // a named shared family alongside its related components and constants.
+        if (sameFolder(placement.expectedFolder, ["shared"]) && isSharedComponentFamily(segments, sourceRoot)) return;
         if (isNestedInside(placement.expectedFolder, currentFolder, componentFile)) return;
 
         const explanation = REASON_TEXT[placement.reason] ?? "that is where its consumers place it";
