@@ -47,10 +47,20 @@ export interface SharedClassReuse {
   original: SharedClassOccurrence;
 }
 
-function moduleInfo(file: string, index: ProjectIndex, cache: Map<string, ModuleInfo | undefined>): ModuleInfo | undefined {
+function moduleInfo(
+  file: string,
+  index: ProjectIndex,
+  cache: Map<string, ModuleInfo | undefined>,
+): ModuleInfo | undefined {
   if (cache.has(file)) return cache.get(file);
   try {
-    const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const source = ts.createSourceFile(
+      file,
+      readFileSync(file, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
     const result: ModuleInfo = {
       source,
       values: new Map(),
@@ -73,7 +83,10 @@ function moduleInfo(file: string, index: ProjectIndex, cache: Map<string, Module
         const named = statement.importClause?.namedBindings;
         if (!target || !named || !ts.isNamedImports(named)) continue;
         for (const element of named.elements) {
-          result.imports.set(element.name.text, { file: target, name: element.propertyName?.text ?? element.name.text });
+          result.imports.set(element.name.text, {
+            file: target,
+            name: element.propertyName?.text ?? element.name.text,
+          });
         }
       } else if (ts.isExportDeclaration(statement)) {
         const target =
@@ -99,11 +112,7 @@ function moduleInfo(file: string, index: ProjectIndex, cache: Map<string, Module
   }
 }
 
-function staticText(
-  expression: ts.Expression,
-  info: ModuleInfo,
-  visited: Set<string>,
-): string | undefined {
+function staticText(expression: ts.Expression, info: ModuleInfo, visited: Set<string>): string | undefined {
   if (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) return expression.text;
   if (ts.isParenthesizedExpression(expression)) return staticText(expression.expression, info, visited);
   if (ts.isIdentifier(expression)) {
@@ -136,7 +145,7 @@ function resolveExport(
   cache: Map<string, ModuleInfo | undefined>,
   seen: Set<string>,
 ): StaticClasses | undefined {
-  const key = file + "\u0000" + name;
+  const key = `${file}\u0000${name}`;
   if (seen.has(key)) return undefined;
   seen.add(key);
   const info = moduleInfo(file, index, cache);
@@ -179,7 +188,12 @@ function usagesInFile(
         const attribute = node.attributes.properties.find(
           (item) => ts.isJsxAttribute(item) && ts.isIdentifier(item.name) && item.name.text === "className",
         );
-        if (attribute && ts.isJsxAttribute(attribute) && attribute.initializer && ts.isJsxExpression(attribute.initializer)) {
+        if (
+          attribute &&
+          ts.isJsxAttribute(attribute) &&
+          attribute.initializer &&
+          ts.isJsxExpression(attribute.initializer)
+        ) {
           const expression = attribute.initializer.expression;
           if (expression) {
             const identified = new Set<string>();
@@ -187,9 +201,11 @@ function usagesInFile(
             const collect = (part: ts.Node): void => {
               if (ts.isIdentifier(part)) {
                 const imported = info.imports.get(part.text);
-                const resolved = imported ? resolveExport(imported.file, imported.name, index, cache, new Set()) : undefined;
+                const resolved = imported
+                  ? resolveExport(imported.file, imported.name, index, cache, new Set())
+                  : undefined;
                 if (resolved) {
-                  const symbol = resolved.origin + "\u0000" + resolved.name;
+                  const symbol = `${resolved.origin}\u0000${resolved.name}`;
                   if (!identified.has(symbol)) {
                     identified.add(symbol);
                     const location = info.source.getLineAndCharacterOfPosition(attribute.getStart(info.source));
