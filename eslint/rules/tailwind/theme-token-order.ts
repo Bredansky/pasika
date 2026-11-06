@@ -67,11 +67,15 @@ function scopeOf(symbol: CssSymbol, sheet: StyleSheetPlain): string {
 function groupForConsumers(consumers: readonly string[]): string {
   if (consumers.length === 1) return consumers[0] ?? "";
   return [
-    ...new Set(consumers.map((consumer) => {
-      const parts = consumer.split("/");
-      return parts[0] === "features" ? parts.slice(0, 2).join("/") : parts[0] ?? "";
-    })),
-  ].sort().join(", ");
+    ...new Set(
+      consumers.map((consumer) => {
+        const parts = consumer.split("/");
+        return parts[0] === "features" ? parts.slice(0, 2).join("/") : (parts[0] ?? "");
+      }),
+    ),
+  ]
+    .sort()
+    .join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
