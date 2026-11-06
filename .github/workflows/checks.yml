@@ -32,17 +32,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prepare formatting for CSS grouping PR
-        run: |
-          files="eslint/rules/tailwind/css-consumers.ts eslint/rules/tailwind/css-ownership.ts eslint/rules/tailwind/theme-token-order.ts eslint/rules/tailwind/theme-token-order.test.ts docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md"
-          npx prettier --write $files
-          for file in $files; do
-            echo "PASIKA_FORMAT_BEGIN:$file"
-            base64 -w 0 "$file"
-            echo
-            echo "PASIKA_FORMAT_END:$file"
-          done
-
       - name: Format
         run: npm run format
 
