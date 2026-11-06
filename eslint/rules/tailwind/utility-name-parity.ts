@@ -28,7 +28,7 @@ function numericPart(value: string): string | undefined {
 function simpleValueSlug(value: string): string | undefined {
   const words = value
     .trim()
-    .replace(/,/gu, "_comma_")
+    .replace(/,/gu, "_")
     .split(/[_\s]+/u)
     .filter(Boolean);
   if (words.length === 0 || words.length > 8) return undefined;
