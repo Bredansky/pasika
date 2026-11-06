@@ -54,7 +54,6 @@ Why: multiple consumers in one feature are listed separately instead of sharing 
 
 Why: one consumer keeps its component path relative to `src/`, without an extension. Multiple consumers collapse to their feature or layer path; mixed paths are deduplicated and alphabetical. Group comments affect only CSS entries inside a stylesheet, not CSS file ownership or placement.
 
-
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
 ```css
