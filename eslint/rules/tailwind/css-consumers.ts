@@ -37,17 +37,15 @@ export function inferCssConsumerPaths(options: {
   for (const mod of modules) {
     for (const imported of ts.preProcessFile(mod.content, true, true).importedFiles) {
       const specifier = imported.fileName;
-      const base = specifier.startsWith("@/")
-        ? path.resolve(sourceRoot, specifier.slice(2))
-        : specifier.startsWith(".")
-          ? path.resolve(path.dirname(mod.path), specifier)
-          : undefined;
+      let base: string | undefined;
+      if (specifier.startsWith("@/")) base = path.resolve(sourceRoot, specifier.slice(2));
+      else if (specifier.startsWith(".")) base = path.resolve(path.dirname(mod.path), specifier);
       if (!base) continue;
       const resolved = [
         base,
         ...[".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"].flatMap((ext) => [
-          base + ext,
-          path.join(base, "index" + ext),
+          `${base}${ext}`,
+          path.join(base, `index${ext}`),
         ]),
       ].find((candidate) => moduleByPath.has(path.normalize(candidate)));
       if (!resolved) continue;
