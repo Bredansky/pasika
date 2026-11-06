@@ -1,8 +1,8 @@
 /**
  * ESLint rule: pasika/theme-token-order
  *
- * Group CSS definitions by their consuming component paths, with alphabetical
- * order for groups and definitions. Applies to every source stylesheet.
+ * Group CSS definitions by their single consumer or shared feature/layer scopes,
+ * with alphabetical order for groups and definitions in each stylesheet.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -13,9 +13,29 @@ import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-const GROUP_RE =
-  /^\s*\/\*\s*(?:Group:\s*)?(?<paths>(?:global|src\/[\w./-]+\.(?:tsx?|jsx?))(?:\s*,\s*src\/[\w./-]+\.(?:tsx?|jsx?))*)\s*\*\/\s*$/u;
-const PATH_RE = /^src\/[\w./-]+\.(?:tsx?|jsx?)$/u;
+// Recognize legacy src/...tsx group comments so the rule can report and
+// autofix them, while generating only the new extensionless src-relative labels.
+const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:features|shared|compositions)(?:/[\w.-]+)*)`;
+const GROUP_RE = new RegExp(
+  String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*/**
+ * ESLint rule: pasika/theme-token-order
+ *
+ * Group CSS definitions by their single consumer or shared feature/layer scopes,
+ * with alphabetical order for groups and definitions in each stylesheet.
+ *
+ * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
+ */
+import path from "node:path";
+import type { CSSRuleDefinition } from "@eslint/css";
+import type { StyleSheetPlain } from "@eslint/css-tree";
+import { sourceRootOf } from "../project-root";
+import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
+import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
+
+,
+  "u",
+);
+const PATH_RE = /^(?:features\/[\w-]+\/[\w./-]+|shared\/[\w./-]+|compositions\/[\w./-]+)\.(?:tsx|jsx)$/u;
 interface Group {
   label: string;
   line: number;
@@ -88,12 +108,23 @@ function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyG
         (symbol.kind === "keyframes" && ref.kind === "keyframes" && ref.name === symbol.name)),
   );
   if (indirect) return "global";
-  const owners = [
-    ...new Set(references.map((ref) => path.relative(path.dirname(root), ref.file).split(path.sep).join("/"))),
-  ]
-    .filter((name) => PATH_RE.test(name))
-    .sort();
-  return owners.length > 0 ? owners.join(", ") : "global";
+  const consumers = [
+    ...new Set(
+      references
+        .map((ref) => path.relative(root, ref.file).split(path.sep).join("/"))
+        .filter((name) => PATH_RE.test(name))
+        .map((name) => name.replace(/\.(?:tsx|jsx)$/u, "")),
+    ),
+  ].sort();
+  if (consumers.length === 0) return "global";
+  if (consumers.length === 1) return consumers[0] ?? "global";
+
+  // A shared CSS entry has one group per feature or layer, regardless of the
+  // number of components in each scope. Mixed groups combine those labels.
+  return [...new Set(consumers.map((consumer) => {
+    const parts = consumer.split("/");
+    return parts[0] === "features" ? parts.slice(0, 2).join("/") : parts[0] ?? "global";
+  }))].sort().join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
@@ -102,7 +133,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Group CSS definitions by consuming component paths in alphabetical order.",
+      description: "Group CSS definitions by single consumers or common feature/layer paths in alphabetical order.",
     },
   },
   create(context) {
@@ -178,7 +209,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
           if (item.owner === "global" && currentGroup && currentGroup.label !== "global") {
             message = "Global definitions must be ungrouped.";
           } else if (item.owner !== "global" && !currentGroup) {
-            message = `CSS definition "${item.symbol.name}" requires a component-path group comment.`;
+            message = `CSS definition "${item.symbol.name}" requires a consumer-path group comment.`;
           } else if (item.owner !== "global" && actual !== item.owner) {
             message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${reportedGroup}".`;
           } else if (previous?.section === item.section && previous.scope === item.scope) {
