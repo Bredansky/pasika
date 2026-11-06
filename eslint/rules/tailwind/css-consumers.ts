@@ -24,8 +24,10 @@ export function inferCssConsumerPaths(options: {
   const defs = graph.definitions;
   const components = modules.filter((mod) => {
     const relative = path.relative(sourceRoot, mod.path).split(path.sep).join("/");
-    return /^(?:features\/[\w-]+\/|shared\/|compositions\/)[\w./-]+\.(?:tsx|jsx)$/u.test(relative) &&
-      !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative);
+    return (
+      /^(?:features\/[\w-]+\/|shared\/|compositions\/)[\w./-]+\.(?:tsx|jsx)$/u.test(relative) &&
+      !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative)
+    );
   });
   const classesByToken = themeClassesForTokens(
     defs.filter((def) => def.kind === "theme-token").map((def) => def.name),
@@ -34,12 +36,13 @@ export function inferCssConsumerPaths(options: {
   const consumers = new Map(defs.map((def) => [symbolId(def), new Set<string>()]));
 
   for (const def of defs) {
-    const refs = graph.references.filter((ref) =>
-      ref.source === "module" &&
-      ((def.kind === "theme-token" && ref.kind === "theme-class" && ref.token === def.name) ||
-        (def.kind === "utility" && ref.kind === "utility" && ref.name === def.name) ||
-        (def.kind === "selector" && ref.kind === "selector" && ref.name === def.name) ||
-        (def.kind === "keyframes" && ref.kind === "keyframes" && ref.name === def.name)),
+    const refs = graph.references.filter(
+      (ref) =>
+        ref.source === "module" &&
+        ((def.kind === "theme-token" && ref.kind === "theme-class" && ref.token === def.name) ||
+          (def.kind === "utility" && ref.kind === "utility" && ref.name === def.name) ||
+          (def.kind === "selector" && ref.kind === "selector" && ref.name === def.name) ||
+          (def.kind === "keyframes" && ref.kind === "keyframes" && ref.name === def.name)),
     );
     for (const mod of components) {
       const explicit =
@@ -49,7 +52,11 @@ export function inferCssConsumerPaths(options: {
           new RegExp("(?:fontFamily|font-family)\\s*[:=]\\s*[\"']" + escapeRegExp(def.name), "iu").test(mod.content));
       if (explicit || refs.some((ref) => ref.file === mod.path)) {
         consumers.get(symbolId(def))?.add(
-          path.relative(sourceRoot, mod.path).split(path.sep).join("/").replace(/\.(?:tsx|jsx)$/u, ""),
+          path
+            .relative(sourceRoot, mod.path)
+            .split(path.sep)
+            .join("/")
+            .replace(/\.(?:tsx|jsx)$/u, ""),
         );
       }
     }
@@ -70,7 +77,8 @@ export function inferCssConsumerPaths(options: {
         if (
           metadata.kind === "theme-token" &&
           ["--line-height", "--letter-spacing", "--font-weight"].some((suffix) => metadata.name === def.name + suffix)
-        ) targets.add(symbolId(metadata));
+        )
+          targets.add(symbolId(metadata));
       }
     }
     targets.delete(from);
@@ -81,8 +89,14 @@ export function inferCssConsumerPaths(options: {
   for (const src of css) {
     const ast = parse(src.content, { positions: true, parseAtrulePrelude: false });
     for (const node of ast.children) {
-      if (node.type !== "Atrule" || node.name !== "layer" || !node.loc ||
-          !node.prelude || generate(node.prelude).trim() !== "base") continue;
+      if (
+        node.type !== "Atrule" ||
+        node.name !== "layer" ||
+        !node.loc ||
+        !node.prelude ||
+        generate(node.prelude).trim() !== "base"
+      )
+        continue;
       const body = src.content.slice(node.loc.start.offset, node.loc.end.offset);
       for (const target of dependencies(body, defs, classesByToken)) consumers.get(target)?.add("app");
     }
@@ -93,7 +107,8 @@ export function inferCssConsumerPaths(options: {
       ["--spacing", "--radius", "--font-sans", "--font-mono"].includes(def.name) ||
       def.name.startsWith("--breakpoint-") ||
       def.name.startsWith("--default-")
-    ) consumers.get(symbolId(def))?.add("app");
+    )
+      consumers.get(symbolId(def))?.add("app");
   }
 
   let changed = true;
