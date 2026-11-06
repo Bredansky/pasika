@@ -11,6 +11,11 @@ const GLOBALS = [
   "  --spacing: 0.25rem;",
   "  --breakpoint-md: 48rem;",
   "  --font-sans: Arial, sans-serif;",
+  "  --text-sm: 0.875rem;",
+  "  --text-sm--line-height: 1.25;",
+  "  --text-sm--letter-spacing: 0.015em;",
+  "  --text-7xl: 4.5rem;",
+  "  --text-7xl--line-height: 1;",
   "  --color-used-canvas: #ffffff;",
   "  --color-used-in-css: #eeeeee;",
   "  --color-used-in-js: #cccccc;",
@@ -37,7 +42,7 @@ const FIXTURE: Record<string, string> = {
   "app/styles/globals.css": GLOBALS,
   "app/styles/feature.css": FEATURE,
   "components/demo.tsx": [
-    'export const cls = "bg-used-canvas animate-wave md:text-lg primary-surface";',
+    'export const cls = "bg-used-canvas animate-wave text-sm md:text-lg primary-surface";',
     'export const animation = "from-js";',
     'export const cssVariable = "--color-used-in-js";',
   ].join("\n"),
@@ -56,6 +61,8 @@ const featurePath = path.join(root, "src", "app", "styles", "feature.css");
 const removeUnused = (code: string): string =>
   code
     .replace("  --color-unused-ink: #111111;\n", "")
+    .replace("  --text-7xl: 4.5rem;\n", "")
+    .replace("  --text-7xl--line-height: 1;\n", "")
     .replace("@utility dead-surface { @apply bg-(--dead-canvas); }\n", "")
     .replace("@utility primary { @apply px-1; }\n", "")
     .replace("@keyframes unused-slide { to { transform: translateX(1px); } }", "");
@@ -68,6 +75,8 @@ void describe("Custom `@utility` declarations, non-foundational `@theme inline` 
         code: GLOBALS,
         filename: globalsPath,
         errors: [
+          { message: 'Theme token "--text-7xl" is never referenced by project CSS or source.' },
+          { message: 'Theme token "--text-7xl--line-height" is never referenced by project CSS or source.' },
           { message: 'Theme token "--color-unused-ink" is never referenced by project CSS or source.' },
           { message: 'Custom utility "dead-surface" is never referenced by project CSS or source.' },
           { message: 'Custom utility "primary" is never referenced by project CSS or source.' },

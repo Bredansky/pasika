@@ -45,6 +45,16 @@ function isUnused(
   }
   if (symbol.kind !== "theme-token" || isImplicitThemeToken(symbol.name)) return false;
 
+  // Tailwind v4 pairs text size utilities with optional metadata tokens,
+  // e.g. text-sm implicitly consumes --text-sm--line-height and
+  // --text-sm--letter-spacing when the text-sm class is used.
+  const pairedText = /^(?<base>--text-[\w-]+)--(?:line-height|letter-spacing|font-weight)$/u.exec(symbol.name);
+  if (
+    pairedText &&
+    references.some((reference) => reference.kind === "theme-class" && reference.token === pairedText.groups?.base)
+  ) {
+    return false;
+  }
   if (references.some((reference) => reference.kind === "theme-class" && reference.token === symbol.name)) {
     return false;
   }
