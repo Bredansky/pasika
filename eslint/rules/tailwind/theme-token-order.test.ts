@@ -40,24 +40,29 @@ function utility(group: string, name = "effect"): string {
   return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
 }
 
-void describe("CSS definitions MUST be grouped by their consumers: use a component path for one consumer, a feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
+void describe("CSS definitions MUST be grouped by their consumers: use the component file path including its extension for one consumer, the feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
   check({
-    "app/styles/globals.css": utility("features/home/banner"),
+    "app/styles/globals.css": utility("features/home/banner.tsx"),
     "features/home/banner.tsx": 'const cls = "effect";',
   });
 
   check({
-    "app/styles/globals.css": utility("features/home/card/Card"),
+    "app/styles/globals.css": utility("features/home/card/Card.tsx"),
     "features/home/card/Card.tsx": 'const cls = "effect";',
   });
 
   check({
-    "app/styles/globals.css": utility("shared/button"),
+    "app/styles/globals.css": utility("shared/button.tsx"),
     "shared/button.tsx": 'const cls = "effect";',
   });
 
   check({
-    "app/styles/globals.css": utility("compositions/checkout"),
+    "app/styles/globals.css": utility("shared/link.jsx"),
+    "shared/link.jsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("compositions/checkout.tsx"),
     "compositions/checkout.tsx": 'const cls = "effect";',
   });
 
@@ -102,7 +107,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
 
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-banner-canvas: #123456;
 }`,
     "features/home/banner.tsx": 'const cls = "bg-banner-canvas";',
@@ -113,17 +118,26 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
       "app/styles/globals.css": utility("src/features/home/banner.tsx"),
       "features/home/banner.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "features\/home\/banner", not "src\/features\/home\/banner.tsx"/u],
-    utility("features/home/banner"),
+    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx", not "src\/features\/home\/banner.tsx"/u],
+    utility("features/home/banner.tsx"),
   );
 
   check(
     {
       "app/styles/globals.css": utility("features/home/banner"),
       "features/home/banner.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "features\\/home\\/banner.tsx", not "features\\/home\\/banner"/u],
+    utility("features/home/banner.tsx"),
+  );
+
+  check(
+    {
+      "app/styles/globals.css": utility("features/home/banner.tsx"),
+      "features/home/banner.tsx": 'const cls = "effect";',
       "features/home/menu.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "features\/home", not "features\/home\/banner"/u],
+    [/CSS definition "effect" belongs to group "features\/home", not "features\/home\/banner.tsx"/u],
     utility("features/home"),
   );
 
@@ -139,7 +153,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
 
   check(
     {
-      "app/styles/globals.css": `${utility("features/zeta/item", "zed")}\n${utility("features/alpha/item", "alpha")}`,
+      "app/styles/globals.css": `${utility("features/zeta/item.tsx", "zed")}\n${utility("features/alpha/item.tsx", "alpha")}`,
       "features/zeta/item.tsx": 'const cls = "zed";',
       "features/alpha/item.tsx": 'const cls = "alpha";',
     },
@@ -160,19 +174,19 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
   check(
     {
       "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-z: white;
   --color-a: black;
 }`,
       "features/home/banner.tsx": 'const cls = "bg-z text-a";',
     },
-    [/CSS definitions in group "features\/home\/banner" must be alphabetical/u],
+    [/CSS definitions in group "features\/home\/banner.tsx" must be alphabetical/u],
   );
   // Tailwind-generated utility classes must identify both their token and
   // any metadata implicitly associated with that token.
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --text-compact: 0.875rem;
   --text-compact--line-height: 1.25;
 }`,
@@ -181,7 +195,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
 
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-frame: #222222;
   --shadow-panel: 0 2px 4px var(--color-frame);
 }`,
@@ -190,7 +204,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
 
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-spot: #345678;
 }`,
     "app/styles/home.css": "@utility spot { @apply bg-spot; }",
@@ -199,21 +213,21 @@ void describe("CSS definitions MUST be grouped by their consumers: use a compone
 
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --animate-intro: intro 0.5s linear;
 }
-/* Group: features/home/banner */
+/* Group: features/home/banner.tsx */
 @keyframes intro { to { opacity: 1; } }`,
     "features/home/banner.tsx": 'const cls = "animate-intro";',
   });
 
   check({
     "app/styles/globals.css": `@theme inline {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-panel: var(--color-panel);
 }
 :root {
-  /* Group: features/home/banner */
+  /* Group: features/home/banner.tsx */
   --color-panel: #abcdef;
 }`,
     "features/home/banner.tsx": 'const cls = "bg-panel";',
