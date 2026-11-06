@@ -17,7 +17,7 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 
 // Recognize legacy src/...tsx and extensionless group comments for diagnostics
 // and fixes; single-component labels keep their file extension, relative to src/.
-const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:app|features|shared|compositions)(?:/[\w.-]+)*)`;
+const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:app|features|shared|compositions)(?:/[\w.\[\]()@-]+)*)`;
 const GROUP_RE = new RegExp(
   String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*$`,
   "u",

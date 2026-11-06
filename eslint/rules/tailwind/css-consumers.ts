@@ -1,5 +1,6 @@
 import path from "node:path";
 import { generate, parse } from "@eslint/css-tree";
+import * as ts from "typescript";
 import type { CssDependencyGraph, CssSource } from "./css-dependency-graph";
 import { bodiesOf, dependencies, symbolId } from "./css-ownership";
 import { escapeRegExp } from "./source-files";
@@ -22,13 +23,57 @@ export function inferCssConsumerPaths(options: {
 }): Map<string, string[]> {
   const { graph, css, modules, sourceRoot } = options;
   const defs = graph.definitions;
-  const components = modules.filter((mod) => {
-    const relative = path.relative(sourceRoot, mod.path).split(path.sep).join("/");
-    return (
-      /^(?:app\/|features\/[\w-]+\/|shared\/|compositions\/)[\w./-]+\.(?:tsx|jsx)$/u.test(relative) &&
-      !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative)
-    );
-  });
+  const moduleByPath = new Map(modules.map((mod) => [path.normalize(mod.path), mod]));
+  const componentPaths = new Map<string, string>(
+    modules.flatMap((mod): [string, string][] => {
+      const relative = path.relative(sourceRoot, mod.path).split(path.sep).join("/");
+      return /^(?:app\/|features\/[\w-]+\/|shared\/|compositions\/).+\.(?:tsx|jsx)$/u.test(relative) &&
+        !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative)
+        ? [[path.normalize(mod.path), relative]]
+        : [];
+    }),
+  );
+  const importers = new Map<string, Set<string>>();
+  for (const mod of modules) {
+    for (const imported of ts.preProcessFile(mod.content, true, true).importedFiles) {
+      const specifier = imported.fileName;
+      let base: string | undefined;
+      if (specifier.startsWith("@/")) base = path.resolve(sourceRoot, specifier.slice(2));
+      else if (specifier.startsWith(".")) base = path.resolve(path.dirname(mod.path), specifier);
+      if (!base) continue;
+      const resolved = [
+        base,
+        ...[".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"].flatMap((ext) => [
+          `${base}${ext}`,
+          path.join(base, `index${ext}`),
+        ]),
+      ].find((candidate) => moduleByPath.has(path.normalize(candidate)));
+      if (!resolved) continue;
+      const key = path.normalize(resolved);
+      const parents = importers.get(key) ?? new Set<string>();
+      parents.add(path.normalize(mod.path));
+      importers.set(key, parents);
+    }
+  }
+  const componentCache = new Map<string, Set<string>>();
+  function componentConsumers(file: string): Set<string> {
+    const key = path.normalize(file);
+    const cached = componentCache.get(key);
+    if (cached) return cached;
+    const found = new Set<string>();
+    const seen = new Set<string>();
+    const pending = [key];
+    while (pending.length > 0) {
+      const current = pending.pop();
+      if (!current || seen.has(current)) continue;
+      seen.add(current);
+      const consumer = componentPaths.get(current);
+      if (consumer) found.add(consumer);
+      for (const parent of importers.get(current) ?? []) pending.push(parent);
+    }
+    componentCache.set(key, found);
+    return found;
+  }
   const classesByToken = themeClassesForTokens(
     defs.filter((def) => def.kind === "theme-token").map((def) => def.name),
     sourceRoot,
@@ -44,14 +89,18 @@ export function inferCssConsumerPaths(options: {
           (def.kind === "selector" && ref.kind === "selector" && ref.name === def.name) ||
           (def.kind === "keyframes" && ref.kind === "keyframes" && ref.name === def.name)),
     );
-    for (const mod of components) {
+    const set = consumers.get(symbolId(def));
+    for (const ref of refs) {
+      for (const component of componentConsumers(ref.file)) set?.add(component);
+    }
+    for (const mod of modules) {
       const explicit =
         (["theme-token", "root-variable"].includes(def.kind) && contains(mod.content, def.name)) ||
         (def.kind === "keyframes" && contains(mod.content, def.name)) ||
         (def.kind === "font-face" &&
           new RegExp(`(?:fontFamily|font-family)\\s*[:=]\\s*["']${escapeRegExp(def.name)}`, "iu").test(mod.content));
-      if (explicit || refs.some((ref) => ref.file === mod.path)) {
-        consumers.get(symbolId(def))?.add(path.relative(sourceRoot, mod.path).split(path.sep).join("/"));
+      if (explicit) {
+        for (const component of componentConsumers(mod.path)) set?.add(component);
       }
     }
   }
