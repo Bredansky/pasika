@@ -132,6 +132,23 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
       byValue.set(value, group);
     }
 
+    // A fixed HSL primitive wrapped by hsl(var(--primitive)) is an unnecessary
+    // intermediate layer. Define the public Tailwind color directly instead.
+    // Dynamic / variant-driven primitives are intentionally excluded.
+    const fixedHslPrimitives = new Map(
+      graph.definitions
+        .filter((symbol) => symbol.kind === "theme-token" && symbol.value !== undefined)
+        .filter((symbol) => /^\s*\d+(?:\.\d+)?\s+\d+(?:\.\d+)?%\s+\d+(?:\.\d+)?%\s*$/u.test(symbol.value ?? ""))
+        .map((symbol) => [symbol.name, symbol] as const),
+    );
+    const wrappedPrimitives = new Map<CssSymbol, CssSymbol>();
+    for (const symbol of graph.definitions) {
+      if (symbol.kind !== "theme-token" || !symbol.name.startsWith("--color-")) continue;
+      const primitive = /^hsl\(\s*var\(\s*(?<name>--[\w-]+)\s*\)\s*\)$/u.exec(symbol.value ?? "")?.groups?.name;
+      const original = primitive ? fixedHslPrimitives.get(primitive) : undefined;
+      if (original && original.name !== symbol.name) wrappedPrimitives.set(symbol, original);
+    }
+
     const redundant = new Map<CssSymbol, CssSymbol>();
     for (const group of byValue.values()) {
       group.sort(compareLocations);
@@ -145,6 +162,17 @@ export const uniqueCssTokenValueRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
+        for (const [definition, primitive] of wrappedPrimitives) {
+          if (definition.file !== current) continue;
+          context.report({
+            node,
+            loc: {
+              start: { line: definition.line, column: 1 },
+              end: { line: definition.line, column: 2 },
+            },
+            message: `Color token "${definition.name}" unnecessarily wraps fixed HSL primitive "${primitive.name}"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.`,
+          });
+        }
         for (const [definition, original] of redundant) {
           if (definition.file !== current) continue;
           context.report({
