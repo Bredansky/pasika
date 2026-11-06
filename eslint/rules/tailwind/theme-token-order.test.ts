@@ -47,6 +47,23 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
   });
 
   check({
+    "app/styles/globals.css": utility("app/global-error.tsx"),
+    "app/global-error.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("app"),
+    "app/global-error.tsx": 'const cls = "effect";',
+    "app/error.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("app, features/home"),
+    "app/error.tsx": 'const cls = "effect";',
+    "features/home/banner.tsx": 'const cls = "effect";',
+  });
+
+  check({
     "app/styles/globals.css": utility("features/home/card/Card.tsx"),
     "features/home/card/Card.tsx": 'const cls = "effect";',
   });

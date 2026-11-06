@@ -143,7 +143,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
           if (!item.owner) {
             message = `CSS definition "${item.symbol.name}" has no traceable consumer; reference it or remove it.`;
           } else if (!currentGroup) {
-            message = `CSS definition "${item.symbol.name}" requires a consumer-path group comment.`;
+            message = `CSS definition "${item.symbol.name}" requires group "${item.owner}" (no consumer-path group comment found).`;
           } else if (actual !== item.owner) {
             message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${reportedGroup}".`;
           } else if (previous?.section === item.section && previous.scope === item.scope) {
