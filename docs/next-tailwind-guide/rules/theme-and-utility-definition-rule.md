@@ -19,7 +19,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.
 - Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.
-- CSS definitions MUST be grouped by consumer paths: use a component path for one consumer, a feature or layer path for multiple consumers, and all relevant paths when consumers span scopes; sort groups and definitions alphabetically.
+- CSS definitions MUST be grouped by their consumers: use a component path for one consumer, a feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Listing All Consumers Instead of Their Shared Feature
@@ -50,7 +50,7 @@ Why: the group lists both component files even though they belong to the same fe
 
 ## Correct — Grouping CSS by Its Actual Consumers
 
-These components demonstrate a single consumer, multiple consumers within one feature, and consumers across layers:
+These components demonstrate one component path, a shared feature path, and a combination of paths across features, shared components, and compositions:
 
 ```tsx
 // src/features/home/banner.tsx
