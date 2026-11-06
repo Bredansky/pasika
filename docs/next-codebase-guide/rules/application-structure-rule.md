@@ -10,7 +10,8 @@ Without a fixed set of folders, every contributor invents a new place for code a
 - A `types/`, `schemas/`, or `constants/` folder MUST NOT mix unrelated support kinds; keep types, schemas, and constants in their matching folders.
 - A support folder MUST NOT contain a component.
 - A file that does not define a component MUST have a kebab-case name.
-- A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.
+- A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component, **except a named shared component family**.
+- `src/shared/<family>/` MAY group at least two related runtime modules, including a `.tsx` component, with companion constants beside it. It MUST be directly under `src/shared/`, MUST NOT also be a same-named component folder, and MUST NOT become a general-purpose grouping convention under features or compositions.
 
 ## Incorrect — Invented Top-Level Folder
 
