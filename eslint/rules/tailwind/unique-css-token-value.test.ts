@@ -35,7 +35,8 @@ const files = {
   "l.css": "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }",
   "m.css": "@theme inline { --color-purple-ink: rebeccapurple; --color-ice-edge: aliceblue; }",
   "n.css": "@theme inline { --color-purple-copy-ink: #663399; --color-ice-copy-edge: #f0f8ff; }",
-  "o.css": "@theme inline { --primary: 290 80% 65%; --color-primary-canvas: hsl(var(--primary)); --color-primary-edge: hsl(var(--primary)); --color-primary-solid-ink: hsl(var(--primary)); }",
+  "o.css":
+    "@theme inline { --primary: 290 80% 65%; --color-primary-canvas: hsl(var(--primary)); --color-primary-edge: hsl(var(--primary)); --color-primary-solid-ink: hsl(var(--primary)); }",
   "p.css": "@theme inline { --color-primary: hsl(290 80% 65%); }",
 };
 const root = fixture(files);
@@ -149,9 +150,18 @@ void describe("Fixed HSL palette primitives must not be wrapped by redundant Tai
       {
         ...atFile("o.css"),
         errors: [
-          { message: 'Color token "--color-primary-canvas" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
-          { message: 'Color token "--color-primary-edge" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
-          { message: 'Color token "--color-primary-solid-ink" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
+          {
+            message:
+              'Color token "--color-primary-canvas" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.',
+          },
+          {
+            message:
+              'Color token "--color-primary-edge" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.',
+          },
+          {
+            message:
+              'Color token "--color-primary-solid-ink" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.',
+          },
         ],
       },
     ],
