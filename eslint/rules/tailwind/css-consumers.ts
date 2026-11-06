@@ -24,8 +24,8 @@ export function inferCssConsumerPaths(options: {
   const { graph, css, modules, sourceRoot } = options;
   const defs = graph.definitions;
   const moduleByPath = new Map(modules.map((mod) => [path.normalize(mod.path), mod]));
-  const componentPaths = new Map(
-    modules.flatMap((mod) => {
+  const componentPaths = new Map<string, string>(
+    modules.flatMap((mod): [string, string][] => {
       const relative = path.relative(sourceRoot, mod.path).split(path.sep).join("/");
       return /^(?:app\/|features\/[\w-]+\/|shared\/|compositions\/).+\.(?:tsx|jsx)$/u.test(relative) &&
         !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative)
