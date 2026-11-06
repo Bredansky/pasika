@@ -49,6 +49,16 @@ export const baseLayerPairRule: CSSRuleDefinition = {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const applied = collectBodyUtilities(node);
+        const themeColors = new Set<string>();
+        const collectThemeColors = (source: string): void => {
+          const uncommented = source.replace(/\/\*[\s\S]*?\*\//gu, " ");
+          for (const theme of uncommented.matchAll(/@theme(?:\s+[\w-]+)*\s*\{(?<body>[^}]*)\}/gu)) {
+            for (const token of (theme.groups?.body ?? "").matchAll(/(?:^|[;\r\n])\s*--color-(?<name>[\w-]+)\s*:/gu)) {
+              if (token.groups?.name) themeColors.add(token.groups.name);
+            }
+          }
+        };
+        collectThemeColors(context.sourceCode.text);
         const seen = new Set<string>([current]);
         const queue: { file: string; source: string }[] = [{ file: current, source: context.sourceCode.text }];
         const textOf = cachedTextReader();
@@ -63,6 +73,7 @@ export const baseLayerPairRule: CSSRuleDefinition = {
             if (seen.has(filename) || !existsSync(filename)) continue;
             seen.add(filename);
             const source = textOf(filename);
+            collectThemeColors(source);
             const parsed = toPlainObject(parse(source, { parseAtrulePrelude: true }));
             if (parsed.type !== "StyleSheet") continue;
             const fragment = collectBodyUtilities(parsed);
@@ -73,8 +84,12 @@ export const baseLayerPairRule: CSSRuleDefinition = {
         }
 
         if (!applied.hasBaseLayer) return;
-        const hasCanvas = applied.names.some((name) => name.includes("canvas"));
-        const hasInk = applied.names.some((name) => name.includes("ink"));
+        const hasCanvas = applied.names.some(
+          (name) => name.includes("canvas") || (name.startsWith("bg-") && themeColors.has(name.slice(3))),
+        );
+        const hasInk = applied.names.some(
+          (name) => name.includes("ink") || (name.startsWith("text-") && themeColors.has(name.slice(5))),
+        );
         if (!hasCanvas || !hasInk) {
           context.report({
             node,

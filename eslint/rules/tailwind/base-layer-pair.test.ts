@@ -26,6 +26,14 @@ void describe("The global base layer MUST apply base-canvas and base-ink to the 
         },
         {
           filename: filename("globals.css"),
+          code: "@theme inline { --color-base-dark: #180d20; --color-base-light: #eee; }\n@layer base { body { @apply bg-base-dark text-base-light; } }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: '@import "tailwindcss";\n@import "./base.css";\n@theme inline { --color-base-dark: #180d20; --color-base-light: #eee; }',
+        },
+        {
+          filename: filename("globals.css"),
           code: '@import "tailwindcss";\n@import "./base.css";',
         },
         {
@@ -37,6 +45,16 @@ void describe("The global base layer MUST apply base-canvas and base-ink to the 
         {
           filename: filename("globals.css"),
           code: "@layer base {\n  body {\n    @apply bg-white;\n  }\n}",
+          errors: [
+            {
+              message:
+                "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
+            },
+          ],
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-base-dark: #180d20; }\n@layer base { body { @apply bg-base-dark text-lg; } }",
           errors: [
             {
               message:
