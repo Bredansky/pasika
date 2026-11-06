@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { themeTokenOrderRule } from "./theme-token-order";
 import { describe, tailwindRuleTester } from "./rule-tester";
+import { themeTokenOrderRule } from "./theme-token-order";
 
 void describe("Global `@theme inline` tokens MUST use purpose-based groups with alphabetical keys; opted-in CSS files MUST use consuming component-path groups with alphabetical groups and definitions.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-consumers-")));
