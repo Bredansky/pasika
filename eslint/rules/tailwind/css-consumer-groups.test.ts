@@ -11,7 +11,7 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
   const card = path.join(fixture, "src", "components", "card.tsx");
   mkdirSync(path.dirname(cssFile), { recursive: true });
   mkdirSync(path.dirname(hero), { recursive: true });
-  writeFileSync(hero, '<div className="alpha beta shared" />');
+  writeFileSync(hero, '<div className="bg-brand alpha beta shared" />');
   writeFileSync(card, '<div className="shared" />');
   writeFileSync(cssFile, "");
 
@@ -20,6 +20,20 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
   try {
     tailwindRuleTester.run("css-consumer-groups", cssConsumerGroupsRule, {
       valid: [
+        {
+          filename: cssFile,
+          code: [
+            "/* @pasika-component-groups */",
+            "@theme inline {",
+            "  /* Group: src/components/hero.tsx */",
+            "  --color-brand: #123456;",
+            "}",
+          ].join("\n"),
+        },
+        {
+          filename: cssFile,
+          code: "/* @pasika-component-groups */\n/* Group: global */\n.orphan { color: white; }",
+        },
         {
           filename: cssFile,
           code: [
