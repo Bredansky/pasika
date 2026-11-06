@@ -14,7 +14,8 @@ import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph"
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 const OPT_IN = "/* @pasika-component-groups */";
-const GROUP_RE = /^\s*\/\*\s*(?:Group:\s*)?(?<paths>(?:global|src\/[\w./-]+\.(?:tsx?|jsx?))(?:\s*,\s*src\/[\w./-]+\.(?:tsx?|jsx?))*)\s*\*\/\s*$/u;
+const GROUP_RE =
+  /^\s*\/\*\s*(?:Group:\s*)?(?<paths>(?:global|src\/[\w./-]+\.(?:tsx?|jsx?))(?:\s*,\s*src\/[\w./-]+\.(?:tsx?|jsx?))*)\s*\*\/\s*$/u;
 const PATH_RE = /^src\/[\w./-]+\.(?:tsx?|jsx?)$/u;
 type Group = { label: string; line: number };
 type Item = { symbol: CssSymbol; group?: Group; owner: string; section: string };
@@ -33,11 +34,17 @@ function sectionOf(symbol: CssSymbol): string {
 
 function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyGraph>, root: string): string {
   const references = graph.references.filter((ref) => {
-    if (ref.source !== "module" || !/\.(?:tsx|jsx)$/u.test(ref.file) ||
-        /\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(ref.file)) return false;
+    if (
+      ref.source !== "module" ||
+      !/\.(?:tsx|jsx)$/u.test(ref.file) ||
+      /\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(ref.file)
+    )
+      return false;
     if (symbol.kind === "theme-token") {
-      return (ref.kind === "theme-class" && ref.token === symbol.name) ||
-        (ref.kind === "variable" && ref.name === symbol.name);
+      return (
+        (ref.kind === "theme-class" && ref.token === symbol.name) ||
+        (ref.kind === "variable" && ref.name === symbol.name)
+      );
     }
     if (symbol.kind === "utility" || symbol.kind === "keyframes" || symbol.kind === "selector") {
       return ref.name === symbol.name;
@@ -45,16 +52,20 @@ function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyG
     return ref.kind === "variable" && ref.name === symbol.name;
   });
   // CSS-to-CSS references can be shared indirectly by other consumers.
-  const indirect = graph.references.some((ref) =>
-    ref.source === "css" && ref.file !== symbol.file &&
-    ((symbol.kind === "theme-token" && ref.kind === "variable" && ref.name === symbol.name) ||
-      (symbol.kind === "utility" && ref.kind === "utility" && ref.name === symbol.name) ||
-      (symbol.kind === "keyframes" && ref.kind === "keyframes" && ref.name === symbol.name)),
+  const indirect = graph.references.some(
+    (ref) =>
+      ref.source === "css" &&
+      ref.file !== symbol.file &&
+      ((symbol.kind === "theme-token" && ref.kind === "variable" && ref.name === symbol.name) ||
+        (symbol.kind === "utility" && ref.kind === "utility" && ref.name === symbol.name) ||
+        (symbol.kind === "keyframes" && ref.kind === "keyframes" && ref.name === symbol.name)),
   );
   if (indirect) return "global";
-  const owners = [...new Set(references.map((ref) =>
-    path.relative(path.dirname(root), ref.file).split(path.sep).join("/"),
-  ))].filter((name) => PATH_RE.test(name)).sort();
+  const owners = [
+    ...new Set(references.map((ref) => path.relative(path.dirname(root), ref.file).split(path.sep).join("/"))),
+  ]
+    .filter((name) => PATH_RE.test(name))
+    .sort();
   return owners.length > 0 ? owners.join(", ") : "global";
 }
 
@@ -78,7 +89,8 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
     const graph = buildCssDependencyGraph({
       sourceRoot: root,
       css: findFiles(root, CSS_EXTENSIONS).map((file) => ({
-        path: file, content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
+        path: file,
+        content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
       })),
       modules: findFiles(root, MODULE_EXTENSIONS).map((file) => ({ path: file, content: textOf(file) })),
     });
@@ -107,14 +119,25 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
           const actual = currentGroup?.label;
           let message: string | undefined;
           if (!currentGroup) {
-            message = 'CSS definition "' + item.symbol.name + '" requires a component-path group comment (or /* Group: global */).';
+            message =
+              'CSS definition "' +
+              item.symbol.name +
+              '" requires a component-path group comment (or /* Group: global */).';
           } else if (actual !== item.owner) {
-            message = 'CSS definition "' + item.symbol.name + '" belongs to group "' + item.owner + '", not "' + actual + '".';
+            message =
+              'CSS definition "' + item.symbol.name + '" belongs to group "' + item.owner + '", not "' + actual + '".';
           } else if (previous?.section === item.section && previous.group && currentGroup) {
             if (previous.group !== currentGroup && previous.group.label.localeCompare(currentGroup.label) > 0) {
-              message = 'CSS consumer groups in ' + item.section + ' must be ordered alphabetically by path.';
+              message = "CSS consumer groups in " + item.section + " must be ordered alphabetically by path.";
             } else if (previous.group === currentGroup && previous.symbol.name.localeCompare(item.symbol.name) > 0) {
-              message = 'CSS definitions in group "' + actual + '" must be alphabetical: "' + item.symbol.name + '" comes before "' + previous.symbol.name + '".';
+              message =
+                'CSS definitions in group "' +
+                actual +
+                '" must be alphabetical: "' +
+                item.symbol.name +
+                '" comes before "' +
+                previous.symbol.name +
+                '".';
             }
           }
           if (message) {
@@ -123,15 +146,17 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
               node,
               loc: { start: { line, column: 1 }, end: { line, column: 2 } },
               message,
-              ...(currentGroup && actual !== item.owner &&
-                  items.filter((candidate) => candidate.group === currentGroup).length === 1 ?
-                {
-                  fix(fixer) {
-                    const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
-                    const end = start + lines[currentGroup.line - 1].length;
-                    return fixer.replaceTextRange([start, end], '/* Group: ' + item.owner + ' */');
-                  },
-                } : {}),
+              ...(currentGroup &&
+              actual !== item.owner &&
+              items.filter((candidate) => candidate.group === currentGroup).length === 1
+                ? {
+                    fix(fixer) {
+                      const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
+                      const end = start + lines[currentGroup.line - 1].length;
+                      return fixer.replaceTextRange([start, end], "/* Group: " + item.owner + " */");
+                    },
+                  }
+                : {}),
             });
           }
           previous = item;

@@ -51,7 +51,12 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
             "/* Group: src/components/hero.tsx */",
             "@utility alpha { @apply [display:block]; }",
           ].join("\n"),
-          errors: [{ message: 'CSS definition "alpha" belongs to group "src/components/hero.tsx", not "src/components/card.tsx".' }],
+          errors: [
+            {
+              message:
+                'CSS definition "alpha" belongs to group "src/components/hero.tsx", not "src/components/card.tsx".',
+            },
+          ],
         },
         {
           filename: cssFile,
@@ -61,12 +66,19 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
             "@utility beta { @apply [display:inline]; }",
             "@utility alpha { @apply [display:block]; }",
           ].join("\n"),
-          errors: [{ message: 'CSS definitions in group "src/components/hero.tsx" must be alphabetical: "alpha" comes before "beta".' }],
+          errors: [
+            {
+              message:
+                'CSS definitions in group "src/components/hero.tsx" must be alphabetical: "alpha" comes before "beta".',
+            },
+          ],
         },
         {
           filename: cssFile,
           code: "/* @pasika-component-groups */\n@utility alpha { @apply [display:block]; }",
-          errors: [{ message: 'CSS definition "alpha" requires a component-path group comment (or /* Group: global */).' }],
+          errors: [
+            { message: 'CSS definition "alpha" requires a component-path group comment (or /* Group: global */).' },
+          ],
         },
       ],
     });

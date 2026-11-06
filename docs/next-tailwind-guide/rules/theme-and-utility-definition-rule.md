@@ -41,7 +41,9 @@ For a stylesheet being migrated, add `/* @pasika-component-groups */` at its sta
 
 /* Group: global */
 @keyframes pulse {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 ```
 
