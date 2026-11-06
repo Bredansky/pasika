@@ -80,6 +80,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     },
   },
   create(context) {
+    // Consumer ownership grouping replaces purpose grouping for opted-in files.
+    if (context.sourceCode.text.includes("/* @pasika-component-groups */")) return {};
     const root = sourceRootOf(context);
     const entry = path.normalize(path.join(root, "app", "styles", "globals.css"));
     if (path.normalize(path.resolve(context.filename)) !== entry) return {};

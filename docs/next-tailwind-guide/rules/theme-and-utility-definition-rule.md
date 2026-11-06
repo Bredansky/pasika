@@ -22,6 +22,33 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Global `@theme inline` tokens MUST be ordered by purpose-based groups, with keys sorted alphabetically within each group.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
+## Component-Path CSS Groups (Opt-in)
+
+For a stylesheet being migrated, add `/* @pasika-component-groups */` at its start and annotate definitions with their actual consumers:
+
+```css
+/* @pasika-component-groups */
+
+/* Group: src/components/hero.tsx */
+@utility hero-glow {
+  @apply [filter:brightness(1.2)];
+}
+
+/* Group: src/components/card.tsx, src/components/hero.tsx */
+@utility shared-outline {
+  @apply [outline:2px_solid_currentColor];
+}
+
+/* Group: global */
+@keyframes pulse {
+  to { opacity: 0; }
+}
+```
+
+A group can contain a single component path, a comma-separated alphabetized list of component paths, or `global` for foundational/indirect styles. Consumer groups and definitions within each group are alphabetized independently within the Tailwind sections. Shared definitions stay single-source rather than being duplicated across components. The dedicated ESLint rule checks actual static references using the project's CSS dependency graph and safely updates a wrong header when it owns only one definition.
+
+This opt-in replaces purpose-based `@theme` sorting for that stylesheet; the global Tailwind import/reset and CSS section order are still enforced. Cross-component references through other CSS can be indirect, so the rule conservatively assigns such definitions to `global`. It does not automatically move rules across cascade boundaries, and non-annotated stylesheets keep the existing organization.
+
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
 ```css
