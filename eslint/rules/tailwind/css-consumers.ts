@@ -51,12 +51,7 @@ export function inferCssConsumerPaths(options: {
         (def.kind === "font-face" &&
           new RegExp(`(?:fontFamily|font-family)\\s*[:=]\\s*["']${escapeRegExp(def.name)}`, "iu").test(mod.content));
       if (explicit || refs.some((ref) => ref.file === mod.path)) {
-        consumers.get(symbolId(def))?.add(
-          path
-            .relative(sourceRoot, mod.path)
-            .split(path.sep)
-            .join("/"),
-        );
+        consumers.get(symbolId(def))?.add(path.relative(sourceRoot, mod.path).split(path.sep).join("/"));
       }
     }
   }
