@@ -165,10 +165,19 @@ export const localeKeyShapeRule: Rule.RuleModule = {
     if (!dictionary) return {};
 
     function visitObject(node: ESTree.ObjectExpression): void {
+      let previousKey: string | undefined;
       for (const property of node.properties) {
         if (property.type !== "Property") continue;
         const name = keyName(property.key);
         if (name === undefined) continue;
+        if (previousKey && name.toLowerCase() < previousKey.toLowerCase()) {
+          reportFor(
+            context,
+            property,
+            `Locale dictionary keys must be alphabetical: "${name}" belongs before "${previousKey}". See docs/next-codebase-guide/rules/locales-rule.md`,
+          );
+        }
+        previousKey = name;
 
         const nested = localeObject(property.value);
         if (nested) {

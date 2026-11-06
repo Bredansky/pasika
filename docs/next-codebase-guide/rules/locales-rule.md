@@ -7,6 +7,7 @@ Keep user-facing text in `src/locales/` and use one `locales` object to access i
 - `src/locales/index.ts` MUST import the dictionaries and export one `locales` object, with global keys at the top level and feature dictionaries under their camelCase names. It MUST NOT define translation strings directly.
 - Code MUST import through `src/locales/index.ts` and use `locales.<key>` or `locales.<feature>.<key>` directly. User-facing text MUST NOT appear inline in JSX, props, toasts, or component dictionaries.
 - Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.
+- Locale dictionary keys MUST be sorted alphabetically.
 
 ## Incorrect — Inline Locale Definitions
 

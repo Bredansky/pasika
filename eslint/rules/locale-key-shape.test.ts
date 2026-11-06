@@ -32,7 +32,7 @@ void describe("User-facing text MUST be defined as static strings in flat dictio
 void describe("Locale keys MUST use English camelCase. Keys longer than 30 characters MUST describe the text's purpose and end with a WAI-ARIA role such as `Button`, `Link`, or `Dialog`.", () => {
   ruleTester.run("locale-key-shape", localeKeyShapeRule, {
     valid: [
-      { filename: globalFile, code: 'export const global = { cancel: "Cancel", acceptAllCookies: "Accept" };' },
+      { filename: globalFile, code: 'export const global = { acceptAllCookies: "Accept", cancel: "Cancel" };' },
       { filename: navigationFile, code: 'export const navigation = { confirmationDialog: "Continue?" };' },
       { filename: featureFile, code: 'export const editor = { accountDeletionConfirmationDialog: "Confirm" };' },
       {
