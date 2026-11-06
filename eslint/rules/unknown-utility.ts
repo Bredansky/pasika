@@ -519,9 +519,10 @@ function readInventory(files: string[]): Inventory {
     }
     for (const plainClass of classSelectors(css)) plainClasses.add(plainClass);
     for (const block of themeBlocks(css)) {
-      if (/--\*\s*:\s*initial\b/.test(block)) defaultsReset = true;
-      if (/(?:^|[;{])\s*--spacing\s*:/.test(block)) baseSpacing = true;
-      for (const decl of block.matchAll(/--(?<namespace>[a-z][a-z0-9]*)-(?<token>[a-z0-9][a-z0-9_-]*)\s*:/g)) {
+      const declarations = block.replace(/\/\*[\s\S]*?\*\//gu, "");
+      if (/--\*\s*:\s*initial\b/.test(declarations)) defaultsReset = true;
+      if (/(?:^|[;{])\s*--spacing\s*:/.test(declarations)) baseSpacing = true;
+      for (const decl of declarations.matchAll(/--(?<namespace>[a-z][a-z0-9]*)-(?<token>[a-z0-9][a-z0-9_-]*)\s*:/g)) {
         let namespace = decl.groups?.namespace;
         let token = decl.groups?.token;
         if (namespace === "background" && token?.startsWith("image-")) {

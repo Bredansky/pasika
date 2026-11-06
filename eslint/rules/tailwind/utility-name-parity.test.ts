@@ -38,11 +38,11 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility height-var-banner { @apply h-(--banner); }" },
       { code: "@utility opacity-0p25 { @apply [opacity:.25]; }" },
       {
-        code: "@utility transition-property-color-comma-border-color { @apply [transition-property:color,_border-color]; }",
+        code: "@utility transition-property-color-border-color { @apply [transition-property:color,_border-color]; }",
       },
       { code: "@utility font-size-var-font-size { @apply text-(length:--font-size); }" },
       { code: "@utility webkit-font-smoothing-none { @apply [-webkit-font-smoothing:none]; }" },
-      { code: "@utility will-change-transform-comma-opacity { @apply [will-change:transform,_opacity]; }" },
+      { code: "@utility will-change-transform-opacity { @apply [will-change:transform,_opacity]; }" },
       { code: "@utility opacity-0p5 { @apply [opacity:0.5]; }" },
       { code: "@utility toolbar-* { width: --value(--toolbar-*); }" },
       { code: "@utility multi { @apply h-[3px]; @apply w-[4px]; }" },
@@ -60,6 +60,15 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility clip-path-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }" },
     ],
     invalid: [
+      {
+        code: "@utility will-change-transform-comma-opacity { @apply [will-change:transform,_opacity]; }",
+        errors: [
+          {
+            message:
+              'Custom utility "will-change-transform-comma-opacity" maps will-change: transform, opacity; rename it "will-change-transform-opacity" to preserve property/value parity.',
+          },
+        ],
+      },
       {
         code: "@utility clip-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }",
         errors: [
@@ -186,7 +195,7 @@ void describe("Custom single-property utilities MUST use property/value-derived 
         errors: [
           {
             message:
-              'Custom utility "font-mc" maps font-family: var(--font-space-mono), monospace; rename it "font-family-var-font-space-mono-comma-monospace" to preserve property/value parity.',
+              'Custom utility "font-mc" maps font-family: var(--font-space-mono), monospace; rename it "font-family-var-font-space-mono-monospace" to preserve property/value parity.',
           },
         ],
       },
