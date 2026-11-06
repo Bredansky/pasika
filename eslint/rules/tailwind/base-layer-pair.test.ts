@@ -4,7 +4,7 @@ import path from "node:path";
 import { baseLayerPairRule } from "./base-layer-pair";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("The global base layer MUST apply background and text color utilities to the document body as the default page pair.", () => {
+void describe("The global base layer MUST apply base-canvas and base-ink to the document body as the default page pair.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-global-base-")));
   const filename = (name: string): string => path.join(fixture, "src", "app", "styles", name);
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
