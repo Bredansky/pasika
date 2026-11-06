@@ -113,7 +113,8 @@ void describe("CSS definitions MUST be grouped by consuming component paths or t
   });
 
   check({
-    "app/styles/globals.css": "@layer base { @keyframes zeta { to { opacity: 0; } } }\n@keyframes carrot { to { opacity: 0; } }",
+    "app/styles/globals.css":
+      "@layer base { @keyframes zeta { to { opacity: 0; } } }\n@keyframes carrot { to { opacity: 0; } }",
   });
 
   check(
