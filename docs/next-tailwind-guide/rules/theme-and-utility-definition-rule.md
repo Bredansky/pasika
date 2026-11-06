@@ -22,8 +22,38 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - CSS definitions MUST be grouped by consuming component paths or their common feature/layer paths, with mixed scopes combined and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
+## Incorrect — Repeating Every Component Path for Shared CSS
 
-Group comments use `/* Group: features/home/banner */`: paths are relative to `src/` and omit the `.tsx` or `.jsx` extension. A single component consumer uses its full path, such as `features/home/banner` or `compositions/checkout`. Two or more consumers in one feature collapse to `features/home`; multiple consumers under `shared/` collapse to `shared`; multiple compositions collapse to `compositions`. Mixed consumers use a deduplicated, alphabetically ordered combination of feature paths and layer names, such as `/* Group: compositions, features/home, shared */`. Groups apply within each CSS definition kind and block; they do not determine which stylesheet owns the CSS.
+```css
+/* Group: src/features/home/banner.tsx, src/features/home/menu.tsx */
+@utility home-effect {
+  @apply block;
+}
+```
+
+Why: multiple consumers in one feature are listed separately instead of sharing the feature path.
+
+## Correct — Using Consumer Scopes as CSS Group Headers
+
+```css
+/* Group: compositions, features/home, shared */
+@utility mixed-effect {
+  @apply block;
+}
+
+/* Group: features/home */
+@utility home-effect {
+  @apply block;
+}
+
+/* Group: features/home/banner */
+@utility banner-effect {
+  @apply block;
+}
+```
+
+Why: one consumer keeps its component path relative to `src/`, without an extension. Multiple consumers collapse to their feature or layer path; mixed paths are deduplicated and alphabetical. Group comments affect only CSS entries inside a stylesheet, not CSS file ownership or placement.
+
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
