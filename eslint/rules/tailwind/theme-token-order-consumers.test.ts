@@ -1,10 +1,10 @@
 import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { cssConsumerGroupsRule } from "./css-consumer-groups";
+import { themeTokenOrderRule } from "./theme-token-order";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Opt-in CSS consumer groups MUST name their consuming components and sort definitions alphabetically.", () => {
+void describe("Global `@theme inline` tokens MUST use purpose-based groups with alphabetical keys; opted-in CSS files MUST use consuming component-path groups with alphabetical groups and definitions.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-consumers-")));
   const cssFile = path.join(fixture, "src", "app", "styles", "home.css");
   const hero = path.join(fixture, "src", "components", "hero.tsx");
@@ -18,7 +18,7 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
   const previous = process.cwd();
   process.chdir(fixture);
   try {
-    tailwindRuleTester.run("css-consumer-groups", cssConsumerGroupsRule, {
+    tailwindRuleTester.run("theme-token-order", themeTokenOrderRule, {
       valid: [
         {
           filename: cssFile,

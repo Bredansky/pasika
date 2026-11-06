@@ -1316,15 +1316,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Global `@theme inline` tokens MUST be ordered by purpose-based groups, with keys sorted alphabetically within each group.",
-      "hash": "a57a6666d7",
+      "text": "Global `@theme inline` tokens MUST use purpose-based groups with alphabetical keys; opted-in CSS files MUST use consuming component-path groups with alphabetical groups and definitions.",
+      "hash": "7ace0fbcaf",
       "ref": "pasika/theme-token-order"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Opt-in CSS consumer groups MUST name their consuming components and sort definitions alphabetically.",
-      "hash": "c1e39e7b15",
-      "ref": "pasika/css-consumer-groups"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
