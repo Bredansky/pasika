@@ -22,7 +22,7 @@ function contains(text: string, name: string): boolean {
 }
 
 /** Find names referenced inside a single definition, not the whole file. */
-function dependencies(
+export function dependencies(
   text: string,
   defs: readonly CssSymbol[],
   classesByToken: ReadonlyMap<string, string[]>,
@@ -52,7 +52,7 @@ function dependencies(
 }
 
 /** Map actual AST definition bodies; token/variable bodies are individual values. */
-function bodiesOf(css: readonly CssSource[], defs: readonly CssSymbol[]): Map<string, string> {
+export function bodiesOf(css: readonly CssSource[], defs: readonly CssSymbol[]): Map<string, string> {
   const bodies = new Map<string, string>();
   for (const src of css) {
     const file = path.normalize(src.path);

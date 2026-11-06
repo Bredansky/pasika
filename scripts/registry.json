@@ -1316,8 +1316,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "CSS definitions MUST be grouped by consuming component paths and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.",
-      "hash": "30790356a8",
+      "text": "CSS definitions MUST be grouped by their consumers: use the component file path including its extension for one consumer, the feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.",
+      "hash": "dc807d23fd",
       "ref": "pasika/theme-token-order"
     },
     {

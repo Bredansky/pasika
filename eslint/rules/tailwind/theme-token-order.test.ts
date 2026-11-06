@@ -4,186 +4,252 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeTokenOrderRule } from "./theme-token-order";
 
-void describe("CSS definitions MUST be grouped by consuming component paths and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.", () => {
-  const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-consumers-")));
-  const cssFile = path.join(fixture, "src", "app", "styles", "home.css");
-  const outsideSrc = path.join(fixture, "styles", "global.css");
-  const hero = path.join(fixture, "src", "components", "hero.tsx");
-  const card = path.join(fixture, "src", "components", "card.tsx");
-  mkdirSync(path.dirname(cssFile), { recursive: true });
-  mkdirSync(path.dirname(outsideSrc), { recursive: true });
-  mkdirSync(path.dirname(hero), { recursive: true });
-  writeFileSync(hero, '<div className="bg-brand alpha beta shared" />');
-  writeFileSync(card, '<div className="shared" />');
-  writeFileSync(cssFile, "");
-
+function check(files: Record<string, string>, errors: RegExp[] = [], output?: string): void {
+  const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-groups-")));
+  for (const [name, content] of Object.entries(files)) {
+    const filename = path.join(root, "src", name);
+    mkdirSync(path.dirname(filename), { recursive: true });
+    writeFileSync(filename, content);
+  }
   const previous = process.cwd();
-  process.chdir(fixture);
+  process.chdir(root);
   try {
+    const filename = path.join(root, "src", "app", "styles", "globals.css");
+    const code = files["app/styles/globals.css"];
+    if (code === undefined) throw new Error("CSS fixture missing");
     tailwindRuleTester.run("theme-token-order", themeTokenOrderRule, {
-      valid: [
-        {
-          filename: cssFile,
-          code: [
-            "@theme inline {",
-            "  --color-foundation: #ffffff;",
-            "  /* Group: src/components/hero.tsx */",
-            "  --color-brand: #123456;",
-            "}",
-            "@utility fallback { @apply [display:block]; }",
-            "/* Group: src/components/hero.tsx */",
-            "@utility alpha { @apply [display:block]; }",
-          ].join("\n"),
-        },
-        {
-          filename: cssFile,
-          code: ["@theme inline {", "  /* Group: src/components/hero.tsx */", "  --color-brand: #123456;", "}"].join(
-            "\n",
-          ),
-        },
-        {
-          filename: cssFile,
-          code: ".orphan { color: white; }",
-        },
-        {
-          filename: cssFile,
-          code: [
-            "/* Group: src/components/card.tsx, src/components/hero.tsx */",
-            "@utility shared { @apply [display:grid]; }",
-            "/* Group: src/components/hero.tsx */",
-            "@utility alpha { @apply [display:block]; }",
-            "@utility beta { @apply [display:inline]; }",
-            "@keyframes shimmer { to { opacity: 0; } }",
-          ].join("\n"),
-        },
-        {
-          filename: cssFile,
-          code: "/* src/components/hero.tsx */\n@utility alpha { @apply [display:block]; }",
-        },
-        {
-          filename: cssFile,
-          code: ":root { --theme-label: blue; }",
-        },
-        {
-          filename: cssFile,
-          code: [
-            "@layer base { @keyframes zeta { to { opacity: 0; } } }",
-            "@layer base { @keyframes aardvark { to { opacity: 0; } } }",
-            "@keyframes carrot { to { opacity: 0; } }",
-          ].join("\n"),
-        },
-        {
-          filename: cssFile,
-          code: [
-            "@theme inline {",
-            "  /* Group: src/components/hero.tsx */",
-            "  --color-brand: #123456;",
-            "}",
-            "@theme inline { --color-foundation: #ffffff; }",
-          ].join("\n"),
-        },
-        {
-          filename: outsideSrc,
-          code: "@keyframes fade { to { opacity: 0; } }",
-        },
-        {
-          filename: outsideSrc,
-          code: "@font-face { font-family: Example; src: url(example.woff2); }",
-        },
-        {
-          filename: cssFile,
-          code: "/* Group: src/components/hero.tsx */\n@utility alpha { @apply [display:block]; }",
-        },
-      ],
-      invalid: [
-        {
-          filename: cssFile,
-          code: "/* Group: src/components/hero.tsx */\n@keyframes shimmer { to { opacity: 0; } }",
-          errors: [{ message: "Global definitions must be ungrouped." }],
-        },
-        {
-          filename: cssFile,
-          code: "@theme inline { --color-z: white; --color-a: black; }",
-          errors: [
-            {
-              message: 'CSS definitions in group "global" must be alphabetical: "--color-a" comes before "--color-z".',
-            },
-          ],
-        },
-        {
-          filename: cssFile,
-          code: [
-            "@theme inline {",
-            "  /* Group: src/components/hero.tsx */",
-            "  --color-brand: #123456;",
-            "  --color-unowned: #abcdef;",
-            "}",
-          ].join("\n"),
-          errors: [{ message: "Global definitions must be ungrouped." }],
-        },
-        {
-          filename: outsideSrc,
-          code: "/* Group: global */\n@keyframes fade { to { opacity: 0; } }",
-          output: "@keyframes fade { to { opacity: 0; } }",
-          errors: [{ message: "Global CSS definitions must not have a group comment." }],
-        },
-        {
-          filename: cssFile,
-          code: [
-            "/* Group: src/components/hero.tsx */",
-            "@utility alpha { @apply [display:block]; }",
-            "/* Group: src/components/card.tsx, src/components/hero.tsx */",
-            "@utility shared { @apply [display:grid]; }",
-          ].join("\n"),
-          errors: [{ message: "CSS consumer groups in utility must be ordered alphabetically by path." }],
-        },
-        {
-          filename: cssFile,
-          code: [
-            "/* Group: src/components/hero.tsx */",
-            "@utility alpha { @apply [display:block]; }",
-            "@utility shared { @apply [display:grid]; }",
-          ].join("\n"),
-          errors: [
-            {
-              message:
-                'CSS definition "shared" belongs to group "src/components/card.tsx, src/components/hero.tsx", not "src/components/hero.tsx".',
-            },
-          ],
-        },
-        {
-          filename: cssFile,
-          code: ["/* Group: src/components/card.tsx */", "@utility alpha { @apply [display:block]; }"].join("\n"),
-          output: ["/* Group: src/components/hero.tsx */", "@utility alpha { @apply [display:block]; }"].join("\n"),
-          errors: [
-            {
-              message:
-                'CSS definition "alpha" belongs to group "src/components/hero.tsx", not "src/components/card.tsx".',
-            },
-          ],
-        },
-        {
-          filename: cssFile,
-          code: [
-            "/* Group: src/components/hero.tsx */",
-            "@utility beta { @apply [display:inline]; }",
-            "@utility alpha { @apply [display:block]; }",
-          ].join("\n"),
-          errors: [
-            {
-              message:
-                'CSS definitions in group "src/components/hero.tsx" must be alphabetical: "alpha" comes before "beta".',
-            },
-          ],
-        },
-        {
-          filename: cssFile,
-          code: "@utility alpha { @apply [display:block]; }",
-          errors: [{ message: 'CSS definition "alpha" requires a component-path group comment.' }],
-        },
-      ],
+      valid: errors.length === 0 ? [{ filename, code }] : [],
+      invalid:
+        errors.length > 0
+          ? [
+              {
+                filename,
+                code,
+                errors: errors.map((message) => ({ message })),
+                ...(output === undefined ? {} : { output }),
+              },
+            ]
+          : [],
     });
   } finally {
     process.chdir(previous);
   }
+}
+
+function utility(group: string, name = "effect"): string {
+  return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
+}
+
+void describe("CSS definitions MUST be grouped by their consumers: use the component file path including its extension for one consumer, the feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
+  check({
+    "app/styles/globals.css": utility("features/home/banner.tsx"),
+    "features/home/banner.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("features/home/card/Card.tsx"),
+    "features/home/card/Card.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("shared/button.tsx"),
+    "shared/button.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("shared/link.jsx"),
+    "shared/link.jsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("compositions/checkout.tsx"),
+    "compositions/checkout.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("features/home"),
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "features/home/menu.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("shared"),
+    "shared/button.tsx": 'const cls = "effect";',
+    "shared/label.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("compositions"),
+    "compositions/checkout.tsx": 'const cls = "effect";',
+    "compositions/receipt.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("features/home, features/player"),
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "features/player/controls.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("features/home, shared"),
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "shared/button.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("compositions, features/home, features/player, shared"),
+    "compositions/checkout.tsx": 'const cls = "effect";',
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "features/home/menu.tsx": 'const cls = "effect";',
+    "features/player/controls.tsx": 'const cls = "effect";',
+    "shared/button.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-banner-canvas: #123456;
+}`,
+    "features/home/banner.tsx": 'const cls = "bg-banner-canvas";',
+  });
+
+  check(
+    {
+      "app/styles/globals.css": utility("src/features/home/banner.tsx"),
+      "features/home/banner.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx", not "src\/features\/home\/banner.tsx"/u],
+    utility("features/home/banner.tsx"),
+  );
+
+  check(
+    {
+      "app/styles/globals.css": utility("features/home/banner"),
+      "features/home/banner.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx", not "features\/home\/banner"/u],
+    utility("features/home/banner.tsx"),
+  );
+
+  check(
+    {
+      "app/styles/globals.css": utility("features/home/banner.tsx"),
+      "features/home/banner.tsx": 'const cls = "effect";',
+      "features/home/menu.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "features\/home", not "features\/home\/banner.tsx"/u],
+    utility("features/home"),
+  );
+
+  check(
+    {
+      "app/styles/globals.css": utility("features/home"),
+      "features/home/banner.tsx": 'const cls = "effect";',
+      "features/player/controls.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "features\/home, features\/player", not "features\/home"/u],
+    utility("features/home, features/player"),
+  );
+
+  check(
+    {
+      "app/styles/globals.css": `${utility("features/zeta/item.tsx", "zed")}\n${utility("features/alpha/item.tsx", "alpha")}`,
+      "features/zeta/item.tsx": 'const cls = "zed";',
+      "features/alpha/item.tsx": 'const cls = "alpha";',
+    },
+    [/CSS consumer groups in utility must be ordered alphabetically by path/u],
+  );
+
+  check(
+    {
+      "app/styles/globals.css": `/* Group: features/home */
+@utility zebra { @apply block; }
+@utility apple { @apply block; }`,
+      "features/home/banner.tsx": 'const cls = "zebra apple";',
+      "features/home/menu.tsx": 'const cls = "zebra apple";',
+    },
+    [/CSS definitions in group "features\/home" must be alphabetical/u],
+  );
+
+  check(
+    {
+      "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-z: white;
+  --color-a: black;
+}`,
+      "features/home/banner.tsx": 'const cls = "bg-z text-a";',
+    },
+    [/CSS definitions in group "features\/home\/banner.tsx" must be alphabetical/u],
+  );
+  // Tailwind-generated utility classes must identify both their token and
+  // any metadata implicitly associated with that token.
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --text-compact: 0.875rem;
+  --text-compact--line-height: 1.25;
+}`,
+    "features/home/banner.tsx": 'const cls = "text-compact";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-frame: #222222;
+  --shadow-panel: 0 2px 4px var(--color-frame);
+}`,
+    "features/home/banner.tsx": 'const cls = "shadow-panel";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-spot: #345678;
+}`,
+    "app/styles/home.css": "@utility spot { @apply bg-spot; }",
+    "features/home/banner.tsx": 'const cls = "spot";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --animate-intro: intro 0.5s linear;
+}
+/* Group: features/home/banner.tsx */
+@keyframes intro { to { opacity: 1; } }`,
+    "features/home/banner.tsx": 'const cls = "animate-intro";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-panel: var(--color-panel);
+}
+:root {
+  /* Group: features/home/banner.tsx */
+  --color-panel: #abcdef;
+}`,
+    "features/home/banner.tsx": 'const cls = "bg-panel";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: app */
+  --color-base-canvas: white;
+  --spacing: 0.25rem;
+}
+@layer base {
+  body { @apply bg-base-canvas; }
+}`,
+  });
+
+  // Unknown consumers must produce diagnostics, not silently ungrouped CSS.
+  check({ "app/styles/globals.css": "@utility unreferenced { @apply block; }" }, [
+    /CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u,
+  ]);
+
+  check({ "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }" }, [
+    /CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u,
+  ]);
 });
