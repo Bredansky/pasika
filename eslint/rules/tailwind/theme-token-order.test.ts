@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeTokenOrderRule } from "./theme-token-order";
 
-void describe("CSS definitions MUST be grouped by consuming component paths, with groups and definitions sorted alphabetically.", () => {
+void describe("CSS definitions MUST be grouped by consuming component paths and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-consumers-")));
   const cssFile = path.join(fixture, "src", "app", "styles", "home.css");
   const outsideSrc = path.join(fixture, "styles", "global.css");
@@ -24,13 +24,26 @@ void describe("CSS definitions MUST be grouped by consuming component paths, wit
       valid: [
         {
           filename: cssFile,
+          code: [
+            "@theme inline {",
+            "  --color-foundation: #ffffff;",
+            "  /* Group: src/components/hero.tsx */",
+            "  --color-brand: #123456;",
+            "}",
+            "@utility fallback { @apply [display:block]; }",
+            "/* Group: src/components/hero.tsx */",
+            "@utility alpha { @apply [display:block]; }",
+          ].join("\n"),
+        },
+        {
+          filename: cssFile,
           code: ["@theme inline {", "  /* Group: src/components/hero.tsx */", "  --color-brand: #123456;", "}"].join(
             "\n",
           ),
         },
         {
           filename: cssFile,
-          code: "/* Group: global */\n.orphan { color: white; }",
+          code: ".orphan { color: white; }",
         },
         {
           filename: cssFile,
@@ -40,7 +53,6 @@ void describe("CSS definitions MUST be grouped by consuming component paths, wit
             "/* Group: src/components/hero.tsx */",
             "@utility alpha { @apply [display:block]; }",
             "@utility beta { @apply [display:inline]; }",
-            "/* Group: global */",
             "@keyframes shimmer { to { opacity: 0; } }",
           ].join("\n"),
         },
@@ -50,15 +62,15 @@ void describe("CSS definitions MUST be grouped by consuming component paths, wit
         },
         {
           filename: cssFile,
-          code: "/* Group: global */\n:root { --theme-label: blue; }",
+          code: ":root { --theme-label: blue; }",
         },
         {
           filename: outsideSrc,
-          code: "/* Group: global */\n@keyframes fade { to { opacity: 0; } }",
+          code: "@keyframes fade { to { opacity: 0; } }",
         },
         {
           filename: outsideSrc,
-          code: "/* Group: global */\n@font-face { font-family: Example; src: url(example.woff2); }",
+          code: "@font-face { font-family: Example; src: url(example.woff2); }",
         },
         {
           filename: cssFile,
@@ -67,11 +79,35 @@ void describe("CSS definitions MUST be grouped by consuming component paths, wit
       ],
       invalid: [
         {
-          filename: outsideSrc,
-          code: "@keyframes fade { to { opacity: 0; } }",
+          filename: cssFile,
+          code: "/* Group: src/components/hero.tsx */\n@keyframes shimmer { to { opacity: 0; } }",
+          errors: [{ message: "Global definitions must be ungrouped." }],
+        },
+        {
+          filename: cssFile,
+          code: "@theme inline { --color-z: white; --color-a: black; }",
           errors: [
-            { message: 'CSS definition "fade" requires a component-path group comment (or /* Group: global */).' },
+            {
+              message: 'CSS definitions in group "global" must be alphabetical: "--color-a" comes before "--color-z".',
+            },
           ],
+        },
+        {
+          filename: cssFile,
+          code: [
+            "@theme inline {",
+            "  /* Group: src/components/hero.tsx */",
+            "  --color-brand: #123456;",
+            "  --color-unowned: #abcdef;",
+            "}",
+          ].join("\n"),
+          errors: [{ message: "Global definitions must be ungrouped." }],
+        },
+        {
+          filename: outsideSrc,
+          code: "/* Group: global */\n@keyframes fade { to { opacity: 0; } }",
+          output: "@keyframes fade { to { opacity: 0; } }",
+          errors: [{ message: "Global CSS definitions must not have a group comment." }],
         },
         {
           filename: cssFile,
@@ -125,9 +161,7 @@ void describe("CSS definitions MUST be grouped by consuming component paths, wit
         {
           filename: cssFile,
           code: "@utility alpha { @apply [display:block]; }",
-          errors: [
-            { message: 'CSS definition "alpha" requires a component-path group comment (or /* Group: global */).' },
-          ],
+          errors: [{ message: 'CSS definition "alpha" requires a component-path group comment.' }],
         },
       ],
     });

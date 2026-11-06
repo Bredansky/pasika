@@ -112,28 +112,57 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
       )
       .map((symbol) => ({
         symbol,
-        group: groups.filter((group) => group.line < symbol.line).at(-1),
         owner: ownerOf(symbol, graph, root),
         section: sectionOf(symbol),
       }))
       .sort((a, b) => a.symbol.line - b.symbol.line);
 
+    // Group headings belong to the following run of one definition kind.
+    // A new kind resets the heading; globally owned definitions need none.
+    let activeGroup: Group | undefined;
+    let previousItem: Item | undefined;
+    for (const item of items) {
+      const intervening = groups
+        .filter((group) => group.line > (previousItem?.symbol.line ?? 0) && group.line < item.symbol.line)
+        .at(-1);
+      if (item.section !== previousItem?.section) activeGroup = intervening;
+      else if (intervening) activeGroup = intervening;
+      item.group = activeGroup;
+      previousItem = item;
+    }
+
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
+        for (const group of groups.filter((entry) => entry.label === "global")) {
+          context.report({
+            node,
+            loc: { start: { line: group.line, column: 1 }, end: { line: group.line, column: 2 } },
+            message: "Global CSS definitions must not have a group comment.",
+            fix(fixer) {
+              const start = context.sourceCode.getIndexFromLoc({ line: group.line, column: 1 });
+              const end = start + (lines[group.line - 1] ?? "").length;
+              const remaining = context.sourceCode.text.slice(end);
+              const newline = remaining.startsWith("\r\n") ? 2 : remaining.startsWith("\n") ? 1 : 0;
+              return fixer.removeRange([start, end + newline]);
+            },
+          });
+        }
         let previous: Item | undefined;
         for (const item of items) {
           const currentGroup = item.group;
           const actual = currentGroup?.label;
           let message: string | undefined;
-          if (!currentGroup) {
-            message = `CSS definition "${item.symbol.name}" requires a component-path group comment (or /* Group: global */).`;
-          } else if (actual !== item.owner) {
-            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${currentGroup.label}".`;
-          } else if (previous?.section === item.section && previous.group) {
-            if (previous.group !== currentGroup && previous.group.label.localeCompare(currentGroup.label) > 0) {
+          if (item.owner === "global" && currentGroup && currentGroup.label !== "global") {
+            message = "Global definitions must be ungrouped.";
+          } else if (item.owner !== "global" && !currentGroup) {
+            message = `CSS definition "${item.symbol.name}" requires a component-path group comment.`;
+          } else if (item.owner !== "global" && actual !== item.owner) {
+            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${currentGroup?.label}".`;
+          } else if (previous?.section === item.section) {
+            if (previous.owner !== item.owner && previous.owner.localeCompare(item.owner) > 0) {
               message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
-            } else if (previous.group === currentGroup && previous.symbol.name.localeCompare(item.symbol.name) > 0) {
-              message = `CSS definitions in group "${previous.group.label}" must be alphabetical: "${item.symbol.name}" comes before "${previous.symbol.name}".`;
+            } else if (previous.owner === item.owner && previous.symbol.name.localeCompare(item.symbol.name) > 0) {
+              message = `CSS definitions in group "${item.owner}" must be alphabetical: "${item.symbol.name}" comes before "${previous.symbol.name}".`;
             }
           }
           if (message) {
@@ -142,7 +171,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
               node,
               loc: { start: { line, column: 1 }, end: { line, column: 2 } },
               message,
-              ...(currentGroup &&
+              ...(item.owner !== "global" &&
+              currentGroup &&
               actual !== item.owner &&
               items.filter((candidate) => candidate.group === currentGroup).length === 1
                 ? {
