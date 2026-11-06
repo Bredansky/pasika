@@ -22,7 +22,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Global `@theme inline` tokens MUST be ordered by purpose-based groups, with keys sorted alphabetically within each group.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Component-Path CSS Groups (Opt-in)
+### Component-Path CSS Groups (Opt-in)
 
 For a stylesheet being migrated, add `/* @pasika-component-groups */` at its start and annotate definitions with their actual consumers:
 

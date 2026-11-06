@@ -17,8 +17,16 @@ const OPT_IN = "/* @pasika-component-groups */";
 const GROUP_RE =
   /^\s*\/\*\s*(?:Group:\s*)?(?<paths>(?:global|src\/[\w./-]+\.(?:tsx?|jsx?))(?:\s*,\s*src\/[\w./-]+\.(?:tsx?|jsx?))*)\s*\*\/\s*$/u;
 const PATH_RE = /^src\/[\w./-]+\.(?:tsx?|jsx?)$/u;
-type Group = { label: string; line: number };
-type Item = { symbol: CssSymbol; group?: Group; owner: string; section: string };
+interface Group {
+  label: string;
+  line: number;
+}
+interface Item {
+  symbol: CssSymbol;
+  group?: Group;
+  owner: string;
+  section: string;
+}
 
 function normalizeGroup(label: string): string {
   if (label === "global") return "global";
@@ -38,8 +46,9 @@ function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyG
       ref.source !== "module" ||
       !/\.(?:tsx|jsx)$/u.test(ref.file) ||
       /\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(ref.file)
-    )
+    ) {
       return false;
+    }
     if (symbol.kind === "theme-token") {
       return (
         (ref.kind === "theme-class" && ref.token === symbol.name) ||
@@ -119,25 +128,14 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
           const actual = currentGroup?.label;
           let message: string | undefined;
           if (!currentGroup) {
-            message =
-              'CSS definition "' +
-              item.symbol.name +
-              '" requires a component-path group comment (or /* Group: global */).';
+            message = `CSS definition "${item.symbol.name}" requires a component-path group comment (or /* Group: global */).`;
           } else if (actual !== item.owner) {
-            message =
-              'CSS definition "' + item.symbol.name + '" belongs to group "' + item.owner + '", not "' + actual + '".';
-          } else if (previous?.section === item.section && previous.group && currentGroup) {
+            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${actual}".`;
+          } else if (previous?.section === item.section && previous.group) {
             if (previous.group !== currentGroup && previous.group.label.localeCompare(currentGroup.label) > 0) {
-              message = "CSS consumer groups in " + item.section + " must be ordered alphabetically by path.";
+              message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
             } else if (previous.group === currentGroup && previous.symbol.name.localeCompare(item.symbol.name) > 0) {
-              message =
-                'CSS definitions in group "' +
-                actual +
-                '" must be alphabetical: "' +
-                item.symbol.name +
-                '" comes before "' +
-                previous.symbol.name +
-                '".';
+              message = `CSS definitions in group "${actual}" must be alphabetical: "${item.symbol.name}" comes before "${previous.symbol.name}".`;
             }
           }
           if (message) {
@@ -153,7 +151,7 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
                     fix(fixer) {
                       const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
                       const end = start + lines[currentGroup.line - 1].length;
-                      return fixer.replaceTextRange([start, end], "/* Group: " + item.owner + " */");
+                      return fixer.replaceTextRange([start, end], `/* Group: ${item.owner} */`);
                     },
                   }
                 : {}),
