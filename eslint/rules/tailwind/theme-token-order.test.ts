@@ -231,14 +231,11 @@ void describe("CSS definitions MUST be grouped by consumer paths: use a componen
   });
 
   // Unknown consumers must produce diagnostics, not silently ungrouped CSS.
-  check(
-    { "app/styles/globals.css": "@utility unreferenced { @apply block; }" },
-    [/CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u],
-  );
+  check({ "app/styles/globals.css": "@utility unreferenced { @apply block; }" }, [
+    /CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u,
+  ]);
 
-  check(
-    { "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }" },
-    [/CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u],
-  );
-
+  check({ "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }" }, [
+    /CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u,
+  ]);
 });
