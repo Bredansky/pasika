@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeTokenOrderRule } from "./theme-token-order";
 
-void describe("Global `@theme inline` tokens MUST use purpose-based groups with alphabetical keys; opted-in CSS files MUST use consuming component-path groups with alphabetical groups and definitions.", () => {
+void describe("`@theme inline` tokens MUST be grouped by purpose and sorted alphabetically. Opted-in CSS files MUST group definitions by component path and sort them alphabetically.", () => {
   const fixture = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-consumers-")));
   const cssFile = path.join(fixture, "src", "app", "styles", "home.css");
   const hero = path.join(fixture, "src", "components", "hero.tsx");

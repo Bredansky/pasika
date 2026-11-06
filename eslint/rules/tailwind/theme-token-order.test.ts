@@ -5,7 +5,7 @@ import { themeTokenOrderRule } from "./theme-token-order";
 const globals = path.resolve("src/app/styles/globals.css");
 const feature = path.resolve("src/app/styles/home.css");
 
-void describe("Global `@theme inline` tokens MUST use purpose-based groups with alphabetical keys; opted-in CSS files MUST use consuming component-path groups with alphabetical groups and definitions.", () => {
+void describe("`@theme inline` tokens MUST be grouped by purpose and sorted alphabetically. Opted-in CSS files MUST group definitions by component path and sort them alphabetically.", () => {
   tailwindRuleTester.run("theme-token-order", themeTokenOrderRule, {
     valid: [
       {
