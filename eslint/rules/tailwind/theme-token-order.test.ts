@@ -40,7 +40,7 @@ function utility(group: string, name = "effect"): string {
   return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
 }
 
-void describe("CSS definitions MUST be grouped by their consumers: use the component file path including its extension for one consumer, the feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
+void describe("CSS definitions MUST use component file paths including extensions for single consumers within each scope, or feature paths and app/compositions/shared roots for multiple consumers; mixed consumer scopes and definitions MUST be sorted alphabetically.", () => {
   check({
     "app/styles/globals.css": utility("features/home/banner.tsx"),
     "features/home/banner.tsx": 'const cls = "effect";',
@@ -80,7 +80,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
   });
 
   check({
-    "app/styles/globals.css": utility("app, features/home"),
+    "app/styles/globals.css": utility("app/error.tsx, features/home/banner.tsx"),
     "app/error.tsx": 'const cls = "effect";',
     "features/home/banner.tsx": 'const cls = "effect";',
   });
@@ -124,25 +124,58 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
   });
 
   check({
-    "app/styles/globals.css": utility("features/home, features/player"),
+    "app/styles/globals.css": utility("features/home/banner.tsx, features/player/controls.tsx"),
     "features/home/banner.tsx": 'const cls = "effect";',
     "features/player/controls.tsx": 'const cls = "effect";',
   });
 
   check({
-    "app/styles/globals.css": utility("features/home, shared"),
+    "app/styles/globals.css": utility("features/home/banner.tsx, shared/button.tsx"),
     "features/home/banner.tsx": 'const cls = "effect";',
     "shared/button.tsx": 'const cls = "effect";',
   });
 
   check({
-    "app/styles/globals.css": utility("compositions, features/home, features/player, shared"),
+    "app/styles/globals.css": utility("compositions/checkout.tsx, features/home, features/player/controls.tsx, shared/button.tsx"),
     "compositions/checkout.tsx": 'const cls = "effect";',
     "features/home/banner.tsx": 'const cls = "effect";',
     "features/home/menu.tsx": 'const cls = "effect";',
     "features/player/controls.tsx": 'const cls = "effect";',
     "shared/button.tsx": 'const cls = "effect";',
   });
+
+  check({
+    "app/styles/globals.css": utility("app/page.tsx, compositions/checkout.tsx, features/home/banner.tsx, shared/button.tsx"),
+    "app/page.tsx": 'const cls = "effect";',
+    "compositions/checkout.tsx": 'const cls = "effect";',
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "shared/button.tsx": 'const cls = "effect";',
+  });
+
+  check({
+    "app/styles/globals.css": utility("app, compositions, features/home, shared"),
+    "app/page.tsx": 'const cls = "effect";',
+    "app/error.tsx": 'const cls = "effect";',
+    "compositions/checkout.tsx": 'const cls = "effect";',
+    "compositions/receipt.tsx": 'const cls = "effect";',
+    "features/home/banner.tsx": 'const cls = "effect";',
+    "features/home/menu.tsx": 'const cls = "effect";',
+    "shared/button.tsx": 'const cls = "effect";',
+    "shared/label.tsx": 'const cls = "effect";',
+  });
+
+  check(
+    {
+      "app/styles/globals.css": utility("app, compositions, features/home, shared"),
+      "app/page.tsx": 'const cls = "effect";',
+      "compositions/checkout.tsx": 'const cls = "effect";',
+      "features/home/banner.tsx": 'const cls = "effect";',
+      "shared/button.tsx": 'const cls = "effect";',
+    },
+    [/CSS definition "effect" belongs to group "app\/page.tsx, compositions\/checkout.tsx, features\/home\/banner.tsx, shared\/button.tsx"/u],
+    utility("app/page.tsx, compositions/checkout.tsx, features/home/banner.tsx, shared/button.tsx"),
+  );
+
 
   check({
     "app/styles/globals.css": `@theme inline {
@@ -186,8 +219,8 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
       "features/home/banner.tsx": 'const cls = "effect";',
       "features/player/controls.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "features\/home, features\/player", not "features\/home"/u],
-    utility("features/home, features/player"),
+    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx, features\/player\/controls.tsx", not "features\/home"/u],
+    utility("features/home/banner.tsx, features/player/controls.tsx"),
   );
 
   check(
