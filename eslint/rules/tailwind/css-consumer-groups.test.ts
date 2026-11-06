@@ -35,10 +35,44 @@ void describe("Opt-in CSS consumer groups MUST name their consuming components a
         },
         {
           filename: cssFile,
+          code: "/* @pasika-component-groups */\n/* src/components/hero.tsx */\n@utility alpha { @apply [display:block]; }",
+        },
+        {
+          filename: cssFile,
+          code: "/* @pasika-component-groups */\n/* Group: global */\n:root { --theme-label: blue; }",
+        },
+        {
+          filename: cssFile,
           code: "@utility alpha { @apply [display:block]; }",
         },
       ],
       invalid: [
+        {
+          filename: cssFile,
+          code: [
+            "/* @pasika-component-groups */",
+            "/* Group: src/components/hero.tsx */",
+            "@utility alpha { @apply [display:block]; }",
+            "/* Group: src/components/card.tsx, src/components/hero.tsx */",
+            "@utility shared { @apply [display:grid]; }",
+          ].join("\n"),
+          errors: [{ message: "CSS consumer groups in utility must be ordered alphabetically by path." }],
+        },
+        {
+          filename: cssFile,
+          code: [
+            "/* @pasika-component-groups */",
+            "/* Group: src/components/hero.tsx */",
+            "@utility alpha { @apply [display:block]; }",
+            "@utility shared { @apply [display:grid]; }",
+          ].join("\n"),
+          errors: [
+            {
+              message:
+                'CSS definition "shared" belongs to group "src/components/card.tsx, src/components/hero.tsx", not "src/components/hero.tsx".',
+            },
+          ],
+        },
         {
           filename: cssFile,
           code: [
