@@ -11,7 +11,8 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
-import { inferCssConsumerPaths, symbolId } from "./css-ownership";
+import { inferCssConsumerPaths } from "./css-consumers";
+import { symbolId } from "./css-ownership";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 // Recognize legacy src/...tsx group comments so the rule can report and
