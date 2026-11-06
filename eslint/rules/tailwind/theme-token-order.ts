@@ -122,9 +122,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     let activeGroup: Group | undefined;
     let previousItem: Item | undefined;
     for (const item of items) {
-      const intervening = groups
-        .filter((group) => group.line > (previousItem?.symbol.line ?? 0) && group.line < item.symbol.line)
-        .at(-1);
+      const previousLine = previousItem?.symbol.line ?? 0;
+      const intervening = groups.filter((group) => group.line > previousLine && group.line < item.symbol.line).at(-1);
       if (item.section !== previousItem?.section) activeGroup = intervening;
       else if (intervening) activeGroup = intervening;
       item.group = activeGroup;
@@ -142,7 +141,9 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
               const start = context.sourceCode.getIndexFromLoc({ line: group.line, column: 1 });
               const end = start + (lines[group.line - 1] ?? "").length;
               const remaining = context.sourceCode.text.slice(end);
-              const newline = remaining.startsWith("\r\n") ? 2 : remaining.startsWith("\n") ? 1 : 0;
+              let newline = 0;
+              if (remaining.startsWith("\r\n")) newline = 2;
+              else if (remaining.startsWith("\n")) newline = 1;
               return fixer.removeRange([start, end + newline]);
             },
           });
@@ -151,13 +152,14 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
         for (const item of items) {
           const currentGroup = item.group;
           const actual = currentGroup?.label;
+          const reportedGroup = actual ?? "none";
           let message: string | undefined;
           if (item.owner === "global" && currentGroup && currentGroup.label !== "global") {
             message = "Global definitions must be ungrouped.";
           } else if (item.owner !== "global" && !currentGroup) {
             message = `CSS definition "${item.symbol.name}" requires a component-path group comment.`;
           } else if (item.owner !== "global" && actual !== item.owner) {
-            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${currentGroup?.label}".`;
+            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${reportedGroup}".`;
           } else if (previous?.section === item.section) {
             if (previous.owner !== item.owner && previous.owner.localeCompare(item.owner) > 0) {
               message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
