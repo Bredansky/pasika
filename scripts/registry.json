@@ -1316,8 +1316,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "`@theme inline` tokens MUST be grouped by purpose and sorted alphabetically. Opted-in CSS files MUST group definitions by component path and sort them alphabetically.",
-      "hash": "5fa9a34cf1",
+      "text": "CSS definitions MUST be grouped by consuming component paths, with groups and definitions sorted alphabetically.",
+      "hash": "7875e28167",
       "ref": "pasika/theme-token-order"
     },
     {
