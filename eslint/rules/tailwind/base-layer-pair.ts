@@ -84,8 +84,12 @@ export const baseLayerPairRule: CSSRuleDefinition = {
         }
 
         if (!applied.hasBaseLayer) return;
-        const hasCanvas = applied.names.some((name) => name.includes("canvas") || (name.startsWith("bg-") && themeColors.has(name.slice(3))));
-        const hasInk = applied.names.some((name) => name.includes("ink") || (name.startsWith("text-") && themeColors.has(name.slice(5))));
+        const hasCanvas = applied.names.some(
+          (name) => name.includes("canvas") || (name.startsWith("bg-") && themeColors.has(name.slice(3))),
+        );
+        const hasInk = applied.names.some(
+          (name) => name.includes("ink") || (name.startsWith("text-") && themeColors.has(name.slice(5))),
+        );
         if (!hasCanvas || !hasInk) {
           context.report({
             node,
