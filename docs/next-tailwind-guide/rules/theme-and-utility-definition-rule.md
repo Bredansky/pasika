@@ -22,20 +22,60 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - CSS definitions MUST be grouped by consumer paths: use a component path for one consumer, a feature or layer path for multiple consumers, and all relevant paths when consumers span scopes; sort groups and definitions alphabetically.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
-## Incorrect — Repeating Every Component Path for Shared CSS
+## Incorrect — Listing All Consumers Instead of Their Shared Feature
+
+Both components use the same CSS utility:
+
+```tsx
+// src/features/home/banner.tsx
+export function Banner() {
+  return <div className="home-effect" />;
+}
+
+// src/features/home/menu.tsx
+export function Menu() {
+  return <nav className="home-effect" />;
+}
+```
 
 ```css
+/* src/app/styles/home.css */
 /* Group: src/features/home/banner.tsx, src/features/home/menu.tsx */
 @utility home-effect {
   @apply block;
 }
 ```
 
-Why: multiple consumers in one feature are listed separately instead of sharing the feature path.
+Why: the group lists both component files even though they belong to the same feature.
 
-## Correct — Using Consumer Scopes as CSS Group Headers
+## Correct — Grouping CSS by Its Actual Consumers
+
+These components demonstrate a single consumer, multiple consumers within one feature, and consumers across layers:
+
+```tsx
+// src/features/home/banner.tsx
+export function Banner() {
+  return <div className="banner-effect home-effect mixed-effect" />;
+}
+
+// src/features/home/menu.tsx
+export function Menu() {
+  return <nav className="home-effect" />;
+}
+
+// src/shared/button.tsx
+export function Button() {
+  return <button className="mixed-effect" />;
+}
+
+// src/compositions/header.tsx
+export function Header() {
+  return <header className="mixed-effect" />;
+}
+```
 
 ```css
+/* src/app/styles/globals.css */
 /* Group: compositions, features/home, shared */
 @utility mixed-effect {
   @apply block;
@@ -52,7 +92,7 @@ Why: multiple consumers in one feature are listed separately instead of sharing 
 }
 ```
 
-Why: a single consumer keeps its component path, multiple consumers share the containing scope, and consumers across scopes retain their distinct scope paths. Tailwind-generated classes and CSS dependencies must be traced to their consuming components; these group comments do not change stylesheet ownership.
+Why: `features/home/banner` means `src/features/home/banner.tsx` without the `src/` prefix and `.tsx` extension, since only Banner consumes `banner-effect`. The other groups reflect all their consumers, without changing which CSS file owns each definition.
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
