@@ -10,8 +10,8 @@ import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
-import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
 import { inferCssConsumerPaths } from "./css-consumers";
+import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
 import { symbolId } from "./css-ownership";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
