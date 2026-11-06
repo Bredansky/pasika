@@ -53,7 +53,7 @@ function scopeOf(symbol: CssSymbol, sheet: StyleSheetPlain): string {
     symbol.kind === "root-variable" ||
     (enclosing.type === "Atrule" && enclosing.name === "layer")
   ) {
-    return `block:${enclosing.loc.start.offset}`;
+    return `block:${enclosing.loc.start.offset.toString()}`;
   }
   return "top-level";
 }
@@ -144,7 +144,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     for (const item of items) {
       const previousLine = previousItem?.symbol.line ?? 0;
       const intervening = groups.filter((group) => group.line > previousLine && group.line < item.symbol.line).at(-1);
-      if (item.section !== previousItem?.section || item.scope !== previousItem?.scope) activeGroup = intervening;
+      const previousScope = previousItem?.scope;
+      if (item.section !== previousItem?.section || item.scope !== previousScope) activeGroup = intervening;
       else if (intervening) activeGroup = intervening;
       item.group = activeGroup;
       previousItem = item;
