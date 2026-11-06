@@ -40,7 +40,7 @@ function utility(group: string, name = "effect"): string {
   return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
 }
 
-void describe("CSS definitions MUST be grouped by consumer paths: use a component path for one consumer, a feature or layer path for multiple consumers, and all relevant paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
+void describe("CSS definitions MUST be grouped by their consumers: use a component path for one consumer, a feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
   check({
     "app/styles/globals.css": utility("features/home/banner"),
     "features/home/banner.tsx": 'const cls = "effect";',
