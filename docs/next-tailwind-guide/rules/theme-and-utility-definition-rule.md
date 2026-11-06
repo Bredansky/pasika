@@ -19,7 +19,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - A custom utility MUST use `@apply` for every styling declaration added by the project. When no named built-in utility represents a property value, it MUST apply the Tailwind custom-property or arbitrary-property utility instead.
 - Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.
 - Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.
-- CSS definitions MUST be grouped by consuming component paths or their common feature/layer paths, with mixed scopes combined and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.
+- CSS definitions MUST be grouped by consumer paths: use a component path for one consumer, a feature or layer path for multiple consumers, and all relevant paths when consumers span scopes; sort groups and definitions alphabetically.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Repeating Every Component Path for Shared CSS
@@ -52,7 +52,7 @@ Why: multiple consumers in one feature are listed separately instead of sharing 
 }
 ```
 
-Why: a single consumer uses its component path relative to `src/` without an extension, while multiple consumers collapse to their feature or layer path (or a deduplicated, alphabetical combination across scopes). This affects only CSS entries inside a stylesheet, not CSS ownership or placement.
+Why: a single consumer keeps its component path, multiple consumers share the containing scope, and consumers across scopes retain their distinct scope paths. Tailwind-generated classes and CSS dependencies must be traced to their consuming components; these group comments do not change stylesheet ownership.
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
