@@ -49,7 +49,7 @@ export function inferCssConsumerPaths(options: {
         (["theme-token", "root-variable"].includes(def.kind) && contains(mod.content, def.name)) ||
         (def.kind === "keyframes" && contains(mod.content, def.name)) ||
         (def.kind === "font-face" &&
-          new RegExp("(?:fontFamily|font-family)\\s*[:=]\\s*[\"']" + escapeRegExp(def.name), "iu").test(mod.content));
+          new RegExp(`(?:fontFamily|font-family)\\s*[:=]\\s*["']${escapeRegExp(def.name)}`, "iu").test(mod.content));
       if (explicit || refs.some((ref) => ref.file === mod.path)) {
         consumers.get(symbolId(def))?.add(
           path
@@ -68,7 +68,9 @@ export function inferCssConsumerPaths(options: {
     const def = defs.find((candidate) => symbolId(candidate) === from);
     if (def?.kind === "theme-token" && def.name.startsWith("--animate-")) {
       for (const frame of defs) {
-        if (frame.kind === "keyframes" && contains(body, frame.name)) targets.add(symbolId(frame));
+        if (frame.kind === "keyframes" && contains(body, frame.name)) {
+          targets.add(symbolId(frame));
+        }
       }
     }
     // The text utility also consumes its optional text metadata tokens.
@@ -77,8 +79,9 @@ export function inferCssConsumerPaths(options: {
         if (
           metadata.kind === "theme-token" &&
           ["--line-height", "--letter-spacing", "--font-weight"].some((suffix) => metadata.name === def.name + suffix)
-        )
+        ) {
           targets.add(symbolId(metadata));
+        }
       }
     }
     targets.delete(from);
@@ -88,6 +91,7 @@ export function inferCssConsumerPaths(options: {
   // Base styles and Tailwind design-system defaults have app-wide consumers.
   for (const src of css) {
     const ast = parse(src.content, { positions: true, parseAtrulePrelude: false });
+    if (ast.type !== "StyleSheet") continue;
     for (const node of ast.children) {
       if (
         node.type !== "Atrule" ||
@@ -95,8 +99,9 @@ export function inferCssConsumerPaths(options: {
         !node.loc ||
         !node.prelude ||
         generate(node.prelude).trim() !== "base"
-      )
+      ) {
         continue;
+      }
       const body = src.content.slice(node.loc.start.offset, node.loc.end.offset);
       for (const target of dependencies(body, defs, classesByToken)) consumers.get(target)?.add("app");
     }
@@ -107,8 +112,9 @@ export function inferCssConsumerPaths(options: {
       ["--spacing", "--radius", "--font-sans", "--font-mono"].includes(def.name) ||
       def.name.startsWith("--breakpoint-") ||
       def.name.startsWith("--default-")
-    )
+    ) {
       consumers.get(symbolId(def))?.add("app");
+    }
   }
 
   let changed = true;
