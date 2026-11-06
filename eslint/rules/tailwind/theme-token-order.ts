@@ -17,22 +17,7 @@ import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "
 // autofix them, while generating only the new extensionless src-relative labels.
 const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:features|shared|compositions)(?:/[\w.-]+)*)`;
 const GROUP_RE = new RegExp(
-  String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*/**
- * ESLint rule: pasika/theme-token-order
- *
- * Group CSS definitions by their single consumer or shared feature/layer scopes,
- * with alphabetical order for groups and definitions in each stylesheet.
- *
- * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
- */
-import path from "node:path";
-import type { CSSRuleDefinition } from "@eslint/css";
-import type { StyleSheetPlain } from "@eslint/css-tree";
-import { sourceRootOf } from "../project-root";
-import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
-import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
-
-,
+  String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*$`,
   "u",
 );
 const PATH_RE = /^(?:features\/[\w-]+\/[\w./-]+|shared\/[\w./-]+|compositions\/[\w./-]+)\.(?:tsx|jsx)$/u;
