@@ -40,7 +40,7 @@ function utility(group: string, name = "effect"): string {
   return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
 }
 
-void describe("CSS definitions MUST be grouped by consuming component paths or their common feature/layer paths, with mixed scopes combined and sorted alphabetically; definitions without identifiable consumers MUST remain ungrouped.", () => {
+void describe("CSS definitions MUST be grouped by consumer paths: use a component path for one consumer, a feature or layer path for multiple consumers, and all relevant paths when consumers span scopes; sort groups and definitions alphabetically.", () => {
   check({
     "app/styles/globals.css": utility("features/home/banner"),
     "features/home/banner.tsx": 'const cls = "effect";',
@@ -101,20 +101,11 @@ void describe("CSS definitions MUST be grouped by consuming component paths or t
   });
 
   check({
-    "app/styles/globals.css": "@utility unreferenced { @apply block; }",
-  });
-
-  check({
     "app/styles/globals.css": `@theme inline {
   /* Group: features/home/banner */
   --color-banner-canvas: #123456;
 }`,
     "features/home/banner.tsx": 'const cls = "bg-banner-canvas";',
-  });
-
-  check({
-    "app/styles/globals.css":
-      "@layer base { @keyframes zeta { to { opacity: 0; } } }\n@keyframes carrot { to { opacity: 0; } }",
   });
 
   check(
@@ -148,14 +139,6 @@ void describe("CSS definitions MUST be grouped by consuming component paths or t
 
   check(
     {
-      "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }",
-    },
-    [/Global CSS definitions must not have a group comment/u],
-    "@utility unreferenced { @apply block; }",
-  );
-
-  check(
-    {
       "app/styles/globals.css": `${utility("features/zeta/item", "zed")}\n${utility("features/alpha/item", "alpha")}`,
       "features/zeta/item.tsx": 'const cls = "zed";',
       "features/alpha/item.tsx": 'const cls = "alpha";',
@@ -176,8 +159,87 @@ void describe("CSS definitions MUST be grouped by consuming component paths or t
 
   check(
     {
-      "app/styles/globals.css": "@theme inline { --color-z: white; --color-a: black; }",
+      "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --color-z: white;
+  --color-a: black;
+}`,
+      "features/home/banner.tsx": 'const cls = "bg-z text-a";',
     },
-    [/CSS definitions in group "global" must be alphabetical/u],
+    [/CSS definitions in group "features\/home\/banner" must be alphabetical/u],
   );
+  // Tailwind-generated utility classes must identify both their token and
+  // any metadata implicitly associated with that token.
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --text-compact: 0.875rem;
+  --text-compact--line-height: 1.25;
+}`,
+    "features/home/banner.tsx": 'const cls = "text-compact";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --color-frame: #222222;
+  --shadow-panel: 0 2px 4px var(--color-frame);
+}`,
+    "features/home/banner.tsx": 'const cls = "shadow-panel";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --color-spot: #345678;
+}`,
+    "app/styles/home.css": "@utility spot { @apply bg-spot; }",
+    "features/home/banner.tsx": 'const cls = "spot";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --animate-intro: intro 0.5s linear;
+}
+/* Group: features/home/banner */
+@keyframes intro { to { opacity: 1; } }`,
+    "features/home/banner.tsx": 'const cls = "animate-intro";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner */
+  --color-panel: var(--color-panel);
+}
+:root {
+  /* Group: features/home/banner */
+  --color-panel: #abcdef;
+}`,
+    "features/home/banner.tsx": 'const cls = "bg-panel";',
+  });
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: app */
+  --spacing: 0.25rem;
+  /* Group: app */
+  --color-base-canvas: white;
+}
+@layer base {
+  body { @apply bg-base-canvas; }
+}`,
+  });
+
+  // Unknown consumers must produce diagnostics, not silently ungrouped CSS.
+  check(
+    { "app/styles/globals.css": "@utility unreferenced { @apply block; }" },
+    [/CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u],
+  );
+
+  check(
+    { "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }" },
+    [/CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u],
+  );
+
 });
