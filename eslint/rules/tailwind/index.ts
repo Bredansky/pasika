@@ -15,6 +15,7 @@ import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
 import { themeModeRule } from "./theme-mode";
 import { themeResetRule } from "./theme-reset";
+import { themeTokenOrderRule } from "./theme-token-order";
 import { uniqueCssDefinitionRule } from "./unique-css-definition";
 import { uniqueCssTokenValueRule } from "./unique-css-token-value";
 import { unusedCssDefinitionRule } from "./unused-css-definition";
@@ -24,6 +25,7 @@ import { utilityNameParityRule } from "./utility-name-parity";
 export const tailwindRules = {
   "at-rule-spacing": atRuleSpacingRule,
   "theme-reset": themeResetRule,
+  "theme-token-order": themeTokenOrderRule,
   "theme-mode": themeModeRule,
   "color-role-usage": colorRoleUsageRule,
   "color-literal-usage": colorLiteralUsageRule,

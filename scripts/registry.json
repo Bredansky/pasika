@@ -679,6 +679,12 @@
       "ref": "pasika/locale-key-shape"
     },
     {
+      "doc": "next-codebase-guide/rules/locales-rule.md",
+      "text": "Locale dictionary keys MUST be sorted alphabetically.",
+      "hash": "eb58cf3661",
+      "ref": "pasika/locale-key-shape"
+    },
+    {
       "doc": "next-codebase-guide/rules/nameable-visual-concept-rule.md",
       "text": "A block of elements SHOULD be extracted to a component when one clear name describes the whole block.",
       "hash": "ca77bfffc0",
@@ -1307,6 +1313,12 @@
       "text": "Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.",
       "hash": "6b03cdba9d",
       "ref": "pasika/unused-css-definition"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Global `@theme inline` tokens MUST be ordered by purpose-based groups, with keys sorted alphabetically within each group.",
+      "hash": "a57a6666d7",
+      "ref": "pasika/theme-token-order"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
