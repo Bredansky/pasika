@@ -222,9 +222,8 @@ void describe("CSS definitions MUST be grouped by consumer paths: use a componen
   check({
     "app/styles/globals.css": `@theme inline {
   /* Group: app */
-  --spacing: 0.25rem;
-  /* Group: app */
   --color-base-canvas: white;
+  --spacing: 0.25rem;
 }
 @layer base {
   body { @apply bg-base-canvas; }
