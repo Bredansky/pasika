@@ -54,17 +54,19 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
   check({
     "app/styles/globals.css": utility("features/home/banner.tsx"),
     "config/home-feed/index.ts": 'export const homeFeedConfig = { style: "effect" };',
-    "features/home/banner.tsx": 'import { homeFeedConfig } from "@/config/home-feed"; export const Banner = () => homeFeedConfig.style;',
+    "features/home/banner.tsx":
+      'import { homeFeedConfig } from "@/config/home-feed"; export const Banner = () => homeFeedConfig.style;',
   });
 
   check({
     "app/styles/globals.css": utility("features/home"),
     "config/home-feed/index.ts": 'export const homeFeedConfig = { style: "effect" };',
     "utils/home-feed.ts": 'export { homeFeedConfig } from "@/config/home-feed";',
-    "features/home/banner.tsx": 'import { homeFeedConfig } from "@/utils/home-feed"; export const Banner = () => homeFeedConfig.style;',
-    "features/home/menu.tsx": 'import { homeFeedConfig } from "@/utils/home-feed"; export const Menu = () => homeFeedConfig.style;',
+    "features/home/banner.tsx":
+      'import { homeFeedConfig } from "@/utils/home-feed"; export const Banner = () => homeFeedConfig.style;',
+    "features/home/menu.tsx":
+      'import { homeFeedConfig } from "@/utils/home-feed"; export const Menu = () => homeFeedConfig.style;',
   });
-
 
   check({
     "app/styles/globals.css": utility("app/global-error.tsx"),

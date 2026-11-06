@@ -43,10 +43,13 @@ export function inferCssConsumerPaths(options: {
           ? path.resolve(path.dirname(mod.path), specifier)
           : undefined;
       if (!base) continue;
-      const resolved = [base, ...[".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"].flatMap((ext) => [
-        base + ext,
-        path.join(base, "index" + ext),
-      ])].find((candidate) => moduleByPath.has(path.normalize(candidate)));
+      const resolved = [
+        base,
+        ...[".ts", ".tsx", ".js", ".jsx", ".mts", ".cts", ".mjs", ".cjs"].flatMap((ext) => [
+          base + ext,
+          path.join(base, "index" + ext),
+        ]),
+      ].find((candidate) => moduleByPath.has(path.normalize(candidate)));
       if (!resolved) continue;
       const key = path.normalize(resolved);
       const parents = importers.get(key) ?? new Set<string>();
