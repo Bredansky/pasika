@@ -80,7 +80,10 @@ export function Header() {
 @utility mixed-effect {
   @apply block;
 }
+```
 
+```css
+/* src/app/styles/home.css */
 /* Group: features/home */
 @utility home-effect {
   @apply block;
