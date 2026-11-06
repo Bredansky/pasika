@@ -127,7 +127,7 @@ void describe("CSS definitions MUST be grouped by their consumers: use the compo
       "app/styles/globals.css": utility("features/home/banner"),
       "features/home/banner.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "features\\/home\\/banner.tsx", not "features\\/home\\/banner"/u],
+    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx", not "features\/home\/banner"/u],
     utility("features/home/banner.tsx"),
   );
 
