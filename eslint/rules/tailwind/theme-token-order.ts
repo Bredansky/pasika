@@ -15,8 +15,8 @@ import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph"
 import { symbolId } from "./css-ownership";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
-// Recognize legacy src/...tsx group comments so the rule can report and
-// autofix them, while generating only the new extensionless src-relative labels.
+// Recognize legacy src/...tsx and extensionless group comments for diagnostics
+// and fixes; single-component labels keep their file extension, relative to src/.
 const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:app|features|shared|compositions)(?:/[\w.-]+)*)`;
 const GROUP_RE = new RegExp(
   String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*$`,
