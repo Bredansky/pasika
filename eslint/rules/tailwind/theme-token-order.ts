@@ -106,10 +106,16 @@ function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyG
 
   // A shared CSS entry has one group per feature or layer, regardless of the
   // number of components in each scope. Mixed groups combine those labels.
-  return [...new Set(consumers.map((consumer) => {
-    const parts = consumer.split("/");
-    return parts[0] === "features" ? parts.slice(0, 2).join("/") : parts[0] ?? "global";
-  }))].sort().join(", ");
+  return [
+    ...new Set(
+      consumers.map((consumer) => {
+        const parts = consumer.split("/");
+        return parts[0] === "features" ? parts.slice(0, 2).join("/") : (parts[0] ?? "global");
+      }),
+    ),
+  ]
+    .sort()
+    .join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
