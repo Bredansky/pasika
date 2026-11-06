@@ -150,7 +150,7 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
                 ? {
                     fix(fixer) {
                       const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
-                      const end = start + lines[currentGroup.line - 1].length;
+                      const end = start + (lines[currentGroup.line - 1] ?? "").length;
                       return fixer.replaceTextRange([start, end], `/* Group: ${item.owner} */`);
                     },
                   }
