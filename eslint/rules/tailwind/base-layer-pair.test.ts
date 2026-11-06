@@ -54,7 +54,7 @@ void describe("The global base layer MUST apply base-canvas and base-ink to the 
         },
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-base-dark: #180d20; }\\n@layer base { body { @apply bg-base-dark text-lg; } }",
+          code: "@theme inline { --color-base-dark: #180d20; }\n@layer base { body { @apply bg-base-dark text-lg; } }",
           errors: [
             {
               message:
