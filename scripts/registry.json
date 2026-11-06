@@ -1322,6 +1322,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Opt-in CSS consumer groups MUST name their consuming components and sort definitions alphabetically.",
+      "hash": "c1e39e7b15",
+      "ref": "pasika/css-consumer-groups"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
