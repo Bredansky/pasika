@@ -25,6 +25,7 @@ interface Item {
   group?: Group;
   owner: string;
   section: string;
+  scope: string;
 }
 
 function normalizeGroup(label: string): string {
@@ -37,6 +38,24 @@ function sectionOf(symbol: CssSymbol): string {
   if (symbol.kind === "utility") return "utility";
   if (symbol.kind === "keyframes") return "keyframes";
   return symbol.kind;
+}
+
+// Never compare or inherit group headers across different CSS blocks.
+// In particular, @layer keyframes and top-level keyframes have separate
+// cascade contexts, and each @theme or :root block stands on its own.
+function scopeOf(symbol: CssSymbol, sheet: StyleSheetPlain): string {
+  const enclosing = [...sheet.children].find(
+    (node) => node.loc && node.loc.start.line <= symbol.line && node.loc.end.line >= symbol.line,
+  );
+  if (!enclosing?.loc) return "top-level";
+  if (
+    symbol.kind === "theme-token" ||
+    symbol.kind === "root-variable" ||
+    (enclosing.type === "Atrule" && enclosing.name === "layer")
+  ) {
+    return `block:${enclosing.loc.start.offset.toString()}`;
+  }
+  return "top-level";
 }
 
 function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyGraph>, root: string): string {
@@ -114,6 +133,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
         symbol,
         owner: ownerOf(symbol, graph, root),
         section: sectionOf(symbol),
+        scope: scopeOf(symbol, context.sourceCode.ast),
       }))
       .sort((a, b) => a.symbol.line - b.symbol.line);
 
@@ -124,7 +144,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     for (const item of items) {
       const previousLine = previousItem?.symbol.line ?? 0;
       const intervening = groups.filter((group) => group.line > previousLine && group.line < item.symbol.line).at(-1);
-      if (item.section !== previousItem?.section) activeGroup = intervening;
+      const previousScope = previousItem?.scope;
+      if (item.section !== previousItem?.section || item.scope !== previousScope) activeGroup = intervening;
       else if (intervening) activeGroup = intervening;
       item.group = activeGroup;
       previousItem = item;
@@ -160,7 +181,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
             message = `CSS definition "${item.symbol.name}" requires a component-path group comment.`;
           } else if (item.owner !== "global" && actual !== item.owner) {
             message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${reportedGroup}".`;
-          } else if (previous?.section === item.section) {
+          } else if (previous?.section === item.section && previous.scope === item.scope) {
             if (previous.owner !== item.owner && previous.owner.localeCompare(item.owner) > 0) {
               message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
             } else if (previous.owner === item.owner && previous.symbol.name.localeCompare(item.symbol.name) > 0) {

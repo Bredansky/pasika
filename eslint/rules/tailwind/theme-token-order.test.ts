@@ -65,6 +65,24 @@ void describe("CSS definitions MUST be grouped by consuming component paths and 
           code: ":root { --theme-label: blue; }",
         },
         {
+          filename: cssFile,
+          code: [
+            "@layer base { @keyframes zeta { to { opacity: 0; } } }",
+            "@layer base { @keyframes aardvark { to { opacity: 0; } } }",
+            "@keyframes carrot { to { opacity: 0; } }",
+          ].join("\n"),
+        },
+        {
+          filename: cssFile,
+          code: [
+            "@theme inline {",
+            "  /* Group: src/components/hero.tsx */",
+            "  --color-brand: #123456;",
+            "}",
+            "@theme inline { --color-foundation: #ffffff; }",
+          ].join("\n"),
+        },
+        {
           filename: outsideSrc,
           code: "@keyframes fade { to { opacity: 0; } }",
         },
