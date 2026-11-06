@@ -55,8 +55,7 @@ export function inferCssConsumerPaths(options: {
           path
             .relative(sourceRoot, mod.path)
             .split(path.sep)
-            .join("/")
-            .replace(/\.(?:tsx|jsx)$/u, ""),
+            .join("/"),
         );
       }
     }
