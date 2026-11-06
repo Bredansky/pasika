@@ -25,7 +25,7 @@ export function inferCssConsumerPaths(options: {
   const components = modules.filter((mod) => {
     const relative = path.relative(sourceRoot, mod.path).split(path.sep).join("/");
     return (
-      /^(?:features\/[\w-]+\/|shared\/|compositions\/)[\w./-]+\.(?:tsx|jsx)$/u.test(relative) &&
+      /^(?:app\/|features\/[\w-]+\/|shared\/|compositions\/)[\w./-]+\.(?:tsx|jsx)$/u.test(relative) &&
       !/\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(relative)
     );
   });
