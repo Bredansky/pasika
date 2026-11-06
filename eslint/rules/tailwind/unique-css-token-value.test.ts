@@ -35,6 +35,8 @@ const files = {
   "l.css": "@theme { --color-brand-canvas: #2563eb; --color-brand-edge: #2563eb; }",
   "m.css": "@theme inline { --color-purple-ink: rebeccapurple; --color-ice-edge: aliceblue; }",
   "n.css": "@theme inline { --color-purple-copy-ink: #663399; --color-ice-copy-edge: #f0f8ff; }",
+  "o.css": "@theme inline { --primary: 290 80% 65%; --color-primary-canvas: hsl(var(--primary)); --color-primary-edge: hsl(var(--primary)); --color-primary-solid-ink: hsl(var(--primary)); }",
+  "p.css": "@theme inline { --color-primary: hsl(290 80% 65%); }",
 };
 const root = fixture(files);
 process.chdir(root);
@@ -134,6 +136,22 @@ void describe("Distinct `@theme inline` tokens and default `:root` properties MU
           {
             message: `Token "--color-ice-copy-edge" duplicates the value of "--color-ice-edge" in app${path.sep}styles${path.sep}m.css:1; reuse one design token.`,
           },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Fixed HSL palette primitives must not be wrapped by redundant Tailwind color tokens.", () => {
+  tailwindRuleTester.run("unique-css-token-value:wrapped-hsl", uniqueCssTokenValueRule, {
+    valid: [atFile("p.css")],
+    invalid: [
+      {
+        ...atFile("o.css"),
+        errors: [
+          { message: 'Color token "--color-primary-canvas" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
+          { message: 'Color token "--color-primary-edge" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
+          { message: 'Color token "--color-primary-solid-ink" unnecessarily wraps fixed HSL primitive "--primary"; define a single --color-* token with hsl(...) directly and reuse it across utility roles.' },
         ],
       },
     ],
