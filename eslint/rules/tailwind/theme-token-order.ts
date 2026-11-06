@@ -65,17 +65,15 @@ function scopeOf(symbol: CssSymbol, sheet: StyleSheetPlain): string {
 }
 
 function groupForConsumers(consumers: readonly string[]): string {
-  if (consumers.length === 1) return consumers[0] ?? "";
-  return [
-    ...new Set(
-      consumers.map((consumer) => {
-        const parts = consumer.split("/");
-        return parts[0] === "features" ? parts.slice(0, 2).join("/") : (parts[0] ?? "");
-      }),
-    ),
-  ]
-    .sort()
-    .join(", ");
+  const scopes = new Map<string, string[]>();
+  for (const consumer of consumers) {
+    const parts = consumer.split("/");
+    const scope = parts[0] === "features" ? parts.slice(0, 2).join("/") : (parts[0] ?? "");
+    const paths = scopes.get(scope) ?? [];
+    paths.push(consumer);
+    scopes.set(scope, paths);
+  }
+  return [...scopes].map(([scope, paths]) => (paths.length === 1 ? (paths[0] ?? scope) : scope)).sort().join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
