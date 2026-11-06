@@ -1316,8 +1316,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "CSS definitions MUST be grouped by their consumers: use the component file path including its extension for one consumer, the feature path when multiple consumers share a feature, and sorted combinations of feature, shared, or composition paths when consumers span scopes; sort groups and definitions alphabetically.",
-      "hash": "dc807d23fd",
+      "text": "CSS definitions MUST use component file paths including extensions for single consumers within each scope, or feature paths and app/compositions/shared roots for multiple consumers; mixed consumer scopes and definitions MUST be sorted alphabetically.",
+      "hash": "ef7d41302c",
       "ref": "pasika/theme-token-order"
     },
     {
