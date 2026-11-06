@@ -136,7 +136,9 @@ void describe("CSS definitions MUST use component file paths including extension
   });
 
   check({
-    "app/styles/globals.css": utility("compositions/checkout.tsx, features/home, features/player/controls.tsx, shared/button.tsx"),
+    "app/styles/globals.css": utility(
+      "compositions/checkout.tsx, features/home, features/player/controls.tsx, shared/button.tsx",
+    ),
     "compositions/checkout.tsx": 'const cls = "effect";',
     "features/home/banner.tsx": 'const cls = "effect";',
     "features/home/menu.tsx": 'const cls = "effect";',
@@ -145,7 +147,9 @@ void describe("CSS definitions MUST use component file paths including extension
   });
 
   check({
-    "app/styles/globals.css": utility("app/page.tsx, compositions/checkout.tsx, features/home/banner.tsx, shared/button.tsx"),
+    "app/styles/globals.css": utility(
+      "app/page.tsx, compositions/checkout.tsx, features/home/banner.tsx, shared/button.tsx",
+    ),
     "app/page.tsx": 'const cls = "effect";',
     "compositions/checkout.tsx": 'const cls = "effect";',
     "features/home/banner.tsx": 'const cls = "effect";',
@@ -172,10 +176,11 @@ void describe("CSS definitions MUST use component file paths including extension
       "features/home/banner.tsx": 'const cls = "effect";',
       "shared/button.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "app\/page.tsx, compositions\/checkout.tsx, features\/home\/banner.tsx, shared\/button.tsx"/u],
+    [
+      /CSS definition "effect" belongs to group "app\/page.tsx, compositions\/checkout.tsx, features\/home\/banner.tsx, shared\/button.tsx"/u,
+    ],
     utility("app/page.tsx, compositions/checkout.tsx, features/home/banner.tsx, shared/button.tsx"),
   );
-
 
   check({
     "app/styles/globals.css": `@theme inline {
@@ -219,7 +224,9 @@ void describe("CSS definitions MUST use component file paths including extension
       "features/home/banner.tsx": 'const cls = "effect";',
       "features/player/controls.tsx": 'const cls = "effect";',
     },
-    [/CSS definition "effect" belongs to group "features\/home\/banner.tsx, features\/player\/controls.tsx", not "features\/home"/u],
+    [
+      /CSS definition "effect" belongs to group "features\/home\/banner.tsx, features\/player\/controls.tsx", not "features\/home"/u,
+    ],
     utility("features/home/banner.tsx, features/player/controls.tsx"),
   );
 

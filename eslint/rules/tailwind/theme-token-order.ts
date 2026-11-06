@@ -73,7 +73,10 @@ function groupForConsumers(consumers: readonly string[]): string {
     paths.push(consumer);
     scopes.set(scope, paths);
   }
-  return [...scopes].map(([scope, paths]) => (paths.length === 1 ? (paths[0] ?? scope) : scope)).sort().join(", ");
+  return [...scopes]
+    .map(([scope, paths]) => (paths.length === 1 ? (paths[0] ?? scope) : scope))
+    .sort()
+    .join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
