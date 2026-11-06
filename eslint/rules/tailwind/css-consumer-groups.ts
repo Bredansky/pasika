@@ -135,7 +135,7 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
             if (previous.group !== currentGroup && previous.group.label.localeCompare(currentGroup.label) > 0) {
               message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
             } else if (previous.group === currentGroup && previous.symbol.name.localeCompare(item.symbol.name) > 0) {
-              message = `CSS definitions in group "${actual}" must be alphabetical: "${item.symbol.name}" comes before "${previous.symbol.name}".`;
+              message = `CSS definitions in group "${previous.group.label}" must be alphabetical: "${item.symbol.name}" comes before "${previous.symbol.name}".`;
             }
           }
           if (message) {
