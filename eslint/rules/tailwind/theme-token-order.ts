@@ -11,16 +11,16 @@ import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph, type CssSymbol } from "./css-dependency-graph";
+import { inferCssConsumerPaths, symbolId } from "./css-ownership";
 import { CSS_EXTENSIONS, MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 // Recognize legacy src/...tsx group comments so the rule can report and
 // autofix them, while generating only the new extensionless src-relative labels.
-const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:features|shared|compositions)(?:/[\w.-]+)*)`;
+const GROUP_PATH = String.raw`(?:global|src/[\w./-]+\.(?:tsx?|jsx?)|(?:app|features|shared|compositions)(?:/[\w.-]+)*)`;
 const GROUP_RE = new RegExp(
   String.raw`^\s*/\*\s*(?:Group:\s*)?(?<paths>${GROUP_PATH}(?:\s*,\s*${GROUP_PATH})*)\s*\*/\s*$`,
   "u",
 );
-const PATH_RE = /^(?:features\/[\w-]+\/[\w./-]+|shared\/[\w./-]+|compositions\/[\w./-]+)\.(?:tsx|jsx)$/u;
 interface Group {
   label: string;
   line: number;
@@ -63,59 +63,14 @@ function scopeOf(symbol: CssSymbol, sheet: StyleSheetPlain): string {
   return "top-level";
 }
 
-function ownerOf(symbol: CssSymbol, graph: ReturnType<typeof buildCssDependencyGraph>, root: string): string {
-  const references = graph.references.filter((ref) => {
-    if (
-      ref.source !== "module" ||
-      !/\.(?:tsx|jsx)$/u.test(ref.file) ||
-      /\.(?:test|spec|stories)\.(?:tsx|jsx)$/u.test(ref.file)
-    ) {
-      return false;
-    }
-    if (symbol.kind === "theme-token") {
-      return (
-        (ref.kind === "theme-class" && ref.token === symbol.name) ||
-        (ref.kind === "variable" && ref.name === symbol.name)
-      );
-    }
-    if (symbol.kind === "utility" || symbol.kind === "keyframes" || symbol.kind === "selector") {
-      return ref.name === symbol.name;
-    }
-    return ref.kind === "variable" && ref.name === symbol.name;
-  });
-  // CSS-to-CSS references can be shared indirectly by other consumers.
-  const indirect = graph.references.some(
-    (ref) =>
-      ref.source === "css" &&
-      ref.file !== symbol.file &&
-      ((symbol.kind === "theme-token" && ref.kind === "variable" && ref.name === symbol.name) ||
-        (symbol.kind === "utility" && ref.kind === "utility" && ref.name === symbol.name) ||
-        (symbol.kind === "keyframes" && ref.kind === "keyframes" && ref.name === symbol.name)),
-  );
-  if (indirect) return "global";
-  const consumers = [
-    ...new Set(
-      references
-        .map((ref) => path.relative(root, ref.file).split(path.sep).join("/"))
-        .filter((name) => PATH_RE.test(name))
-        .map((name) => name.replace(/\.(?:tsx|jsx)$/u, "")),
-    ),
-  ].sort();
-  if (consumers.length === 0) return "global";
-  if (consumers.length === 1) return consumers[0] ?? "global";
-
-  // A shared CSS entry has one group per feature or layer, regardless of the
-  // number of components in each scope. Mixed groups combine those labels.
+function groupForConsumers(consumers: readonly string[]): string {
+  if (consumers.length === 1) return consumers[0] ?? "";
   return [
-    ...new Set(
-      consumers.map((consumer) => {
-        const parts = consumer.split("/");
-        return parts[0] === "features" ? parts.slice(0, 2).join("/") : (parts[0] ?? "global");
-      }),
-    ),
-  ]
-    .sort()
-    .join(", ");
+    ...new Set(consumers.map((consumer) => {
+      const parts = consumer.split("/");
+      return parts[0] === "features" ? parts.slice(0, 2).join("/") : parts[0] ?? "";
+    })),
+  ].sort().join(", ");
 }
 
 export const themeTokenOrderRule: CSSRuleDefinition = {
@@ -124,7 +79,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     type: "problem",
     fixable: "code",
     docs: {
-      description: "Group CSS definitions by single consumers or common feature/layer paths in alphabetical order.",
+      description: "Group CSS definitions by the narrowest consumer paths and alphabetical order.",
     },
   },
   create(context) {
@@ -132,14 +87,13 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
     const current = path.normalize(path.resolve(context.filename));
     const textOf = cachedTextReader();
     const cssFiles = new Set([...findFiles(root, CSS_EXTENSIONS).map((file) => path.normalize(file)), current]);
-    const graph = buildCssDependencyGraph({
-      sourceRoot: root,
-      css: [...cssFiles].map((file) => ({
-        path: file,
-        content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
-      })),
-      modules: findFiles(root, MODULE_EXTENSIONS).map((file) => ({ path: file, content: textOf(file) })),
-    });
+    const css = [...cssFiles].map((file) => ({
+      path: file,
+      content: path.normalize(file) === current ? context.sourceCode.text : textOf(file),
+    }));
+    const modules = findFiles(root, MODULE_EXTENSIONS).map((file) => ({ path: file, content: textOf(file) }));
+    const graph = buildCssDependencyGraph({ sourceRoot: root, css, modules });
+    const consumers = inferCssConsumerPaths({ graph, css, modules, sourceRoot: root });
     const lines = context.sourceCode.text.split(/\r?\n/u);
     const groups: Group[] = [];
     for (const [index, line] of lines.entries()) {
@@ -153,7 +107,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
       )
       .map((symbol) => ({
         symbol,
-        owner: ownerOf(symbol, graph, root),
+        owner: groupForConsumers(consumers.get(symbolId(symbol)) ?? []),
         section: sectionOf(symbol),
         scope: scopeOf(symbol, context.sourceCode.ast),
       }))
@@ -175,33 +129,17 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
-        for (const group of groups.filter((entry) => entry.label === "global")) {
-          context.report({
-            node,
-            loc: { start: { line: group.line, column: 1 }, end: { line: group.line, column: 2 } },
-            message: "Global CSS definitions must not have a group comment.",
-            fix(fixer) {
-              const start = context.sourceCode.getIndexFromLoc({ line: group.line, column: 1 });
-              const end = start + (lines[group.line - 1] ?? "").length;
-              const remaining = context.sourceCode.text.slice(end);
-              let newline = 0;
-              if (remaining.startsWith("\r\n")) newline = 2;
-              else if (remaining.startsWith("\n")) newline = 1;
-              return fixer.removeRange([start, end + newline]);
-            },
-          });
-        }
         let previous: Item | undefined;
         for (const item of items) {
           const currentGroup = item.group;
           const actual = currentGroup?.label;
           const reportedGroup = actual ?? "none";
           let message: string | undefined;
-          if (item.owner === "global" && currentGroup && currentGroup.label !== "global") {
-            message = "Global definitions must be ungrouped.";
-          } else if (item.owner !== "global" && !currentGroup) {
+          if (!item.owner) {
+            message = `CSS definition "${item.symbol.name}" has no traceable consumer; reference it or remove it.`;
+          } else if (!currentGroup) {
             message = `CSS definition "${item.symbol.name}" requires a consumer-path group comment.`;
-          } else if (item.owner !== "global" && actual !== item.owner) {
+          } else if (actual !== item.owner) {
             message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${reportedGroup}".`;
           } else if (previous?.section === item.section && previous.scope === item.scope) {
             if (previous.owner !== item.owner && previous.owner.localeCompare(item.owner) > 0) {
@@ -216,7 +154,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
               node,
               loc: { start: { line, column: 1 }, end: { line, column: 2 } },
               message,
-              ...(item.owner !== "global" &&
+              ...(item.owner &&
               currentGroup &&
               actual !== item.owner &&
               items.filter((candidate) => candidate.group === currentGroup).length === 1
