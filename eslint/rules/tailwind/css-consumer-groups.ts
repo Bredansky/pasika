@@ -130,7 +130,7 @@ export const cssConsumerGroupsRule: CSSRuleDefinition = {
           if (!currentGroup) {
             message = `CSS definition "${item.symbol.name}" requires a component-path group comment (or /* Group: global */).`;
           } else if (actual !== item.owner) {
-            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${actual}".`;
+            message = `CSS definition "${item.symbol.name}" belongs to group "${item.owner}", not "${currentGroup.label}".`;
           } else if (previous?.section === item.section && previous.group) {
             if (previous.group !== currentGroup && previous.group.label.localeCompare(currentGroup.label) > 0) {
               message = `CSS consumer groups in ${item.section} must be ordered alphabetically by path.`;
