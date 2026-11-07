@@ -33,10 +33,7 @@ jobs:
         run: npm ci
 
       - name: Format
-        run: |
-          npx prettier --write docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
-          git diff -- docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
-          npm run format
+        run: npm run format
 
       - name: Lint
         run: npm run lint
