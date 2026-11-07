@@ -149,6 +149,60 @@ void describe("CSS definitions MUST use component file paths including extension
     "compositions/checkout.tsx": 'const cls = "effect";',
   });
 
+  // Importing a styled composition must not make the app page a CSS consumer.
+  check({
+    "app/styles/globals.css": utility("compositions/checkout.tsx"),
+    "compositions/checkout.tsx": 'export const Checkout = () => "effect";',
+    "app/page.tsx": 'import { Checkout } from "@/compositions/checkout"; export default Checkout;',
+  });
+
+  check(
+    {
+      "app/styles/globals.css": utility("app/page.tsx, compositions/checkout.tsx"),
+      "compositions/checkout.tsx": 'export const Checkout = () => "effect";',
+      "app/page.tsx": 'import { Checkout } from "@/compositions/checkout"; export default Checkout;',
+    },
+    [
+      /CSS definition "effect" belongs to group "compositions\/checkout\.tsx", not "app\/page\.tsx, compositions\/checkout\.tsx"/u,
+    ],
+    utility("compositions/checkout.tsx"),
+  );
+
+  // App remains an owner when app code itself references the same style.
+  check({
+    "app/styles/globals.css": utility("app/page.tsx, compositions/checkout.tsx"),
+    "compositions/checkout.tsx": 'export const Checkout = () => "effect";',
+    "app/page.tsx":
+      'import { Checkout } from "@/compositions/checkout"; const cls = "effect"; export default Checkout;',
+  });
+
+  // Transitive helpers still resolve to their nearest component consumers.
+  check({
+    "app/styles/globals.css": utility("compositions/checkout.tsx"),
+    "utils/checkout-style.ts": 'export const checkoutStyle = "effect";',
+    "compositions/checkout.tsx":
+      'import { checkoutStyle } from "@/utils/checkout-style"; export const Checkout = () => checkoutStyle;',
+    "app/page.tsx": 'import { Checkout } from "@/compositions/checkout"; export default Checkout;',
+  });
+
+  // A shared helper directly imported by app and a composition has both owners.
+  check({
+    "app/styles/globals.css": utility("app/page.tsx, compositions/checkout.tsx"),
+    "utils/checkout-style.ts": 'export const checkoutStyle = "effect";',
+    "compositions/checkout.tsx":
+      'import { checkoutStyle } from "@/utils/checkout-style"; export const Checkout = () => checkoutStyle;',
+    "app/page.tsx":
+      'import { checkoutStyle } from "@/utils/checkout-style"; import { Checkout } from "@/compositions/checkout"; export default () => checkoutStyle + Checkout;',
+  });
+
+  // Importing a styled shared component should not mark its composition or page as owners.
+  check({
+    "app/styles/globals.css": utility("shared/button.tsx"),
+    "shared/button.tsx": 'export const Button = () => "effect";',
+    "compositions/checkout.tsx": 'import { Button } from "@/shared/button"; export const Checkout = Button;',
+    "app/page.tsx": 'import { Checkout } from "@/compositions/checkout"; export default Checkout;',
+  });
+
   check({
     "app/styles/globals.css": utility("features/home"),
     "features/home/banner.tsx": 'const cls = "effect";',
