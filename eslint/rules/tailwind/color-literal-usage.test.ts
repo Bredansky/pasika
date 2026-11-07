@@ -17,7 +17,9 @@ void describe("Fixed colors used more than once in a stylesheet MUST be defined 
       {
         code: "@theme { --color-base-canvas: #fefefe; --shadow-card: 0 0 0 rgb(from var(--color-base-canvas) r g b / 50%); --shadow-dialog: 0 0 0 var(--color-base-canvas); }",
       },
-      { code: ":root { --color-overlay: rgba(0, 0, 0, 0.5); } .card { background: var(--color-overlay); } .dialog { background: var(--color-overlay); }" },
+      {
+        code: ":root { --color-overlay: rgba(0, 0, 0, 0.5); } .card { background: var(--color-overlay); } .dialog { background: var(--color-overlay); }",
+      },
       { code: "@theme { --color-one: color(display-p3 0.8 0.3 0.1); }" },
       { code: ".icon { fill: currentColor; color: inherit; background: transparent; }" },
       { code: '.icon { filter: url(#fff); background-image: url("#fff"); }' },
