@@ -22,6 +22,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - CSS definitions MUST use component file paths including extensions for single consumers within each scope, or feature paths and app/compositions/shared roots for multiple consumers; mixed consumer scopes and definitions MUST be sorted alphabetically.
 
 An implicit app-wide consumer for Tailwind framework defaults is a fallback, not a second component. Keep `app` when no concrete component consumes such a token; otherwise, use the full path of its sole concrete `app` consumer.
+
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
