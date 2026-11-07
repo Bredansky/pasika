@@ -68,7 +68,12 @@ export function inferCssConsumerPaths(options: {
       if (!current || seen.has(current)) continue;
       seen.add(current);
       const consumer = componentPaths.get(current);
-      if (consumer) found.add(consumer);
+      if (consumer) {
+        // A component using a style owns it, not its importing ancestors.
+        // Walk through non-component helpers to find their first component consumers.
+        found.add(consumer);
+        continue;
+      }
       for (const parent of importers.get(current) ?? []) pending.push(parent);
     }
     componentCache.set(key, found);
