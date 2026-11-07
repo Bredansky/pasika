@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/color-literal-usage
  *
- * Reusable fixed CSS colors belong in --color-* tokens. A single fixed color
- * may appear directly in a --drop-shadow-* token when not otherwise used in
- * the same stylesheet. Keep the source color syntax unchanged.
+ * Reusable fixed CSS colors belong in --color-* tokens. Fixed colors used
+ * only once in CSS must be inlined, rather than wrapped in one-off color
+ * tokens. Keep the source color syntax unchanged.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -86,7 +86,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require reusable fixed colors in --color-* tokens; allow one-off drop-shadow literals.",
+      description: "Require reusable colors in tokens and one-off fixed colors inline.",
     },
   },
   create(context) {
@@ -95,8 +95,43 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
         const masked = maskNonColors(context.sourceCode.text);
         const declarations = [...masked.matchAll(DECLARATION)];
         const applyExpressions = [...masked.matchAll(APPLY)];
-        const literalKey = (text: string): string => text.toLowerCase().replace(/\s+/gu, " ").trim();
+        const literalKey = (text: string): string => {
+          const normalized = text.toLowerCase().replace(/\s+/gu, " ").trim();
+          // Treat #fff/#ffffff and #abcd/#aabbccdd as the same fixed color.
+          if (/^#[\da-f]{3,4}$/u.test(normalized)) {
+            return `#${normalized.slice(1).replace(/[\da-f]/gu, (digit) => digit.repeat(2))}`;
+          }
+          return normalized;
+        };
         const literalUses = new Map<string, number>();
+        const literalColorTokens = new Map<string, { color: string; key: string }>();
+        const colorTokenReferences = new Map<string, { offset: number; text: string }[]>();
+        const trackReferences = (value: string, start: number): void => {
+          for (const match of value.matchAll(/\bvar\s*\(\s*(?<token>--color-[\w-]+)\s*\)/giu)) {
+            const token = match.groups?.token;
+            if (!token) continue;
+            const references = colorTokenReferences.get(token) ?? [];
+            references.push({ offset: start + match.index, text: match[0] });
+            colorTokenReferences.set(token, references);
+          }
+        };
+        for (const match of declarations) {
+          const property = match.groups?.property;
+          const value = match.groups?.value;
+          if (!property || value === undefined) continue;
+          if (property.startsWith("--color-")) {
+            const colors = colorLiterals(value);
+            if (colors.length === 1 && colors[0]?.text === value.trim()) {
+              literalColorTokens.set(property, { color: colors[0].text, key: literalKey(colors[0].text) });
+            }
+          }
+          trackReferences(value, match.index + match[0].lastIndexOf(value));
+        }
+        for (const match of applyExpressions) {
+          const value = match.groups?.value;
+          if (value === undefined) continue;
+          trackReferences(value, match.index + match[0].indexOf(value));
+        }
         for (const match of [...declarations, ...applyExpressions]) {
           const value = match.groups?.value;
           if (value === undefined) continue;
@@ -107,11 +142,11 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
         }
 
         const reported = new Set<number>();
-        const reportValue = (value: string, start: number, isDropShadowToken = false): void => {
+        const reportValue = (value: string, start: number): void => {
           const colors = colorLiterals(value);
           for (const color of colors) {
-            // Avoid an otherwise unused --color-* token for a one-off drop shadow.
-            if (isDropShadowToken && colors.length === 1 && literalUses.get(literalKey(color.text)) === 1) continue;
+            // One-off literals are valid in any CSS value, including composites.
+            if (literalUses.get(literalKey(color.text)) === 1) continue;
             const offset = start + color.offset;
             if (reported.has(offset)) continue;
             reported.add(offset);
@@ -127,7 +162,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           const property = match.groups?.property;
           const value = match.groups?.value;
           if (!property || value === undefined || property.startsWith("--color-")) continue;
-          reportValue(value, match.index + match[0].lastIndexOf(value), /^--drop-shadow-[\w-]+$/u.test(property));
+          reportValue(value, match.index + match[0].lastIndexOf(value));
         }
         // @apply can contain Tailwind arbitrary property values such as
         // [box-shadow:0_0_#000] which are not standalone CSS declarations.
@@ -135,6 +170,22 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           const value = match.groups?.value;
           if (value === undefined) continue;
           reportValue(value, match.index + match[0].indexOf(value));
+        }
+        // A color token used in only one CSS expression adds an unnecessary
+        // indirection. Tokens without CSS references can power Tailwind
+        // utilities, so they are not treated as one-off composite colors.
+        for (const [token, definition] of literalColorTokens) {
+          const references = colorTokenReferences.get(token);
+          if (references?.length !== 1 || literalUses.get(definition.key) !== 1) continue;
+          const reference = references[0];
+          if (!reference) continue;
+          const start = context.sourceCode.getLocFromIndex(reference.offset);
+          const end = context.sourceCode.getLocFromIndex(reference.offset + reference.text.length);
+          context.report({
+            node,
+            loc: { start, end },
+            message: `Inline one-off fixed color "${definition.color}" instead of referencing "${token}" through var().`,
+          });
         }
       },
     };
