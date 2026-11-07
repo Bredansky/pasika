@@ -100,7 +100,7 @@ void describe("CSS definitions MUST use component file paths including extension
 }`,
       "app/page.tsx": 'const cls = "font-sans";',
     },
-    [/CSS definition "--font-sans" belongs to group "app\\/page.tsx", not "app"/u],
+    [/CSS definition "--font-sans" belongs to group "app\/page.tsx", not "app"/u],
     `@theme inline {
   /* Group: app/page.tsx */
   --font-sans: Arial, sans-serif;
