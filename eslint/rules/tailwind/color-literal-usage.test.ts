@@ -35,7 +35,9 @@ void describe("Composite values such as shadows and gradients MUST reference fix
       },
       {
         code: "@theme inline { --color-card: rgb(0 0 0 / 0.15); --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); }",
-        errors: [{ message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: "@theme { --inset-shadow-mc-frame: inset 1px 1px 0 #2b2b2b; }",
