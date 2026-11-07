@@ -74,7 +74,11 @@ function groupForConsumers(consumers: readonly string[]): string {
     scopes.set(scope, paths);
   }
   return [...scopes]
-    .map(([scope, paths]) => (paths.length === 1 ? (paths[0] ?? scope) : scope))
+    .map(([scope, paths]) => {
+      // An implicit app-wide fallback is not an additional component consumer.
+      const concretePaths = [...new Set(paths.filter((consumer) => consumer !== scope))];
+      return concretePaths.length === 1 ? (concretePaths[0] ?? scope) : scope;
+    })
     .sort()
     .join(", ");
 }
