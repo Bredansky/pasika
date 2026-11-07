@@ -47,23 +47,37 @@ void describe("Fixed colors used more than once in a stylesheet MUST be defined 
       },
       {
         code: "@theme inline { --color-card: rgb(0 0 0 / 0.15); --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); }",
-        errors: [{ message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: "@theme { --background-image-boss-canvas: linear-gradient(#f0f, #f0f); }",
-        errors: [{ message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: ".card { color: red; } .panel { border-color: red; }",
-        errors: [{ message: 'Move literal color "red" into a --color-* token and reference it with var().' }, { message: 'Move literal color "red" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "red" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "red" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: "@utility border-red { @apply [border-color:#ff0000]; } .card { border-color: #ff0000; }",
-        errors: [{ message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: ".card { border-color: #FFF; background-color: #ffffff; }",
-        errors: [{ message: 'Move literal color "#FFF" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#ffffff" into a --color-* token and reference it with var().' }],
+        errors: [
+          { message: 'Move literal color "#FFF" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "#ffffff" into a --color-* token and reference it with var().' },
+        ],
       },
       {
         code: "@theme inline { --color-button-ink: #333; } .button { color: #333; }",
