@@ -218,11 +218,7 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 
 ```css
 @theme inline {
-  --background-image-crt-scanlines-canvas: repeating-linear-gradient(
-    0deg,
-    transparent 0 2px,
-    #334155 2px 4px
-  );
+  --background-image-crt-scanlines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, #334155 2px 4px);
 }
 ```
 
@@ -230,7 +226,7 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 <span className="bg-crt-scanlines-canvas" />
 ```
 
-Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas`. Its one-off color may stay inline; if another declaration needs the same color, extract a `--color-*` token. Check background-property resets before replacing the `background` shorthand.
+Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas`. Its one-off color may stay inline, but if another declaration needs the same color, extract a `--color-*` token; check background-property resets before replacing the `background` shorthand.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 
