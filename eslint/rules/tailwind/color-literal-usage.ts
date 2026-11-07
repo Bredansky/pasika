@@ -107,8 +107,8 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
         const literalColorTokens = new Map<string, { color: string; key: string }>();
         const colorTokenReferences = new Map<string, { offset: number; text: string }[]>();
         const trackReferences = (value: string, start: number): void => {
-          for (const match of value.matchAll(/\bvar\s*\(\s*(--color-[\w-]+)\s*\)/giu)) {
-            const token = match[1];
+          for (const match of value.matchAll(/\bvar\s*\(\s*(?<token>--color-[\w-]+)\s*\)/giu)) {
+            const token = match.groups?.token;
             if (!token) continue;
             const references = colorTokenReferences.get(token) ?? [];
             references.push({ offset: start + match.index, text: match[0] });
