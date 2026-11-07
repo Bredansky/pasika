@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/color-literal-usage
  *
- * Reusable fixed CSS colors belong in --color-* tokens. A single fixed color
- * may appear directly in a --drop-shadow-* token when not otherwise used in
- * the same stylesheet. Keep the source color syntax unchanged.
+ * Reusable fixed CSS colors belong in --color-* tokens. A color used once
+ * in a stylesheet may stay inline in any declaration, including composite
+ * values and @apply expressions. Keep the source color syntax unchanged.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -86,7 +86,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require reusable fixed colors in --color-* tokens; allow one-off drop-shadow literals.",
+      description: "Require color tokens for repeated fixed CSS colors; allow one-off literals in any declaration.",
     },
   },
   create(context) {
@@ -95,7 +95,14 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
         const masked = maskNonColors(context.sourceCode.text);
         const declarations = [...masked.matchAll(DECLARATION)];
         const applyExpressions = [...masked.matchAll(APPLY)];
-        const literalKey = (text: string): string => text.toLowerCase().replace(/\s+/gu, " ").trim();
+        const literalKey = (text: string): string => {
+          const normalized = text.toLowerCase().replace(/\s+/gu, " ").trim();
+          // Treat #fff/#ffffff and #abcd/#aabbccdd as the same fixed color.
+          if (/^#[\da-f]{3,4}$/u.test(normalized)) {
+            return `#${[...normalized.slice(1)].map((digit) => digit.repeat(2)).join("")}`;
+          }
+          return normalized;
+        };
         const literalUses = new Map<string, number>();
         for (const match of [...declarations, ...applyExpressions]) {
           const value = match.groups?.value;
@@ -107,11 +114,11 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
         }
 
         const reported = new Set<number>();
-        const reportValue = (value: string, start: number, isDropShadowToken = false): void => {
+        const reportValue = (value: string, start: number): void => {
           const colors = colorLiterals(value);
           for (const color of colors) {
-            // Avoid an otherwise unused --color-* token for a one-off drop shadow.
-            if (isDropShadowToken && colors.length === 1 && literalUses.get(literalKey(color.text)) === 1) continue;
+            // One-off literals are valid in any CSS value, including composites.
+            if (literalUses.get(literalKey(color.text)) === 1) continue;
             const offset = start + color.offset;
             if (reported.has(offset)) continue;
             reported.add(offset);
@@ -127,7 +134,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           const property = match.groups?.property;
           const value = match.groups?.value;
           if (!property || value === undefined || property.startsWith("--color-")) continue;
-          reportValue(value, match.index + match[0].lastIndexOf(value), /^--drop-shadow-[\w-]+$/u.test(property));
+          reportValue(value, match.index + match[0].lastIndexOf(value));
         }
         // @apply can contain Tailwind arbitrary property values such as
         // [box-shadow:0_0_#000] which are not standalone CSS declarations.

@@ -11,7 +11,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.
-- Composite values such as shadows and gradients MUST reference fixed colors through `var()`, except that one fixed color used once in a stylesheet MAY be inlined in a `--drop-shadow-*` token; other theme tokens such as spacing or sizes MAY also be referenced.
+- Fixed colors used more than once in a stylesheet MUST be defined as `--color-*` tokens and referenced through `var()`; colors used exactly once MAY be written directly in any CSS declaration or `@apply` expression, including shadows and gradients.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
 - `@font-face` declarations MUST be unique by family, style, weight, stretch, and Unicode range; different faces of one family are allowed.
 - Distinct `@theme inline` tokens and default `:root` properties MUST NOT share equivalent static CSS values. Equivalent HEX, RGB, HSL, and named colors MUST be compared without rounding or changing precision.
@@ -181,30 +181,28 @@ Why: both ink tokens define the same fixed color value, even though the dialog c
 
 Why: the dialog reuses the existing ink token without creating a second color token or a cross-token alias.
 
-## Incorrect — Fixed Colors Embedded in a Shadow
+## Incorrect — Repeated Fixed Color Without a Token
 
 ```css
 @theme inline {
-  --inset-shadow-mc-donation-frame: inset 1px 1px 0 #2b2b2b, inset -1px -1px 0 #545454;
+  --shadow-card: 0 1px 2px #2b2b2b;
+  --background-image-card-canvas: linear-gradient(#2b2b2b, #545454);
 }
 ```
 
-Why: the effect is correctly modeled as a single shadow token, but its fixed colors are not reusable design tokens.
+Why: `#2b2b2b` is repeated in the same stylesheet, so it must be a reusable color token. The one-off `#545454` does not require a separate token.
 
-## Correct — Theme Tokens Compose a Shadow
+## Correct — Reuse Repeated Colors and Inline One-Off Colors
 
 ```css
 @theme inline {
-  --color-mc-frame-dark-canvas: #2b2b2b;
-  --color-mc-frame-light-canvas: #545454;
-  --spacing-mc-frame: 1px;
-  --inset-shadow-mc-donation-frame:
-    inset var(--spacing-mc-frame) var(--spacing-mc-frame) 0 var(--color-mc-frame-dark-canvas),
-    inset -1px -1px 0 var(--color-mc-frame-light-canvas);
+  --color-card-shadow: #2b2b2b;
+  --shadow-card: 0 1px 2px var(--color-card-shadow);
+  --background-image-card-canvas: linear-gradient(var(--color-card-shadow), #545454);
 }
 ```
 
-Why: the shadow must reuse color tokens and may also reuse spacing tokens. The colors can be variant-driven; direct token-to-token aliases remain disallowed.
+Why: the repeated fixed color has one named definition; the gradient's unique color stays inline. The same rule applies to ordinary properties, other shadow types, and `@apply` expressions.
 
 ## Incorrect — Gradient Wrapped in a Custom Utility
 
@@ -220,11 +218,10 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 
 ```css
 @theme inline {
-  --color-scanline-canvas: #334155;
   --background-image-crt-scanlines-canvas: repeating-linear-gradient(
     0deg,
     transparent 0 2px,
-    var(--color-scanline-canvas) 2px 4px
+    #334155 2px 4px
   );
 }
 ```
@@ -233,7 +230,7 @@ Why: a custom utility is unnecessary when Tailwind can generate the same backgro
 <span className="bg-crt-scanlines-canvas" />
 ```
 
-Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas` while its fixed color comes from a named color token. Check background-property resets before replacing the `background` shorthand.
+Why: the `-canvas` background-image token generates `bg-crt-scanlines-canvas`. Its one-off color may stay inline; if another declaration needs the same color, extract a `--color-*` token. Check background-property resets before replacing the `background` shorthand.
 
 ## Incorrect — Reusable Presentation Hidden in a Utility
 

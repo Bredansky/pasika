@@ -1,7 +1,7 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()`, except that one fixed color used once in a stylesheet MAY be inlined in a `--drop-shadow-*` token; other theme tokens such as spacing or sizes MAY also be referenced.", () => {
+void describe("Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MAY be written directly in any CSS declaration or @apply expression, including shadows and gradients.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
@@ -24,6 +24,18 @@ void describe("Composite values such as shadows and gradients MUST reference fix
       {
         code: "@theme inline { --drop-shadow-2xl: 0 25px 25px rgb(0 0 0 / 0.15); }",
       },
+      { code: "@theme { --inset-shadow-mc-frame: inset 1px 1px 0 #2b2b2b; }" },
+      { code: "@theme { --background-image-boss-canvas: linear-gradient(#f0f, hsl(300 100% 30%)); }" },
+      { code: ".card { box-shadow: inset 0 1px 0 rgba(255, 100, 255, 0.6); }" },
+      { code: ".card { color: red; background-color: #fff; border-color: green; }" },
+      { code: "@utility border-red { @apply [border-color:#ff0000]; }" },
+      { code: "@theme { --color-canvas: #ffffff; --text-shadow-card: 0 1px 0 #000; }" },
+      {
+        code: ".card { color: rgb(from color(display-p3 0.1 0.2 0.3) r g b); outline-color: rgb(from #123456 r g b); }",
+      },
+      {
+        code: "@theme inline { --shadow-card: 0 1px 2px #aaa; --background-image-card-canvas: linear-gradient(red, blue); }",
+      },
     ],
     invalid: [
       {
@@ -35,55 +47,33 @@ void describe("Composite values such as shadows and gradients MUST reference fix
       },
       {
         code: "@theme inline { --color-card: rgb(0 0 0 / 0.15); --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); }",
+        errors: [{ message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: "@theme { --background-image-boss-canvas: linear-gradient(#f0f, #f0f); }",
+        errors: [{ message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: ".card { color: red; } .panel { border-color: red; }",
+        errors: [{ message: 'Move literal color "red" into a --color-* token and reference it with var().' }, { message: 'Move literal color "red" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: "@utility border-red { @apply [border-color:#ff0000]; } .card { border-color: #ff0000; }",
+        errors: [{ message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: ".card { border-color: #FFF; background-color: #ffffff; }",
+        errors: [{ message: 'Move literal color "#FFF" into a --color-* token and reference it with var().' }, { message: 'Move literal color "#ffffff" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: "@theme inline { --color-button-ink: #333; } .button { color: #333; }",
+        errors: [{ message: 'Move literal color "#333" into a --color-* token and reference it with var().' }],
+      },
+      {
+        code: ".card { color: rgb(10 20 30 / 50%); background: RGB(10 20 30 / 50%); }",
         errors: [
-          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
-        ],
-      },
-      {
-        code: "@theme { --inset-shadow-mc-frame: inset 1px 1px 0 #2b2b2b; }",
-        errors: [{ message: 'Move literal color "#2b2b2b" into a --color-* token and reference it with var().' }],
-      },
-      {
-        code: "@theme { --background-image-boss-canvas: linear-gradient(#f0f, hsl(300 100% 30%)); }",
-        errors: [
-          { message: 'Move literal color "#f0f" into a --color-* token and reference it with var().' },
-          { message: 'Move literal color "hsl(300 100% 30%)" into a --color-* token and reference it with var().' },
-        ],
-      },
-      {
-        code: ".card { box-shadow: inset 0 1px 0 rgba(255, 100, 255, 0.6); }",
-        errors: [
-          {
-            message:
-              'Move literal color "rgba(255, 100, 255, 0.6)" into a --color-* token and reference it with var().',
-          },
-        ],
-      },
-      {
-        code: ".card { color: red; background-color: #fff; }",
-        errors: [
-          { message: 'Move literal color "red" into a --color-* token and reference it with var().' },
-          { message: 'Move literal color "#fff" into a --color-* token and reference it with var().' },
-        ],
-      },
-      {
-        code: "@utility border-red { @apply [border-color:#ff0000]; }",
-        errors: [{ message: 'Move literal color "#ff0000" into a --color-* token and reference it with var().' }],
-      },
-      {
-        code: "@theme { --color-canvas: #ffffff; --text-shadow-card: 0 1px 0 #000; }",
-        errors: [{ message: 'Move literal color "#000" into a --color-* token and reference it with var().' }],
-      },
-      {
-        code: ".card { color: rgb(from color(display-p3 0.1 0.2 0.3) r g b); outline-color: rgb(from #123456 r g b); }",
-        errors: [
-          {
-            message:
-              'Move literal color "rgb(from color(display-p3 0.1 0.2 0.3) r g b)" into a --color-* token and reference it with var().',
-          },
-          {
-            message: 'Move literal color "rgb(from #123456 r g b)" into a --color-* token and reference it with var().',
-          },
+          { message: 'Move literal color "rgb(10 20 30 / 50%)" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "RGB(10 20 30 / 50%)" into a --color-* token and reference it with var().' },
         ],
       },
     ],
