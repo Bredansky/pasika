@@ -1,7 +1,7 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.", () => {
+void describe("Composite values such as shadows and gradients MUST reference fixed colors through `var()`, except that one fixed color used once in a stylesheet MAY be inlined in a `--drop-shadow-*` token; other theme tokens such as spacing or sizes MAY also be referenced.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
@@ -21,8 +21,24 @@ void describe("Composite values such as shadows and gradients MUST reference fix
       { code: '.icon { filter: url(#fff); background-image: url("#fff"); }' },
       { code: '/* color: #fff; */ .card { content: "rgb(1, 2, 3)"; }' },
       { code: "@theme { --background-image-shape-canvas: linear-gradient(var(--color-a), var(--color-b)); }" },
+      {
+        code: "@theme inline { --drop-shadow-2xl: 0 25px 25px rgb(0 0 0 / 0.15); }",
+      },
     ],
     invalid: [
+      {
+        code: "@theme inline { --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); --drop-shadow-panel: 0 10px 12px rgb(0 0 0 / 0.15); }",
+        errors: [
+          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
+          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
+        ],
+      },
+      {
+        code: "@theme inline { --color-card: rgb(0 0 0 / 0.15); --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); }",
+        errors: [
+          { message: 'Move literal color "rgb(0 0 0 / 0.15)" into a --color-* token and reference it with var().' },
+        ],
+      },
       {
         code: "@theme { --inset-shadow-mc-frame: inset 1px 1px 0 #2b2b2b; }",
         errors: [{ message: 'Move literal color "#2b2b2b" into a --color-* token and reference it with var().' }],

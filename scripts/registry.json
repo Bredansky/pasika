@@ -1268,8 +1268,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Composite values such as shadows and gradients MUST reference fixed colors through `var()` and MAY also reference other theme tokens, such as spacing or sizes.",
-      "hash": "a5faaeabfc",
+      "text": "Composite values such as shadows and gradients MUST reference fixed colors through `var()`, except that one fixed color used once in a stylesheet MAY be inlined in a `--drop-shadow-*` token; other theme tokens such as spacing or sizes MAY also be referenced.",
+      "hash": "739da1c1f8",
       "ref": "pasika/color-literal-usage"
     },
     {

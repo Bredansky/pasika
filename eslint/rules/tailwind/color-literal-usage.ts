@@ -1,8 +1,9 @@
 /**
  * ESLint rule: pasika/color-literal-usage
  *
- * Fixed CSS colors belong in --color-* tokens, including when used inside
- * gradients and shadows. Keep the source color syntax unchanged.
+ * Reusable fixed CSS colors belong in --color-* tokens. A single fixed color
+ * may appear directly in a --drop-shadow-* token when not otherwise used in
+ * the same stylesheet. Keep the source color syntax unchanged.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -85,16 +86,32 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require fixed CSS color literals to live only in --color-* token definitions.",
+      description: "Require reusable fixed colors in --color-* tokens; allow one-off drop-shadow literals.",
     },
   },
   create(context) {
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const masked = maskNonColors(context.sourceCode.text);
-        const reported = new Set<number>();
-        const reportValue = (value: string, start: number): void => {
+        const declarations = [...masked.matchAll(DECLARATION)];
+        const applyExpressions = [...masked.matchAll(APPLY)];
+        const literalKey = (text: string): string => text.toLowerCase().replace(/\s+/gu, " ").trim();
+        const literalUses = new Map<string, number>();
+        for (const match of [...declarations, ...applyExpressions]) {
+          const value = match.groups?.value;
+          if (value === undefined) continue;
           for (const color of colorLiterals(value)) {
+            const key = literalKey(color.text);
+            literalUses.set(key, (literalUses.get(key) ?? 0) + 1);
+          }
+        }
+
+        const reported = new Set<number>();
+        const reportValue = (value: string, start: number, isDropShadowToken = false): void => {
+          const colors = colorLiterals(value);
+          for (const color of colors) {
+            // Avoid an otherwise unused --color-* token for a one-off drop shadow.
+            if (isDropShadowToken && colors.length === 1 && literalUses.get(literalKey(color.text)) === 1) continue;
             const offset = start + color.offset;
             if (reported.has(offset)) continue;
             reported.add(offset);
@@ -106,15 +123,15 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
             });
           }
         };
-        for (const match of masked.matchAll(DECLARATION)) {
+        for (const match of declarations) {
           const property = match.groups?.property;
           const value = match.groups?.value;
           if (!property || value === undefined || property.startsWith("--color-")) continue;
-          reportValue(value, match.index + match[0].lastIndexOf(value));
+          reportValue(value, match.index + match[0].lastIndexOf(value), /^--drop-shadow-[\w-]+$/u.test(property));
         }
         // @apply can contain Tailwind arbitrary property values such as
         // [box-shadow:0_0_#000] which are not standalone CSS declarations.
-        for (const match of masked.matchAll(APPLY)) {
+        for (const match of applyExpressions) {
           const value = match.groups?.value;
           if (value === undefined) continue;
           reportValue(value, match.index + match[0].indexOf(value));
