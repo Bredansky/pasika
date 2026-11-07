@@ -48,9 +48,7 @@ void describe("Fixed colors used more than once in a stylesheet MUST be defined 
       },
       {
         code: ":root { --color-label: red; } .card { color: var(--color-label); }",
-        errors: [
-          { message: 'Inline one-off fixed color "red" instead of referencing "--color-label" through var().' },
-        ],
+        errors: [{ message: 'Inline one-off fixed color "red" instead of referencing "--color-label" through var().' }],
       },
       {
         code: "@theme inline { --color-frame: #123456; } @utility frame { @apply [border-color:var(--color-frame)]; }",
