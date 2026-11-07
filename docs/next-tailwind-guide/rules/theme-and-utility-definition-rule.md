@@ -196,9 +196,9 @@ Why: `#2b2b2b` is repeated in the same stylesheet, so it must be a reusable colo
 
 ```css
 @theme inline {
-  --color-card-shadow: #2b2b2b;
-  --shadow-card: 0 1px 2px var(--color-card-shadow);
-  --background-image-card-canvas: linear-gradient(var(--color-card-shadow), #545454);
+  --color-frame: #2b2b2b;
+  --shadow-card: 0 1px 2px var(--color-frame);
+  --background-image-card-canvas: linear-gradient(var(--color-frame), #545454);
 }
 ```
 
