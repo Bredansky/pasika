@@ -172,7 +172,7 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
                     fix(fixer) {
                       const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
                       const end = start + (lines[currentGroup.line - 1] ?? "").length;
-                      const indentation = (lines[currentGroup.line - 1] ?? "").match(/^\s*/u)?.[0] ?? "";
+                      const indentation = /^\s*/u.exec(lines[currentGroup.line - 1] ?? "")?.[0] ?? "";
                       return fixer.replaceTextRange([start, end], `${indentation}/* Group: ${item.owner} */`);
                     },
                   }
