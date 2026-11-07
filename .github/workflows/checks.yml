@@ -33,10 +33,7 @@ jobs:
         run: npm ci
 
       - name: Format
-        run: |
-          npx prettier --write eslint/rules/tailwind/color-literal-usage.test.ts
-          git diff -- eslint/rules/tailwind/color-literal-usage.test.ts
-          npm run format
+        run: npm run format
 
       - name: Lint
         run: npm run lint
