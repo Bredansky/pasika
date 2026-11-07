@@ -99,7 +99,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           const normalized = text.toLowerCase().replace(/\s+/gu, " ").trim();
           // Treat #fff/#ffffff and #abcd/#aabbccdd as the same fixed color.
           if (/^#[\da-f]{3,4}$/u.test(normalized)) {
-            return `#${[...normalized.slice(1)].map((digit) => digit.repeat(2)).join("")}`;
+            return `#${normalized.slice(1).replace(/[\da-f]/gu, (digit) => digit.repeat(2))}`;
           }
           return normalized;
         };
