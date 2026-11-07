@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/color-literal-usage
  *
- * Reusable fixed CSS colors belong in --color-* tokens. A color used once
- * in a stylesheet may stay inline in any declaration, including composite
- * values and @apply expressions. Keep the source color syntax unchanged.
+ * Reusable fixed CSS colors belong in --color-* tokens. Fixed colors used
+ * only once in CSS must be inlined, rather than wrapped in one-off color
+ * tokens. Keep the source color syntax unchanged.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -86,7 +86,7 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require color tokens for repeated fixed CSS colors; allow one-off literals in any declaration.",
+      description: "Require reusable colors in tokens and one-off fixed colors inline.",
     },
   },
   create(context) {
@@ -104,6 +104,34 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           return normalized;
         };
         const literalUses = new Map<string, number>();
+        const literalColorTokens = new Map<string, { color: string; key: string }>();
+        const colorTokenReferences = new Map<string, { offset: number; text: string }[]>();
+        const trackReferences = (value: string, start: number): void => {
+          for (const match of value.matchAll(/\bvar\s*\(\s*(--color-[\w-]+)\s*\)/giu)) {
+            const token = match[1];
+            if (!token) continue;
+            const references = colorTokenReferences.get(token) ?? [];
+            references.push({ offset: start + match.index, text: match[0] });
+            colorTokenReferences.set(token, references);
+          }
+        };
+        for (const match of declarations) {
+          const property = match.groups?.property;
+          const value = match.groups?.value;
+          if (!property || value === undefined) continue;
+          if (property.startsWith("--color-")) {
+            const colors = colorLiterals(value);
+            if (colors.length === 1 && colors[0]?.text === value.trim()) {
+              literalColorTokens.set(property, { color: colors[0].text, key: literalKey(colors[0].text) });
+            }
+          }
+          trackReferences(value, match.index + match[0].lastIndexOf(value));
+        }
+        for (const match of applyExpressions) {
+          const value = match.groups?.value;
+          if (value === undefined) continue;
+          trackReferences(value, match.index + match[0].indexOf(value));
+        }
         for (const match of [...declarations, ...applyExpressions]) {
           const value = match.groups?.value;
           if (value === undefined) continue;
@@ -142,6 +170,22 @@ export const colorLiteralUsageRule: CSSRuleDefinition = {
           const value = match.groups?.value;
           if (value === undefined) continue;
           reportValue(value, match.index + match[0].indexOf(value));
+        }
+        // A color token used in only one CSS expression adds an unnecessary
+        // indirection. Tokens without CSS references can power Tailwind
+        // utilities, so they are not treated as one-off composite colors.
+        for (const [token, definition] of literalColorTokens) {
+          const references = colorTokenReferences.get(token);
+          if (references?.length !== 1 || literalUses.get(definition.key) !== 1) continue;
+          const reference = references[0];
+          if (!reference) continue;
+          const start = context.sourceCode.getLocFromIndex(reference.offset);
+          const end = context.sourceCode.getLocFromIndex(reference.offset + reference.text.length);
+          context.report({
+            node,
+            loc: { start, end },
+            message: `Inline one-off fixed color "${definition.color}" instead of referencing "${token}" through var().`,
+          });
         }
       },
     };

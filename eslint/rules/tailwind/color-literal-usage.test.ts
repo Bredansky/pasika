@@ -1,21 +1,23 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MAY be written directly in any CSS declaration or @apply expression, including shadows and gradients.", () => {
+void describe("Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MUST be written directly in any CSS declaration or @apply expression, including shadows and gradients.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
         code: "@theme { --color-base-canvas: #fff; --color-primary-ink: rgb(10 20 30 / 50%); --color-tint: hsl(300 100% 50%); }",
       },
-      { code: "@theme { --color-base-ink: black; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-base-ink); }" },
       {
-        code: "@theme inline { --spacing-mc-frame: 1px; --color-base-ink: black; --inset-shadow-mc-frame: inset var(--spacing-mc-frame) var(--spacing-mc-frame) 0 var(--color-base-ink); }",
+        code: "@theme { --color-base-ink: black; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-base-ink); --shadow-mc-frame: 0 1px 1px var(--color-base-ink); }",
+      },
+      {
+        code: "@theme inline { --spacing-mc-frame: 1px; --color-base-ink: black; --inset-shadow-mc-frame: inset var(--spacing-mc-frame) var(--spacing-mc-frame) 0 var(--color-base-ink); --shadow-mc-frame: 0 1px 1px var(--color-base-ink); }",
       },
       { code: "@theme { --background-image-gradient-canvas: linear-gradient(var(--color-tint), transparent); }" },
       {
-        code: "@theme { --color-base-canvas: #fefefe; --shadow-card: 0 0 0 rgb(from var(--color-base-canvas) r g b / 50%); }",
+        code: "@theme { --color-base-canvas: #fefefe; --shadow-card: 0 0 0 rgb(from var(--color-base-canvas) r g b / 50%); --shadow-dialog: 0 0 0 var(--color-base-canvas); }",
       },
-      { code: ":root { --color-overlay: rgba(0, 0, 0, 0.5); } .card { background: var(--color-overlay); }" },
+      { code: ":root { --color-overlay: rgba(0, 0, 0, 0.5); } .card { background: var(--color-overlay); } .dialog { background: var(--color-overlay); }" },
       { code: "@theme { --color-one: color(display-p3 0.8 0.3 0.1); }" },
       { code: ".icon { fill: currentColor; color: inherit; background: transparent; }" },
       { code: '.icon { filter: url(#fff); background-image: url("#fff"); }' },
@@ -38,6 +40,24 @@ void describe("Fixed colors used more than once in a stylesheet MUST be defined 
       },
     ],
     invalid: [
+      {
+        code: "@theme inline { --color-card-shadow: #abc; --shadow-card: 0 1px 2px var(--color-card-shadow); }",
+        errors: [
+          { message: 'Inline one-off fixed color "#abc" instead of referencing "--color-card-shadow" through var().' },
+        ],
+      },
+      {
+        code: ":root { --color-label: red; } .card { color: var(--color-label); }",
+        errors: [
+          { message: 'Inline one-off fixed color "red" instead of referencing "--color-label" through var().' },
+        ],
+      },
+      {
+        code: "@theme inline { --color-frame: #123456; } @utility frame { @apply [border-color:var(--color-frame)]; }",
+        errors: [
+          { message: 'Inline one-off fixed color "#123456" instead of referencing "--color-frame" through var().' },
+        ],
+      },
       {
         code: "@theme inline { --drop-shadow-card: 0 4px 6px rgb(0 0 0 / 0.15); --drop-shadow-panel: 0 10px 12px rgb(0 0 0 / 0.15); }",
         errors: [

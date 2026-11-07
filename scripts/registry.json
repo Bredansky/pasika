@@ -1268,8 +1268,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MAY be written directly in any CSS declaration or @apply expression, including shadows and gradients.",
-      "hash": "749958714b",
+      "text": "Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MUST be written directly in any CSS declaration or @apply expression, including shadows and gradients.",
+      "hash": "f8ae96d48b",
       "ref": "pasika/color-literal-usage"
     },
     {
