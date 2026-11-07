@@ -74,7 +74,11 @@ function groupForConsumers(consumers: readonly string[]): string {
     scopes.set(scope, paths);
   }
   return [...scopes]
-    .map(([scope, paths]) => (paths.length === 1 ? (paths[0] ?? scope) : scope))
+    .map(([scope, paths]) => {
+      // An implicit app-wide fallback is not an additional component consumer.
+      const concretePaths = [...new Set(paths.filter((consumer) => consumer !== scope))];
+      return concretePaths.length === 1 ? (concretePaths[0] ?? scope) : scope;
+    })
     .sort()
     .join(", ");
 }
@@ -168,7 +172,8 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
                     fix(fixer) {
                       const start = context.sourceCode.getIndexFromLoc({ line: currentGroup.line, column: 1 });
                       const end = start + (lines[currentGroup.line - 1] ?? "").length;
-                      return fixer.replaceTextRange([start, end], `/* Group: ${item.owner} */`);
+                      const indentation = /^\s*/u.exec(lines[currentGroup.line - 1] ?? "")?.[0] ?? "";
+                      return fixer.replaceTextRange([start, end], `${indentation}/* Group: ${item.owner} */`);
                     },
                   }
                 : {}),
