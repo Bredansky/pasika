@@ -1,7 +1,7 @@
 import { colorLiteralUsageRule } from "./color-literal-usage";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MUST be written directly in any CSS declaration or @apply expression, including shadows and gradients.", () => {
+void describe("Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MUST be written directly in any CSS declaration or @apply expression.", () => {
   tailwindRuleTester.run("color-literal-usage", colorLiteralUsageRule, {
     valid: [
       {
