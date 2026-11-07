@@ -73,6 +73,50 @@ void describe("CSS definitions MUST use component file paths including extension
     "app/global-error.tsx": 'const cls = "effect";',
   });
 
+  // Framework-wide defaults have an implicit "app" fallback, not a concrete consumer.
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: app */
+  --breakpoint-sm: 40rem;
+  --default-transition-duration: 150ms;
+  --font-sans: Arial, sans-serif;
+}`,
+  });
+
+  // A single concrete app consumer must not be hidden by the implicit fallback.
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: app/page.tsx */
+  --font-sans: Arial, sans-serif;
+}`,
+    "app/page.tsx": 'const cls = "font-sans";',
+  });
+
+  check(
+    {
+      "app/styles/globals.css": `@theme inline {
+  /* Group: app */
+  --font-sans: Arial, sans-serif;
+}`,
+      "app/page.tsx": 'const cls = "font-sans";',
+    },
+    [/CSS definition "--font-sans" belongs to group "app\\/page.tsx", not "app"/u],
+    `@theme inline {
+  /* Group: app/page.tsx */
+  --font-sans: Arial, sans-serif;
+}`,
+  );
+
+  // Two concrete app consumers should still collapse to the "app" scope.
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: app */
+  --font-sans: Arial, sans-serif;
+}`,
+    "app/page.tsx": 'const cls = "font-sans";',
+    "app/error.tsx": 'const cls = "font-sans";',
+  });
+
   check({
     "app/styles/globals.css": utility("app"),
     "app/global-error.tsx": 'const cls = "effect";',
