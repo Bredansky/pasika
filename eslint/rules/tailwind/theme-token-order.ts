@@ -139,6 +139,16 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
+        for (const group of groups) {
+          const next = lines.slice(group.line).find((line) => line.trim().length > 0);
+          if (next !== undefined && !next.trimStart().startsWith("}") && !GROUP_RE.test(next)) continue;
+          context.report({
+            node,
+            loc: { start: { line: group.line, column: 1 }, end: { line: group.line, column: 2 } },
+            message: "CSS consumer group comment has no associated definition; remove the orphaned comment.",
+          });
+        }
+
         let previous: Item | undefined;
         for (const item of items) {
           const currentGroup = item.group;

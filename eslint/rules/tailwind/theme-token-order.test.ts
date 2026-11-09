@@ -40,6 +40,42 @@ function utility(group: string, name = "effect"): string {
   return `/* Group: ${group} */\n@utility ${name} { @apply block; }`;
 }
 
+void describe("CSS consumer group comments MUST have an associated CSS definition; orphaned group comments MUST be removed.", () => {
+  check(
+    {
+      "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-frame: #222;
+
+  /* Group: features/home/banner.tsx, features/home/menu.tsx */
+}`,
+      "features/home/banner.tsx": 'const cls = "bg-frame";',
+    },
+    [/CSS consumer group comment has no associated definition; remove the orphaned comment/u],
+  );
+
+  check(
+    {
+      "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-frame: #222;
+}
+
+/* Group: features/home/menu.tsx */`,
+      "features/home/banner.tsx": 'const cls = "bg-frame";',
+    },
+    [/CSS consumer group comment has no associated definition; remove the orphaned comment/u],
+  );
+
+  check({
+    "app/styles/globals.css": `@theme inline {
+  /* Group: features/home/banner.tsx */
+  --color-frame: #222;
+}`,
+    "features/home/banner.tsx": 'const cls = "bg-frame";',
+  });
+});
+
 void describe("CSS definitions MUST use component file paths including extensions for single consumers within each scope, or feature paths and app/compositions/shared roots for multiple consumers; mixed consumer scopes and definitions MUST be sorted alphabetically.", () => {
   check({
     "app/styles/globals.css": utility("features/home/banner.tsx"),
