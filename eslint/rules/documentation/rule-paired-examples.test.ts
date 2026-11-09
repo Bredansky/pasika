@@ -175,10 +175,7 @@ void describe("Every level-2 heading in a Rule MUST be an `Incorrect — ...` or
     invalid: [
       {
         filename,
-        code:
-          prefix +
-          earlier +
-          "\n## Attribute Selector Example\n\nIncorrect: attribute selectors.\n\nCorrect: utility classes.\n",
+        code: `${prefix}${earlier}\n## Attribute Selector Example\n\nIncorrect: attribute selectors.\n\nCorrect: utility classes.\n`,
         errors: [{ message: "Rule level-2 heading must be an Incorrect/Correct example: Attribute Selector Example" }],
       },
     ],
