@@ -59,6 +59,7 @@ void describe("pasika presets", () => {
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/at-rule-spacing"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/no-attribute-selector"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/no-simple-class-rule"] === "error"));
+    assert.ok(cssBlocks.some((block) => block.rules?.["pasika/tailwind-default-comment"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/unused-css-definition"] === "error"));
   });
 

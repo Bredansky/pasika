@@ -311,6 +311,7 @@ const tailwindImportGraph: Linter.Config = {
     "pasika/at-rule-spacing": "error",
     "pasika/no-attribute-selector": "error",
     "pasika/no-simple-class-rule": "error",
+    "pasika/tailwind-default-comment": "error",
     "pasika/unused-css-definition": "error",
     "pasika/css-entry-point": "error",
     "pasika/feature-css-placement": "error",
