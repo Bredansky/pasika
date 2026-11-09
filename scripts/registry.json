@@ -1334,12 +1334,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "CSS consumer group comments MUST have an associated CSS definition; orphaned group comments MUST be removed.",
-      "hash": "78e5236834",
-      "ref": "pasika/theme-token-order"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
