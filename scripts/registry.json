@@ -1232,6 +1232,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Theme tokens with values identical to the installed Tailwind defaults MUST end with `/* Tailwind default */` on the same declaration line, distinguishing required re-declarations after `--*: initial` from custom overrides.",
+      "hash": "c7f9d2330a",
+      "ref": "pasika/tailwind-default-comment"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Numeric spacing utilities MUST be backed by the base `--spacing` token after the global theme reset.",
       "hash": "1009f2fa06",
       "ref": "pasika/unknown-utility"

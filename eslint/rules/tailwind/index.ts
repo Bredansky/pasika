@@ -15,6 +15,7 @@ import { noSimpleClassRule } from "./no-simple-class-rule";
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
+import { tailwindDefaultCommentRule } from "./tailwind-default-comment";
 import { themeModeRule } from "./theme-mode";
 import { themeResetRule } from "./theme-reset";
 import { themeTokenOrderRule } from "./theme-token-order";
@@ -27,6 +28,7 @@ import { utilityNameParityRule } from "./utility-name-parity";
 export const tailwindRules = {
   "at-rule-spacing": atRuleSpacingRule,
   "theme-reset": themeResetRule,
+  "tailwind-default-comment": tailwindDefaultCommentRule,
   "theme-token-order": themeTokenOrderRule,
   "theme-mode": themeModeRule,
   "color-role-usage": colorRoleUsageRule,
