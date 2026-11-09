@@ -30,8 +30,9 @@ function tailwindDefaults(filename: string): Map<string, string> {
   const existing = cache.get(file);
   if (existing) return existing;
   const defaults = new Map<string, string>();
-  for (const match of readFileSync(file, "utf8").matchAll(/^\s*(--[\w-]+):\s*([^;\r\n]+);/gmu)) {
-    if (match[1] && match[2]) defaults.set(match[1], normalize(match[2]));
+  for (const match of readFileSync(file, "utf8").matchAll(/^\s*(?<token>--[\w-]+):\s*(?<value>[^;\r\n]+);/gmu)) {
+    const { token, value } = match.groups ?? {};
+    if (token && value) defaults.set(token, normalize(value));
   }
   cache.set(file, defaults);
   return defaults;

@@ -4,7 +4,7 @@ import { tailwindDefaultCommentRule } from "./tailwind-default-comment";
 
 void describe("Theme tokens with values identical to the installed Tailwind defaults MUST end with `/* Tailwind default */` on the same declaration line, distinguishing required re-declarations after `--*: initial` from custom overrides.", () => {
   const filename = path.resolve("src/app/styles/globals.css");
-  const error = (token: string) => ({
+  const error = (token: string): { message: string } => ({
     message: `Tailwind default token ${token} MUST end with /* Tailwind default */ on the declaration line.`,
   });
   tailwindRuleTester.run("tailwind-default-comment", tailwindDefaultCommentRule, {
