@@ -44,7 +44,7 @@ Why: two top-level directives run together without the required visual separator
 }
 ```
 
-Why: each top-level section has a blank line before the next one; consecutive imports may stay grouped.
+Why: each top-level section has a blank line before the next one; consecutive imports may stay grouped. A `/* Group: ... */` comment introduces its following directive, so place the separating blank line **before the comment**, not between the comment and the `@` directive.
 
 ## Incorrect — Competing Global Stylesheet Entry Points
 
