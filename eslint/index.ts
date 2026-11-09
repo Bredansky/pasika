@@ -282,6 +282,7 @@ const tailwindStructureRules: Linter.Config = {
           id !== "pasika/css-entry-point" &&
           id !== "pasika/feature-css-placement" &&
           id !== "pasika/unique-css-definition" &&
+          id !== "pasika/theme-token-order" &&
           id !== "pasika/utility-mapping" &&
           id !== "pasika/utility-name-parity" &&
           id !== "pasika/no-utility-alias" &&
@@ -312,6 +313,7 @@ const tailwindImportGraph: Linter.Config = {
     "pasika/no-attribute-selector": "error",
     "pasika/no-simple-class-rule": "error",
     "pasika/tailwind-default-comment": "error",
+    "pasika/theme-token-order": "error",
     "pasika/unused-css-definition": "error",
     "pasika/css-entry-point": "error",
     "pasika/feature-css-placement": "error",
