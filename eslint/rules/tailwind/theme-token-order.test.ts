@@ -4,7 +4,12 @@ import path from "node:path";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { themeTokenOrderRule } from "./theme-token-order";
 
-function check(files: Record<string, string>, errors: RegExp[] = [], output?: string): void {
+function check(
+  files: Record<string, string>,
+  errors: RegExp[] = [],
+  output?: string,
+  stylesheet = "app/styles/globals.css",
+): void {
   const root = realpathSync(mkdtempSync(path.join(tmpdir(), "pasika-css-groups-")));
   for (const [name, content] of Object.entries(files)) {
     const filename = path.join(root, "src", name);
@@ -14,8 +19,8 @@ function check(files: Record<string, string>, errors: RegExp[] = [], output?: st
   const previous = process.cwd();
   process.chdir(root);
   try {
-    const filename = path.join(root, "src", "app", "styles", "globals.css");
-    const code = files["app/styles/globals.css"];
+    const filename = path.join(root, "src", stylesheet);
+    const code = files[stylesheet];
     if (code === undefined) throw new Error("CSS fixture missing");
     tailwindRuleTester.run("theme-token-order", themeTokenOrderRule, {
       valid: errors.length === 0 ? [{ filename, code }] : [],
@@ -465,4 +470,50 @@ void describe("CSS definitions MUST use component file paths including extension
   check({ "app/styles/globals.css": "/* Group: global */\n@utility unreferenced { @apply block; }" }, [
     /CSS definition "unreferenced" has no traceable consumer; reference it or remove it/u,
   ]);
+});
+
+void describe("CSS consumer groups MUST also be enforced in imported feature stylesheets.", () => {
+  const stylesheet = "app/styles/minecraft.css";
+  const consumer = "features/minecraft/minecraft-donation-widget.tsx";
+
+  check(
+    {
+      [stylesheet]: `@theme inline {
+  --color-mc-boss-canvas: #ff00ff;
+}`,
+      [consumer]: 'const cls = "bg-mc-boss-canvas";',
+    },
+    [/CSS definition "--color-mc-boss-canvas" requires group "features\/minecraft\/minecraft-donation-widget\.tsx"/u],
+    undefined,
+    stylesheet,
+  );
+
+  check(
+    {
+      [stylesheet]: `@theme inline {
+  /* Group: features/minecraft/minecraft-donation-widget.tsx */
+  --color-mc-boss-canvas: #ff00ff;
+}`,
+      [consumer]: 'const cls = "bg-mc-boss-canvas";',
+    },
+    [],
+    undefined,
+    stylesheet,
+  );
+
+  check(
+    {
+      [stylesheet]: `@theme inline {
+  /* Group: features/minecraft */
+  --color-mc-boss-canvas: #ff00ff;
+}`,
+      [consumer]: 'const cls = "bg-mc-boss-canvas";',
+    },
+    [/CSS definition "--color-mc-boss-canvas" belongs to group "features\/minecraft\/minecraft-donation-widget\.tsx"/u],
+    `@theme inline {
+  /* Group: features/minecraft/minecraft-donation-widget.tsx */
+  --color-mc-boss-canvas: #ff00ff;
+}`,
+    stylesheet,
+  );
 });
