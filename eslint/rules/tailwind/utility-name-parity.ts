@@ -46,7 +46,7 @@ function simpleValueSlug(value: string): string | undefined {
     }
     const variable = /^var\(--(?<name>[a-z][a-z0-9-]*)\)$/u.exec(word)?.groups?.name;
     if (variable) {
-      parts.push("var", variable);
+      parts.push(variable);
       continue;
     }
     if (/^[a-z][a-z0-9-]*$/iu.test(word)) {

@@ -4,17 +4,18 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
+void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
       { code: "@utility bg-size-24px-24px { @apply [background-size:24px_24px]; }" },
       { code: "@utility border-style-outset { @apply [border-style:outset]; }" },
+      { code: "@utility border-2px-ridge-color-retro-edge { @apply [border:2px_ridge_var(--color-retro-edge)]; }" },
       { code: "@utility grid-template-columns-2fr-1fr { @apply [grid-template-columns:2fr_1fr]; }" },
-      { code: "@utility mask-image-var-art { @apply mask-[var(--art)]; }" },
-      { code: "@utility font-weight-var-family { @apply font-(--family); }" },
+      { code: "@utility mask-image-art { @apply mask-[var(--art)]; }" },
+      { code: "@utility font-weight-family { @apply font-(--family); }" },
       {
-        code: "@utility mask-image-var-art { @apply mask-[var(--art)]; } @utility grid-template-columns-2fr-1fr { @apply grid-cols-[2fr_1fr]; }",
+        code: "@utility mask-image-art { @apply mask-[var(--art)]; } @utility grid-template-columns-2fr-1fr { @apply grid-cols-[2fr_1fr]; }",
       },
       { code: "@utility border-top-color-hex-8b8b8b { @apply [border-top-color:#8b8b8b]; }" },
       { code: "@utility z-index-neg-1 { @apply [z-index:-1]; }" },
@@ -22,25 +23,25 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility font-size-14px { @apply text-[14px]; }" },
       { code: "@utility color-hex-f00 { @apply text-[#f00]; }" },
       { code: "@utility bg-color-hex-abc { @apply bg-[#abc]; }" },
-      { code: "@utility font-family-var-interface { @apply font-(family-name:--interface); }" },
-      { code: "@utility font-weight-var-weight { @apply font-(number:--weight); }" },
-      { code: "@utility color-var-ink { @apply text-(color:--ink); }" },
-      { code: "@utility color-var-ink { @apply text-[color:var(--ink)]; }" },
-      { code: "@utility font-size-var-body { @apply text-[length:var(--body)]; }" },
-      { code: "@utility bg-image-var-art { @apply bg-[image:var(--art)]; }" },
-      { code: "@utility bg-image-var-art { @apply bg-(image:--art); }" },
-      { code: "@utility bg-color-var-canvas { @apply bg-[color:var(--canvas)]; }" },
-      { code: "@utility bg-color-var-canvas { @apply bg-(color:--canvas); }" },
+      { code: "@utility font-family-interface { @apply font-(family-name:--interface); }" },
+      { code: "@utility font-weight-weight { @apply font-(number:--weight); }" },
+      { code: "@utility color-ink { @apply text-(color:--ink); }" },
+      { code: "@utility color-ink { @apply text-[color:var(--ink)]; }" },
+      { code: "@utility font-size-body { @apply text-[length:var(--body)]; }" },
+      { code: "@utility bg-image-art { @apply bg-[image:var(--art)]; }" },
+      { code: "@utility bg-image-art { @apply bg-(image:--art); }" },
+      { code: "@utility bg-color-canvas { @apply bg-[color:var(--canvas)]; }" },
+      { code: "@utility bg-color-canvas { @apply bg-(color:--canvas); }" },
       { code: "@utility bg-size-24px-24px { @apply bg-[size:24px_24px]; }" },
-      { code: "@utility bg-size-var-pattern { @apply bg-(size:--pattern); }" },
+      { code: "@utility bg-size-pattern { @apply bg-(size:--pattern); }" },
       { code: "@utility bg-position-20pct-40pct { @apply bg-[position:20%_40%]; }" },
-      { code: "@utility bg-position-var-position { @apply bg-(position:--position); }" },
-      { code: "@utility height-var-banner { @apply h-(--banner); }" },
+      { code: "@utility bg-position-position { @apply bg-(position:--position); }" },
+      { code: "@utility height-banner { @apply h-(--banner); }" },
       { code: "@utility opacity-0p25 { @apply [opacity:.25]; }" },
       {
         code: "@utility transition-property-color-border-color { @apply [transition-property:color,_border-color]; }",
       },
-      { code: "@utility font-size-var-font-size { @apply text-(length:--font-size); }" },
+      { code: "@utility font-size-font-size { @apply text-(length:--font-size); }" },
       { code: "@utility webkit-font-smoothing-none { @apply [-webkit-font-smoothing:none]; }" },
       { code: "@utility will-change-transform-opacity { @apply [will-change:transform,_opacity]; }" },
       { code: "@utility opacity-0p5 { @apply [opacity:0.5]; }" },
@@ -131,11 +132,15 @@ void describe("Custom single-property utilities MUST use property/value-derived 
         ],
       },
       {
+        code: "@utility border-2px-ridge-var-color-retro-edge { @apply [border:2px_ridge_var(--color-retro-edge)]; }",
+        errors: [{ message: /rename it "border-2px-ridge-color-retro-edge"/u }],
+      },
+      {
         code: "@utility mask-art { @apply mask-[var(--art)]; }",
         errors: [
           {
             message:
-              'Custom utility "mask-art" maps mask-image: var(--art); rename it "mask-image-var-art" to preserve property/value parity.',
+              'Custom utility "mask-art" maps mask-image: var(--art); rename it "mask-image-art" to preserve property/value parity.',
           },
         ],
       },
@@ -195,7 +200,7 @@ void describe("Custom single-property utilities MUST use property/value-derived 
         errors: [
           {
             message:
-              'Custom utility "font-mc" maps font-family: var(--font-space-mono), monospace; rename it "font-family-var-font-space-mono-monospace" to preserve property/value parity.',
+              'Custom utility "font-mc" maps font-family: var(--font-space-mono), monospace; rename it "font-family-font-space-mono-monospace" to preserve property/value parity.',
           },
         ],
       },
@@ -213,33 +218,33 @@ void describe("Custom single-property utilities MUST use property/value-derived 
         errors: [
           {
             message:
-              'Custom utility "text-dynamic" maps font-size: var(--font-size); rename it "font-size-var-font-size" to preserve property/value parity.',
+              'Custom utility "text-dynamic" maps font-size: var(--font-size); rename it "font-size-font-size" to preserve property/value parity.',
           },
         ],
       },
       {
         code: "@utility unknown-text-color { @apply text-[var(--ink)]; }",
-        errors: [{ message: /maps color: var\(--ink\); rename it "color-var-ink"/u }],
+        errors: [{ message: /maps color: var\(--ink\); rename it "color-ink"/u }],
       },
       {
         code: "@utility unknown-bg-type { @apply bg-[var(--canvas)]; }",
-        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-var-canvas"/u }],
+        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-canvas"/u }],
       },
       {
         code: "@utility unknown-text-var { @apply text-(--ink); }",
-        errors: [{ message: /maps color: var\(--ink\); rename it "color-var-ink"/u }],
+        errors: [{ message: /maps color: var\(--ink\); rename it "color-ink"/u }],
       },
       {
         code: "@utility unknown-bg-var { @apply bg-(--canvas); }",
-        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-var-canvas"/u }],
+        errors: [{ message: /maps background-color: var\(--canvas\); rename it "bg-color-canvas"/u }],
       },
       {
         code: "@utility unknown-font-var { @apply font-(--family); }",
-        errors: [{ message: /maps font-weight: var\(--family\); rename it "font-weight-var-family"/u }],
+        errors: [{ message: /maps font-weight: var\(--family\); rename it "font-weight-family"/u }],
       },
       {
         code: "@utility unknown-bg-hint { @apply bg-(depth:--depth); }",
-        errors: [{ message: /maps background-color: var\(--depth\); rename it "bg-color-var-depth"/u }],
+        errors: [{ message: /maps background-color: var\(--depth\); rename it "bg-color-depth"/u }],
       },
       {
         code: "@utility unknown-prefix { @apply foo-[18px]; }",
