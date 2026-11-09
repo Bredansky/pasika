@@ -1184,6 +1184,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
+      "text": "CSS selectors MUST NOT use attribute selectors or standalone class rules that replace Tailwind utilities; apply utilities directly to elements instead.",
+      "hash": "cd46a2a25e",
+      "ref": "pasika/no-attribute-selector, pasika/no-simple-class-rule"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
       "text": "The global stylesheet entry point MUST order the Tailwind import, one `@theme inline` block containing `--*: initial` as its first declaration and all global tokens, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, custom utilities, base styles, and keyframes.",
       "hash": "790ae084de",
       "ref": "pasika/stylesheet-ordering"
@@ -1268,7 +1274,7 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Fixed colors used more than once in a stylesheet MUST be defined as --color-* tokens and referenced through var(); colors used exactly once MUST be written directly in any CSS declaration or @apply expression.",
+      "text": "Fixed colors used more than once in a stylesheet MUST be defined as `--color-*` tokens and referenced through `var()`; colors used exactly once MUST be written directly in any CSS declaration or `@apply` expression.",
       "hash": "a9b6d1014c",
       "ref": "pasika/color-literal-usage"
     },

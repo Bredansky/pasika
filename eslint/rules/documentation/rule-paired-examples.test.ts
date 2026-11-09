@@ -163,3 +163,21 @@ void describe("A `Why:` explanation MUST be the final block of its example, foll
     ],
   });
 });
+
+void describe("Every level-2 heading in a Rule MUST be an `Incorrect — ...` or `Correct — ...` example heading.", () => {
+  const filename = "global-stylesheet-rule.md";
+  const prefix =
+    "# Global Stylesheet Rule\n\nStyles must remain explicit.\n\n- CSS selectors MUST NOT use attributes.\n\n";
+  const earlier =
+    '## Incorrect — Attribute Selector\n\n```css\n[data-state=open] { display: block; }\n```\n\nWhy: attribute matching hides styling.\n\n## Correct — Utility on Element\n\n```tsx\n<div className="block" />\n```\n\nWhy: the utility is explicit.\n';
+  documentationRuleTester.run("rule-paired-examples:attribute-selector-regression", rulePairedExamplesRule, {
+    valid: [{ filename, code: prefix + earlier }],
+    invalid: [
+      {
+        filename,
+        code: `${prefix}${earlier}\n## Attribute Selector Example\n\nIncorrect: attribute selectors.\n\nCorrect: utility classes.\n`,
+        errors: [{ message: "Rule level-2 heading must be an Incorrect/Correct example: Attribute Selector Example" }],
+      },
+    ],
+  });
+});
