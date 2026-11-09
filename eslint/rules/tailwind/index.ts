@@ -11,6 +11,7 @@ import { customUtilityApplyRule } from "./custom-utility-apply";
 import { featureCssPlacementRule } from "./feature-css-placement";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { noAttributeSelectorRule } from "./no-attribute-selector";
+import { noSimpleClassRule } from "./no-simple-class-rule";
 import { noUtilityAliasRule } from "./no-utility-alias";
 import { rootVariablesRule } from "./root-variables";
 import { stylesheetOrderingRule } from "./stylesheet-ordering";
@@ -44,6 +45,7 @@ export const tailwindRules = {
   "unique-css-definition": uniqueCssDefinitionRule,
   "unique-css-token-value": uniqueCssTokenValueRule,
   "no-attribute-selector": noAttributeSelectorRule,
+  "no-simple-class-rule": noSimpleClassRule,
   "no-utility-alias": noUtilityAliasRule,
 };
 

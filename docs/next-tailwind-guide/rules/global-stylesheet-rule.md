@@ -8,7 +8,8 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - CSS used by a single feature MUST live in its feature stylesheet. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `@theme inline` in `globals.css`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
-- CSS selectors MUST NOT use attribute selectors; use explicit component classes instead.
+- CSS selectors MUST NOT use attribute selectors; use Tailwind utilities on elements instead.
+- Standalone CSS class selectors MUST NOT replace Tailwind utilities applied on elements.
 - The global stylesheet entry point MUST order the Tailwind import, one `@theme inline` block containing `--*: initial` as its first declaration and all global tokens, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, custom utilities, base styles, and keyframes.
 - Adjacent top-level CSS `@` directives MUST have a blank line between them, except consecutive `@import` directives.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.
@@ -278,6 +279,6 @@ CSS selectors MUST NOT use attribute selectors; use explicit component classes i
 
 Incorrect: `[aria-hidden="true"].absolute { pointer-events: none; }`.
 
-Correct: `.decorative { pointer-events: none; }` with the class added explicitly to the decorative component.
+Correct: `<div aria-hidden="true" className="absolute pointer-events-none" />` with Tailwind utilities directly on the element.
 
 This applies to all CSS selectors, including compound, nested, and conditional selectors. Tailwind arbitrary property utilities inside `@apply` are declarations, not selectors.

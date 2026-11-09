@@ -2,7 +2,7 @@
  * ESLint rule: pasika/no-attribute-selector
  *
  * Attribute-based CSS selectors couple presentation to DOM state and
- * accessibility attributes. Prefer explicit component classes instead.
+ * accessibility attributes. Use Tailwind utilities on elements instead.
  *
  * @see docs/next-tailwind-guide/rules/global-stylesheet-rule.md
  */
@@ -14,7 +14,7 @@ export const noAttributeSelectorRule: CSSRuleDefinition = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Disallow CSS attribute selectors; use explicit component classes instead.",
+      description: "Disallow CSS attribute selectors; use Tailwind utilities on elements instead.",
     },
   },
   create(context) {
@@ -22,7 +22,7 @@ export const noAttributeSelectorRule: CSSRuleDefinition = {
       AttributeSelector(node: AttributeSelector) {
         context.report({
           node,
-          message: "CSS attribute selectors are forbidden. Use an explicit component class instead.",
+          message: "CSS attribute selectors are forbidden. Apply Tailwind utilities on the element instead.",
         });
       },
     };
