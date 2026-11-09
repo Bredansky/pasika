@@ -11,6 +11,8 @@ import type { StyleSheetPlain } from "@eslint/css-tree";
 
 const EMPTY_LINE = /\n[ \t]*\n/u;
 const LINE_BREAK = /\r\n|\n|\r/u;
+const GROUP_COMMENT_BETWEEN = /^(?<before>[ \t\r\n]*)(?<group>\/\*\s*Group:[^\r\n]*\*\/)(?<after>[ \t\r\n]*)$/u;
+const LINE_END_INDENT = /(?:\r\n|\n|\r)(?<indent>[ \t]*)$/u;
 
 export const atRuleSpacingRule: CSSRuleDefinition = {
   meta: {
@@ -36,6 +38,29 @@ export const atRuleSpacingRule: CSSRuleDefinition = {
           const start = previous.loc.end.offset;
           const end = current.loc.start.offset;
           const between = source.slice(start, end);
+          const groupMatch = GROUP_COMMENT_BETWEEN.exec(between);
+          if (groupMatch?.groups) {
+            const { before, group, after } = groupMatch.groups;
+            if (before === undefined || group === undefined || after === undefined) continue;
+            const hasBlankBefore = EMPTY_LINE.test(before.replace(/\r\n|\r/gu, "\n"));
+            const hasBlankAfter = EMPTY_LINE.test(after.replace(/\r\n|\r/gu, "\n"));
+            if (hasBlankBefore && !hasBlankAfter) continue;
+
+            const groupIndent = LINE_END_INDENT.exec(before)?.groups?.indent ?? "";
+            const nextIndent = LINE_END_INDENT.exec(after)?.groups?.indent ?? "";
+            context.report({
+              node: current,
+              message:
+                "A CSS consumer group comment must immediately precede its @ rule, with a blank line before the comment.",
+              fix(fixer) {
+                return fixer.replaceTextRange(
+                  [start, end],
+                  `${newline}${newline}${groupIndent}${group}${newline}${nextIndent}`,
+                );
+              },
+            });
+            continue;
+          }
           if (EMPTY_LINE.test(between.replace(/\r\n|\r/gu, "\n"))) continue;
 
           context.report({
