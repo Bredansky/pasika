@@ -51,7 +51,7 @@
     "lint:staged": "eslint --fix",
     "prepack": "npm run build",
     "prepare": "husky",
-    "test:requirements": "tsx scripts/coverage.ts",
+    "test:requirements": "tsx scripts/coverage.ts && eslint \"docs/**/*.md\"",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage",
     "test:unit:coverage:check": "npm run test:unit:coverage -- --coverage.thresholds.autoUpdate=false && git diff --exit-code -- vitest.config.ts",

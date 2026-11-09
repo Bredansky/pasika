@@ -273,10 +273,20 @@ Why: inside `@layer base`, global selectors may only use `@apply`. Define runtim
 
 Why: the base layer applies Tailwind utilities rather than declaring CSS properties or variables; runtime values are defined outside this layer.
 
-## Attribute Selector Example
+## Incorrect — Attribute Selector Controls Styling
 
-Incorrect: `[aria-hidden="true"].absolute { pointer-events: none; }`.
+```css
+[aria-hidden="true"].absolute {
+  pointer-events: none;
+}
+```
 
-Correct: `<div aria-hidden="true" className="absolute pointer-events-none" />`.
+Why: coupling visual behavior to an accessibility attribute creates an implicit global style dependency.
 
-The prohibition includes compound, nested, and conditional selectors; arbitrary properties inside `@apply` are declarations, not selectors.
+## Correct — Tailwind Utility on the Element
+
+```tsx
+<div aria-hidden="true" className="pointer-events-none absolute" />
+```
+
+Why: the element owns its styling through Tailwind utilities without a global selector.
