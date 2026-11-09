@@ -273,12 +273,10 @@ Why: inside `@layer base`, global selectors may only use `@apply`. Define runtim
 
 Why: the base layer applies Tailwind utilities rather than declaring CSS properties or variables; runtime values are defined outside this layer.
 
-## Attribute selectors
-
-CSS selectors MUST NOT use attribute selectors; use explicit component classes instead.
+## Attribute Selector Example
 
 Incorrect: `[aria-hidden="true"].absolute { pointer-events: none; }`.
 
-Correct: `<div aria-hidden="true" className="absolute pointer-events-none" />` with Tailwind utilities directly on the element.
+Correct: `<div aria-hidden="true" className="absolute pointer-events-none" />`.
 
-This applies to all CSS selectors, including compound, nested, and conditional selectors. Tailwind arbitrary property utilities inside `@apply` are declarations, not selectors.
+The prohibition includes compound, nested, and conditional selectors; arbitrary properties inside `@apply` are declarations, not selectors.
