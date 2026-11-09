@@ -8,8 +8,7 @@ Scattered stylesheets and competing Tailwind entry points obscure CSS ownership 
 - CSS used by a single feature MUST live in its feature stylesheet. CSS shared across features MUST live in `globals.css`.
 - The global stylesheet MUST reset Tailwind's default theme with `--*: initial` in `@theme inline` in `globals.css`, before importing feature stylesheets; feature stylesheets MUST NOT declare that reset.
 - Global selectors inside `@layer base` MUST contain only `@apply` directives.
-- CSS selectors MUST NOT use attribute selectors; use Tailwind utilities on elements instead.
-- Standalone CSS class selectors MUST NOT replace Tailwind utilities applied on elements.
+- CSS selectors MUST NOT use attribute selectors or standalone class rules that replace Tailwind utilities; apply utilities directly to elements instead.
 - The global stylesheet entry point MUST order the Tailwind import, one `@theme inline` block containing `--*: initial` as its first declaration and all global tokens, feature stylesheet imports, `@custom-variant` definitions, `:root` variables and `@variant` overrides, custom utilities, base styles, and keyframes.
 - Adjacent top-level CSS `@` directives MUST have a blank line between them, except consecutive `@import` directives.
 - The global base layer MUST apply `base-canvas` and `base-ink` to the document body as the default page pair.

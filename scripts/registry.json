@@ -1184,15 +1184,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "CSS selectors MUST NOT use attribute selectors; use Tailwind utilities on elements instead.",
-      "hash": "6d64d2809a",
-      "ref": "pasika/no-attribute-selector"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",
-      "text": "Standalone CSS class selectors MUST NOT replace Tailwind utilities applied on elements.",
-      "hash": "9d14ddbd9a",
-      "ref": "pasika/no-simple-class-rule"
+      "text": "CSS selectors MUST NOT use attribute selectors or standalone class rules that replace Tailwind utilities; apply utilities directly to elements instead.",
+      "hash": "cd46a2a25e",
+      "ref": "pasika/no-attribute-selector, pasika/no-simple-class-rule"
     },
     {
       "doc": "next-tailwind-guide/rules/global-stylesheet-rule.md",

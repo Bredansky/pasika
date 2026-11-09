@@ -2,7 +2,7 @@ import path from "node:path";
 import { noAttributeSelectorRule } from "./no-attribute-selector";
 import { describe, tailwindRuleTester } from "./rule-tester";
 
-void describe("CSS selectors MUST NOT use attribute selectors; use Tailwind utilities on elements instead.", () => {
+void describe("CSS selectors MUST NOT use attribute selectors or standalone class rules that replace Tailwind utilities; apply utilities directly to elements instead.", () => {
   const filename = path.resolve("src/app/styles/globals.css");
   const error = { message: "CSS attribute selectors are forbidden. Apply Tailwind utilities on the element instead." };
   tailwindRuleTester.run("no-attribute-selector", noAttributeSelectorRule, {
