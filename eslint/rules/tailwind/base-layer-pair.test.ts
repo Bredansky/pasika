@@ -10,12 +10,29 @@ void describe("The global base layer MUST apply base-canvas and base-ink to the 
   mkdirSync(path.dirname(filename("globals.css")), { recursive: true });
   writeFileSync(filename("base.css"), "@layer base { body { @apply bg-base-canvas text-base-ink; } }");
   writeFileSync(filename("other.css"), "@layer base { html { @apply bg-base-canvas; } }");
+  writeFileSync(filename("keyframes.css"), "@layer base { @keyframes neon-flicker { to { opacity: 1; } } }");
 
   const originalDirectory = process.cwd();
   process.chdir(fixture);
   try {
     tailwindRuleTester.run("base-layer-pair", baseLayerPairRule, {
       valid: [
+        {
+          filename: filename("globals.css"),
+          code: "@keyframes neon-flicker { to { opacity: 1; } }\\n@keyframes rainbow-shift { to { background-position: 200% 50%; } }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@layer base { @keyframes neon-flicker { to { opacity: 1; } } }",
+        },
+        {
+          filename: filename("globals.css"),
+          code: '@import "tailwindcss";\\n@import "./keyframes.css";',
+        },
+        {
+          filename: filename("globals.css"),
+          code: "@theme inline { --color-base-dark: #180d20; --color-base-light: #eee; }\\n@layer base { body { @apply bg-base-dark text-base-light; } }\\n@keyframes neon-flicker { to { opacity: 1; } }",
+        },
         {
           filename: filename("globals.css"),
           code: "@layer base {\n  body {\n    @apply bg-base-canvas text-base-ink;\n  }\n}",
@@ -42,6 +59,16 @@ void describe("The global base layer MUST apply base-canvas and base-ink to the 
         },
       ],
       invalid: [
+        {
+          filename: filename("globals.css"),
+          code: "@layer base { @keyframes neon-flicker { to { opacity: 1; } } html { @apply bg-base-canvas; } }",
+          errors: [
+            {
+              message:
+                "The global base layer must apply a canvas and an ink utility to the document body as the default page pair.",
+            },
+          ],
+        },
         {
           filename: filename("globals.css"),
           code: "@layer base {\n  body {\n    @apply bg-white;\n  }\n}",

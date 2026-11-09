@@ -29,7 +29,12 @@ function collectBodyUtilities(node: StyleSheetPlain): { hasBaseLayer: boolean; n
       }
     }
   }
-  return { hasBaseLayer: baseLayers.length > 0, names };
+  // Keyframe-only @layer base blocks do not define document base styles.
+  // They must not trigger the body canvas/ink requirement by themselves.
+  const hasBaseLayer = baseLayers.some((layer) =>
+    blockChildren(layer).some((child) => child.type !== "Atrule" || child.name !== "keyframes"),
+  );
+  return { hasBaseLayer, names };
 }
 
 export const baseLayerPairRule: CSSRuleDefinition = {
