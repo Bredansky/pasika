@@ -103,25 +103,7 @@ void describe("Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, 
       },
     ],
   });
-});
 
-void describe("Shared color tokens MAY be used without role suffixes in composite effects.", () => {
-  tailwindRuleTester.run("color-role-usage-effects", colorRoleUsageRule, {
-    valid: [
-      {
-        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
-      },
-    ],
-    invalid: [
-      {
-        code: "@theme { --background-image-hero: linear-gradient(red, blue); }",
-        errors: [{ message: backgroundImageNaming("--background-image-hero") }],
-      },
-    ],
-  });
-});
-
-void describe("Semantic role markers (`canvas`, `ink`, `edge`) MUST occur only as final hyphen-delimited segments in `--color-*` token names and their Tailwind utility classes; shared colors MAY omit role markers.", () => {
   const misplacedToken = (token: string, role: string): string =>
     `Color token "${token}" places semantic role "-${role}" before the end of its name; move the role to the end or omit it for shared colors.`;
   const misplacedClass = (className: string, role: string): string =>
@@ -176,6 +158,22 @@ void describe("Semantic role markers (`canvas`, `ink`, `edge`) MUST occur only a
       {
         code: "@apply text-button-canvas-2;",
         errors: [{ message: misplacedClass("text-button-canvas-2", "canvas") }],
+      },
+    ],
+  });
+});
+
+void describe("Shared color tokens MAY be used without role suffixes in composite effects.", () => {
+  tailwindRuleTester.run("color-role-usage-effects", colorRoleUsageRule, {
+    valid: [
+      {
+        code: "@theme { --color-mc-dark: #2b2b2b; --color-mc-light: #545454; --inset-shadow-mc-frame: inset 1px 1px 0 var(--color-mc-dark), inset -1px -1px 0 var(--color-mc-light); }",
+      },
+    ],
+    invalid: [
+      {
+        code: "@theme { --background-image-hero: linear-gradient(red, blue); }",
+        errors: [{ message: backgroundImageNaming("--background-image-hero") }],
       },
     ],
   });

@@ -1280,12 +1280,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Semantic role markers (`canvas`, `ink`, `edge`) MUST occur only as final hyphen-delimited segments in `--color-*` token names and their Tailwind utility classes; shared colors MAY omit role markers.",
-      "hash": "35a7031e3f",
-      "ref": "pasika/color-role-usage, pasika/unknown-utility"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Fixed colors used more than once in a stylesheet MUST be defined as `--color-*` tokens and referenced through `var()`; colors used exactly once MUST be written directly in any CSS declaration or `@apply` expression.",
       "hash": "a9b6d1014c",
       "ref": "pasika/color-literal-usage"
