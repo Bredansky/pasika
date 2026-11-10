@@ -10,7 +10,7 @@
  */
 import path from "node:path";
 import type { CSSRuleDefinition } from "@eslint/css";
-import { parse, walk, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
+import { parse, walk, type CssNode, type CssNodePlain, type StyleSheetPlain } from "@eslint/css-tree";
 import { sourceRootOf } from "../project-root";
 import { buildCssDependencyGraph } from "./css-dependency-graph";
 import { externalMapping } from "./external-mapping";
@@ -22,6 +22,47 @@ const INLINE_MAPPING_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" must use a fixed value, same-named var(${name}), or an external var() with fallback in @theme inline.`;
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no @variant override; define its fixed value directly in @theme inline.`;
+
+/** Unwrap only provably neutral calc() operations, never arithmetic that changes a value. */
+function noOpCalcAlias(value: string): string | undefined {
+  if (!/^\s*calc\(/iu.test(value)) return undefined;
+  const parsed = parse(value, { context: "value" });
+  if (parsed.type !== "Value") return undefined;
+  const topLevel = [...parsed.children];
+  const outer = topLevel[0];
+  if (topLevel.length !== 1 || outer?.type !== "Function" || outer.name.toLowerCase() !== "calc") {
+    return undefined;
+  }
+
+  function aliasFrom(node: CssNode): string | undefined {
+    if (node.type === "Value" || node.type === "Parentheses") {
+      const children = [...node.children];
+      return children.length === 1 && children[0] ? aliasFrom(children[0]) : undefined;
+    }
+    if (node.type !== "Function") return undefined;
+
+    const children = [...node.children];
+    if (node.name.toLowerCase() === "var") {
+      const argument = children[0];
+      return children.length === 1 && argument?.type === "Identifier" && /^--[a-z][\w-]*$/u.test(argument.name)
+        ? argument.name
+        : undefined;
+    }
+    if (node.name.toLowerCase() !== "calc") return undefined;
+    if (children.length === 1 && children[0]) return aliasFrom(children[0]);
+    if (children.length !== 3) return undefined;
+
+    const [left, operator, right] = children;
+    if (!left || operator?.type !== "Operator" || !right) return undefined;
+    const isOne = (part: CssNode): boolean => part.type === "Number" && Number(part.value) === 1;
+    if ((operator.value === "*" || operator.value === "/") && isOne(right)) return aliasFrom(left);
+    if (operator.value === "*" && isOne(left)) return aliasFrom(right);
+    return undefined;
+  }
+
+  return aliasFrom(outer);
+}
+
 export const rootVariablesRule: CSSRuleDefinition = {
   meta: {
     schema: [],
@@ -169,6 +210,18 @@ export const rootVariablesRule: CSSRuleDefinition = {
               } else if (!variantNames.has(name)) {
                 context.report({ node: theme, message: REDUNDANT_INLINE_MESSAGE(name) });
               }
+              continue;
+            }
+            // A no-op calc() is still an alias, not a genuine composite expression.
+            const noOpReference = noOpCalcAlias(unquoted);
+            if (noOpReference) {
+              context.report({
+                node: theme,
+                message:
+                  noOpReference === name
+                    ? INLINE_MAPPING_MESSAGE(name)
+                    : `Tailwind token "${name}" must reference its same-named CSS variable, not "${noOpReference}".`,
+              });
               continue;
             }
             if (externalMapping(value, name, authoredVariables)) continue;
