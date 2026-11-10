@@ -49,6 +49,12 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
         code: "@theme inline { --color-line-canvas: #334155; --background-image-lines-canvas: repeating-linear-gradient(0deg, transparent 0 2px, var(--color-line-canvas) 2px 4px); }",
       },
       {
+        code: "@theme inline { --spacing: 0.25rem; --radius-large: calc(var(--spacing) * 2); --radius-offset: calc(var(--spacing) + 2px); }",
+      },
+      {
+        code: "@theme inline { --color-primary: hsl(290 80% 65%); --shadow-retro-glow: 0 0 8px hsl(from var(--color-primary) h s l / 0.4); }",
+      },
+      {
         code: "@theme inline { --animate-wiggle: wiggle 2s ease-in-out infinite; @keyframes wiggle { to { transform: rotate(3deg); } } }",
       },
     ],
@@ -70,6 +76,30 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
       {
         code: "@theme inline { --radius-base: 8px; --radius-button: var(--radius-base); }",
         errors: [{ message: wrong("--radius-button", "--radius-base") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius: calc(var(--spacing)); }",
+        errors: [{ message: wrong("--radius", "--spacing") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius-lg: calc(var(--spacing) * 1); }",
+        errors: [{ message: wrong("--radius-lg", "--spacing") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius-lg: calc(1 * var(--spacing)); }",
+        errors: [{ message: wrong("--radius-lg", "--spacing") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius-lg: calc(var(--spacing) / 1); }",
+        errors: [{ message: wrong("--radius-lg", "--spacing") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius-lg: calc(calc((var(--spacing)))); }",
+        errors: [{ message: wrong("--radius-lg", "--spacing") }],
+      },
+      {
+        code: "@theme inline { --spacing: 0.25rem; --radius: calc(var(--radius)); }",
+        errors: [{ message: mapping("--radius") }],
       },
       {
         code: "@theme inline { --color-brand-canvas: blue; --color-brand-edge: var(--color-brand-canvas); }",
