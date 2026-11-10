@@ -103,6 +103,64 @@ void describe("Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, 
       },
     ],
   });
+
+  const misplacedToken = (token: string, role: string): string =>
+    `Color token "${token}" places semantic role "-${role}" before the end of its name; move the role to the end or omit it for shared colors.`;
+  const misplacedClass = (className: string, role: string): string =>
+    `Color utility "${className}" places semantic role "-${role}" before the end of its name; move the role to the end or omit it for shared colors.`;
+
+  tailwindRuleTester.run("color-role-usage-nonterminal-token", colorRoleUsageRule, {
+    valid: [
+      {
+        code: "@theme inline { --color-brand: #123456; --color-brand-500: #234567; --color-brand-canvas: #345678; --color-brand-ink: #456789; --color-brand-edge: #56789a; }",
+      },
+      { code: "@theme inline { /* --color-bad-canvas-2: #000; */ --color-good-canvas: #fff; }" },
+    ],
+    invalid: [
+      {
+        code: "@theme inline { --color-donation-background-image-mc-boss-gradient-canvas-2: #ff00ff; }",
+        errors: [
+          {
+            message: misplacedToken("--color-donation-background-image-mc-boss-gradient-canvas-2", "canvas"),
+          },
+        ],
+      },
+      {
+        code: "@theme inline { --color-notice-ink-1: #123456; }",
+        errors: [{ message: misplacedToken("--color-notice-ink-1", "ink") }],
+      },
+      {
+        code: "@theme inline { --color-frame-edge-border-color: #123456; }",
+        errors: [{ message: misplacedToken("--color-frame-edge-border-color", "edge") }],
+      },
+      {
+        code: "@theme inline { --color-palette-canvas-ink: #123456; }",
+        errors: [{ message: misplacedToken("--color-palette-canvas-ink", "canvas") }],
+      },
+    ],
+  });
+
+  tailwindRuleTester.run("color-role-usage-nonterminal-apply", colorRoleUsageRule, {
+    valid: [{ code: "@apply bg-brand text-brand border-brand bg-brand-canvas text-brand-ink border-brand-edge;" }],
+    invalid: [
+      {
+        code: "@apply bg-button-canvas-2;",
+        errors: [{ message: misplacedClass("bg-button-canvas-2", "canvas") }],
+      },
+      {
+        code: "@apply hover:text-label-ink-1;",
+        errors: [{ message: misplacedClass("hover:text-label-ink-1", "ink") }],
+      },
+      {
+        code: "@apply border-frame-edge-border-color;",
+        errors: [{ message: misplacedClass("border-frame-edge-border-color", "edge") }],
+      },
+      {
+        code: "@apply text-button-canvas-2;",
+        errors: [{ message: misplacedClass("text-button-canvas-2", "canvas") }],
+      },
+    ],
+  });
 });
 
 void describe("Shared color tokens MAY be used without role suffixes in composite effects.", () => {

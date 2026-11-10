@@ -5,10 +5,10 @@
  */
 import type { CSSRuleDefinition } from "@eslint/css";
 import type { StyleSheetPlain } from "@eslint/css-tree";
-import { colorRoleUsageMessage } from "../color-role";
+import { colorRoleUsageMessage, nonterminalColorRole } from "../color-role";
 import { atrulesNamed } from "./helpers";
 
-const COLOR_TOKEN = /^--color-[a-z][a-z0-9-]*(?:-(?:canvas|ink|edge))?$/u;
+const COLOR_TOKEN = /^--color-[a-z][a-z0-9-]*$/u;
 const BACKGROUND_IMAGE_TOKEN = /^--background-image-[a-z][a-z0-9-]*-canvas$/u;
 
 export const colorRoleUsageRule: CSSRuleDefinition = {
@@ -41,6 +41,14 @@ export const colorRoleUsageRule: CSSRuleDefinition = {
                 node: theme,
                 message: `Color token "${token}" must use a valid --color-* name, optionally ending in -canvas, -ink, or -edge.`,
               });
+            } else {
+              const nonterminalRole = nonterminalColorRole(token);
+              if (nonterminalRole) {
+                context.report({
+                  node: theme,
+                  message: `Color token "${token}" places semantic role "-${nonterminalRole}" before the end of its name; move the role to the end or omit it for shared colors.`,
+                });
+              }
             }
           }
         }

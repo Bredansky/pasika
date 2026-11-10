@@ -1,10 +1,14 @@
 /** Shared semantic role checker for statically named Tailwind colors. */
+
+/** Role markers cannot be hidden inside otherwise valid color-token names. */
+export function nonterminalColorRole(name: string): string | undefined {
+  return /-(?<role>canvas|ink|edge)-/u.exec(name)?.groups?.role;
+}
+
 export function colorRoleUsageMessage(className: string): string | undefined {
   const segments = className.replace(/!+$/u, "").split(":");
   const utility = ((segments[segments.length - 1] ?? "").split("/")[0] ?? "").replace(/^!/u, "");
   if (utility.includes("[") || utility.includes("(")) return undefined;
-  const role = /-(?<role>canvas|ink|edge)$/u.exec(utility)?.groups?.role;
-  if (!role) return undefined;
   let expected: string | undefined;
   let purpose: string | undefined;
   if (/^(?:bg|from|via|to|fill|ring-offset)-/u.test(utility)) {
@@ -17,6 +21,12 @@ export function colorRoleUsageMessage(className: string): string | undefined {
     expected = "edge";
     purpose = "borders, outlines, rings, dividers, or strokes";
   }
-  if (!expected || !purpose || role === expected) return undefined;
+  if (!expected || !purpose) return undefined;
+  const nonterminalRole = nonterminalColorRole(utility);
+  if (nonterminalRole) {
+    return `Color utility "${className}" places semantic role "-${nonterminalRole}" before the end of its name; move the role to the end or omit it for shared colors.`;
+  }
+  const role = /-(?<role>canvas|ink|edge)$/u.exec(utility)?.groups?.role;
+  if (!role || role === expected) return undefined;
   return `Color utility "${className}" uses a "${role}" token for ${purpose}; use a "${expected}" token instead.`;
 }

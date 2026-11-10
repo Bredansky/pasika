@@ -34,6 +34,10 @@ const GLOBALS = `@import "tailwindcss";
   --color-primary-edge: #a1a1aa;
   --color-shiny-ink: #ffffff;
   --color-shiny-canvas: #2563eb;
+  --color-shiny-canvas-2: #123456;
+  --color-shiny-ink-1: #345678;
+  --color-shiny-edge-border-color: #456789;
+  --color-shiny-ink-2: #56789a;
   --color-brand-500: #123456;
   --color-shared: #abcdef;
   --radius-card: 1rem;
@@ -155,6 +159,45 @@ void describe("Tailwind color utilities MUST match semantic roles: canvas for ba
             ),
           },
         ],
+      },
+    ],
+  });
+});
+
+void describe("Nonterminal color-role markers in JSX classes", () => {
+  const misplacedClass = (className: string, role: string): string =>
+    `Color utility "${className}" places semantic role "-${role}" before the end of its name; move the role to the end or omit it for shared colors.`;
+
+  ruleTester.run("unknown-utility-nonterminal-color-role", unknownUtilityRule, {
+    valid: [
+      {
+        code: '<div className="bg-shiny-canvas text-shiny-ink border-primary-edge bg-shared text-shared border-shared" />',
+        filename: srcFile("shared/card.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: '<div className="bg-shiny-canvas-2" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: misplacedClass("bg-shiny-canvas-2", "canvas") }],
+      },
+      {
+        code: '<span className="text-shiny-ink-1" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: misplacedClass("text-shiny-ink-1", "ink") }],
+      },
+      {
+        code: 'cn("border-shiny-edge-border-color", enabled && "hover:text-shiny-canvas-2")',
+        filename: srcFile("shared/card.tsx"),
+        errors: [
+          { message: misplacedClass("border-shiny-edge-border-color", "edge") },
+          { message: misplacedClass("hover:text-shiny-canvas-2", "canvas") },
+        ],
+      },
+      {
+        code: '<div className="bg-shiny-ink-2" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: misplacedClass("bg-shiny-ink-2", "ink") }],
       },
     ],
   });
