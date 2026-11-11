@@ -1243,7 +1243,7 @@
       "ref": "pasika/no-literal-inline-style"
     },
     {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "doc": "next-codebase-guide/rules/component-style-reuse-rule.md",
       "text": "Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.",
       "hash": "1bc215c3a7",
       "ref": "pasika/no-duplicate-jsx-classes"

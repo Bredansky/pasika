@@ -1,8 +1,9 @@
 # Component Style Reuse Rule
 
-Shared class-name constants separate reusable visual styling from its markup. A shared styled component keeps the appearance and the element that renders it together.
+Repeated class sets and shared class-name constants scatter ownership of a visual treatment across consumers. A shared component keeps the styling and the markup that renders it together.
 
 - Shared component styling MUST be reused through component composition rather than shared class-name constants.
+- Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.
 
 ## Incorrect — Sharing Class Names Between Components
 
@@ -67,3 +68,35 @@ export function MerchSummary(): React.JSX.Element {
 ```
 
 Why: the shared component owns the element and its appearance, while each consumer supplies only its own content.
+
+## Incorrect — Identical Class Sets In Separate Files
+
+```tsx
+// src/features/home/home-card.tsx
+<div className="bg-card border-panel-edge rounded-lg border shadow-lg p-4">
+  <HomeDetails />
+</div>
+
+// src/features/merch/merch-card.tsx
+<div className="p-4 shadow-lg border rounded-lg border-panel-edge bg-card">
+  <ProductDetails />
+</div>
+```
+
+Why: both native divs contain the same six classes despite differing order and children.
+
+## Correct — One Shared Styled Container
+
+```tsx
+function Panel({ children }: { children: React.ReactNode }): React.JSX.Element {
+  return <div className="bg-card border-panel-edge rounded-lg border shadow-lg p-4">{children}</div>;
+}
+
+// src/features/home/home-card.tsx
+<Panel><HomeDetails /></Panel>
+
+// src/features/merch/merch-card.tsx
+<Panel><ProductDetails /></Panel>
+```
+
+Why: the full six-class set has one owner while the content remains independent.

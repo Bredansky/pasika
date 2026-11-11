@@ -88,7 +88,7 @@ function sharedFixture(name: string): { code: string; filename: string } {
 }
 
 function message(tag: string, amount: number, reference: string): string {
-  return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md`;
+  return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-codebase-guide/rules/component-style-reuse-rule.md`;
 }
 
 void describe("Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.", () => {
@@ -162,7 +162,7 @@ void describe("Exported class compositions are detected across different native 
         errors: [
           {
             message:
-              '<a> reuses exported class composition "minecraftControlClassName" (8 classes) from src/features/showcase/minecraft-button.tsx:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md',
+              '<a> reuses exported class composition "minecraftControlClassName" (8 classes) from src/features/showcase/minecraft-button.tsx:1. Extract a shared component. See docs/next-codebase-guide/rules/component-style-reuse-rule.md',
           },
         ],
       },
