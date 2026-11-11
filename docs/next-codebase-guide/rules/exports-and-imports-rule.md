@@ -4,6 +4,7 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
+- An `index.ts` barrel MUST re-export only modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, or a package.
 - Consecutive import declarations MUST NOT be separated by a blank line.
 - An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
