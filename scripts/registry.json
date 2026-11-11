@@ -409,6 +409,12 @@
       "ref": "pasika/application-structure"
     },
     {
+      "doc": "next-codebase-guide/rules/component-style-reuse-rule.md",
+      "text": "Shared component styling MUST be reused through component composition rather than shared class-name constants.",
+      "hash": "9371ca92ee",
+      "note": "Determining whether a shared visual treatment warrants component composition requires architectural review, not only syntax matching."
+    },
+    {
       "doc": "next-codebase-guide/rules/configuration-rule.md",
       "text": "All configuration modules MUST live in `src/config/`.",
       "hash": "068f9a0a91",
