@@ -70,7 +70,8 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Disallow raw arbitrary, custom-property, and numeric fractional Tailwind utility values in components.",
+      description:
+        "Disallow raw arbitrary, custom-property, and numeric fractional Tailwind utility values in components.",
     },
   },
   create(context) {
