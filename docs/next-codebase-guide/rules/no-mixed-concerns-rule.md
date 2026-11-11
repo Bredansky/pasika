@@ -105,7 +105,7 @@ Why: `buttonVariants` is used only by `Button` and files that also import `Butto
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-export const buttonVariants = cva("inline-flex items-center rounded", {
+const buttonVariants = cva("inline-flex items-center rounded", {
   variants: {
     tone: {
       primary: "bg-primary-canvas text-primary-ink",
@@ -124,18 +124,16 @@ export function Button({ tone, className, ...props }: ButtonProps): React.JSX.El
 
 ```tsx
 // src/features/profile/profile-actions.tsx
-import { Button, buttonVariants } from "@/shared/button";
+import { Button } from "@/shared/button";
 
 export function ProfileActions(): React.JSX.Element {
   return (
     <div>
       <Button tone="primary">Save</Button>
-      <a href="/help" className={buttonVariants({ tone: "secondary" })}>
-        Help
-      </a>
+      <Button tone="secondary">Cancel</Button>
     </div>
   );
 }
 ```
 
-Why: CVA defines the button's visual options, `VariantProps` derives its prop types, and both remain with the component while their consumers import `Button` too. Extract `buttonVariants` only if a file needs it without `Button`.
+Why: CVA defines the button's visual options next to the component, and callers select the appearance through its typed props rather than applying its styling to unrelated markup.
