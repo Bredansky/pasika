@@ -16,6 +16,8 @@ const file = (name: string, code: string): { filename: string; code: string } =>
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const reused = (name: string, value: string, source: string): string =>
   `Reuse ${name} from src/${source} instead of raw ${value}. ${DOC}`;
+const redefined = (name: string, value: string, source: string): string =>
+  `Reuse ${name} from src/${source} instead of redefining ${value}. ${DOC}`;
 const across = (kind: string, value: string, count: number, variant: string): string =>
   `The ${kind} literal ${value} repeats in ${String(count)} production files for the same semantic role. Extract ${variant} at the consumers' CCF and import it. ${DOC}`;
 const addRoute = (value: string): string =>
@@ -65,16 +67,66 @@ file(
 );
 file("features/publishing/events.ts", 'eventBus.emit("draft:stored"); eventBus.on("draft:stored", handler);');
 
+file(
+  "constants/dom-values.ts",
+  'export const externalLinkTarget = "_blank"; export const externalLinkRel = "noopener noreferrer";',
+);
+file(
+  "features/social/duplicate-links.ts",
+  'const externalLinkTarget = "_blank"; const externalLinkRel = "noopener noreferrer";',
+);
+file("features/home/duplicate-link.ts", 'export const externalLinkTarget = "_blank";');
+file(
+  "features/social/other-link.ts",
+  'const externalLinkTarget = "_self"; const otherLinkRel = "noopener noreferrer";',
+);
+file(
+  "features/social/nested-link.ts",
+  'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
+);
 void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   void describe("Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.", () => {
     ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
       valid: [
+        file(
+          "constants/dom-values.ts",
+          'export const externalLinkTarget = "_blank"; export const externalLinkRel = "noopener noreferrer";',
+        ),
+        file(
+          "features/social/other-link.ts",
+          'const externalLinkTarget = "_self"; const otherLinkRel = "noopener noreferrer";',
+        ),
+        file(
+          "features/social/nested-link.ts",
+          'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
+        ),
         file("features/publishing/unrelated.ts", 'const onlyOnce = "unique-value";'),
         file("features/payments/status.ts", 'export const payment = { status: "queued" };'),
         file("features/publishing/copy.ts", 'const message = "user not found"; const label = "success";'),
         file("features/publishing/example.test.ts", 'fetch("/api/publish");'),
       ],
       invalid: [
+        {
+          filename: path.join(root, "src/features/social/duplicate-links.ts"),
+          code: 'const externalLinkTarget = "_blank"; const externalLinkRel = "noopener noreferrer";',
+          errors: [
+            {
+              message: redefined("externalLinkTarget", '"_blank"', "constants/dom-values.ts"),
+            },
+            {
+              message: redefined("externalLinkRel", '"noopener noreferrer"', "constants/dom-values.ts"),
+            },
+          ],
+        },
+        {
+          filename: path.join(root, "src/features/home/duplicate-link.ts"),
+          code: 'export const externalLinkTarget = "_blank";',
+          errors: [
+            {
+              message: redefined("externalLinkTarget", '"_blank"', "constants/dom-values.ts"),
+            },
+          ],
+        },
         {
           filename: path.join(root, "src/features/publishing/one-off-route.ts"),
           code: 'const route = { path: "/api/new-route" };',
