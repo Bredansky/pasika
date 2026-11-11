@@ -4,6 +4,7 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
+- An `index.ts` barrel MUST re-export only modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, or a package.
 - Consecutive import declarations MUST NOT be separated by a blank line.
 - An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
@@ -12,6 +13,24 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A file under `src/shared/` MUST NOT import from `src/app/`, `src/compositions/`, or a feature folder.
 - A file in the `root` layer, including framework-required files directly under `src/`, MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
 - A configuration module MUST import only from root support folders and its own files.
+
+## Incorrect — Configuration Barrel Proxies Root Constants
+
+```ts
+// src/config/social/index.ts
+export { twitchUrl, youtubeUrl } from "@/constants";
+```
+
+Why: these URLs already belong to the root constants folder; another index creates a needless second import path.
+
+## Correct — Import Constants From Their Owner
+
+```ts
+// src/features/stream/twitch-button.tsx
+import { twitchUrl } from "@/constants";
+```
+
+Why: consumers use the original exports directly. Local barrels may still expose their own sibling files.
 
 ## Incorrect — Support Barrel Filters A Local Module
 

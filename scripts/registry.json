@@ -530,6 +530,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "An `index.ts` barrel MUST re-export only modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, or a package.",
+      "hash": "b89c941fec",
+      "ref": "pasika/no-external-barrel-reexports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "Consecutive import declarations MUST NOT be separated by a blank line.",
       "hash": "d0a25ccac0",
       "ref": "pasika/import-spacing"
