@@ -14,24 +14,6 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A file in the `root` layer, including framework-required files directly under `src/`, MUST NOT import from `src/app/`, `src/compositions/`, a feature folder, or `src/shared/`.
 - A configuration module MUST import only from root support folders and its own files.
 
-## Incorrect — Configuration Barrel Proxies Root Constants
-
-```ts
-// src/config/social/index.ts
-export { twitchUrl, youtubeUrl } from "@/constants";
-```
-
-Why: these URLs already belong to the root constants folder; another index creates a needless second import path.
-
-## Correct — Import Constants From Their Owner
-
-```ts
-// src/features/stream/twitch-button.tsx
-import { twitchUrl } from "@/constants";
-```
-
-Why: consumers use the original exports directly. Local barrels may still expose their own sibling files.
-
 ## Incorrect — Support Barrel Filters A Local Module
 
 ```ts
