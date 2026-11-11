@@ -45,12 +45,14 @@ import { localePlacementRule } from "./rules/locale-placement";
 import { localesLocationRule } from "./rules/locales-location";
 import { namedExportsRule } from "./rules/named-exports";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
+import { noCvaVariantForwardingRule } from "./rules/no-cva-variant-forwarding";
 import { noDuplicateJsxClassesRule } from "./rules/no-duplicate-jsx-classes";
 import { noExternalBarrelReexportsRule } from "./rules/no-external-barrel-reexports";
 import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noRedundantAliasRule } from "./rules/no-redundant-alias";
+import { noUnusedCvaOptionsRule } from "./rules/no-unused-cva-options";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
@@ -136,6 +138,8 @@ const pasikaNextjsAppRules = {
   "enforce-cva-variant-props": enforceCvaVariantPropsRule,
   "cva-appearance-props": cvaAppearancePropsRule,
   "cva-boolean-variants": cvaBooleanVariantsRule,
+  "no-cva-variant-forwarding": noCvaVariantForwardingRule,
+  "no-unused-cva-options": noUnusedCvaOptionsRule,
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,
   "root-support-placement": rootSupportPlacementRule,

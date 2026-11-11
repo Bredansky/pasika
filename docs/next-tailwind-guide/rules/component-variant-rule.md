@@ -4,6 +4,8 @@ A component's variants can be spread across handwritten prop unions and conditio
 
 - A component that lets callers choose visual options MUST define them with `cva`.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
+- A CVA option MUST NOT forward an identically named style map when it serves no other purpose.
+- A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
 - A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.
 
@@ -123,3 +125,63 @@ const buttonVariants = cva("inline-flex", {
 ```
 
 Why: both boolean values have explicit treatment and the square appearance changes by size, so CVA owns the complete styling matrix.
+
+## Incorrect — Identity Map Only Forwarded Into CVA
+
+```tsx
+const { primary, secondary } = buttonBackgrounds;
+const buttonVariants = cva("inline-flex", {
+  variants: {
+    tone: {
+      primary: cn(primary, "border-4"),
+      secondary: cn(secondary, "border-2"),
+    },
+  },
+});
+```
+
+Why: the extra bindings preserve the exact choice keys and are only ever used to forward style strings into CVA. They introduce a second styling contract without changing the mapping.
+
+## Correct — CVA Owns the Choice Styling
+
+```tsx
+const buttonVariants = cva("inline-flex", {
+  variants: {
+    tone: {
+      primary: "bg-primary border-4",
+      secondary: "bg-secondary border-2",
+    },
+  },
+});
+```
+
+Why: the variant is still named (callers may use enum members for its values), but the classes live with the option that owns them. A shared styling map used independently outside CVA is not considered redundant.
+
+## Incorrect — CVA Options With No Production Consumers
+
+```tsx
+const skeletonVariants = cva("animate-pulse", {
+  variants: {
+    size: { sm: "h-8", md: "h-10", lg: "h-14" },
+  },
+});
+
+export function ButtonSkeleton({ size }: VariantProps<typeof skeletonVariants>) {
+  return <div className={skeletonVariants({ size })} />;
+}
+
+// The only production call site is <ButtonSkeleton size="md" />.
+// "sm" and "lg" are dead options in this closed application component.
+```
+
+Why: offering variants never selected by any production JSX caller adds a maintenance surface. The rule counts literal values, enum members, static local constants, conditional branches, and defaults (both CVA defaults and component parameter defaults); test-only renderings do not establish production usage.
+
+## Correct — Preserve Dynamic or Indirectly Used Choices
+
+```tsx
+// The value comes from runtime state, so a particular choice cannot be
+// proved unused from static JSX call sites.
+<ButtonSkeleton size={selectedSize} />
+```
+
+Why: dynamic expressions, spread props and indirect component consumers make the affected variant dimension unknown, so ESLint must not guess that an option is unused. The check is deliberately scoped to statically analyzable application components, not arbitrary public libraries.

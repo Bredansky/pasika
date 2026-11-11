@@ -1148,6 +1148,18 @@
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
+      "text": "A CVA option MUST NOT forward an identically named style map when it serves no other purpose.",
+      "hash": "a001c26cc5",
+      "ref": "pasika/no-cva-variant-forwarding"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/component-variant-rule.md",
+      "text": "A statically unused CVA choice MUST NOT remain in an application component.",
+      "hash": "e04ca9e05e",
+      "ref": "pasika/no-unused-cva-options"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/component-variant-rule.md",
       "text": "A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.",
       "hash": "c1fc4dacbd",
       "ref": "pasika/cva-boolean-variants"
