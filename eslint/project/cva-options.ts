@@ -7,11 +7,12 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { isProductionSource } from "./semantic-literals";
-import type { ProjectIndex } from "./index";
+import { resolveSpecifier, type ProjectIndex } from "./index";
 
 export interface ProjectSources {
   sources: Map<string, ts.SourceFile>;
-  enums: Map<string, Map<string, string> | undefined>;
+  enums: Map<string, Map<string, Map<string, string>>>;
+  index: ProjectIndex;
 }
 const cache = new WeakMap<ProjectIndex, ProjectSources>();
 
@@ -31,7 +32,7 @@ export function parseProject(index: ProjectIndex): ProjectSources {
   const cached = cache.get(index);
   if (cached) return cached;
   const sources = new Map<string, ts.SourceFile>();
-  const enums = new Map<string, Map<string, string> | undefined>();
+  const enums = new Map<string, Map<string, Map<string, string>>>();
   for (const file of index.modules.keys()) {
     if (!isProductionSource(file, index.sourceRoot)) continue;
     try {
@@ -44,6 +45,7 @@ export function parseProject(index: ProjectIndex): ProjectSources {
         file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
       );
       sources.set(file, source);
+      const localEnums = new Map<string, Map<string, string>>();
       for (const stmt of source.statements) {
         if (!ts.isEnumDeclaration(stmt)) continue;
         const members = new Map<string, string>();
@@ -53,15 +55,14 @@ export function parseProject(index: ProjectIndex): ProjectSources {
             members.set(name, member.initializer.text);
           }
         }
-        const previous = enums.get(stmt.name.text);
-        if (previous !== undefined) enums.set(stmt.name.text, undefined);
-        else enums.set(stmt.name.text, members);
+        localEnums.set(stmt.name.text, members);
       }
+      enums.set(file, localEnums);
     } catch {
       // Unreadable modules cannot prove an option is unused.
     }
   }
-  const result = { sources, enums };
+  const result = { sources, enums, index };
   cache.set(index, result);
   return result;
 }
@@ -75,6 +76,94 @@ function localConstants(source: ts.SourceFile): Map<string, ts.Expression> {
     }
   }
   return constants;
+}
+
+function bindingContains(binding: ts.BindingName, name: string): boolean {
+  if (ts.isIdentifier(binding)) return binding.text === name;
+  return binding.elements.some((element) => ts.isBindingElement(element) && bindingContains(element.name, name));
+}
+
+/** A function parameter or local declaration cannot be inferred from a file-level constant. */
+function locallyShadowed(node: ts.Node, name: string): boolean {
+  let ancestor = node.parent;
+  while (!ts.isSourceFile(ancestor)) {
+    if (ts.isFunctionLike(ancestor) && ancestor.parameters.some((parameter) => bindingContains(parameter.name, name))) {
+      return true;
+    }
+    if (
+      ts.isBlock(ancestor) &&
+      ancestor.statements.some((statement) => {
+        if (!ts.isVariableStatement(statement)) return false;
+        return statement.declarationList.declarations.some((declaration) => bindingContains(declaration.name, name));
+      })
+    ) {
+      return true;
+    }
+    ancestor = ancestor.parent;
+  }
+  return false;
+}
+
+function declaredEnum(
+  file: string,
+  name: string,
+  sources: ProjectSources,
+  visited = new Set<string>(),
+): Map<string, string> | undefined {
+  const key = `${file}\0${name}`;
+  if (visited.has(key)) return undefined;
+  visited.add(key);
+  const own = sources.enums.get(file)?.get(name);
+  if (own) return own;
+  const source = sources.sources.get(file);
+  if (!source) return undefined;
+  const matches: Map<string, string>[] = [];
+  for (const statement of source.statements) {
+    if (
+      !ts.isExportDeclaration(statement) ||
+      !statement.moduleSpecifier ||
+      !ts.isStringLiteral(statement.moduleSpecifier)
+    ) {
+      continue;
+    }
+    const target = resolveSpecifier(file, statement.moduleSpecifier.text, sources.index.sourceRoot);
+    if (!target) continue;
+    let forwarded = name;
+    if (statement.exportClause) {
+      if (!ts.isNamedExports(statement.exportClause)) continue;
+      const exported = statement.exportClause.elements.find((element) => element.name.text === name);
+      if (!exported) continue;
+      forwarded = exported.propertyName?.text ?? exported.name.text;
+    }
+    const resolved = declaredEnum(target, forwarded, sources, new Set(visited));
+    if (resolved) matches.push(resolved);
+  }
+  return matches.length === 1 ? matches[0] : undefined;
+}
+
+function enumMember(
+  expression: ts.PropertyAccessExpression,
+  source: ts.SourceFile,
+  sources: ProjectSources,
+): string | undefined {
+  if (!ts.isIdentifier(expression.expression) || locallyShadowed(expression.expression, expression.expression.text)) {
+    return undefined;
+  }
+  const name = expression.expression.text;
+  const currentFile = path.resolve(source.fileName);
+  const own = sources.enums.get(currentFile)?.get(name);
+  if (own) return own.get(expression.name.text);
+  for (const statement of source.statements) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    const items = statement.importClause?.namedBindings;
+    if (!items || !ts.isNamedImports(items)) continue;
+    const item = items.elements.find((element) => element.name.text === name && !element.isTypeOnly);
+    if (!item) continue;
+    const target = resolveSpecifier(currentFile, statement.moduleSpecifier.text, sources.index.sourceRoot);
+    if (!target) return undefined;
+    return declaredEnum(target, item.propertyName?.text ?? item.name.text, sources)?.get(expression.name.text);
+  }
+  return undefined;
 }
 
 /** Known finite values, undefined when there may be any runtime value. */
@@ -97,11 +186,11 @@ export function staticValues(
     return staticValues(expression.expression, source, sources, seen);
   }
   if (ts.isPropertyAccessExpression(expression) && ts.isIdentifier(expression.expression)) {
-    const value = sources.enums.get(expression.expression.text)?.get(expression.name.text);
+    const value = enumMember(expression, source, sources);
     return value === undefined ? undefined : new Set([value]);
   }
   if (ts.isIdentifier(expression)) {
-    if (seen.has(expression.text)) return undefined;
+    if (seen.has(expression.text) || locallyShadowed(expression, expression.text)) return undefined;
     const initializer = localConstants(source).get(expression.text);
     if (!initializer) return undefined;
     return staticValues(initializer, source, sources, new Set([...seen, expression.text]));

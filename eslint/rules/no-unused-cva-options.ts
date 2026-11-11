@@ -7,6 +7,7 @@
  *
  * @see docs/next-tailwind-guide/rules/component-variant-rule.md
  */
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import ts from "typescript";
@@ -18,6 +19,17 @@ import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-tailwind-guide/rules/component-variant-rule.md";
 
+/** Published packages have external consumers that cannot be counted from the local app tree. */
+function hasExternalPackageConsumers(sourceRoot: string): boolean {
+  try {
+    const packageFile = path.resolve(sourceRoot, "..", "package.json");
+    const manifest: unknown = JSON.parse(readFileSync(packageFile, "utf8"));
+    return typeof manifest === "object" && manifest !== null && "exports" in manifest && manifest.exports !== undefined;
+  } catch {
+    return false;
+  }
+}
+
 export const noUnusedCvaOptionsRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -26,6 +38,7 @@ export const noUnusedCvaOptionsRule: Rule.RuleModule = {
   },
   create(context) {
     const root = sourceRootOf(context);
+    if (hasExternalPackageConsumers(root)) return {};
     const filename = path.resolve(context.filename);
     if (!filename.endsWith(".tsx") || !isProductionSource(filename, root)) return {};
     const project = getProjectIndex(root);

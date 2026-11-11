@@ -4,7 +4,7 @@ A component's variants can be spread across handwritten prop unions and conditio
 
 - A component that lets callers choose visual options MUST define them with `cva`.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
-- A CVA option MUST NOT forward an identically named style map when it serves no other purpose.
+- A private, single-purpose local style map MUST NOT merely forward identically named keys into CVA.
 - A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
 - A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.
@@ -129,6 +129,7 @@ Why: both boolean values have explicit treatment and the square appearance chang
 ## Incorrect — Identity Map Only Forwarded Into CVA
 
 ```tsx
+const buttonBackgrounds = { primary: "bg-primary", secondary: "bg-secondary" };
 const { primary, secondary } = buttonBackgrounds;
 const buttonVariants = cva("inline-flex", {
   variants: {
@@ -140,7 +141,7 @@ const buttonVariants = cva("inline-flex", {
 });
 ```
 
-Why: the extra bindings preserve the exact choice keys and are only ever used to forward style strings into CVA. They introduce a second styling contract without changing the mapping.
+Why: this private map and its bindings only forward style strings into CVA, introducing another styling contract without changing the mapping.
 
 ## Correct — CVA Owns the Choice Styling
 
@@ -155,7 +156,7 @@ const buttonVariants = cva("inline-flex", {
 });
 ```
 
-Why: the variant is still named (callers may use enum members for its values), but the classes live with the option that owns them. A shared styling map used independently outside CVA is not considered redundant.
+Why: callers can still use enum members, but the classes live with their CVA choices. Imported or exported style maps and maps with other consumers are not considered redundant.
 
 ## Incorrect — CVA Options With No Production Consumers
 
@@ -184,4 +185,4 @@ Why: offering variants never selected by any production JSX caller adds a mainte
 <ButtonSkeleton size={selectedSize} />
 ```
 
-Why: dynamic expressions, spread props and indirect component consumers make the affected variant dimension unknown, so ESLint must not guess that an option is unused. The check is deliberately scoped to statically analyzable application components, not arbitrary public libraries.
+Why: dynamic expressions, spread props, shadowed values, and indirect consumers make usage uncertain, so ESLint must not guess. Published libraries with package exports are excluded because external consumers cannot be inspected.

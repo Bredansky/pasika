@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noCvaVariantForwardingRule } from "./no-cva-variant-forwarding";
 
-void describe("A CVA option MUST NOT forward an identically named style map when it serves no other purpose.", () => {
+void describe("A private, single-purpose local style map MUST NOT merely forward identically named keys into CVA.", () => {
   ruleTester.run("no-cva-variant-forwarding", noCvaVariantForwardingRule, {
     valid: [
       {
@@ -9,6 +9,52 @@ void describe("A CVA option MUST NOT forward an identically named style map when
         code: `const primary = "bg-primary";
 const secondary = "bg-secondary";
 const buttonVariants = cva("", { variants: { variant: { primary, secondary } } });`,
+      },
+      {
+        // An imported map is potentially shared with independent consumers.
+        filename: srcFile("shared/imported-button.tsx"),
+        code: `import { retroButtonBackgroundClassNames } from "@/constants";
+const { primary, secondary } = retroButtonBackgroundClassNames;
+const buttonVariants = cva("", { variants: { variant: { primary, secondary } } });`,
+      },
+      {
+        // Exported maps form an independent styling API.
+        filename: srcFile("shared/exported-button.tsx"),
+        code: `export const styles = { primary: "bg-primary", secondary: "bg-secondary" };
+const variants = cva("", { variants: { variant: { primary: styles.primary, secondary: styles.secondary } } });`,
+      },
+      {
+        filename: srcFile("shared/reexported-button.tsx"),
+        code: `const styles = { primary: "bg-primary", secondary: "bg-secondary" };
+export { styles };
+const variants = cva("", { variants: { variant: { primary: styles.primary, secondary: styles.secondary } } });`,
+      },
+      {
+        // Shared local map is used by another component, so keep it.
+        filename: srcFile("shared/shared-button.tsx"),
+        code: `const styles = { primary: "bg-primary", secondary: "bg-secondary" };
+const { primary, secondary } = styles;
+const variants = cva("", { variants: { tone: { primary, secondary } } });
+const preview = styles.primary;`,
+      },
+      {
+        // A map reused by two CVA definitions is not a useless intermediate layer.
+        filename: srcFile("shared/two-variants.tsx"),
+        code: `const styles = { primary: "bg-primary", secondary: "bg-secondary" };
+const first = cva("", { variants: { tone: {
+  primary: styles.primary, secondary: styles.secondary,
+} } });
+const second = cva("", { variants: { tone: {
+  primary: styles.primary, secondary: styles.secondary,
+} } });`,
+      },
+      {
+        // The same applies to a destructured private map reused across CVA definitions.
+        filename: srcFile("shared/two-destructured.tsx"),
+        code: `const styles = { primary: "bg-primary", secondary: "bg-secondary" };
+const { primary, secondary } = styles;
+const first = cva("", { variants: { tone: { primary, secondary } } });
+const second = cva("", { variants: { tone: { primary, secondary } } });`,
       },
       {
         // Independent use gives the map a real purpose.
@@ -72,9 +118,12 @@ const variants = cva("", { variants: { tone: { primary: styles.primary, secondar
     ],
     invalid: [
       {
-        // Matches the real RetroButton pattern: external map -> destructure -> CVA.
+        // A private, one-purpose map can live directly inside the CVA.
         filename: srcFile("shared/button.tsx"),
-        code: `import { retroButtonBackgroundClassNames } from "@/constants";
+        code: `const retroButtonBackgroundClassNames = {
+  primary: "bg-primary", secondary: "bg-secondary",
+  outline: "", ghost: "", link: ""
+};
 const { primary, secondary, outline, ghost, link } = retroButtonBackgroundClassNames;
 const buttonVariants = cva("", { variants: { variant: {
   primary: cn(primary, "border-4"),
@@ -87,7 +136,8 @@ const buttonVariants = cva("", { variants: { variant: {
       },
       {
         filename: srcFile("shared/button.tsx"),
-        code: `const { sm, md, lg } = retroButtonHeightClassNames;
+        code: `const retroButtonHeightClassNames = { sm: "h-8", md: "h-10", lg: "h-14" };
+const { sm, md, lg } = retroButtonHeightClassNames;
 const variants = cva("", { variants: { size: { sm, md, lg } } });`,
         errors: 1,
       },

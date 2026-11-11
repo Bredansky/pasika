@@ -1,9 +1,8 @@
 /**
  * ESLint rule: pasika/no-cva-variant-forwarding
  *
- * Detect only provable identity forwarding: a style map is destructured (or
- * locally accessed by matching keys) and every use just feeds the same CVA
- * option key. This avoids banning meaningful theme maps used elsewhere.
+ * Detect redundant private, locally declared maps that only forward matching
+ * style keys into CVA. Imported and exported maps remain valid shared APIs.
  *
  * @see docs/next-tailwind-guide/rules/component-variant-rule.md
  */
@@ -49,6 +48,18 @@ function cvaOptionContaining(node: ts.Node): string | undefined {
       return propertyName(parent.name);
     }
     current = parent;
+  }
+  return undefined;
+}
+
+/** Sharing one private map across multiple CVA definitions is meaningful reuse. */
+function owningCvaCall(node: ts.Node): ts.CallExpression | undefined {
+  let current = node.parent;
+  while (!ts.isSourceFile(current)) {
+    if (ts.isCallExpression(current) && ts.isIdentifier(current.expression) && current.expression.text === "cva") {
+      return current;
+    }
+    current = current.parent;
   }
   return undefined;
 }
@@ -106,16 +117,20 @@ function isDefinitionIdentifier(node: ts.Identifier): boolean {
 
 function forwardedBindings(source: ts.SourceFile, keys: Map<string, string>): boolean {
   const used = new Set<string>();
+  const calls = new Set<ts.CallExpression>();
   const state = { invalid: false };
   const visit = (node: ts.Node): void => {
     if (ts.isIdentifier(node) && keys.has(node.text) && !isDefinitionIdentifier(node)) {
-      if (cvaOptionContaining(node) === keys.get(node.text)) used.add(node.text);
-      else state.invalid = true;
+      if (cvaOptionContaining(node) === keys.get(node.text)) {
+        used.add(node.text);
+        const call = owningCvaCall(node);
+        if (call) calls.add(call);
+      } else state.invalid = true;
     }
     ts.forEachChild(node, visit);
   };
   visit(source);
-  return !state.invalid && used.size === keys.size;
+  return !state.invalid && used.size === keys.size && calls.size === 1;
 }
 
 function identityObjectKeys(declaration: ts.VariableDeclaration): Set<string> | undefined {
@@ -142,19 +157,73 @@ function forwardedObject(source: ts.SourceFile, declaration: ts.VariableDeclarat
   if (!ts.isIdentifier(declaration.name)) return false;
   const name = declaration.name.text;
   const used = new Set<string>();
+  const calls = new Set<ts.CallExpression>();
   const state = { invalid: false };
   const visit = (node: ts.Node): void => {
     if (ts.isIdentifier(node) && node.text === name && node !== declaration.name) {
       if (ts.isPropertyAccessExpression(node.parent) && node.parent.expression === node) {
         const key = node.parent.name.text;
-        if (keys.has(key) && cvaOptionContaining(node.parent) === key) used.add(key);
-        else state.invalid = true;
+        if (keys.has(key) && cvaOptionContaining(node.parent) === key) {
+          used.add(key);
+          const call = owningCvaCall(node.parent);
+          if (call) calls.add(call);
+        } else state.invalid = true;
       } else state.invalid = true;
     }
     ts.forEachChild(node, visit);
   };
   visit(source);
-  return !state.invalid && used.size === keys.size;
+  return !state.invalid && used.size === keys.size && calls.size === 1;
+}
+
+/** An imported or exported style map may have independent consumers. */
+function privateLocalMap(source: ts.SourceFile, name: string): ts.VariableDeclaration | undefined {
+  for (const statement of source.statements) {
+    if (!ts.isVariableStatement(statement) || !statement.declarationList.getText(source).startsWith("const ")) {
+      continue;
+    }
+    if (statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)) continue;
+    for (const declaration of statement.declarationList.declarations) {
+      if (!ts.isIdentifier(declaration.name) || declaration.name.text !== name) continue;
+      if (!declaration.initializer || !ts.isObjectLiteralExpression(declaration.initializer)) return undefined;
+      if (
+        source.statements.some(
+          (entry) =>
+            ts.isExportDeclaration(entry) &&
+            !entry.moduleSpecifier &&
+            entry.exportClause &&
+            ts.isNamedExports(entry.exportClause) &&
+            entry.exportClause.elements.some((element) => (element.propertyName?.text ?? element.name.text) === name),
+        )
+      ) {
+        return undefined;
+      }
+      return declaration;
+    }
+  }
+  return undefined;
+}
+
+function onlyUsedAt(source: ts.SourceFile, declaration: ts.VariableDeclaration, use: ts.Identifier): boolean {
+  if (!ts.isIdentifier(declaration.name)) return false;
+  const name = declaration.name.text;
+  let count = 0;
+  let otherUse = false;
+  const visit = (node: ts.Node): void => {
+    if (ts.isIdentifier(node) && node.text === name && node !== declaration.name) {
+      if (node === use) count++;
+      else otherUse = true;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return count === 1 && !otherUse;
+}
+
+function matchingMapKeys(declaration: ts.VariableDeclaration, keys: Map<string, string>): boolean {
+  const names = identityObjectKeys(declaration);
+  if (names?.size !== keys.size) return false;
+  return [...keys.values()].every((key) => names.has(key));
 }
 
 export const noCvaVariantForwardingRule: Rule.RuleModule = {
@@ -181,12 +250,23 @@ export const noCvaVariantForwardingRule: Rule.RuleModule = {
             ts.isIdentifier(declaration.initializer)
           ) {
             const keys = identityBindingKeys(declaration);
-            if (keys && forwardedBindings(source, keys)) {
+            const map = privateLocalMap(source, declaration.initializer.text);
+            if (
+              keys &&
+              map &&
+              matchingMapKeys(map, keys) &&
+              onlyUsedAt(source, map, declaration.initializer) &&
+              forwardedBindings(source, keys)
+            ) {
               report(context, source, declaration, declaration.initializer.text);
             }
           } else if (ts.isIdentifier(declaration.name)) {
             const keys = identityObjectKeys(declaration);
-            if (keys && forwardedObject(source, declaration, keys)) {
+            if (
+              keys &&
+              privateLocalMap(source, declaration.name.text) === declaration &&
+              forwardedObject(source, declaration, keys)
+            ) {
               report(context, source, declaration, declaration.name.text);
             }
           }
