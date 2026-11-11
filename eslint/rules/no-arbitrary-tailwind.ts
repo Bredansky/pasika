@@ -1,7 +1,7 @@
 /**
  * ESLint rule: pasika/no-arbitrary-tailwind
  *
- * Enforces the "Arbitrary Value Rule" — no arbitrary-value Tailwind classes.
+ * Enforces the "Arbitrary Value Rule" — no raw or numeric fractional Tailwind classes.
  *
  * @see docs/next-tailwind-guide/rules/arbitrary-value-rule.md
  */
@@ -11,6 +11,7 @@ import type * as ESTree from "estree";
 
 const ARBITRARY_VALUE_RE = /\[[^\]]+\]/;
 const CUSTOM_PROPERTY_VALUE_RE = /\((?:[a-z][a-z0-9-]*:)?--[^)]+\)/;
+const FRACTIONAL_VALUE_RE = /(?:^|[-/])(?:\d+\.\d+|\.\d+)(?=$|[!/-])/;
 
 /**
  * Returns the utility portion after Tailwind variants while ignoring colons
@@ -69,7 +70,8 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Disallow raw Tailwind arbitrary and custom-property value classes in components.",
+      description:
+        "Disallow raw arbitrary, custom-property, and numeric fractional Tailwind utility values in components.",
     },
   },
   create(context) {
@@ -77,13 +79,25 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
       for (const className of value.split(/\s+/)) {
         if (!className) continue;
         const utility = rawValueUtility(className);
-        if (!utility) continue;
+        if (utility) {
+          context.report({
+            node,
+            message:
+              `Tailwind raw-value class "${utility}" is not allowed. ` +
+              "Define and use a named utility instead. " +
+              "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
+          });
+          continue;
+        }
+
+        const base = baseUtility(className);
+        if (!FRACTIONAL_VALUE_RE.test(base)) continue;
 
         context.report({
           node,
           message:
-            `Tailwind raw-value class "${utility}" is not allowed. ` +
-            "Define and use a named utility instead. " +
+            `Fractional Tailwind class "${base}" is not allowed. ` +
+            "Use an integer scale value or a named @utility for the exact value. " +
             "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md",
         });
       }

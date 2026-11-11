@@ -128,3 +128,50 @@ void describe("Components MUST NOT use Tailwind arbitrary values, arbitrary prop
     ],
   });
 });
+
+void describe("Components MUST NOT use numeric fractional Tailwind utility classes such as h-3.5 or w-3.5; they MUST use an integer utility or a named @utility that maps an explicit value.", () => {
+  const fractionalMessage = (className: string): string =>
+    `Fractional Tailwind class "${className}" is not allowed. ` +
+    "Use an integer scale value or a named @utility for the exact value. " +
+    "See docs/next-tailwind-guide/rules/arbitrary-value-rule.md";
+
+  ruleTester.run("no-arbitrary-tailwind-fractional", noArbitraryTailwindRule, {
+    valid: [
+      { code: '<div className="h-3 w-4 gap-2" />', filename: srcFile("shared/card.tsx") },
+      { code: '<div className="size-14px" />', filename: srcFile("shared/card.tsx") },
+      { code: 'cn("h-4", active && "gap-x-2")', filename: srcFile("shared/card.tsx") },
+      {
+        code: 'cva("h-4", { variants: { size: { small: "size-3", large: "size-8" } } })',
+        filename: srcFile("shared/button.tsx"),
+      },
+      { code: '<div className="data-[state=open]:h-3" />', filename: srcFile("shared/card.tsx") },
+    ],
+    invalid: [
+      {
+        code: '<div className="h-3.5 w-3.5" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: fractionalMessage("h-3.5") }, { message: fractionalMessage("w-3.5") }],
+      },
+      {
+        code: '<div className="hover:-mt-1.5 sm:gap-x-0.5" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: fractionalMessage("-mt-1.5") }, { message: fractionalMessage("gap-x-0.5") }],
+      },
+      {
+        code: 'cn("size-2.5", enabled ? "opacity-0.5" : "w-3")',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: fractionalMessage("size-2.5") }, { message: fractionalMessage("opacity-0.5") }],
+      },
+      {
+        code: 'cva("h-3.5", { variants: { size: { small: "w-2.5", large: "w-4" } } })',
+        filename: srcFile("shared/button.tsx"),
+        errors: [{ message: fractionalMessage("h-3.5") }, { message: fractionalMessage("w-2.5") }],
+      },
+      {
+        code: '<div className="focus:translate-x-1.5/2" />',
+        filename: srcFile("shared/card.tsx"),
+        errors: [{ message: fractionalMessage("translate-x-1.5/2") }],
+      },
+    ],
+  });
+});

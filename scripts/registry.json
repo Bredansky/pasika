@@ -1075,6 +1075,12 @@
       "ref": "pasika/no-arbitrary-tailwind"
     },
     {
+      "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
+      "text": "Components MUST NOT use numeric fractional Tailwind utility classes such as `h-3.5` or `w-3.5`; they MUST use an integer utility or a named `@utility` that maps an explicit value.",
+      "hash": "2f257b297d",
+      "ref": "pasika/no-arbitrary-tailwind"
+    },
+    {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
       "text": "Components MUST use `cn` for conditional classes and a `className` passed to the component.",
       "hash": "74cedd90d0",

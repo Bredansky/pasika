@@ -3,6 +3,7 @@
 Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values.
 
 - Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.
+- Components MUST NOT use numeric fractional Tailwind utility classes such as `h-3.5` or `w-3.5`; they MUST use an integer utility or a named `@utility` that maps an explicit value.
 
 ## Incorrect — Literal Arbitrary Radius
 
@@ -103,3 +104,29 @@ Why: the component still depends directly on the CSS variable even though the ty
 ```
 
 Why: the `length:` hint selects font size instead of text color, while the component uses a named utility.
+
+## Incorrect — Fractional Numeric Utility
+
+```tsx
+<div className="h-3.5 w-3.5" />
+```
+
+Why: the numeric fraction creates a hidden, non-integer scale choice in the component.
+
+## Correct — Integer Or Named Exact Dimension
+
+```tsx
+<div className="h-4 w-4" />
+```
+
+```css
+@utility size-14px {
+  @apply size-[14px];
+}
+```
+
+```tsx
+<div className="size-14px" />
+```
+
+Why: the integer scale remains explicit, and a named utility holds the exact 14px mapping when required.
