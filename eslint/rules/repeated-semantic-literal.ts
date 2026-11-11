@@ -99,7 +99,7 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
     const index = getSemanticLiteralIndex(project);
     const current = index.uses.filter((entry) => entry.file === file);
     const imported = importedEnumLiteralUses(context, root);
-    if (current.length === 0 && imported.length === 0) return {};
+    if (current.length === 0 && imported.length === 0 && index.canonicals.length === 0) return {};
 
     // Only values repeated at least twice within the same semantic role count
     // towards deciding whether an API route domain offers multiple alternatives.
@@ -138,8 +138,36 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
       }
     }
     const existingRouteEnum = routeDomains.size === 1 ? [...routeDomains.values()][0] : undefined;
+    // Exact same-name, same-value definitions reuse the canonical root constant.
+    const sharedConstants = index.canonicals.filter(
+      (canonical) => !canonical.owner && canonical.file.startsWith(path.join(root, "constants") + path.sep),
+    );
     const recognized = new Set(imported.map((use) => `${String(use.line)}:${String(use.column)}`));
     return {
+      VariableDeclarator(node) {
+        const { id, init } = node;
+        if (id.type !== "Identifier" || init?.type !== "Literal") return;
+        if (typeof init.value !== "string" && typeof init.value !== "number") return;
+        const declaration = node.parent;
+        if (declaration.type !== "VariableDeclaration" || declaration.kind !== "const") return;
+        const container = declaration.parent;
+        const moduleLevel =
+          container.type === "Program" ||
+          (container.type === "ExportNamedDeclaration" && container.parent.type === "Program");
+        if (!moduleLevel) return;
+
+        const candidates = sharedConstants.filter(
+          (canonical) => canonical.file !== file && canonical.name === id.name && canonical.value === init.value,
+        );
+        if (candidates.length !== 1) return;
+        const canonical = candidates[0];
+        if (!canonical) return;
+        const relative = path.relative(root, canonical.file).replaceAll(path.sep, "/");
+        context.report({
+          node,
+          message: `Reuse ${canonical.name} from src/${relative} instead of redefining ${JSON.stringify(init.value)}. ${DOC}`,
+        });
+      },
       Program(node) {
         for (const use of imported) {
           const relative = path.relative(root, use.sourceFile).replaceAll(path.sep, "/");
