@@ -54,6 +54,12 @@ void describe("User-facing text MUST be defined as static strings in flat dictio
     "compositions/stream-page-content.tsx":
       'import { locales } from "@/locales"; const note = "locales.stream.watchLiveStream"; export const content = locales.nextStream;',
   });
+  verify({
+    "compositions/stream-page-content.tsx":
+      'import { locales } from "@/locales"; export const next = locales.nextStream.replace("{time}", "soon"); export const length = locales.cancel.length;',
+    "features/stream/player.tsx":
+      'import { locales } from "@/locales"; export const player = locales.stream.watchLiveStream.trim();',
+  });
   verify({ "locales/global.ts": 'export const global = { cancel: { nested: "Bad" }, nextStream: "Next stream" };' }, [
     /Locale dictionary global has an invalid/,
     /Locale locales.cancel is not defined in the global dictionary/,
