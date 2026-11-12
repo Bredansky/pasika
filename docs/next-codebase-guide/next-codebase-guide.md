@@ -40,7 +40,7 @@ Use this when adding or moving a constant.
 1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the constant in its support folder at the CCF of its consumers.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-4. Follow the [Constants Rule](rules/constants-rule.md) so the value is extracted only once a second file imports it.
+4. Follow the [Constants Rule](rules/constants-rule.md) so constants are extracted only once a second file imports them.
 5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the constant module has predictable exports and import paths.
 
 ## How To Organize a Utility

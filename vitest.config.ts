@@ -9,9 +9,9 @@ export default defineConfig({
       include: ["eslint/**/*.ts", "scripts/**/*.ts", "helpers/**/*.ts", "utils/**/*.ts"],
       exclude: ["**/*.test.ts"],
       thresholds: {
-        lines: 94.8,
-        functions: 97.2,
-        branches: 85,
+        lines: 94.9,
+        functions: 97.3,
+        branches: 85.1,
         statements: 90.2,
         autoUpdate: (newThreshold, previousThreshold) =>
           Math.max(Number(String(previousThreshold)), Math.floor((newThreshold - 0.1) * 10) / 10),

@@ -26,6 +26,12 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Guide MUST NOT link to a Rule outside its own `rules/` folder.",
+      "hash": "04c401df39",
+      "ref": "pasika/guide-rule-ownership"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.",
       "hash": "694bfba1ab",
       "ref": "pasika/overview"
@@ -1148,6 +1154,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
+      "text": "A statically unused CVA choice MUST NOT remain in an application component.",
+      "hash": "e04ca9e05e",
+      "ref": "pasika/no-unused-cva-options"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/component-variant-rule.md",
       "text": "A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.",
       "hash": "c1fc4dacbd",
       "ref": "pasika/cva-boolean-variants"
@@ -1223,6 +1235,12 @@
       "text": "Components MUST use Tailwind for static styling; inline styles MAY be used for runtime-sourced values.",
       "hash": "86f83ca119",
       "ref": "pasika/no-literal-inline-style"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Shared component styling MUST be reused through component composition rather than shared class-name constants.",
+      "hash": "9371ca92ee",
+      "note": "Determining whether a shared visual treatment warrants component composition requires architectural review, not only syntax matching."
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
