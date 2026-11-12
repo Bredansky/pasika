@@ -120,6 +120,15 @@ void describe("A `const` variable MUST NOT introduce a new name for another vari
           },
         ],
       },
+      {
+        code: "function label() { const owner = locales.donationMainJarOwner; return owner; }",
+        filename: srcFile("utils/example.ts"),
+        errors: [
+          {
+            message: bindingAliasMessage("owner", "locales.donationMainJarOwner"),
+          },
+        ],
+      },
     ],
   });
 });
