@@ -45,7 +45,6 @@ import { localePlacementRule } from "./rules/locale-placement";
 import { localesLocationRule } from "./rules/locales-location";
 import { namedExportsRule } from "./rules/named-exports";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
-import { noCvaVariantForwardingRule } from "./rules/no-cva-variant-forwarding";
 import { noDuplicateJsxClassesRule } from "./rules/no-duplicate-jsx-classes";
 import { noExternalBarrelReexportsRule } from "./rules/no-external-barrel-reexports";
 import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
@@ -138,7 +137,6 @@ const pasikaNextjsAppRules = {
   "enforce-cva-variant-props": enforceCvaVariantPropsRule,
   "cva-appearance-props": cvaAppearancePropsRule,
   "cva-boolean-variants": cvaBooleanVariantsRule,
-  "no-cva-variant-forwarding": noCvaVariantForwardingRule,
   "no-unused-cva-options": noUnusedCvaOptionsRule,
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,

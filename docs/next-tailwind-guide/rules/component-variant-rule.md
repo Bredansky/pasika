@@ -4,7 +4,6 @@ A component's variants can be spread across handwritten prop unions and conditio
 
 - A component that lets callers choose visual options MUST define them with `cva`.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
-- A private, single-purpose local style map MUST NOT merely forward identically named keys into CVA.
 - A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
 - A boolean prop that changes appearance MUST use a CVA variant when both boolean values have explicit treatments or when the boolean participates in a compound variant.
@@ -150,51 +149,6 @@ const buttonVariants = cva("inline-flex", {
 ```
 
 Why: both boolean values have explicit treatment and the square appearance changes by size, so CVA owns the complete styling matrix.
-
-## Incorrect — Identity Map Only Forwarded Into CVA
-
-```tsx
-enum ButtonTone {
-  Primary = "primary",
-  Secondary = "secondary",
-}
-
-const buttonBackgrounds = {
-  [ButtonTone.Primary]: "bg-primary",
-  [ButtonTone.Secondary]: "bg-secondary",
-};
-const { primary, secondary } = buttonBackgrounds;
-const buttonVariants = cva("inline-flex", {
-  variants: {
-    tone: {
-      [ButtonTone.Primary]: cn(primary, "border-4"),
-      [ButtonTone.Secondary]: cn(secondary, "border-2"),
-    },
-  },
-});
-```
-
-Why: this private map and its bindings only forward style strings into CVA, introducing another styling contract without changing the mapping.
-
-## Correct — CVA Owns the Choice Styling
-
-```tsx
-enum ButtonTone {
-  Primary = "primary",
-  Secondary = "secondary",
-}
-
-const buttonVariants = cva("inline-flex", {
-  variants: {
-    tone: {
-      [ButtonTone.Primary]: "bg-primary border-4",
-      [ButtonTone.Secondary]: "bg-secondary border-2",
-    },
-  },
-});
-```
-
-Why: enum members name the closed set of CVA choices while CVA owns their classes; `tone` and `size` are structural dimension keys, and boolean `true`/`false` choices need no enum. Imported, exported, or independently reused style maps are not considered redundant.
 
 ## Incorrect — CVA Options With No Production Consumers
 

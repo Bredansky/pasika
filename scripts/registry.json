@@ -1154,12 +1154,6 @@
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
-      "text": "A private, single-purpose local style map MUST NOT merely forward identically named keys into CVA.",
-      "hash": "900e8667fe",
-      "ref": "pasika/no-cva-variant-forwarding"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/component-variant-rule.md",
       "text": "A statically unused CVA choice MUST NOT remain in an application component.",
       "hash": "e04ca9e05e",
       "ref": "pasika/no-unused-cva-options"
