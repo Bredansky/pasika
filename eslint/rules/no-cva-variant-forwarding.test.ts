@@ -115,8 +115,72 @@ const buttonVariants = cva("", { variants: { tone: { primary: styles.primary, se
         code: `const { primary, secondary } = styles;
 const variants = cva("", { variants: { tone: { primary: styles.primary, secondary } } });`,
       },
+      {
+        // Computed enum keys do not make a meaningful mapping redundant.
+        filename: srcFile("shared/renamed-enum-choices.tsx"),
+        code: `enum ButtonTone { Primary = "primary", Secondary = "secondary" }
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: styles.secondary, [ButtonTone.Secondary]: styles.primary,
+} } });`,
+      },
+      {
+        // A computed member of an imported enum is not statically resolved by this rule.
+        filename: srcFile("shared/imported-enum.tsx"),
+        code: `import { ButtonTone } from "@/constants";
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: styles[ButtonTone.Primary],
+  [ButtonTone.Secondary]: styles[ButtonTone.Secondary],
+} } });`,
+      },
+      {
+        // A map with independently used enum-keyed styling is not redundant.
+        filename: srcFile("shared/used-enum.tsx"),
+        code: `enum ButtonTone { Primary = "primary", Secondary = "secondary" }
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: styles[ButtonTone.Primary],
+  [ButtonTone.Secondary]: styles[ButtonTone.Secondary],
+} } });
+const preview = styles[ButtonTone.Primary];`,
+      },
     ],
     invalid: [
+      {
+        // Computed enum keys still form a redundant one-purpose identity map.
+        filename: srcFile("shared/destructured-enum.tsx"),
+        code: `enum ButtonTone { Primary = "primary", Secondary = "secondary" }
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const { primary, secondary } = styles;
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: cn(primary, "border-4"),
+  [ButtonTone.Secondary]: cn(secondary, "border-2"),
+} } });`,
+        errors: 1,
+      },
+      {
+        // Direct member access can forward enum-keyed options just as redundantly.
+        filename: srcFile("shared/member-enum.tsx"),
+        code: `enum ButtonTone { Primary = "primary", Secondary = "secondary" }
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: cn(styles.primary, "border-4"),
+  [ButtonTone.Secondary]: cn(styles.secondary, "border-2"),
+} } });`,
+        errors: 1,
+      },
+      {
+        // A map accessed via enum computed properties has the same redundancy.
+        filename: srcFile("shared/indexed-enum.tsx"),
+        code: `enum ButtonTone { Primary = "primary", Secondary = "secondary" }
+const styles = { [ButtonTone.Primary]: "bg-primary", [ButtonTone.Secondary]: "bg-secondary" };
+const variants = cva("", { variants: { tone: {
+  [ButtonTone.Primary]: cn(styles[ButtonTone.Primary], "border-4"),
+  [ButtonTone.Secondary]: cn(styles[ButtonTone.Secondary], "border-2"),
+} } });`,
+        errors: 1,
+      },
       {
         // A private, one-purpose map can live directly inside the CVA.
         filename: srcFile("shared/button.tsx"),

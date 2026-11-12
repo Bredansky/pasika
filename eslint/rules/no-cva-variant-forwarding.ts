@@ -11,8 +11,26 @@ import ts from "typescript";
 
 const DOC = "See docs/next-tailwind-guide/rules/component-variant-rule.md";
 
+/** Resolve locally declared string enum members without guessing at imports or dynamic keys. */
+function localEnumValue(expression: ts.Expression): string | undefined {
+  if (!ts.isPropertyAccessExpression(expression) || !ts.isIdentifier(expression.expression)) return undefined;
+  const source = expression.getSourceFile();
+  const enumName = expression.expression.text;
+  const declaration = source.statements.find(
+    (statement) => ts.isEnumDeclaration(statement) && statement.name.text === enumName,
+  );
+  if (!declaration || !ts.isEnumDeclaration(declaration)) return undefined;
+  const member = declaration.members.find(
+    (candidate) =>
+      (ts.isIdentifier(candidate.name) || ts.isStringLiteral(candidate.name)) &&
+      candidate.name.text === expression.name.text,
+  );
+  return member?.initializer && ts.isStringLiteral(member.initializer) ? member.initializer.text : undefined;
+}
+
 function propertyName(name: ts.PropertyName): string | undefined {
   if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return name.text;
+  if (ts.isComputedPropertyName(name)) return localEnumValue(name.expression);
   return undefined;
 }
 
@@ -161,13 +179,17 @@ function forwardedObject(source: ts.SourceFile, declaration: ts.VariableDeclarat
   const state = { invalid: false };
   const visit = (node: ts.Node): void => {
     if (ts.isIdentifier(node) && node.text === name && node !== declaration.name) {
-      if (ts.isPropertyAccessExpression(node.parent) && node.parent.expression === node) {
-        const key = node.parent.name.text;
-        if (keys.has(key) && cvaOptionContaining(node.parent) === key) {
-          used.add(key);
-          const call = owningCvaCall(node.parent);
-          if (call) calls.add(call);
-        } else state.invalid = true;
+      const parent = node.parent;
+      let key: string | undefined;
+      if (ts.isPropertyAccessExpression(parent) && parent.expression === node) {
+        key = parent.name.text;
+      } else if (ts.isElementAccessExpression(parent) && parent.expression === node) {
+        key = localEnumValue(parent.argumentExpression);
+      }
+      if (key && keys.has(key) && cvaOptionContaining(parent) === key) {
+        used.add(key);
+        const call = owningCvaCall(parent);
+        if (call) calls.add(call);
       } else state.invalid = true;
     }
     ts.forEachChild(node, visit);

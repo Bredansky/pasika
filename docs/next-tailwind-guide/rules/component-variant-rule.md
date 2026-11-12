@@ -12,17 +12,22 @@ A component's variants can be spread across handwritten prop unions and conditio
 ## Incorrect — CVA Variant Union Duplicated by Hand
 
 ```tsx
+enum ButtonSize {
+  Small = "sm",
+  Large = "lg",
+}
+
 const buttonVariants = cva("inline-flex items-center", {
   variants: {
     size: {
-      sm: "h-8 px-3",
-      lg: "h-11 px-5",
+      [ButtonSize.Small]: "h-8 px-3",
+      [ButtonSize.Large]: "h-11 px-5",
     },
   },
 });
 
 type ButtonProps = React.ComponentProps<"button"> & {
-  size?: "sm" | "lg";
+  size?: ButtonSize.Small | ButtonSize.Large;
 };
 ```
 
@@ -31,20 +36,30 @@ Why: the accepted `size` values now live in both CVA and a handwritten prop unio
 ## Correct — Props Derived from CVA
 
 ```tsx
+enum ButtonSize {
+  Small = "sm",
+  Large = "lg",
+}
+
+enum ButtonTone {
+  Primary = "primary",
+  Danger = "danger",
+}
+
 const buttonVariants = cva("inline-flex items-center", {
   variants: {
     size: {
-      sm: "h-8 px-3",
-      lg: "h-11 px-5",
+      [ButtonSize.Small]: "h-8 px-3",
+      [ButtonSize.Large]: "h-11 px-5",
     },
     tone: {
-      primary: "bg-primary-canvas text-primary-ink",
-      danger: "bg-danger-canvas text-danger-ink",
+      [ButtonTone.Primary]: "bg-primary-canvas text-primary-ink",
+      [ButtonTone.Danger]: "bg-danger-canvas text-danger-ink",
     },
   },
   defaultVariants: {
-    size: "sm",
-    tone: "primary",
+    size: ButtonSize.Small,
+    tone: ButtonTone.Primary,
   },
 });
 
@@ -83,14 +98,19 @@ Why: the named appearance choices stay in CVA while the independent boolean vari
 ## Incorrect — Compound Boolean Variant Styling Split Across Conditions
 
 ```tsx
+enum ButtonSize {
+  Small = "sm",
+  Large = "lg",
+}
+
 <button
   className={cn(
     buttonVariants({ size }),
     square && "justify-center",
-    square && size === "sm" && "w-8 px-0",
-    square && size === "lg" && "w-11 px-0",
+    square && size === ButtonSize.Small && "w-8 px-0",
+    square && size === ButtonSize.Large && "w-11 px-0",
   )}
-/>
+/>;
 ```
 
 Why: the boolean variant changes treatment according to another variant, but the styling matrix is spread across conditional expressions outside CVA.
@@ -98,11 +118,16 @@ Why: the boolean variant changes treatment according to another variant, but the
 ## Correct — Boolean Variant with Compound Styling Uses CVA
 
 ```tsx
+enum ButtonSize {
+  Small = "sm",
+  Large = "lg",
+}
+
 const buttonVariants = cva("inline-flex", {
   variants: {
     size: {
-      sm: "h-8 px-3",
-      lg: "h-11 px-5",
+      [ButtonSize.Small]: "h-8 px-3",
+      [ButtonSize.Large]: "h-11 px-5",
     },
     square: {
       true: "justify-center",
@@ -111,12 +136,12 @@ const buttonVariants = cva("inline-flex", {
   },
   compoundVariants: [
     {
-      size: "sm",
+      size: ButtonSize.Small,
       square: true,
       className: "w-8 px-0",
     },
     {
-      size: "lg",
+      size: ButtonSize.Large,
       square: true,
       className: "w-11 px-0",
     },
@@ -129,13 +154,21 @@ Why: both boolean values have explicit treatment and the square appearance chang
 ## Incorrect — Identity Map Only Forwarded Into CVA
 
 ```tsx
-const buttonBackgrounds = { primary: "bg-primary", secondary: "bg-secondary" };
+enum ButtonTone {
+  Primary = "primary",
+  Secondary = "secondary",
+}
+
+const buttonBackgrounds = {
+  [ButtonTone.Primary]: "bg-primary",
+  [ButtonTone.Secondary]: "bg-secondary",
+};
 const { primary, secondary } = buttonBackgrounds;
 const buttonVariants = cva("inline-flex", {
   variants: {
     tone: {
-      primary: cn(primary, "border-4"),
-      secondary: cn(secondary, "border-2"),
+      [ButtonTone.Primary]: cn(primary, "border-4"),
+      [ButtonTone.Secondary]: cn(secondary, "border-2"),
     },
   },
 });
@@ -146,24 +179,39 @@ Why: this private map and its bindings only forward style strings into CVA, intr
 ## Correct — CVA Owns the Choice Styling
 
 ```tsx
+enum ButtonTone {
+  Primary = "primary",
+  Secondary = "secondary",
+}
+
 const buttonVariants = cva("inline-flex", {
   variants: {
     tone: {
-      primary: "bg-primary border-4",
-      secondary: "bg-secondary border-2",
+      [ButtonTone.Primary]: "bg-primary border-4",
+      [ButtonTone.Secondary]: "bg-secondary border-2",
     },
   },
 });
 ```
 
-Why: callers can still use enum members, but the classes live with their CVA choices. Imported or exported style maps and maps with other consumers are not considered redundant.
+Why: the enum names the choices, while CVA owns their classes. Imported, exported, or independently reused style maps are not considered redundant.
 
 ## Incorrect — CVA Options With No Production Consumers
 
 ```tsx
+enum SkeletonSize {
+  Small = "sm",
+  Medium = "md",
+  Large = "lg",
+}
+
 const skeletonVariants = cva("animate-pulse", {
   variants: {
-    size: { sm: "h-8", md: "h-10", lg: "h-14" },
+    size: {
+      [SkeletonSize.Small]: "h-8",
+      [SkeletonSize.Medium]: "h-10",
+      [SkeletonSize.Large]: "h-14",
+    },
   },
 });
 
@@ -171,8 +219,8 @@ export function ButtonSkeleton({ size }: VariantProps<typeof skeletonVariants>) 
   return <div className={skeletonVariants({ size })} />;
 }
 
-// The only production call site is <ButtonSkeleton size="md" />.
-// "sm" and "lg" are dead options in this closed application component.
+// The only production call site is <ButtonSkeleton size={SkeletonSize.Medium} />.
+// SkeletonSize.Small and SkeletonSize.Large are dead choices in this closed application component.
 ```
 
 Why: offering variants never selected by any production JSX caller adds a maintenance surface. The rule counts literal values, enum members, static local constants, conditional branches, and defaults (both CVA defaults and component parameter defaults); test-only renderings do not establish production usage.
