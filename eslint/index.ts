@@ -51,8 +51,8 @@ import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noRedundantAliasRule } from "./rules/no-redundant-alias";
+import { noUnusedAppExportsRule } from "./rules/no-unused-app-exports";
 import { noUnusedCvaOptionsRule } from "./rules/no-unused-cva-options";
-import { noUnusedStyleExportsRule } from "./rules/no-unused-style-exports";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
@@ -139,7 +139,7 @@ const pasikaNextjsAppRules = {
   "cva-appearance-props": cvaAppearancePropsRule,
   "cva-boolean-variants": cvaBooleanVariantsRule,
   "no-unused-cva-options": noUnusedCvaOptionsRule,
-  "no-unused-style-exports": noUnusedStyleExportsRule,
+  "no-unused-app-exports": noUnusedAppExportsRule,
   "cross-feature-import": crossFeatureImportRule,
   "pure-function-extract": pureFunctionExtractRule,
   "root-support-placement": rootSupportPlacementRule,

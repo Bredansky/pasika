@@ -524,6 +524,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "An internal application export with no consumers MUST be removed or kept private when locally used.",
+      "hash": "452c1aa1e3",
+      "ref": "pasika/no-unused-app-exports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
       "ref": "pasika/named-exports"
@@ -1247,12 +1253,6 @@
       "text": "Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.",
       "hash": "49839344b2",
       "ref": "pasika/no-duplicate-jsx-classes"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "An unused exported static `*ClassName` constant in an application component MUST be removed.",
-      "hash": "14b7ad0877",
-      "ref": "pasika/no-unused-style-exports"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

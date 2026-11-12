@@ -3,6 +3,7 @@
 Without consistent exports, import paths, and layer boundaries, it is harder to tell what a file contains and which files may depend on it. This rule gives each file a predictable export style and keeps imports consistent with the application structure.
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
+- An internal application export with no consumers MUST be removed or kept private when locally used.
 - A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
 - An `index.ts` barrel MUST re-export only modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, or a package.
 - Consecutive import declarations MUST NOT be separated by a blank line.
