@@ -64,6 +64,31 @@ const testFile = fixture("features/home/test-helper.test.ts", "export const test
 const deadAliased = fixture("features/home/aliased.ts", "const unused = 1; export { unused as aliased };");
 const deadJs = fixture("features/home/dead.js", "export const unusedJavaScriptValue = true;");
 
+const dynamicComponent = fixture(
+  "features/site-effects/star-field.tsx",
+  "export function StarField() { return <div />; } export function UnusedVisual() { return <div />; }",
+);
+fixture(
+  "features/site-effects/deferred-effects.tsx",
+  'const LazyStars = dynamic(() => import("./star-field").then((mod) => ({ default: mod.StarField }))); export function DeferredEffects() { return <LazyStars />; }',
+);
+const dynamicDestructured = fixture(
+  "features/site-effects/trippy-background.tsx",
+  "export function TrippyBackground() { return <canvas />; }",
+);
+fixture(
+  "features/site-effects/lazy-trippy.tsx",
+  'const LazyTrippy = dynamic(() => import("./trippy-background").then(({ TrippyBackground }) => ({ default: TrippyBackground }))); export function LazyPage() { return <LazyTrippy />; }',
+);
+const dynamicComputed = fixture(
+  "features/site-effects/cursor-trail.tsx",
+  "export function CursorTrail() { return <canvas />; }",
+);
+fixture(
+  "features/site-effects/lazy-cursor.tsx",
+  'const LazyCursor = dynamic(() => import("./cursor-trail").then((module) => ({ default: module["CursorTrail"] }))); export function CursorEffects() { return <LazyCursor />; }',
+);
+
 const dead = (name: string): { message: string } => ({
   message: `Dead application export "${name}": it has no consumers. Remove it. See docs/next-codebase-guide/rules/exports-and-imports-rule.md`,
 });
@@ -76,6 +101,8 @@ void describe("An internal application export with no consumers MUST be removed 
     valid: [
       usedImport,
       usedBarrel,
+      dynamicDestructured,
+      dynamicComputed,
       typesAndSchemas,
       privateLocal,
       localTypeExport,
@@ -99,6 +126,7 @@ void describe("An internal application export with no consumers MUST be removed 
       { ...locallyUsed, errors: [unused("localValue")] },
       { ...deadAliased, errors: [unused("aliased")] },
       { ...deadJs, errors: [dead("unusedJavaScriptValue")] },
+      { ...dynamicComponent, errors: [dead("UnusedVisual")] },
     ],
   });
 });
