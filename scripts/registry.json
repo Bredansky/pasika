@@ -26,6 +26,12 @@
     },
     {
       "doc": "documentation-guide/rules/guide-creation-rule.md",
+      "text": "A Guide MUST NOT link to a Rule outside its own `rules/` folder.",
+      "hash": "04c401df39",
+      "ref": "pasika/guide-rule-ownership"
+    },
+    {
+      "doc": "documentation-guide/rules/guide-creation-rule.md",
       "text": "A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.",
       "hash": "694bfba1ab",
       "ref": "pasika/overview"

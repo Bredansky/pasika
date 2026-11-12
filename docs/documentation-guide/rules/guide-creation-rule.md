@@ -6,6 +6,7 @@ Guides without a consistent creation process invent their own structure. This ru
 - A Guide MUST contain one or more level-two sections whose headings start with `How To `.
 - Every Guide section MUST consist of its overview followed by exactly one numbered list of steps.
 - A Guide MAY link Rules, References, Policies, and other Guides.
+- A Guide MUST NOT link to a Rule outside its own `rules/` folder.
 - A Guide overview MUST contain one or two short descriptive sentences about the guide's scope and purpose, and MUST NOT contain instructions or links to other documentation.
 - The overview of each How To section MUST contain one or two short sentences explaining what the workflow accomplishes and when it should run, and MUST NOT contain instructions or links to other documentation.
 - Each How To step MUST link at most one documentation file total, whatever kind that file is.
@@ -181,3 +182,19 @@ Why: the glossary groups that vocabulary under `## Route Terms`, so the anchor r
 ```
 
 Why: the anchor matches a heading in the linked document, so the reader lands on the terms the step asks about.
+
+## Incorrect — Linking a Rule Owned by Another Guide
+
+```markdown
+1. Follow the [Styling Rule](../styling-guide/rules/styling-rule.md) to style the component.
+```
+
+Why: the linked Rule belongs to another Guide, so the workflow crosses its own rule boundary.
+
+## Correct — Linking a Rule Owned by the Guide
+
+```markdown
+1. Follow the [Local Rule](rules/local-rule.md) to apply the guide's conventions.
+```
+
+Why: the Rule belongs to the Guide that includes the step.

@@ -7,6 +7,7 @@ import { glossaryTermLinkingRule } from "./glossary-term-linking";
 import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
 import { guideLinkAnchorsRule } from "./guide-link-anchors";
 import { guideMentionsDocumentsRule } from "./guide-mentions-documents";
+import { guideRuleOwnershipRule } from "./guide-rule-ownership";
 import { guideSectionShapeRule } from "./guide-section-shape";
 import { guideStatesNoRequirementRule } from "./guide-states-no-requirement";
 import { guideStepSingleLinkRule } from "./guide-step-single-link";
@@ -54,6 +55,7 @@ export const documentationRules = {
   "no-nested-how-to": noNestedHowToRule,
   "glossary-term-linking": glossaryTermLinkingRule,
   "guide-mentions-documents": guideMentionsDocumentsRule,
+  "guide-rule-ownership": guideRuleOwnershipRule,
   "guide-section-shape": guideSectionShapeRule,
 };
 
