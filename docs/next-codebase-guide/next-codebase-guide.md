@@ -15,7 +15,7 @@ Use this no matter whether you are adding a new component or extracting from exi
 7. Extract interactive elements per the [Interactive Component Rule](rules/interactive-component-rule.md).
 8. Extract sole-state-owner blocks per the [Sole State Owner Rule](rules/sole-state-owner-rule.md).
 9. Extract repeated structures per the [Repeated Structure Rule](rules/repeated-structure-rule.md).
-10. Reuse shared visual treatments through components per the [Component Style Reuse Rule](rules/component-style-reuse-rule.md).
+10. Reuse shared visual treatments through components per the [Tailwind Class Reuse Rule](../next-tailwind-guide/rules/tailwind-class-reuse-rule.md).
 11. Extract a group of elements when one clear component name describes it per the [Nameable Visual Concept Rule](rules/nameable-visual-concept-rule.md).
 12. For every component extracted in steps 7 to 11, repeat steps 4 to 6.
 13. Repeat steps 7 to 11 for an extracted component only when one of those extraction conditions applies to its JSX; stop when no new component is required.
@@ -41,7 +41,7 @@ Use this when adding or moving a constant.
 1. Read the Shared Terms in the [Glossary Reference](references/glossary-reference.md#shared-terms) so you can place the constant in its support folder at the CCF of its consumers.
 2. Read the [Application Architecture Reference](references/application-architecture-reference.md) to identify where the item belongs in `src/`.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
-4. Apply the [Component Style Reuse Rule](rules/component-style-reuse-rule.md) so a shared appearance is not extracted into class-name constants.
+4. Apply the [Tailwind Class Reuse Rule](../next-tailwind-guide/rules/tailwind-class-reuse-rule.md) so a shared appearance is not extracted into class-name constants.
 5. Follow the [Constants Rule](rules/constants-rule.md) so ordinary constants are extracted only once a second file imports them.
 6. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the constant module has predictable exports and import paths.
 

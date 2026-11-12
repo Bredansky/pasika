@@ -4,7 +4,7 @@
  * Identical static class sets on native JSX elements in different files
  * are extracted into a shared component when the set has five or more classes.
  *
- * @see docs/next-codebase-guide/rules/component-style-reuse-rule.md
+ * @see docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
@@ -35,7 +35,7 @@ export const noDuplicateJsxClassesRule: Rule.RuleModule = {
             message:
               `<${occurrence.tag}> repeats the same set of ${String(commonClasses.length)} classes as ` +
               `${reference}:${String(original.line)}. Extract a shared component. ` +
-              "See docs/next-codebase-guide/rules/component-style-reuse-rule.md",
+              "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
           });
         }
         for (const { occurrence, original } of shared) {
@@ -47,7 +47,7 @@ export const noDuplicateJsxClassesRule: Rule.RuleModule = {
             message:
               `<${occurrence.tag}> reuses exported class composition "${name}" (${String(occurrence.classes.length)} classes) from ` +
               `${reference}:${String(original.line)}. Extract a shared component. ` +
-              "See docs/next-codebase-guide/rules/component-style-reuse-rule.md",
+              "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
           });
         }
       },
