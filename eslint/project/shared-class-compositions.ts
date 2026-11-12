@@ -7,7 +7,8 @@ import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { resolveSpecifier, type ProjectIndex } from "./index";
 
-const MIN_SHARED_CLASSES = 5;
+// Explicitly shared styling strings are intentional contracts, even when short.
+const MIN_SHARED_CLASSES = 2;
 
 interface Binding {
   file: string;
