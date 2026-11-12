@@ -42,6 +42,7 @@ Use this when adding or moving a constant.
 3. Follow the [Application Structure Rule](rules/application-structure-rule.md) so the folder that holds the item is one the structure allows.
 4. Follow the [Constants Rule](rules/constants-rule.md) so constants are extracted only once a second file imports them.
 5. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so the constant module has predictable exports and import paths.
+6. Follow the [Dead Code Rule](rules/dead-code-rule.md) to remove unused declarations and avoid unnecessary exports.
 
 ## How To Organize a Utility
 
