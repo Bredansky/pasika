@@ -102,8 +102,12 @@ void describe("When a block reads two or more different properties from one obje
       "const value: string = file.value;",
       "const value = file?.value;",
       "const errorMessage = locales.editor.missingRenderJobIds;",
-      "const credentials = locales.credentials;",
+      "use(locales.donationMainJarOwner);",
       "use(locales.editor.save); use(locales.editor.cancel);",
+      "const { heading, description } = locales;",
+      "let donationMainJarOwner = locales.donationMainJarOwner;",
+      "const donationMainJarOwner: string = locales.donationMainJarOwner;",
+      "const donationMainJarOwner = locales?.donationMainJarOwner;",
       "use(row.user_account_id); use(row.created_at);",
       "config.first(); config.second();",
       "config.first = 1; config.second = 2;",
@@ -120,6 +124,33 @@ void describe("When a block reads two or more different properties from one obje
       "function process(post) { use(post.id, post.currentPayload); return [1].map((id) => id); }",
     ],
     invalid: [
+      {
+        code: "const donationMainJarOwner = locales.donationMainJarOwner; use(donationMainJarOwner);",
+        output: null,
+        errors: [
+          {
+            message: `"donationMainJarOwner" is the only property bound from "locales". Read "locales.donationMainJarOwner" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const credentials = locales.credentials; use(credentials);",
+        output: null,
+        errors: [
+          {
+            message: `"credentials" is the only property bound from "locales". Read "locales.credentials" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "const title = locales.donation.title; use(title);",
+        output: null,
+        errors: [
+          {
+            message: `"title" is the only property bound from "locales.donation". Read "locales.donation.title" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
       {
         code: "const { previewUrl } = file; use(previewUrl);",
         output: null,

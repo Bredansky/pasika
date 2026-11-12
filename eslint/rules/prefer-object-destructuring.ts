@@ -100,6 +100,36 @@ function directPropertyBinding(
   };
 }
 
+/**
+ * Locale dictionaries stay qualified instead of being destructured.
+ * A plain same-name `const` binding is nevertheless a redundant copy.
+ * Keep this separate from the grouping logic, which intentionally ignores locales.
+ */
+function localePropertyBinding(
+  context: Rule.RuleContext,
+  declarator: VariableDeclarator,
+): SinglePropertyBinding | undefined {
+  if (declarator.id.type !== "Identifier" || hasTypeAnnotation(declarator.id)) return undefined;
+  const member = declarator.init;
+  if (
+    member?.type !== "MemberExpression" ||
+    member.computed ||
+    member.optional ||
+    member.property.type !== "Identifier" ||
+    rootIdentifierName(member) !== "locales" ||
+    declarator.id.name !== member.property.name ||
+    context.sourceCode.getCommentsInside(declarator).length > 0
+  ) {
+    return undefined;
+  }
+
+  return {
+    node: declarator,
+    sourceText: context.sourceCode.getText(member.object),
+    propertyName: member.property.name,
+  };
+}
+
 function canGroupSource(source: Node): boolean {
   return source.type === "Identifier" || source.type === "ThisExpression";
 }
@@ -695,6 +725,15 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue, detachableCall);
       },
       VariableDeclaration(node) {
+        if (node.kind === "const") {
+          for (const declarator of node.declarations) {
+            const binding = localePropertyBinding(context, declarator);
+            if (binding) {
+              context.report({ node: binding.node, message: singlePropertyMessage(binding) });
+            }
+          }
+        }
+
         for (const declarator of node.declarations) {
           if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isEnumValue(declarator.init)) continue;
 
