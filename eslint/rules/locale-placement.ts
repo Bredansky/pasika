@@ -17,7 +17,11 @@ import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-codebase-guide/rules/locales-rule.md";
 
-function localeAccesses(file: string): { namespace: string; key?: string }[] {
+function localeAccesses(
+  file: string,
+  globalKeys: ReadonlySet<string> | undefined,
+  featureNamespaces: ReadonlySet<string>,
+): { namespace: string; key?: string }[] {
   const contents = readFileSync(file, "utf8");
   const kind = /\.[jt]sx$/.test(file) ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const source = ts.createSourceFile(file, contents, ts.ScriptTarget.Latest, true, kind);
@@ -28,13 +32,20 @@ function localeAccesses(file: string): { namespace: string; key?: string }[] {
       if (
         ts.isPropertyAccessExpression(receiver) &&
         ts.isIdentifier(receiver.expression) &&
-        receiver.expression.text === "locales"
+        receiver.expression.text === "locales" &&
+        !(globalKeys?.has(receiver.name.text) && !featureNamespaces.has(receiver.name.text))
       ) {
+        // A global string may have properties or methods (e.g. .replace).
+        // Those are not feature locale keys.
         accesses.push({ namespace: receiver.name.text, key: node.name.text });
       } else if (
         ts.isIdentifier(receiver) &&
         receiver.text === "locales" &&
-        !(ts.isPropertyAccessExpression(node.parent) && node.parent.expression === node)
+        !(
+          ts.isPropertyAccessExpression(node.parent) &&
+          node.parent.expression === node &&
+          !(globalKeys?.has(node.name.text) && !featureNamespaces.has(node.name.text))
+        )
       ) {
         accesses.push({ namespace: node.name.text });
       }
@@ -70,6 +81,7 @@ export const localePlacementRule: Rule.RuleModule = {
     const { definitions, errors } = readLocaleDefinitions(localesFile);
     const findings = [...errors];
     const globalKeys = definitions.get("global")?.keys;
+    const featureNamespaces = new Set([...definitions.keys()].filter((namespace) => namespace !== "global"));
     const consumers = new Map<string, Set<string>>();
 
     for (const [candidateFile, module] of index.modules) {
@@ -89,7 +101,7 @@ export const localePlacementRule: Rule.RuleModule = {
       );
       if (!importsLocales) continue;
 
-      for (const { namespace, key } of localeAccesses(candidateFile)) {
+      for (const { namespace, key } of localeAccesses(candidateFile, globalKeys, featureNamespaces)) {
         if (key) {
           if (!definitions.get(namespace)?.keys.has(key) || namespace === "global") {
             findings.push(`Locale locales.${namespace}.${key} is not defined in a feature dictionary. ${DOC}`);
