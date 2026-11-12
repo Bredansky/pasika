@@ -194,7 +194,7 @@ const buttonVariants = cva("inline-flex", {
 });
 ```
 
-Why: the enum names the choices, while CVA owns their classes. Imported, exported, or independently reused style maps are not considered redundant.
+Why: enum members name the closed set of CVA choices while CVA owns their classes; `tone` and `size` are structural dimension keys, and boolean `true`/`false` choices need no enum. Imported, exported, or independently reused style maps are not considered redundant.
 
 ## Incorrect — CVA Options With No Production Consumers
 

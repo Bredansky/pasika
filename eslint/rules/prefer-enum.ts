@@ -178,6 +178,45 @@ export const preferEnumRule: Rule.RuleModule = {
         if (isZodCall(node, "enum") && argument?.type === "Identifier") {
           enumTupleUses.push({ name: argument, node });
         }
+        // CVA option values are a closed domain, unlike structural dimension
+        // names (size/tone) or the built-in boolean true/false keys.
+        if (node.callee?.type === "Identifier" && node.callee.name === "cva") {
+          const config = node.arguments?.[1];
+          if (config?.type !== "ObjectExpression") return;
+          const variants = config.properties.find(
+            (entry) => entry.type === "Property" && propertyName(entry) === "variants",
+          );
+          if (variants?.type !== "Property" || variants.value.type !== "ObjectExpression") return;
+          for (const dimension of variants.value.properties) {
+            if (dimension.type !== "Property" || dimension.value.type !== "ObjectExpression") continue;
+            const choices = dimension.value.properties;
+            if (choices.length < 2 || choices.some((choice) => choice.type !== "Property")) continue;
+            // A dynamic computed key makes the domain unprovable. Computed
+            // member keys (typically Enum.Member) are already named choices.
+            if (
+              choices.some(
+                (choice) => choice.type === "Property" && choice.computed && choice.key.type !== "MemberExpression",
+              )
+            ) {
+              continue;
+            }
+            const rawChoices = choices.filter(
+              (choice): choice is ESTree.Property => choice.type === "Property" && !choice.computed,
+            );
+            const names = rawChoices.map(propertyName);
+            if (choices.length === 2 && names.length === 2 && names.includes("true") && names.includes("false")) {
+              continue;
+            }
+            for (const choice of rawChoices) {
+              if (!propertyName(choice)) continue;
+              context.report({
+                node: choice.key,
+                message:
+                  "A named CVA choice in a fixed set must use a TypeScript enum member as its key. See docs/next-codebase-guide/rules/constants-rule.md",
+              });
+            }
+          }
+        }
       },
       TSIndexedAccessType(node: TsIndexedAccessTypeNode) {
         const { objectType, indexType } = node;
