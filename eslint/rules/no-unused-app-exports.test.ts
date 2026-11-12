@@ -65,10 +65,10 @@ const deadAliased = fixture("features/home/aliased.ts", "const unused = 1; expor
 const deadJs = fixture("features/home/dead.js", "export const unusedJavaScriptValue = true;");
 
 const dead = (name: string): { message: string } => ({
-  message: `Dead application export "${name}": it has no consumers. Remove it. See docs/next-codebase-guide/rules/dead-code-rule.md`,
+  message: `Dead application export "${name}": it has no consumers. Remove it. See docs/next-codebase-guide/rules/exports-and-imports-rule.md`,
 });
 const unused = (name: string): { message: string } => ({
-  message: `Unused application export "${name}": it has no external consumers. Keep the declaration private. See docs/next-codebase-guide/rules/dead-code-rule.md`,
+  message: `Unused application export "${name}": it has no external consumers. Keep the declaration private. See docs/next-codebase-guide/rules/exports-and-imports-rule.md`,
 });
 
 void describe("An internal application export with no consumers MUST be removed or kept private when locally used.", () => {

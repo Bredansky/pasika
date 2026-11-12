@@ -5,7 +5,7 @@
  * Local bindings/imports are handled by the host TypeScript/ESLint checks.
  * Framework entry points and publicly exported packages are not internal APIs.
  *
- * @see docs/next-codebase-guide/rules/dead-code-rule.md
+ * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -14,7 +14,7 @@ import ts from "typescript";
 import { getProjectIndex, symbolKey } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
-const DOC = "See docs/next-codebase-guide/rules/dead-code-rule.md";
+const DOC = "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 function isApplication(sourceRoot: string): boolean {
   try {

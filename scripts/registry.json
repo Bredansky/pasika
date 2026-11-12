@@ -523,7 +523,7 @@
       "ref": "pasika/import-through-index, pasika/support-folder-shape"
     },
     {
-      "doc": "next-codebase-guide/rules/dead-code-rule.md",
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "An internal application export with no consumers MUST be removed or kept private when locally used.",
       "hash": "452c1aa1e3",
       "ref": "pasika/no-unused-app-exports"
