@@ -58,6 +58,11 @@ const sharedClasses: Record<string, string> = {
     'import { minecraftControlClassName } from "@/constants"; export function MinecraftButton({ className }: { className?: string }) { return <button className={cn(minecraftControlClassName, "text-sm", className)} />; }',
   "shared/minecraft-link.tsx":
     'import { minecraftControlClassName as buttonClasses } from "@/constants"; export function MinecraftLink({ className, compact }: { className?: string; compact?: boolean }) { return <a className={cn(buttonClasses, compact ? "text-xs" : "text-sm", className)} />; }',
+  "constants/short-classes.ts": 'export const shortClassName = "h-3 w-20";',
+  "shared/short-a.tsx":
+    'import { shortClassName } from "@/constants/short-classes"; export function A() { return <span className={shortClassName} />; }',
+  "shared/short-b.tsx":
+    'import { shortClassName } from "@/constants/short-classes"; export function B() { return <span className={shortClassName} />; }',
   "constants/one-off.ts": 'export const oneOffClasses = "border-2 bg-card p-2 shadow-card text-sm";',
   "shared/one-off.tsx":
     'import { oneOffClasses } from "@/constants/one-off"; export function OneOff() { return <article className={oneOffClasses} />; }',
@@ -91,7 +96,7 @@ function message(tag: string, amount: number, reference: string): string {
   return `<${tag}> repeats the same set of ${String(amount)} classes as src/features/examples/${reference}:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md`;
 }
 
-void describe("Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least five classes.", () => {
+void describe("Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.", () => {
   ruleTester.run("no-duplicate-jsx-classes", noDuplicateJsxClassesRule, {
     valid: [
       "a-equal.tsx",
@@ -152,11 +157,21 @@ void describe("Exported class compositions are detected across different native 
     valid: [
       sharedFixture("features/showcase/minecraft-button.tsx"),
       sharedFixture("shared/one-off.tsx"),
+      sharedFixture("shared/short-a.tsx"),
       sharedFixture("shared/non-style-use.tsx"),
       sharedFixture("shared/custom-component.tsx"),
       sharedFixture("shared/local-classes.tsx"),
     ],
     invalid: [
+      {
+        ...sharedFixture("shared/short-b.tsx"),
+        errors: [
+          {
+            message:
+              '<span> reuses exported class composition "shortClassName" (2 classes) from src/shared/short-a.tsx:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md',
+          },
+        ],
+      },
       {
         ...sharedFixture("shared/minecraft-link.tsx"),
         errors: [

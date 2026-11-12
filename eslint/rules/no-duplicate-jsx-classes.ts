@@ -3,6 +3,7 @@
  *
  * Identical static class sets on native JSX elements in different files
  * are extracted into a shared component when the set has five or more classes.
+ * Explicitly exported class strings reused across files qualify from two classes.
  *
  * @see docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md
  */

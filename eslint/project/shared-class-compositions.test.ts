@@ -60,7 +60,7 @@ test("Shared class contracts resolve renamed reexports, star barrels, clsx and m
   expect(matches.get(path.join(sourceRoot, "shared/component-only.tsx"))).toBeUndefined();
 });
 
-test("Dynamic class compositions, cycles, unresolved imports, and short local values do not create shared contracts.", () => {
+test("Dynamic compositions, cycles, and unresolved imports are ignored; short explicit shared contracts qualify.", () => {
   const { sourceRoot, matches } = project({
     "constants/broken.ts": `
       export const unknown = makeClasses();
@@ -89,8 +89,10 @@ test("Dynamic class compositions, cycles, unresolved imports, and short local va
       }
     `,
   });
-  expect(matches.size).toBe(0);
-  expect(matches.get(path.join(sourceRoot, "shared/b.tsx"))).toBeUndefined();
+  expect(matches.size).toBe(1);
+  const shortReuse = matches.get(path.join(sourceRoot, "shared/b.tsx"));
+  expect(shortReuse).toHaveLength(1);
+  expect(shortReuse?.[0]?.occurrence.classes).toEqual(["bg-red-500", "p-2"]);
 });
 
 test("Parenthesized strings, no-substitution templates and local cn chains are resolved statically.", () => {
