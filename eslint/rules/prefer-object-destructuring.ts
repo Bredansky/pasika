@@ -79,7 +79,6 @@ function directPropertyBinding(
   const member = declarator.init;
   if (isEnumValue(member.object)) return undefined;
   if (member.computed || member.optional || member.property.type !== "Identifier") return undefined;
-  if (!memberCanBecomeLocal(member)) return undefined;
   if (context.sourceCode.getCommentsInside(declarator).length > 0) return undefined;
 
   const propertyName = member.property.name;
@@ -97,36 +96,6 @@ function directPropertyBinding(
     source,
     sourceText,
     bindingText: propertyName,
-  };
-}
-
-/**
- * Locale dictionaries stay qualified instead of being destructured.
- * A plain same-name `const` binding is nevertheless a redundant copy.
- * Keep this separate from the grouping logic, which intentionally ignores locales.
- */
-function localePropertyBinding(
-  context: Rule.RuleContext,
-  declarator: VariableDeclarator,
-): SinglePropertyBinding | undefined {
-  if (declarator.id.type !== "Identifier" || hasTypeAnnotation(declarator.id)) return undefined;
-  const member = declarator.init;
-  if (
-    member?.type !== "MemberExpression" ||
-    member.computed ||
-    member.optional ||
-    member.property.type !== "Identifier" ||
-    rootIdentifierName(member) !== "locales" ||
-    declarator.id.name !== member.property.name ||
-    context.sourceCode.getCommentsInside(declarator).length > 0
-  ) {
-    return undefined;
-  }
-
-  return {
-    node: declarator,
-    sourceText: context.sourceCode.getText(member.object),
-    propertyName: member.property.name,
   };
 }
 
@@ -468,7 +437,7 @@ function groupedDeclarations(
     if (!nextDeclarator) break;
 
     const nextBinding = directPropertyBinding(context, nextDeclarator, isEnumValue);
-    if (nextBinding?.sourceText !== firstBinding.sourceText) break;
+    if (nextBinding?.sourceText !== firstBinding.sourceText || !memberCanBecomeLocal(nextBinding.member)) break;
     if (seenProperties.has(nextBinding.propertyName)) break;
 
     const [, previousEnd] = context.sourceCode.getRange(previous);
@@ -725,15 +694,6 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
         recordMemberUsage(context, currentUsageScope(), ownershipResolver, node, isEnumValue, detachableCall);
       },
       VariableDeclaration(node) {
-        if (node.kind === "const") {
-          for (const declarator of node.declarations) {
-            const binding = localePropertyBinding(context, declarator);
-            if (binding) {
-              context.report({ node: binding.node, message: singlePropertyMessage(binding) });
-            }
-          }
-        }
-
         for (const declarator of node.declarations) {
           if (declarator.id.type !== "ObjectPattern" || !declarator.init || !isEnumValue(declarator.init)) continue;
 
@@ -794,9 +754,28 @@ export const preferObjectDestructuringRule: Rule.RuleModule = {
           return;
         }
 
-        const bindings = node.declarations
+        const candidates = node.declarations
           .map((declarator) => directPropertyBinding(context, declarator, isEnumValue))
           .filter((binding): binding is PropertyBinding => binding !== undefined);
+
+        // Not every property should be destructured (for example, locale namespaces
+        // and fields that cannot form a compliant local name). Redundant bindings
+        // from those sources still violate the single-property rule.
+        if (node.kind === "const") {
+          for (const binding of candidates) {
+            if (memberCanBecomeLocal(binding.member) || !supportsSinglePropertySource(binding.source)) continue;
+            context.report({
+              node: binding.declarator,
+              message: singlePropertyMessage({
+                node: binding.declarator,
+                sourceText: binding.sourceText,
+                propertyName: binding.propertyName,
+              }),
+            });
+          }
+        }
+
+        const bindings = candidates.filter(({ member }) => memberCanBecomeLocal(member));
         if (bindings.length === 0) return;
 
         const firstBinding = bindings[0];

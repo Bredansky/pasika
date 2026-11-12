@@ -125,7 +125,7 @@ void describe("When a block reads two or more different properties from one obje
     ],
     invalid: [
       {
-        code: "const donationMainJarOwner = locales.donationMainJarOwner; use(donationMainJarOwner);",
+        code: "function donationOwnerLabel() { const donationMainJarOwner = locales.donationMainJarOwner; return donationMainJarOwner; }",
         output: null,
         errors: [
           {
@@ -134,7 +134,7 @@ void describe("When a block reads two or more different properties from one obje
         ],
       },
       {
-        code: "const credentials = locales.credentials; use(credentials);",
+        code: "function credentialsLabel() { const credentials = locales.credentials; return credentials; }",
         output: null,
         errors: [
           {
@@ -143,11 +143,38 @@ void describe("When a block reads two or more different properties from one obje
         ],
       },
       {
-        code: "const title = locales.donation.title; use(title);",
+        code: "function donationTitle() { const title = locales.donation.title; return title; }",
         output: null,
         errors: [
           {
             message: `"title" is the only property bound from "locales.donation". Read "locales.donation.title" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: "function label(row) { const user_account_id = row.user_account_id; return user_account_id; }",
+        output: null,
+        errors: [
+          {
+            message: `"user_account_id" is the only property bound from "row". Read "row.user_account_id" directly instead of creating a local binding. ${doc}`,
+          },
+        ],
+      },
+      {
+        code: [
+          "function labels() {",
+          "  const donationMainJarOwner = locales.donationMainJarOwner;",
+          "  const donationGoal = locales.donationGoal;",
+          "  return [donationMainJarOwner, donationGoal];",
+          "}",
+        ].join("\n"),
+        output: null,
+        errors: [
+          {
+            message: `"donationMainJarOwner" is the only property bound from "locales". Read "locales.donationMainJarOwner" directly instead of creating a local binding. ${doc}`,
+          },
+          {
+            message: `"donationGoal" is the only property bound from "locales". Read "locales.donationGoal" directly instead of creating a local binding. ${doc}`,
           },
         ],
       },
