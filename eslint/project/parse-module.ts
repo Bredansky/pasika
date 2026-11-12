@@ -178,6 +178,78 @@ export function parseModule(file: string): ParsedModule {
     imports.push({ specifier: specifierNode.text, names, line: lineOf(sourceFile, node) });
   };
 
+  /**
+   * Dynamic imports can consume named exports without a static import clause,
+   * as in Next.js lazy loading: import("./star-field").then((mod) => mod.StarField).
+   * Record only statically visible member names; an unrelated export in the
+   * dynamically loaded module must still be eligible for dead-code detection.
+   */
+  const collectDynamicImports = (node: ts.Node): void => {
+    const specifier = ts.isCallExpression(node) ? node.arguments[0] : undefined;
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      specifier &&
+      ts.isStringLiteral(specifier)
+    ) {
+      const names = new Set<string>();
+      const thenMember = node.parent;
+      const thenCall = thenMember.parent;
+
+      if (
+        ts.isPropertyAccessExpression(thenMember) &&
+        thenMember.expression === node &&
+        thenMember.name.text === "then" &&
+        ts.isCallExpression(thenCall) &&
+        thenCall.expression === thenMember
+      ) {
+        const callback = thenCall.arguments[0];
+        if (
+          callback &&
+          (ts.isArrowFunction(callback) || ts.isFunctionExpression(callback)) &&
+          callback.parameters.length === 1
+        ) {
+          const binding = callback.parameters[0]?.name;
+          if (binding && ts.isIdentifier(binding)) {
+            const visit = (child: ts.Node): void => {
+              if (
+                ts.isPropertyAccessExpression(child) &&
+                ts.isIdentifier(child.expression) &&
+                child.expression.text === binding.text
+              ) {
+                names.add(child.name.text);
+              } else if (
+                ts.isElementAccessExpression(child) &&
+                ts.isIdentifier(child.expression) &&
+                child.expression.text === binding.text &&
+                ts.isStringLiteral(child.argumentExpression)
+              ) {
+                names.add(child.argumentExpression.text);
+              }
+              ts.forEachChild(child, visit);
+            };
+            visit(callback.body);
+          } else if (binding && ts.isObjectBindingPattern(binding)) {
+            for (const element of binding.elements) {
+              if (element.dotDotDotToken) continue;
+              let importedName: string | undefined;
+              if (element.propertyName) {
+                importedName = propertyName(element.propertyName);
+              } else if (ts.isIdentifier(element.name)) {
+                importedName = element.name.text;
+              }
+              if (importedName) names.add(importedName);
+            }
+          }
+        }
+      }
+
+      addImport(specifier, [...names], node);
+    }
+    ts.forEachChild(node, collectDynamicImports);
+  };
+  collectDynamicImports(sourceFile);
+
   const namespaceMemberNames = (namespace: string): string[] => {
     const names = new Set<string>();
     const visit = (node: ts.Node): void => {
