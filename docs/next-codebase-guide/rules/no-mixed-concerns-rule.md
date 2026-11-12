@@ -72,14 +72,19 @@ Why: `Menu` and `MenuItem` each have their own file, so both are independently s
 // src/constants/index.ts
 import { cva } from "class-variance-authority";
 
+export enum ButtonTone {
+  Primary = "primary",
+  Secondary = "secondary",
+}
+
 export const buttonVariants = cva("inline-flex items-center rounded", {
   variants: {
     tone: {
-      primary: "bg-primary-canvas text-primary-ink",
-      secondary: "bg-muted-canvas text-muted-ink",
+      [ButtonTone.Primary]: "bg-primary-canvas text-primary-ink",
+      [ButtonTone.Secondary]: "bg-muted-canvas text-muted-ink",
     },
   },
-  defaultVariants: { tone: "primary" },
+  defaultVariants: { tone: ButtonTone.Primary },
 });
 ```
 
@@ -96,7 +101,7 @@ export function Button({ tone, className, ...props }: ButtonProps): React.JSX.El
 }
 ```
 
-Why: `buttonVariants` is used only by `Button` and files that also import `Button`, so extracting its styling definition into `constants/` creates an unnecessary second owner.
+Why: `buttonVariants` and `ButtonTone` belong to `Button` and its consumers, so extracting them into `constants/` creates an unnecessary second owner.
 
 ## Correct — Keep CVA Variants With Their Component
 
@@ -105,14 +110,19 @@ Why: `buttonVariants` is used only by `Button` and files that also import `Butto
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/utils/cn";
 
-const buttonVariants = cva("inline-flex items-center rounded", {
+export enum ButtonTone {
+  Primary = "primary",
+  Secondary = "secondary",
+}
+
+export const buttonVariants = cva("inline-flex items-center rounded", {
   variants: {
     tone: {
-      primary: "bg-primary-canvas text-primary-ink",
-      secondary: "bg-muted-canvas text-muted-ink",
+      [ButtonTone.Primary]: "bg-primary-canvas text-primary-ink",
+      [ButtonTone.Secondary]: "bg-muted-canvas text-muted-ink",
     },
   },
-  defaultVariants: { tone: "primary" },
+  defaultVariants: { tone: ButtonTone.Primary },
 });
 
 type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
@@ -124,16 +134,18 @@ export function Button({ tone, className, ...props }: ButtonProps): React.JSX.El
 
 ```tsx
 // src/features/profile/profile-actions.tsx
-import { Button } from "@/shared/button";
+import { Button, ButtonTone, buttonVariants } from "@/shared/button";
 
 export function ProfileActions(): React.JSX.Element {
   return (
     <div>
-      <Button tone="primary">Save</Button>
-      <Button tone="secondary">Cancel</Button>
+      <Button tone={ButtonTone.Primary}>Save</Button>
+      <a href="/help" className={buttonVariants({ tone: ButtonTone.Secondary })}>
+        Help
+      </a>
     </div>
   );
 }
 ```
 
-Why: CVA defines the button's visual options next to the component, and callers select the appearance through its typed props rather than applying its styling to unrelated markup.
+Why: CVA and its enum remain with `Button`, while consumers that also import `Button` may reuse the exported styling API.
