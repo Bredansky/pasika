@@ -1255,6 +1255,18 @@
       "ref": "pasika/no-duplicate-jsx-classes"
     },
     {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "An exported static styling composition of at least two classes MUST NOT be reused across files through JSX `className` (including custom components) or a `cn()`/`clsx()` styling expression. This includes static entries in exported class-name maps, accessed through property names, string-enum indexes, or destructuring.",
+      "hash": "eb6e4848f0",
+      "ref": "pasika/no-duplicate-jsx-classes"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "Dynamic map indexes MUST NOT be assumed to be a specific static class set; the rule reports only resolvable entries, keeping unrelated variants distinct.",
+      "hash": "0d3298a269",
+      "ref": "pasika/no-duplicate-jsx-classes"
+    },
+    {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Styling MUST prioritize existing Tailwind utilities, then theme-generated utilities (defining `@theme inline` tokens when needed); custom `@utility` or standalone CSS is allowed only when neither option can express the value.",
       "hash": "36107c49ca",

@@ -72,6 +72,16 @@ const sharedClasses: Record<string, string> = {
     'import { minecraftControlClassName } from "@/constants"; export function Wrapper() { return <Button className={minecraftControlClassName} />; }',
   "shared/local-classes.tsx":
     'export function Local() { const localClasses = "p-2 bg-green-500 border-2 rounded-md shadow-md"; return <div className={localClasses} />; }',
+  "constants/variant-map.ts":
+    'export const variantMap = { primary: "bg-gradient-to-r from-primary to-accent", secondary: "bg-secondary text-black" };',
+  "shared/indexed-a.tsx":
+    'import { variantMap } from "@/constants/variant-map"; export function Button() { return <ButtonCore className={variantMap.primary} />; }',
+  "shared/indexed-b.tsx":
+    'import { variantMap } from "@/constants/variant-map"; export function Loading() { return <Skeleton className={cn(variantMap["primary"], "h-10")} />; }',
+  "shared/indexed-other.tsx":
+    'import { variantMap } from "@/constants/variant-map"; export function Different() { return <Skeleton className={variantMap.secondary} />; }',
+  "shared/indexed-dynamic.tsx":
+    'import { variantMap } from "@/constants/variant-map"; export function Dynamic({ variant }: { variant: string }) { return <Skeleton className={variantMap[variant as keyof typeof variantMap]} />; }',
 };
 for (const [name, code] of Object.entries(sharedClasses)) {
   const file = path.join(root, "src", name);
@@ -159,10 +169,27 @@ void describe("Exported class compositions are detected across different native 
       sharedFixture("shared/one-off.tsx"),
       sharedFixture("shared/short-a.tsx"),
       sharedFixture("shared/non-style-use.tsx"),
-      sharedFixture("shared/custom-component.tsx"),
       sharedFixture("shared/local-classes.tsx"),
     ],
     invalid: [
+      {
+        ...sharedFixture("shared/indexed-b.tsx"),
+        errors: [
+          {
+            message:
+              '<Skeleton> reuses exported class composition "variantMap.primary" (3 classes) from src/shared/indexed-a.tsx:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md',
+          },
+        ],
+      },
+      {
+        ...sharedFixture("shared/custom-component.tsx"),
+        errors: [
+          {
+            message:
+              '<Button> reuses exported class composition "minecraftControlClassName" (8 classes) from src/features/showcase/minecraft-button.tsx:1. Extract a shared component. See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md',
+          },
+        ],
+      },
       {
         ...sharedFixture("shared/short-b.tsx"),
         errors: [
@@ -188,13 +215,23 @@ void describe("Exported class compositions are detected across different native 
 test("Shared class compositions follow a barrel, aliases, local cn() values and dynamic consumer variants.", () => {
   const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
   expect(shared.get(sharedFixture("shared/minecraft-link.tsx").filename)).toHaveLength(1);
+  expect(shared.get(sharedFixture("shared/custom-component.tsx").filename)).toHaveLength(1);
   expect(shared.get(sharedFixture("features/showcase/minecraft-button.tsx").filename)).toBeUndefined();
-  for (const name of [
-    "shared/one-off.tsx",
-    "shared/non-style-use.tsx",
-    "shared/custom-component.tsx",
-    "shared/local-classes.tsx",
-  ]) {
+  for (const name of ["shared/one-off.tsx", "shared/non-style-use.tsx", "shared/local-classes.tsx"]) {
     expect(shared.get(sharedFixture(name).filename)).toBeUndefined();
   }
+});
+
+test("An exported static styling composition of at least two classes MUST NOT be reused across files through JSX className (including custom components) or a cn()/clsx() styling expression. This includes static entries in exported class-name maps, accessed through property names, string-enum indexes, or destructuring.", () => {
+  const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
+  const indexed = shared.get(sharedFixture("shared/indexed-b.tsx").filename);
+  expect(indexed).toHaveLength(1);
+  expect(indexed?.[0]?.occurrence.classes).toEqual(["bg-gradient-to-r", "from-primary", "to-accent"]);
+  expect(shared.get(sharedFixture("shared/custom-component.tsx").filename)).toHaveLength(1);
+});
+
+test("Dynamic map indexes MUST NOT be assumed to be a specific static class set; the rule reports only resolvable entries, keeping unrelated variants distinct.", () => {
+  const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
+  expect(shared.get(sharedFixture("shared/indexed-dynamic.tsx").filename)).toBeUndefined();
+  expect(shared.get(sharedFixture("shared/indexed-other.tsx").filename)).toBeUndefined();
 });

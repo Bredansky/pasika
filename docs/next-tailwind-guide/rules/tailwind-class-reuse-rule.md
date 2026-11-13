@@ -4,6 +4,8 @@ Shared class-name constants separate reusable visual styling from its markup. Re
 
 - Shared component styling MUST be reused through component composition rather than shared class-name constants.
 - Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.
+- An exported static styling composition of at least two classes MUST NOT be reused across files through JSX `className` (including custom components) or a `cn()`/`clsx()` styling expression. This includes static entries in exported class-name maps, accessed through property names, string-enum indexes, or destructuring.
+- Dynamic map indexes MUST NOT be assumed to be a specific static class set; the rule reports only resolvable entries, keeping unrelated variants distinct.
 
 ## Incorrect — Sharing Class Names Between Components
 
