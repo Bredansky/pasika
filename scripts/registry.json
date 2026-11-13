@@ -398,14 +398,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A module imported only from an existing client dependency graph SHOULD NOT repeat the `\"use client\"` directive.",
-      "hash": "1ce99b19b0",
+      "text": "A module with at least one runtime consumer MUST NOT repeat the `\"use client\"` directive when every consumer is inside an existing client dependency graph and no server entry reaches the module.",
+      "hash": "b53c918e8b",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A server-compatible internal component SHOULD NOT declare `\"use client\"` unless client execution is required by its dependencies.",
-      "hash": "270b7895c6",
+      "text": "A non-error-boundary App Router entry or internally consumed module MUST NOT declare `\"use client\"` when neither it nor its runtime dependencies require client-only execution.",
+      "hash": "1f9519c7d7",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {

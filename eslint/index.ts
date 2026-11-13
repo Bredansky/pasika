@@ -253,9 +253,7 @@ const pasikaNextjsAppConfig: Linter.Config = {
   plugins: {
     pasika: pasikaPlugin,
   },
-  rules: Object.fromEntries(
-    pasikaNextjsAppRuleIds.map((id) => [id, id === "pasika/no-redundant-client-boundary" ? "warn" : "error"]),
-  ),
+  rules: Object.fromEntries(pasikaNextjsAppRuleIds.map((id) => [id, "error"])),
 };
 
 /** Type information for ownership-aware contract rules, without forcing JS files into a TS project. */

@@ -65,9 +65,10 @@ export const requireClientBoundaryRule: Rule.RuleModule = {
 export const noRedundantClientBoundaryRule: Rule.RuleModule = {
   meta: {
     schema: [],
-    type: "suggestion",
+    type: "problem",
     docs: {
-      description: "Discourage client directives duplicated inside an existing boundary or on server-compatible UI.",
+      description:
+        "Disallow demonstrably redundant client directives inside an existing boundary or on server-compatible UI.",
     },
   },
   create(context) {

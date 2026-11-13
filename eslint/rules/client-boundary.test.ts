@@ -141,7 +141,7 @@ void describe("A server-reachable module MUST NOT use client-only React hooks, J
   });
 });
 
-void describe('A module imported only from an existing client dependency graph SHOULD NOT repeat the `"use client"` directive.', () => {
+void describe('A module with at least one runtime consumer MUST NOT repeat the `"use client"` directive when every consumer is inside an existing client dependency graph and no server entry reaches the module.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/nested/parent.tsx"),
@@ -152,7 +152,7 @@ void describe('A module imported only from an existing client dependency graph S
   });
 });
 
-void describe('A server-compatible internal component SHOULD NOT declare `"use client"` unless client execution is required by its dependencies.', () => {
+void describe('A non-error-boundary App Router entry or internally consumed module MUST NOT declare `"use client"` when neither it nor its runtime dependencies require client-only execution.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/marked/button.tsx"),
