@@ -35,6 +35,10 @@ These terms name the component classifications and the extraction triggers this 
 | DOM manipulation             | Imperative DOM APIs such as `focus()`, `blur()`, `scrollIntoView()`, `click()`, `classList`, or constructing a `MutationObserver`, `ResizeObserver`, or `IntersectionObserver`.                                                                       |
 | Resource lifecycle           | Setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, `close()`, `cleanup()`, or `unmount()`.                                                                                                                                           |
 | Extraction score             | A count a rule computes from its own signals to decide whether code needs to be extracted; reaching two triggers extraction.                                                                                                                          |
+| Client boundary              | A module starting with `"use client"` that can be imported by a Server Component as a client entry point.                                                                                                                                             |
+| Client dependency graph      | The transitive runtime-import graph beneath an explicitly marked client entry point; type-only imports are excluded.                                                                                                                                  |
+| Server-reachable module      | A module reachable from a Next.js App Router server entry point through runtime imports without crossing a client boundary.                                                                                                                           |
+| Client-only behavior         | React client-only hooks, JSX event handlers, browser-only APIs, or explicit `client-only` imports.                                                                                                                                                    |
 
 ## Route Terms
 

@@ -379,6 +379,30 @@
       "ref": "pasika/application-structure"
     },
     {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `\"use client\"` as its first directive.",
+      "hash": "b999f198c3",
+      "ref": "pasika/require-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A server-reachable module MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs without a client boundary.",
+      "hash": "44253c3e75",
+      "ref": "pasika/require-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A module imported only from an existing client dependency graph SHOULD NOT repeat the `\"use client\"` directive.",
+      "hash": "1ce99b19b0",
+      "ref": "pasika/no-redundant-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A server-compatible internal component SHOULD NOT declare `\"use client\"` unless client execution is required by its dependencies.",
+      "hash": "270b7895c6",
+      "ref": "pasika/no-redundant-client-boundary"
+    },
+    {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
       "text": "A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.",
       "hash": "10844fbc57",
