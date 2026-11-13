@@ -42,11 +42,12 @@ export const noDuplicateJsxClassesRule: Rule.RuleModule = {
         for (const { occurrence, original } of shared) {
           const reference = path.relative(path.dirname(root), original.file).split(path.sep).join("/");
           const name = occurrence.symbol.split("\u0000")[1] ?? "class composition";
+          const subject = occurrence.tag.endsWith("()") ? occurrence.tag : `<${occurrence.tag}>`;
           context.report({
             node,
             loc: { line: occurrence.line, column: occurrence.column },
             message:
-              `<${occurrence.tag}> reuses exported class composition "${name}" (${String(occurrence.classes.length)} classes) from ` +
+              `${subject} reuses exported class composition "${name}" (${String(occurrence.classes.length)} classes) from ` +
               `${reference}:${String(original.line)}. Extract a shared component. ` +
               "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
           });

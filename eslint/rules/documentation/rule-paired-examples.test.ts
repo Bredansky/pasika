@@ -67,8 +67,19 @@ void describe("A Rule MUST place its first Incorrect/Correct example immediately
   const MESSAGE = "Rule requirements must be followed directly by the first Incorrect/Correct example";
 
   documentationRuleTester.run("rule-paired-examples", rulePairedExamplesRule, {
-    valid: [{ filename: "foo-rule.md", code: `${heading}${examples}` }],
+    valid: [
+      { filename: "foo-rule.md", code: `${heading}${examples}` },
+      {
+        filename: "foo-rule.md",
+        code: `# Foo Rule\n\nThis rule keeps helpers named.\n\n- A helper MUST have a name that\n  stays stable across modules.\n${examples}`,
+      },
+    ],
     invalid: [
+      {
+        filename: "foo-rule.md",
+        code: `${heading}  The rule also detects exported class-name maps reused through custom components.\n${examples}`,
+        errors: [{ message: MESSAGE }],
+      },
       {
         filename: "foo-rule.md",
         code: `${heading}\nExtra explanation of the rule.\n${examples}`,

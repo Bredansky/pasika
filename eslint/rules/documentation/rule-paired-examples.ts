@@ -51,6 +51,30 @@ export const rulePairedExamplesRule: MarkdownRuleDefinition = {
               message: "Rule requirement bullets must form one uninterrupted list without blank lines",
             });
           }
+          // Markdown treats two-space-indented text immediately after a bullet
+          // as part of that bullet, not as a following paragraph. Reject a
+          // separate sentence there once the requirement sentence has ended,
+          // while allowing a long requirement to wrap mid-sentence.
+          if (requirements?.type === "list") {
+            const lastItem = requirements.children.at(-1);
+            const firstParagraph = lastItem?.children[0];
+            if (firstParagraph?.type === "paragraph") {
+              const startLine = getLine(firstParagraph);
+              const endLine = firstParagraph.position?.end.line ?? startLine;
+              const lines = context.sourceCode.lines;
+              for (let line = startLine + 1; line <= endLine; line++) {
+                const previous = lines[line - 2]?.trimEnd() ?? "";
+                const continued = lines[line - 1] ?? "";
+                if (/[.!?][`*_]*$/u.test(previous) && /^[ \t]{2,}\S/u.test(continued)) {
+                  context.report({
+                    node: firstParagraph,
+                    message: "Rule requirements must be followed directly by the first Incorrect/Correct example",
+                  });
+                  break;
+                }
+              }
+            }
+          }
           for (const child of node.children.slice(requirementsIndex + 1, firstExampleIndex)) {
             context.report({
               node: child,

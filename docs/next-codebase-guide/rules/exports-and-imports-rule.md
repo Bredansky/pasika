@@ -7,7 +7,8 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
 - An `index.ts` barrel MUST re-export only modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, or a package.
 - Consecutive import declarations MUST NOT be separated by a blank line.
-- An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
+- An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
+- An import between architectural layers MUST use the `@/*` alias, even when a relative path would require only one parent traversal.
 - A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
 - A file under `src/compositions/` MUST NOT import from `src/app/`.
 - A file in a feature folder MUST NOT import from another feature folder, `src/compositions/`, or `src/app/`.
@@ -75,7 +76,6 @@ Why: relative imports may traverse at most one parent directory. A `../../` path
 import { debounce } from "@/utils/debounce";
 import { formatSlot } from "./utils/format-slot";
 import { type StreamSlot } from "./types";
-import { buildSchedule } from "../schedule-builder";
 ```
 
 Why: imports in the current directory or direct parent use relative paths; the distant utility requires multiple parent traversals, so it uses the alias.
@@ -83,20 +83,38 @@ Why: imports in the current directory or direct parent use relative paths; the d
 ## Incorrect — Alias For A Direct Parent Import
 
 ```ts
-// src/compositions/dashboard-view.tsx
-import { locales } from "@/locales";
+// src/features/stream/StreamBoard/schedule.ts
+import { buildSchedule } from "@/features/stream/schedule-builder";
 ```
 
-Why: the target is in the importer's direct parent directory, so the import must use `../`.
+Why: the target belongs to the same feature layer and is in the importer's direct parent directory, so the import must use `../`.
 
 ## Correct — Relative Path To The Direct Parent
 
 ```ts
-// src/compositions/dashboard-view.tsx
-import { locales } from "../locales";
+// src/features/stream/StreamBoard/schedule.ts
+import { buildSchedule } from "../schedule-builder";
 ```
 
-Why: one parent traversal is allowed and must remain relative.
+Why: one parent traversal within the same layer is allowed and must remain relative.
+
+## Incorrect — Relative Import Across Layers
+
+```ts
+// src/compositions/donation-milestone.tsx
+import { RetroButton } from "../shared/retro-button";
+```
+
+Why: the relative import crosses from the compositions layer to the shared layer.
+
+## Correct — Alias For Cross-Layer Import
+
+```ts
+// src/compositions/donation-milestone.tsx
+import { RetroButton } from "@/shared/retro-button";
+```
+
+Why: cross-layer dependencies use the root alias even when the relative path would be short.
 
 ## Incorrect — Next.js Page Uses a Named Export
 

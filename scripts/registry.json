@@ -524,15 +524,15 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An internal application export with no consumers MUST be removed or kept private when locally used.",
-      "hash": "452c1aa1e3",
-      "ref": "pasika/no-unused-app-exports"
-    },
-    {
-      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
       "ref": "pasika/named-exports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "An internal application export with no consumers MUST be removed or kept private when locally used.",
+      "hash": "452c1aa1e3",
+      "ref": "pasika/no-unused-app-exports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
@@ -554,8 +554,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An import whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.",
-      "hash": "7c0a7f2413",
+      "text": "An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.",
+      "hash": "fa9e27442d",
+      "ref": "pasika/import-boundaries"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "An import between architectural layers MUST use the `@/*` alias, even when a relative path would require only one parent traversal.",
+      "hash": "2cc1b86f96",
       "ref": "pasika/import-boundaries"
     },
     {
