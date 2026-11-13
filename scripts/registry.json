@@ -398,14 +398,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A file MUST NOT repeat `\"use client\"` when it is imported only by code already behind a `\"use client\"` boundary and is not imported by server-side code.",
-      "hash": "c3d9f63e24",
+      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
+      "hash": "71aa99e0ad",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A non-error-boundary App Router entry or internally consumed module MUST NOT declare `\"use client\"` when neither it nor its runtime dependencies require client-only execution.",
-      "hash": "1f9519c7d7",
+      "text": "A page or other file used by the App Router MUST NOT declare `\"use client\"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.",
+      "hash": "97c9619a80",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {

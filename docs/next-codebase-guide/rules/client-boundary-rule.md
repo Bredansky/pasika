@@ -1,13 +1,13 @@
 # Client Boundary Rule
 
-React Server Components use module imports to determine which code runs on the server and which code belongs to the client. This rule keeps Next.js client entry points intentional without duplicating directives on their transitive dependencies.
+Next.js App Router pages are Server Components by default, but interactive code needs a client boundary. This rule avoids missing and unnecessary `"use client"` directives.
 
 - A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).
 - A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `"use client"` boundary.
-- A file MUST NOT repeat `"use client"` when it is imported only by code already behind a `"use client"` boundary and is not imported by server-side code.
-- A non-error-boundary App Router entry or internally consumed module MUST NOT declare `"use client"` when neither it nor its runtime dependencies require client-only execution.
+- A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive.
+- A page or other file used by the App Router MUST NOT declare `"use client"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.
 
-## Incorrect — Event Handler in a Server Module
+## Incorrect — Interactive Component Without a Boundary
 
 ```tsx
 // src/app/page.tsx
@@ -23,29 +23,22 @@ export function LikeButton() {
 }
 ```
 
-Why: the button is reached from a server entry point without a client boundary, but its click handler needs browser-side execution.
+Why: the server page imports a button that needs browser-side event handling, but the button has no client boundary.
 
-## Correct — Client Boundary at the Interactive Leaf
+## Correct — Interactive Component Declares a Boundary
 
 ```tsx
-// src/app/page.tsx
-import { LikeButton } from "@/features/posts/like-button";
-
-export default function Page() {
-  return <LikeButton />;
-}
-
 // src/features/posts/like-button.tsx
-("use client");
+"use client";
 
 export function LikeButton() {
   return <button onClick={() => alert("Liked")}>Like</button>;
 }
 ```
 
-Why: the interactive component is an explicit client entry point while the page remains server-rendered.
+Why: the button is a client entry point while the page stays a Server Component.
 
-## Incorrect — Nested Directive Duplicated
+## Incorrect — Imported File Repeats a Boundary
 
 ```tsx
 // src/features/posts/like-button.tsx
@@ -69,57 +62,44 @@ export function LikeIcon() {
 }
 ```
 
-Why: `LikeIcon` already belongs to the client graph through its parent import.
+Why: `LikeIcon` is used only by a component that already has a client boundary.
 
-## Correct — Nested Component Inherits Client Execution
+## Correct — Only the Entry Point Declares a Boundary
 
 ```tsx
-// src/features/posts/like-button.tsx
-"use client";
-
-import { LikeIcon } from "./like-icon";
-
-export function LikeButton() {
-  return (
-    <button onClick={() => alert("Liked")}>
-      <LikeIcon />
-    </button>
-  );
-}
-
 // src/features/posts/like-icon.tsx
 export function LikeIcon() {
   return <svg aria-hidden="true" />;
 }
 ```
 
-Why: modules imported by a client entry inherit client execution without another directive.
+Why: the importing `LikeButton` already provides the client boundary.
 
-## Incorrect — Presentation-Only Boundary
+## Incorrect — Static Page Declares a Boundary
 
 ```tsx
-// src/features/posts/post-count.tsx
+// src/app/page.tsx
 "use client";
 
-export function PostCount({ count }: { count: number }) {
-  return <span>{count}</span>;
+export default function Page() {
+  return <h1>Posts</h1>;
 }
 ```
 
-Why: the component can render on the server and has no client-only dependency.
+Why: this page does not need client-only features.
 
-## Correct — Server-Compatible Presentation
+## Correct — Static Page Stays Server-Compatible
 
 ```tsx
-// src/features/posts/post-count.tsx
-export function PostCount({ count }: { count: number }) {
-  return <span>{count}</span>;
+// src/app/page.tsx
+export default function Page() {
+  return <h1>Posts</h1>;
 }
 ```
 
-Why: a presentation-only component stays compatible with server rendering and can still be imported by client entry points.
+Why: static content works without a client boundary.
 
-## Incorrect — Next.js Error Boundary Without a Directive
+## Incorrect — Error File Lacks a Boundary
 
 ```tsx
 // src/app/error.tsx
@@ -128,9 +108,9 @@ export default function Error() {
 }
 ```
 
-Why: an App Router error file is a client entry even when it contains no hooks of its own.
+Why: Next.js requires error files to be Client Components, even when they render only static content.
 
-## Correct — Next.js Error Boundary with a Directive
+## Correct — Error File Declares a Boundary
 
 ```tsx
 // src/app/error.tsx
@@ -141,4 +121,4 @@ export default function Error() {
 }
 ```
 
-Why: the framework's error boundary is explicitly marked as client code.
+Why: the error boundary has the directive Next.js requires.

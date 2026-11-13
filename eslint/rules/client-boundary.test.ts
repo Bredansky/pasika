@@ -141,7 +141,7 @@ void describe('A Server Component MUST NOT use client-only React hooks, JSX even
   });
 });
 
-void describe('A file MUST NOT repeat `"use client"` when it is imported only by code already behind a `"use client"` boundary and is not imported by server-side code.', () => {
+void describe('A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/nested/parent.tsx"),
@@ -152,7 +152,7 @@ void describe('A file MUST NOT repeat `"use client"` when it is imported only by
   });
 });
 
-void describe('A non-error-boundary App Router entry or internally consumed module MUST NOT declare `"use client"` when neither it nor its runtime dependencies require client-only execution.', () => {
+void describe('A page or other file used by the App Router MUST NOT declare `"use client"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/marked/button.tsx"),
