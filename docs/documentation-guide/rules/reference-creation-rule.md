@@ -181,27 +181,3 @@ Combines conditional classes and resolves conflicts.
 ```
 
 Why: both blocks sit at the same heading level, so each is independently scannable and linkable.
-
-## Incorrect — Local Term Added to a Shared Glossary
-
-```markdown
-# Glossary Reference
-
-| Term             | Definition                          |
-| ---------------- | ----------------------------------- |
-| One-off callback | A callback used by one feature rule |
-```
-
-Why: the term is needed by one document only, so a shared glossary adds indirection without allowing another document to reuse its definition.
-
-## Correct — Glossary Term Used by Several Documents
-
-```markdown
-# Glossary Reference
-
-| Term             | Definition                           |
-| ---------------- | ------------------------------------ |
-| Request envelope | The data structure carrying a result |
-```
-
-Why: both the guide and its route-handler rule use the same term, so one shared definition avoids divergent meanings.
