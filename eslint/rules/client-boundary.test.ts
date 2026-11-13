@@ -112,7 +112,7 @@ write("features/unconsumed/pure.tsx", '"use client";\nexport function Pure() { r
 
 process.chdir(root);
 
-void describe('A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive.', () => {
+void describe('A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive (Next.js error file convention).', () => {
   ruleTester.run("require-client-boundary", requireClientBoundaryRule, {
     valid: [fixture("app/allowed/error.tsx"), fixture("app/allowed/global-error.tsx")],
     invalid: [

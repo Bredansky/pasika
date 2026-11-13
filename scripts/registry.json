@@ -386,8 +386,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `\"use client\"` as its first directive.",
-      "hash": "b999f198c3",
+      "text": "A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `\"use client\"` as its first directive ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).",
+      "hash": "19751a21f1",
       "ref": "pasika/require-client-boundary"
     },
     {
