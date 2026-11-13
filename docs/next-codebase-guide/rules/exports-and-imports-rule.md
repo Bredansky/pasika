@@ -76,7 +76,6 @@ Why: relative imports may traverse at most one parent directory. A `../../` path
 import { debounce } from "@/utils/debounce";
 import { formatSlot } from "./utils/format-slot";
 import { type StreamSlot } from "./types";
-import { buildSchedule } from "../schedule-builder";
 ```
 
 Why: imports in the current directory or direct parent use relative paths; the distant utility requires multiple parent traversals, so it uses the alias.
