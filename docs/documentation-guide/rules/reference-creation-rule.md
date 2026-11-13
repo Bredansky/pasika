@@ -9,6 +9,7 @@ References without a consistent creation process scatter lookup material. This r
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 - Every lookup block of a shared glossary MUST be read by the first step of a How To section.
+- A Glossary Reference MUST NOT define a term appearing in fewer than two other documentation files belonging to the same guide.
 - A Reference MUST NOT use a heading deeper than level 2.
 
 ## Incorrect — Reference Links to Another Document
@@ -180,3 +181,27 @@ Combines conditional classes and resolves conflicts.
 ```
 
 Why: both blocks sit at the same heading level, so each is independently scannable and linkable.
+
+## Incorrect — Local Term Added to a Shared Glossary
+
+```markdown
+# Glossary Reference
+
+| Term             | Definition                          |
+| ---------------- | ----------------------------------- |
+| One-off callback | A callback used by one feature rule |
+```
+
+Why: the term is needed by one document only, so a shared glossary adds indirection without allowing another document to reuse its definition.
+
+## Correct — Glossary Term Used by Several Documents
+
+```markdown
+# Glossary Reference
+
+| Term             | Definition                           |
+| ---------------- | ------------------------------------ |
+| Request envelope | The data structure carrying a result |
+```
+
+Why: both the guide and its route-handler rule use the same term, so one shared definition avoids divergent meanings.

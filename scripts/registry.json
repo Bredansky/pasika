@@ -194,6 +194,12 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Glossary Reference MUST NOT define a term appearing in fewer than two other documentation files belonging to the same guide.",
+      "hash": "626177137f",
+      "ref": "pasika/glossary-shared-terms"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT use a heading deeper than level 2.",
       "hash": "d8899e0d2a",
       "ref": "pasika/reference-max-heading-depth"

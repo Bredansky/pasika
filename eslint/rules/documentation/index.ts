@@ -3,6 +3,7 @@
  */
 import { docKindSuffixRule } from "./doc-kind-suffix";
 import { exampleHeadingDescriptionRule } from "./example-heading-description";
+import { glossarySharedTermsRule } from "./glossary-shared-terms";
 import { glossaryTermLinkingRule } from "./glossary-term-linking";
 import { guideFolderEntryPointRule } from "./guide-folder-entry-point";
 import { guideLinkAnchorsRule } from "./guide-link-anchors";
@@ -53,6 +54,7 @@ export const documentationRules = {
   "policy-subject-headings": policySubjectHeadingsRule,
   "guide-link-anchors": guideLinkAnchorsRule,
   "no-nested-how-to": noNestedHowToRule,
+  "glossary-shared-terms": glossarySharedTermsRule,
   "glossary-term-linking": glossaryTermLinkingRule,
   "guide-mentions-documents": guideMentionsDocumentsRule,
   "guide-rule-ownership": guideRuleOwnershipRule,

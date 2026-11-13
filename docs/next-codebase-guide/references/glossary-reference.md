@@ -6,39 +6,30 @@ Use this reference to look up the terms this guide's workflows and rules use. Te
 
 These terms name the parts of the `src/` tree, the way an item's location is derived from its consumers, and other shared concepts used across this guide.
 
-| Term                        | Definition                                                                                                                                             |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                                                  |
-| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                                              |
-| Composition                 | A component that imports from two or more feature folders.                                                                                             |
-| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                                    |
-| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                                        |
-| Closest common folder (CCF) | The closest folder under `src/` shared by every direct consumer of one exported item; sibling exports do not contribute consumers.                     |
-| Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`.                     |
-| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                                       |
-| Data contract               | A TypeScript type or runtime schema that defines the fields of structured data passed between parts of the application or across an external boundary. |
+| Term                        | Definition                                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                              |
+| Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                          |
+| Composition                 | A component that imports from two or more feature folders.                                                                         |
+| Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                |
+| Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                    |
+| Closest common folder (CCF) | The closest folder under `src/` shared by every direct consumer of one exported item; sibling exports do not contribute consumers. |
+| Configuration module        | An app-wide `src/config/<config-name>/` folder that selects or parameterizes application behavior, entered through its `index.ts`. |
+| Barrel                      | An `index.ts` whose only content is re-exports of other modules.                                                                   |
 
 ## Component Terms
 
 These terms name the component classifications and the extraction triggers this guide's workflows use.
 
-| Term                         | Definition                                                                                                                                                                                                                                            |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Smart component              | A component that fetches data through `zodFetch`, or that defines `handle*` callbacks and passes them to child components as `on*` props.                                                                                                             |
-| Dumb component               | A component that neither calls `zodFetch` nor defines `handle*` callbacks that it passes to child components as `on*` props; React hook usage alone does not make a component smart.                                                                  |
-| Exclusive child component    | A component imported only by its parent component.                                                                                                                                                                                                    |
-| Nested component             | A component that lives in a folder carrying its own name, together with its exclusive children and their support files.                                                                                                                               |
-| Interactive element          | An HTML element the HTML specification lists as [interactive content](https://html.spec.whatwg.org/multipage/dom.html#interactive-content).                                                                                                           |
-| Imperative category          | One of five things that each add one point to a hook's extraction score, no matter how many times it happens: calling two or more distinct built-in hooks, subscribing, doing external I/O, manipulating the DOM, or managing a resource's lifecycle. |
-| Subscriptions                | Event listeners and registration or cleanup APIs such as `on()`, `off()`, `addEventListener()`, or `removeEventListener()`.                                                                                                                           |
-| External I/O and persistence | An `await`ed expression, a `fetch()` call, or a call on `localStorage`, `sessionStorage`, or `indexedDB`.                                                                                                                                             |
-| DOM manipulation             | Imperative DOM APIs such as `focus()`, `blur()`, `scrollIntoView()`, `click()`, `classList`, or constructing a `MutationObserver`, `ResizeObserver`, or `IntersectionObserver`.                                                                       |
-| Resource lifecycle           | Setup and teardown APIs such as `load()`, `destroy()`, `dispose()`, `close()`, `cleanup()`, or `unmount()`.                                                                                                                                           |
-| Extraction score             | A count a rule computes from its own signals to decide whether code needs to be extracted; reaching two triggers extraction.                                                                                                                          |
-| Client boundary              | A module starting with `"use client"` that can be imported by a Server Component as a client entry point.                                                                                                                                             |
-| Client dependency graph      | The transitive runtime-import graph beneath an explicitly marked client entry point; type-only imports are excluded.                                                                                                                                  |
-| Server-reachable module      | A module reachable from a Next.js App Router server entry point through runtime imports without crossing a client boundary.                                                                                                                           |
-| Client-only behavior         | React client-only hooks, JSX event handlers, browser-only APIs, or explicit `client-only` imports.                                                                                                                                                    |
+| Term                | Definition                                                                                                                                                                                                                                            |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Smart component     | A component that fetches data through `zodFetch`, or that defines `handle*` callbacks and passes them to child components as `on*` props.                                                                                                             |
+| Dumb component      | A component that neither calls `zodFetch` nor defines `handle*` callbacks that it passes to child components as `on*` props; React hook usage alone does not make a component smart.                                                                  |
+| Nested component    | A component that lives in a folder carrying its own name, together with its exclusive children and their support files.                                                                                                                               |
+| Interactive element | An HTML element the HTML specification lists as [interactive content](https://html.spec.whatwg.org/multipage/dom.html#interactive-content).                                                                                                           |
+| Imperative category | One of five things that each add one point to a hook's extraction score, no matter how many times it happens: calling two or more distinct built-in hooks, subscribing, doing external I/O, manipulating the DOM, or managing a resource's lifecycle. |
+| Extraction score    | A count a rule computes from its own signals to decide whether code needs to be extracted; reaching two triggers extraction.                                                                                                                          |
+| Client boundary     | A module starting with `"use client"` that can be imported by a Server Component as a client entry point.                                                                                                                                             |
 
 ## Route Terms
 
@@ -46,7 +37,6 @@ These terms name the parts of a route's error handling and the way a failure bec
 
 | Term             | Definition                                                                                                                                                                                                                                         |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pipeline         | A route handler together with its `withResponse` wrapper and every function the handler's awaited calls reach.                                                                                                                                     |
 | `withResponse`   | The wrapper imported from `pasika/with-response` that awaits a route handler's result — the `{ message, data }` envelope, or the `{ body, status, headers }` a JSON response cannot hold — and turns it, or a thrown `HttpError`, into a response. |
 | `HttpError`      | The error imported from `pasika/http-error` that a failed call throws, carrying the status and message the route responds with, and `data` — what a failed upstream call answered with.                                                            |
 | Delegated module | A module outside `route.ts` that one of a handler's awaited calls reaches, that owns a single step of the handler's workflow, and that raises an `HttpError` for its own failures.                                                                 |
