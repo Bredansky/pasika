@@ -222,7 +222,7 @@ test("Shared class compositions follow a barrel, aliases, local cn() values and 
   }
 });
 
-test("An exported static styling composition of at least two classes MUST NOT be reused across files through JSX className (including custom components) or a cn()/clsx() styling expression. This includes static entries in exported class-name maps, accessed through property names, string-enum indexes, or destructuring.", () => {
+test("Reports exported class-map reuse through JSX custom components and class composition helpers.", () => {
   const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
   const indexed = shared.get(sharedFixture("shared/indexed-b.tsx").filename);
   expect(indexed).toHaveLength(1);
@@ -230,7 +230,7 @@ test("An exported static styling composition of at least two classes MUST NOT be
   expect(shared.get(sharedFixture("shared/custom-component.tsx").filename)).toHaveLength(1);
 });
 
-test("Dynamic map indexes MUST NOT be assumed to be a specific static class set; the rule reports only resolvable entries, keeping unrelated variants distinct.", () => {
+test("Ignores unresolved class-map keys while keeping separate static variants distinct.", () => {
   const shared = getJsxReuseAnalysis(path.join(root, "src")).shared;
   expect(shared.get(sharedFixture("shared/indexed-dynamic.tsx").filename)).toBeUndefined();
   expect(shared.get(sharedFixture("shared/indexed-other.tsx").filename)).toBeUndefined();
