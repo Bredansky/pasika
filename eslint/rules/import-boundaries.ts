@@ -2,8 +2,8 @@
  * ESLint rule: pasika/import-boundaries
  *
  * Enforces the import conventions from the "Exports and Imports Rule":
- *  - Imports within the current directory or its direct parent use relative paths.
- *  - Imports that require two or more parent traversals use the @/* alias.
+ *  - Same-layer imports within the current directory or its direct parent use relative paths.
+ *  - Cross-layer imports and imports requiring two or more parent traversals use the @/* alias.
  *  - Layer boundary enforcement (app → compositions → features → shared → root).
  *
  * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
@@ -15,6 +15,7 @@ import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
 
 const rootSupportFolders = new Set(["config", "constants", "hooks", "locales", "schemas", "types", "utils"]);
+const architecturalLayers = new Set(["app", "compositions", "features", "shared"]);
 const moduleExtensions = new Set([".cjs", ".cts", ".js", ".jsx", ".mjs", ".mts", ".ts", ".tsx"]);
 const styleExtensions = new Set([".css", ".less", ".sass", ".scss"]);
 
@@ -79,9 +80,19 @@ function parentTraversalCount(specifier: string): number {
   return specifier.split("/").filter((segment) => segment === "..").length;
 }
 
-/** Whether the target is close enough to use ./ or a single ../ relative path. */
-function prefersRelative(filename: string, resolvedPath: string): boolean {
-  return parentTraversalCount(relativeSpecifier(filename, resolvedPath)) <= 1;
+/** The five architectural layers; support folders belong to the root layer. */
+function layerOf(sourceRoot: string, absolutePath: string): string | undefined {
+  const firstSegment = sourceSegments(sourceRoot, absolutePath)?.[0];
+  if (!firstSegment) return undefined;
+  return architecturalLayers.has(firstSegment) ? firstSegment : "root";
+}
+
+/** Only nearby imports within the same architectural layer use relative paths. */
+function prefersRelative(filename: string, resolvedPath: string, sourceRoot: string): boolean {
+  return (
+    layerOf(sourceRoot, filename) === layerOf(sourceRoot, resolvedPath) &&
+    parentTraversalCount(relativeSpecifier(filename, resolvedPath)) <= 1
+  );
 }
 
 export const importBoundariesRule: Rule.RuleModule = {
@@ -112,7 +123,7 @@ export const importBoundariesRule: Rule.RuleModule = {
           const componentEntry = path.join(componentFolder, "index.ts");
           if (path.resolve(resolvedModule) === path.resolve(componentEntry)) continue;
 
-          const entrySpecifier = prefersRelative(filename, componentFolder)
+          const entrySpecifier = prefersRelative(filename, componentFolder, sourceRoot)
             ? relativeSpecifier(filename, componentFolder)
             : aliasSpecifier(sourceRoot, componentFolder);
           const folderLabel = `src/${path.relative(sourceRoot, componentFolder).split(path.sep).join("/")}/`;
@@ -190,7 +201,7 @@ export const importBoundariesRule: Rule.RuleModule = {
       const relativeForm = relativeSpecifier(filename, resolvedPath);
       const aliasForm = aliasSpecifier(sourceRoot, resolvedPath);
 
-      if (prefersRelative(filename, resolvedPath) && importPath.startsWith("@/")) {
+      if (prefersRelative(filename, resolvedPath, sourceRoot) && importPath.startsWith("@/")) {
         context.report({
           node: source,
           message: `Use "${relativeForm}" instead of "${aliasForm}".`,
@@ -198,7 +209,7 @@ export const importBoundariesRule: Rule.RuleModule = {
         return;
       }
 
-      if (!prefersRelative(filename, resolvedPath) && importPath.startsWith(".")) {
+      if (!prefersRelative(filename, resolvedPath, sourceRoot) && importPath.startsWith(".")) {
         context.report({
           node: source,
           message: `Use "${aliasForm}" instead of "${relativeForm}".`,

@@ -27,7 +27,7 @@ function createNestedComponentFixture(): { root: string; consumer: string; owner
 const nestedComponentFixture = createNestedComponentFixture();
 process.chdir(nestedComponentFixture.root);
 
-void describe("An import whose target is in the current directory or its direct parent directory MUST use a relative path with ./ or ../.", () => {
+void describe("An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with ./ or ../.", () => {
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
@@ -35,8 +35,8 @@ void describe("An import whose target is in the current directory or its direct 
         filename: srcFile("features/billing/invoice.tsx"),
       },
       {
-        code: 'import { locales } from "../locales";',
-        filename: srcFile("compositions/dashboard-view.tsx"),
+        code: 'import { buildSchedule } from "../schedule-builder";',
+        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
       },
     ],
     invalid: [
@@ -46,9 +46,82 @@ void describe("An import whose target is in the current directory or its direct 
         errors: [{ message: choice("./invoice-row", "@/features/billing/invoice-row") }],
       },
       {
+        code: 'import { buildSchedule } from "@/features/stream/schedule-builder";',
+        filename: srcFile("features/stream/StreamBoard/schedule.ts"),
+        errors: [{ message: choice("../schedule-builder", "@/features/stream/schedule-builder") }],
+      },
+    ],
+  });
+});
+
+void describe("An import between architectural layers MUST use the @/* alias, even when a relative path would require only one parent traversal.", () => {
+  ruleTester.run("import-boundaries:cross-layer-alias", importBoundariesRule, {
+    valid: [
+      {
+        code: 'import { RetroButton } from "@/shared/retro-button";',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+      },
+      {
         code: 'import { locales } from "@/locales";',
         filename: srcFile("compositions/dashboard-view.tsx"),
-        errors: [{ message: choice("../locales", "@/locales") }],
+      },
+      {
+        code: 'import { formatDate } from "@/utils/format-date";',
+        filename: srcFile("shared/status-badge.tsx"),
+      },
+      {
+        code: 'import { Feature } from "@/features/home/feature";',
+        filename: srcFile("app/layout.tsx"),
+      },
+      {
+        code: 'import { round } from "../utils/round";',
+        filename: srcFile("constants/format.ts"),
+      },
+      {
+        code: 'export * from "@/shared/retro-button";',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: 'import { RetroButton } from "../shared/retro-button";',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+        errors: [{ message: choice("@/shared/retro-button", "../shared/retro-button") }],
+      },
+      {
+        code: 'import { locales } from "../locales";',
+        filename: srcFile("compositions/dashboard-view.tsx"),
+        errors: [{ message: choice("@/locales", "../locales") }],
+      },
+      {
+        code: 'import { formatDate } from "../utils/format-date";',
+        filename: srcFile("shared/status-badge.tsx"),
+        errors: [{ message: choice("@/utils/format-date", "../utils/format-date") }],
+      },
+      {
+        code: 'import { Feature } from "../features/home/feature";',
+        filename: srcFile("app/layout.tsx"),
+        errors: [{ message: choice("@/features/home/feature", "../features/home/feature") }],
+      },
+      {
+        code: 'export { RetroButton } from "../shared/retro-button";',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+        errors: [{ message: choice("@/shared/retro-button", "../shared/retro-button") }],
+      },
+      {
+        code: 'export * from "../shared/retro-button";',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+        errors: [{ message: choice("@/shared/retro-button", "../shared/retro-button") }],
+      },
+      {
+        code: 'async function load() { return import("../shared/retro-button"); }',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+        errors: [{ message: choice("@/shared/retro-button", "../shared/retro-button") }],
+      },
+      {
+        code: 'const Button = require("../shared/retro-button");',
+        filename: srcFile("compositions/donation-milestone.tsx"),
+        errors: [{ message: choice("@/shared/retro-button", "../shared/retro-button") }],
       },
     ],
   });
@@ -103,7 +176,7 @@ void describe("A file under src/compositions/ MUST NOT import from src/app/.", (
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
-        code: 'import { Invoice } from "../features/billing/invoice";',
+        code: 'import { Invoice } from "@/features/billing/invoice";',
         filename: srcFile("compositions/checkout.tsx"),
       },
     ],
@@ -153,7 +226,7 @@ void describe("A file under src/shared/ MUST NOT import from src/app/, src/compo
   ruleTester.run("import-boundaries", importBoundariesRule, {
     valid: [
       {
-        code: 'import { formatDate } from "../utils/format-date";',
+        code: 'import { formatDate } from "@/utils/format-date";',
         filename: srcFile("shared/status-badge.tsx"),
       },
     ],
