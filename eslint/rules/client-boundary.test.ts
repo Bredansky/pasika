@@ -141,7 +141,7 @@ void describe('A Server Component MUST NOT use client-only React hooks, JSX even
   });
 });
 
-void describe('A module with at least one runtime consumer MUST NOT repeat the `"use client"` directive when every consumer is inside an existing client dependency graph and no server entry reaches the module.', () => {
+void describe('A file MUST NOT repeat `"use client"` when it is imported only by code already behind a `"use client"` boundary and is not imported by server-side code.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/nested/parent.tsx"),

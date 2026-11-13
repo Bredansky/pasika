@@ -398,8 +398,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A module with at least one runtime consumer MUST NOT repeat the `\"use client\"` directive when every consumer is inside an existing client dependency graph and no server entry reaches the module.",
-      "hash": "b53c918e8b",
+      "text": "A file MUST NOT repeat `\"use client\"` when it is imported only by code already behind a `\"use client\"` boundary and is not imported by server-side code.",
+      "hash": "c3d9f63e24",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {
