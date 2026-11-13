@@ -3,7 +3,7 @@
 React Server Components use module imports to determine which code runs on the server and which code belongs to the client. This rule keeps Next.js client entry points intentional without duplicating directives on their transitive dependencies.
 
 - A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).
-- A server-reachable module MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs without a client boundary.
+- A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `"use client"` boundary.
 - A module with at least one runtime consumer MUST NOT repeat the `"use client"` directive when every consumer is inside an existing client dependency graph and no server entry reaches the module.
 - A non-error-boundary App Router entry or internally consumed module MUST NOT declare `"use client"` when neither it nor its runtime dependencies require client-only execution.
 

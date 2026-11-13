@@ -122,7 +122,7 @@ void describe('A Next.js App Router `error.tsx` or `global-error.tsx` file MUST 
   });
 });
 
-void describe("A server-reachable module MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs without a client boundary.", () => {
+void describe('A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a "use client" boundary.', () => {
   ruleTester.run("require-client-boundary", requireClientBoundaryRule, {
     valid: [
       fixture("features/marked/button.tsx"),

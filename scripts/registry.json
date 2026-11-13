@@ -392,8 +392,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A server-reachable module MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs without a client boundary.",
-      "hash": "44253c3e75",
+      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary.",
+      "hash": "f6e0fbc186",
       "ref": "pasika/require-client-boundary"
     },
     {
