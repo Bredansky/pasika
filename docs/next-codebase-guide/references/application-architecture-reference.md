@@ -18,7 +18,7 @@ This section lists the five layers and the direction their dependencies run. Use
 
 This section works through how the closest common folder (CCF) resolves for components and for support files. Each block shows the consumers on the left and the resulting location on the right.
 
-A component's CCF is the closest folder shared by the files that import it.
+For components, CCF is the closest folder shared by production importers, following any barrel re-exports.
 
 ```text
 src/features/payments/payment-card.tsx
@@ -38,7 +38,7 @@ src/features/products/product-card.tsx   ─┴─ imports ProductPrice
 CCF and location: src/features/products/product-price.tsx
 ```
 
-A component whose only consumers are `src/app/` or configuration modules resolves to the feature it represents or supports, creating that feature folder when none exists.
+A component used only by `src/app/` or configuration modules belongs to its feature unless it combines two or more features as a composition.
 
 ```text
 src/app/search/page.tsx  → SearchForm  → src/features/search/search-form.tsx

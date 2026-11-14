@@ -3,10 +3,10 @@
 Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
 - A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.
-- A composition entrypoint imported by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through its composition children. A component used only by compositions MAY remain as a composition-scoped child at its CCF.
-- Component re-export barrels MUST NOT determine a component's CCF; their importing files MUST count as the actual consumers. Tests MUST NOT determine a production component's CCF.
-- A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
-- A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.
+- A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.
+- When calculating a component's CCF, re-export barrels MUST resolve to their importers, and tests MUST NOT count as consumers.
+- A component used only by `src/app/` or configuration modules that does not integrate two or more distinct feature folders MUST live in the feature folder it represents or supports, creating one if necessary.
+- A component with consumers outside `src/app/` and configuration modules MUST live in its CCF, excluding those modules, unless it is a composition entrypoint also used by them.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
 - A component whose CCF is `src/features/` MUST live in `src/shared/`.
 - `src/app/` MUST contain [Next.js App Router framework-convention files and assets](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), plus styles required by routing files, but MUST NOT contain ordinary components or support folders.
@@ -58,7 +58,7 @@ import { BillingPanel } from "@/features/billing/BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
 ```
 
-Why: the component integrates two feature folders, directly or through composition-scoped children, so it lives in `src/compositions/`. A single-feature wrapper does not qualify, and a component's own feature folder does not count as a foreign dependency.
+Why: the component combines the billing and home features, so it belongs in `src/compositions/`.
 
 ## Incorrect — Ordinary Component Under `src/app/`
 

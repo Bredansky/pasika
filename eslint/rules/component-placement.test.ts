@@ -87,6 +87,8 @@ const FIXTURE: Record<string, string> = {
     'import { LiveBanner } from "@/features/stream/live-banner";\nexport function LandingContent() { return <LiveBanner />; }\n',
   "compositions/landing/landing-content.test.tsx":
     'import { LandingContent } from "./landing-content";\nexport const tested = LandingContent;\n',
+  "compositions/shell/shell.tsx":
+    'import { Landing } from "@/compositions/landing";\nexport function Shell() { return <Landing />; }\n',
   // Test-only imports are not placement consumers.
   "features/home/home-hero.test.tsx":
     'import { TestDriven } from "@/shared/test-driven";\nexport const subject = TestDriven;\n',
@@ -126,7 +128,7 @@ const featureMessage = (currentFolder: string): string =>
   `This component has no consumer outside src/app/ or a configuration module, ` +
   `so it belongs in the feature folder it represents, not in ${currentFolder}. ${DOC}`;
 
-void describe("A component with no consumers outside src/app/ or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.", () => {
+void describe("A component used only by src/app/ or configuration modules that does not integrate two or more distinct feature folders MUST live in the feature folder it represents or supports, creating one if necessary.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("features/search/search-form.tsx"), filename: file("features/search/search-form.tsx") }],
     invalid: [
@@ -139,7 +141,7 @@ void describe("A component with no consumers outside src/app/ or configuration m
   });
 });
 
-void describe("A component with at least one consumer outside src/app/ and configuration modules MUST live in its CCF, calculated without imports from src/app/ or configuration modules.", () => {
+void describe("A component with consumers outside src/app/ and configuration modules MUST live in its CCF, excluding those modules, unless it is a composition entrypoint also used by them.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       {
@@ -244,7 +246,7 @@ void describe("A feature component cannot import another feature directly.", () 
   });
 });
 
-void describe("A composition entrypoint imported by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through its composition children. A component used only by compositions MAY remain as a composition-scoped child at its CCF.", () => {
+void describe("A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       { code: read("compositions/landing/landing.tsx"), filename: file("compositions/landing/landing.tsx") },
@@ -280,7 +282,7 @@ void describe("A composition entrypoint imported by `src/app/` or a configuratio
   });
 });
 
-void describe("Component re-export barrels MUST NOT determine a component's CCF; their importing files MUST count as the actual consumers. Tests MUST NOT determine a production component's CCF.", () => {
+void describe("When calculating a component's CCF, re-export barrels MUST resolve to their importers, and tests MUST NOT count as consumers.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("features/search/search-form.tsx"), filename: file("features/search/search-form.tsx") }],
     invalid: [
