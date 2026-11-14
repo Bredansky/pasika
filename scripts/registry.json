@@ -404,8 +404,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A page or other file used by the App Router MUST NOT declare `\"use client\"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.",
-      "hash": "97c9619a80",
+      "text": "Except for the error files above, a file used by the App Router MUST NOT declare `\"use client\"` unless it or its imports need client-only features.",
+      "hash": "cf1abde444",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {

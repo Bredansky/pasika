@@ -5,7 +5,7 @@ Next.js App Router pages are Server Components by default, but interactive code 
 - A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).
 - A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `"use client"` boundary.
 - A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive.
-- A page or other file used by the App Router MUST NOT declare `"use client"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.
+- Except for the error files above, a file used by the App Router MUST NOT declare `"use client"` unless it or its imports need client-only features.
 
 ## Incorrect — Interactive Component Without a Boundary
 

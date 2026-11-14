@@ -152,7 +152,7 @@ void describe('A file imported only by code already behind a `"use client"` boun
   });
 });
 
-void describe('A page or other file used by the App Router MUST NOT declare `"use client"` if it and its imports do not need client-only features, except `error.tsx` and `global-error.tsx`.', () => {
+void describe('Except for the error files above, a file used by the App Router MUST NOT declare `"use client"` unless it or its imports need client-only features.', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/marked/button.tsx"),
