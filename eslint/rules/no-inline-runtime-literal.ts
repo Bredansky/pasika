@@ -150,7 +150,8 @@ function isNamedValue(node: AncestorNode): boolean {
 }
 
 /** Static class-name aliases hide utilities that can be inlined at JSX call sites. */
-function isStaticClassAlias(node: AncestorNode): boolean {
+function isStaticClassAlias(node: AncestorNode, file: string, root: string): boolean {
+  if (!path.relative(root, file).split(path.sep).includes("constants")) return false;
   let current = node;
   while (current.parent?.type === "TSAsExpression" || current.parent?.type === "TSSatisfiesExpression") {
     current = current.parent;
@@ -275,7 +276,7 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         ) {
           return;
         }
-        if (typeof node.value === "string" && isStaticClassAlias(node)) {
+        if (typeof node.value === "string" && isStaticClassAlias(node, file, root)) {
           context.report({ node, message: STATIC_CLASS_ALIAS_MESSAGE });
           return;
         }
@@ -294,7 +295,7 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         context.report({ node, message: MESSAGE });
       },
       TemplateLiteral(node: Rule.Node & ESTree.TemplateLiteral) {
-        if (node.expressions.length === 0 && isStaticClassAlias(node)) {
+        if (node.expressions.length === 0 && isStaticClassAlias(node, file, root)) {
           context.report({ node, message: STATIC_CLASS_ALIAS_MESSAGE });
           return;
         }
