@@ -93,8 +93,14 @@ export const componentPlacementRule: Rule.RuleModule = {
         const consumerSegments = segmentsOf(consumer, sourceRoot);
         return isUnderApp(consumerSegments) || isConfigModule(consumerSegments);
       });
-    // Composition-only consumers must not legitimize a wrapper around one feature.
-    const combinedFeatures = compositionRoot ? combinedFeatureFolders(componentFile, index) : [];
+    // A composition-local child belongs to its composition even when it uses
+    // one feature. Reused entrypoints must not become single-feature wrappers.
+    const compositionConsumerCount = consumers.filter(
+      (consumer) => segmentsOf(consumer, sourceRoot)[0] === "compositions",
+    ).length;
+    const reusedComposition = compositionRoot && compositionConsumerCount > 1;
+    const combinedFeatures =
+      exposedComposition || reusedComposition ? combinedFeatureFolders(componentFile, index) : [];
     const ownFeature = segments[0] === "features" ? segments[1] : undefined;
     const importsForeignFeature = module.imports.some((moduleImport) => {
       const resolved = resolveSpecifier(componentFile, moduleImport.specifier, sourceRoot);
@@ -104,7 +110,7 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     return {
       Program(node) {
-        if (exposedComposition || (compositionRoot && combinedFeatures.length === 1)) {
+        if (exposedComposition || (reusedComposition && combinedFeatures.length === 1)) {
           if (combinedFeatures.length < 2) {
             context.report({
               node,

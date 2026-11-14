@@ -55,6 +55,16 @@ const FIXTURE: Record<string, string> = {
   "features/home/video-frame/video-frame.tsx":
     'import { HeaderLabel } from "../header-label";\nexport function VideoFrame() { return <HeaderLabel />; }\n',
   "compositions/subtotal.tsx": "export function Subtotal() { return <span />; }\n",
+  // A single-consumer child may use one feature without being an entrypoint.
+  "compositions/stream-card.tsx":
+    'import { HomeHero } from "@/features/home/home-hero";\nexport function StreamCard() { return <HomeHero />; }\n',
+  "compositions/stream-schedule-section.tsx":
+    'import { StreamCard } from "./stream-card";\nexport function StreamScheduleSection() { return <StreamCard />; }\n',
+  "compositions/stream-page-content.tsx":
+    'import { StreamScheduleSection } from "./stream-schedule-section";\nimport { Total } from "@/features/payments/total";\nexport function StreamPageContent() { return <StreamScheduleSection />; }\n',
+  "app/stream/page.tsx":
+    'import { StreamPageContent } from "@/compositions/stream-page-content";\nexport default function Page() { return <StreamPageContent />; }\n',
+
   // Karaylo regression: multiple composition consumers of a single-feature wrapper.
   "compositions/milestone.tsx":
     'import { HomeHero } from "@/features/home/home-hero";\nexport function Milestone() { return <HomeHero />; }\n',
@@ -280,11 +290,17 @@ void describe("As an exception, a composition entrypoint that is also imported b
   });
 });
 
-void describe("A composition entrypoint MUST integrate two or more distinct feature folders, directly or through composition children, regardless of its consumers.", () => {
+void describe("A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children; a composition component reused by multiple compositions MUST NOT wrap exactly one feature folder.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       // A composition-only helper importing no feature remains valid.
       { code: read("compositions/subtotal.tsx"), filename: file("compositions/subtotal.tsx") },
+      // Private composition children can use one feature, directly or via children.
+      { code: read("compositions/stream-card.tsx"), filename: file("compositions/stream-card.tsx") },
+      {
+        code: read("compositions/stream-schedule-section.tsx"),
+        filename: file("compositions/stream-schedule-section.tsx"),
+      },
     ],
     invalid: [
       {
