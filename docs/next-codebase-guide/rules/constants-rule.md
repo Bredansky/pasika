@@ -2,6 +2,8 @@
 
 Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers, and share constants or enums at the consumers' common ancestor when reused.
 
+Fixed Tailwind utility strings MUST NOT be extracted into `*ClassName`, `*ClassNames`, or `*Classes` constants inside `src/**/constants/` folders. Define shared visual treatments in their owning components or CVA variants instead. Component-local class fragments and conditional class expressions remain allowed; this check targets extracted constants rather than the implementation details of variants.
+
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
 - When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, not a one-member `enum`.
