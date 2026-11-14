@@ -416,6 +416,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
+      "text": "A top-level composition component reused exclusively by other compositions MUST NOT wrap exactly one feature folder; it belongs to that feature instead. Composition-scoped child components and helpers that do not wrap a single feature remain exempt.",
+      "hash": "2bd59e8931",
+      "ref": "pasika/component-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/component-placement-rule.md",
       "text": "When calculating a component's CCF, barrel files MUST be skipped in favor of the files that import through them, and tests MUST NOT count as consumers.",
       "hash": "d398c1e131",
       "ref": "pasika/component-placement"
