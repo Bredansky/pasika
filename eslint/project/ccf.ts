@@ -92,11 +92,12 @@ export interface ComponentPlacement {
 /**
  * Resolves where a component belongs from the files that import it.
  *
- * Imports from `src/app/` and from configuration modules drop out, consumers
- * under `src/compositions/` count only when every consumer is there, and a
- * result of `src/features/` becomes `src/shared/` because no feature may import
- * from another. Returns undefined when no consumer counts, which is the case the
- * "lives in the feature it represents" requirement covers instead.
+ * Imports from `src/app/` and configuration modules drop out. Composition
+ * consumers cannot move a feature/shared component into compositions or narrow
+ * feature placement beyond its feature root. Composition components count
+ * composition consumers only when no other consumers exist.
+ * A CCF of `src/features/` becomes `src/shared/`. Undefined means no consumers
+ * establish placement; the feature-ownership requirement applies instead.
  */
 export function resolveComponentPlacement(componentFile: string, index: ProjectIndex): ComponentPlacement | undefined {
   const consumers = componentConsumers(componentFile, index);
@@ -107,14 +108,30 @@ export function resolveComponentPlacement(componentFile: string, index: ProjectI
 
   if (relevant.length === 0) return undefined;
 
+  const ownSegments = segmentsOf(componentFile, index.sourceRoot);
+  const ownFeature = ownSegments[0] === "features" ? ownSegments[1] : undefined;
+  const compositionConsumers = relevant.filter((consumer) =>
+    isUnderCompositions(segmentsOf(consumer, index.sourceRoot)),
+  );
   const outsideCompositions = relevant.filter(
     (consumer) => !isUnderCompositions(segmentsOf(consumer, index.sourceRoot)),
   );
-  const counted = outsideCompositions.length > 0 ? outsideCompositions : relevant;
 
+  if (compositionConsumers.length > 0 && outsideCompositions.length === 0) {
+    if (ownFeature) return undefined;
+    if (ownSegments[0] === "shared") {
+      return { countedConsumers: relevant, expectedFolder: ["shared"], reason: "ccf" };
+    }
+  }
+
+  const counted = outsideCompositions.length > 0 ? outsideCompositions : relevant;
   const shared = outOfSupportFolders(
     commonPrefix(counted.map((consumer) => folderSegmentsOf(consumer, index.sourceRoot))),
   );
+
+  if (ownFeature && compositionConsumers.length > 0 && shared[0] === "features" && shared[1] === ownFeature) {
+    return { countedConsumers: relevant, expectedFolder: ["features", ownFeature], reason: "ccf" };
+  }
 
   // A shared folder of `features` or of the source root itself means no single
   // feature owns the component, so it belongs to the shared layer.

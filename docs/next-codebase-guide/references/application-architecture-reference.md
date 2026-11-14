@@ -47,7 +47,7 @@ src/app/account/page.tsx ─┐
 src/app/orders/page.tsx  ─┴→ AccountNav → src/features/account/account-nav.tsx
 ```
 
-Consumers under `src/compositions/` count only when every consumer is under `src/compositions/`.
+Composition consumers do not move feature or shared components into `src/compositions/` or narrow their feature ownership. They count toward a composition component's CCF only if all consumers are compositions.
 
 ```text
 src/compositions/checkout.tsx             ─┐

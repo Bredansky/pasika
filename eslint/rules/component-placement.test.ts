@@ -47,7 +47,13 @@ const FIXTURE: Record<string, string> = {
   "compositions/checkout.tsx":
     'import { Total } from "@/features/payments/total";\nimport { Subtotal } from "./subtotal";\nimport { StatusBadge } from "@/shared/status-badge";\nexport function Checkout() { return <Total />; }\n',
   "compositions/receipt.tsx":
-    'import { Subtotal } from "./subtotal";\nexport function Receipt() { return <Subtotal />; }\n',
+    'import { Subtotal } from "./subtotal";\nimport { CompositionOnly } from "@/shared/composition-only";\nexport function Receipt() { return <Subtotal />; }\n',
+  "app/receipt/page.tsx":
+    'import { CompositionOnly } from "@/shared/composition-only";\nexport default function Page() { return <CompositionOnly />; }\n',
+  "shared/composition-only.tsx": "export function CompositionOnly() { return <span />; }\n",
+  "features/home/header-label.tsx": "export function HeaderLabel() { return <span />; }\n",
+  "features/home/video-frame/video-frame.tsx":
+    'import { HeaderLabel } from "../header-label";\nexport function VideoFrame() { return <HeaderLabel />; }\n',
   "compositions/subtotal.tsx": "export function Subtotal() { return <span />; }\n",
   "features/payments/payment-summary.tsx":
     'import { Total } from "./total";\nimport { StatusBadge } from "@/shared/status-badge";\nimport { Badge } from "./badge";\nexport function PaymentSummary() { return <Total />; }\n',
@@ -82,7 +88,7 @@ const FIXTURE: Record<string, string> = {
     'import { Landing } from "@/compositions/landing";\nexport default function Page() { return <Landing />; }\n',
   "compositions/landing/index.ts": 'export { Landing } from "./landing";\n',
   "compositions/landing/landing.tsx":
-    'import { HomeHero } from "@/features/home/home-hero"; import { LandingContent } from "./landing-content";\nexport function Landing() { return <LandingContent />; }\n',
+    'import { HomeHero } from "@/features/home/home-hero"; import { HeaderLabel } from "@/features/home/header-label"; import { LandingContent } from "./landing-content";\nexport function Landing() { return <LandingContent />; }\n',
   "compositions/landing/landing-content.tsx":
     'import { LiveBanner } from "@/features/stream/live-banner";\nexport function LandingContent() { return <LiveBanner />; }\n',
   "compositions/landing/landing-content.test.tsx":
@@ -196,7 +202,18 @@ void describe("A nested component folder's `index.ts` MUST export only the neste
   });
 });
 
-void describe("When calculating a component's CCF, consumers under src/compositions/ MUST count only when no consumer is outside src/compositions/.", () => {
+void describe("Composition consumers MUST NOT move a feature component outside its feature or deeper within it, or move a shared component into `src/compositions/`.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [
+      { code: read("features/home/home-hero.tsx"), filename: file("features/home/home-hero.tsx") },
+      { code: read("features/home/header-label.tsx"), filename: file("features/home/header-label.tsx") },
+      { code: read("shared/composition-only.tsx"), filename: file("shared/composition-only.tsx") },
+    ],
+    invalid: [],
+  });
+});
+
+void describe("When calculating a composition component's CCF, consumers under src/compositions/ MUST count only when no consumer is outside src/compositions/.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       // One composition consumer and one feature consumer: the composition drops out.

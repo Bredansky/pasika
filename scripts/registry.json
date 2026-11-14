@@ -440,8 +440,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.",
-      "hash": "861dd64bfa",
+      "text": "Composition consumers MUST NOT move a feature component outside its feature or deeper within it, or move a shared component into `src/compositions/`.",
+      "hash": "530b03f4f0",
+      "ref": "pasika/component-placement"
+    },
+    {
+      "doc": "next-codebase-guide/rules/component-placement-rule.md",
+      "text": "When calculating a composition component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.",
+      "hash": "07373490a7",
       "ref": "pasika/component-placement"
     },
     {
