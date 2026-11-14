@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import {
+  componentConsumers,
   describeConsumers,
   folderSegmentsOf,
   formatFolder,
@@ -20,6 +21,7 @@ import {
   resolveComponentPlacement,
   segmentsOf,
 } from "../project/ccf";
+import { combinedFeatureFolders, isCompositionRoot } from "../project/composition-features";
 import { getProjectIndex } from "../project/index";
 import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
@@ -83,6 +85,14 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     const currentFolder = folderSegmentsOf(componentFile, sourceRoot);
     const placement = resolveComponentPlacement(componentFile, index);
+    const consumers = componentConsumers(componentFile, index);
+    const exposedComposition =
+      isCompositionRoot(segments) &&
+      consumers.some((consumer) => {
+        const consumerSegments = segmentsOf(consumer, sourceRoot);
+        return isUnderApp(consumerSegments) || isConfigModule(consumerSegments);
+      });
+    const combinedFeatures = exposedComposition ? combinedFeatureFolders(componentFile, index) : [];
     const ownFeature = segments[0] === "features" ? segments[1] : undefined;
     const importsForeignFeature = module.imports.some((moduleImport) => {
       const resolved = resolveSpecifier(componentFile, moduleImport.specifier, sourceRoot);
@@ -92,13 +102,27 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     return {
       Program(node) {
-        if (importsForeignFeature && currentFolder[0] === "compositions") return;
+        if (exposedComposition) {
+          if (combinedFeatures.length < 2) {
+            context.report({
+              node,
+              loc: { line: 1, column: 0 },
+              message:
+                `A composition must combine at least two distinct feature folders, directly or through composition children; found ${
+                  combinedFeatures.length === 0 ? "none" : combinedFeatures.join(", ")
+                }. Move it into the feature it represents or integrate multiple features. ` +
+                `See docs/next-codebase-guide/rules/component-placement-rule.md`,
+            });
+          }
+          return;
+        }
+
         if (importsForeignFeature && segments[0] === "features") {
           context.report({
             node,
             loc: { line: 1, column: 0 },
             message:
-              "Move this component to src/compositions/ — it imports from another feature folder. " +
+              "A feature component cannot import another feature. Remove the cross-feature dependency or create a composition that integrates at least two features. " +
               "See docs/next-codebase-guide/rules/component-placement-rule.md",
           });
           return;

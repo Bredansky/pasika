@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { ProjectIndex } from "./index";
+import { resolveSpecifier } from "./index";
 
 export const SUPPORT_FOLDERS = new Set(["hooks", "types", "schemas", "constants", "utils"]);
 
@@ -48,6 +49,37 @@ function outOfSupportFolders(folder: string[]): string[] {
   return result;
 }
 
+/**
+ * Follow component re-export barrels to the actual importers. A barrel is a
+ * routing convenience rather than a component consumer, and test files do not
+ * establish production ownership.
+ */
+export function componentConsumers(componentFile: string, index: ProjectIndex): string[] {
+  const consumers = new Set<string>();
+  const visited = new Set<string>();
+
+  const visit = (file: string): void => {
+    if (visited.has(file)) return;
+    visited.add(file);
+
+    for (const consumer of index.consumers.get(file) ?? []) {
+      if (/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path.basename(consumer))) continue;
+      const module = index.modules.get(consumer);
+      const barrelReexportsTarget =
+        path.parse(consumer).name === "index" &&
+        module?.reexports.some((reexport) => resolveSpecifier(consumer, reexport.specifier, index.sourceRoot) === file);
+      if (barrelReexportsTarget) {
+        visit(consumer);
+      } else {
+        consumers.add(consumer);
+      }
+    }
+  };
+
+  visit(componentFile);
+  return [...consumers];
+}
+
 export interface ComponentPlacement {
   /** Consumers that count toward the calculation, as absolute paths. */
   countedConsumers: string[];
@@ -67,7 +99,7 @@ export interface ComponentPlacement {
  * "lives in the feature it represents" requirement covers instead.
  */
 export function resolveComponentPlacement(componentFile: string, index: ProjectIndex): ComponentPlacement | undefined {
-  const consumers = [...(index.consumers.get(componentFile) ?? [])];
+  const consumers = componentConsumers(componentFile, index);
   const relevant = consumers.filter((consumer) => {
     const segments = segmentsOf(consumer, index.sourceRoot);
     return segments.length > 0 && !isUnderApp(segments) && !isConfigModule(segments);
