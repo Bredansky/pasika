@@ -9,8 +9,14 @@ const STATIC_CLASS_ALIAS_MESSAGE = `Do not extract static Tailwind class strings
 void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
-      { filename: file, code: 'const className = active ? "h-35" : "h-20"; render(className);' },
-      { filename: file, code: 'const variants = { small: "h-8", large: "h-12" }; use(variants);' },
+      {
+        filename: file,
+        code: 'const className = active ? "h-35" : "h-20"; render(className);',
+      },
+      {
+        filename: file,
+        code: 'const variants = { small: "h-8", large: "h-12" }; use(variants);',
+      },
       { filename: file, code: 'const heading = "h-35"; show(heading);' },
       { filename: file, code: 'const message = "Loading"; show(message);' },
       { filename: file, code: `const greeting = \`Hello \${user}\`; show(greeting);` },
