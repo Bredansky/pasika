@@ -280,7 +280,7 @@ void describe("As an exception, a composition entrypoint that is also imported b
   });
 });
 
-void describe("A composition root reused only by other compositions must not wrap one feature.", () => {
+void describe("A composition entrypoint MUST integrate two or more distinct feature folders, directly or through composition children, regardless of its consumers.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       // A composition-only helper importing no feature remains valid.
@@ -302,7 +302,7 @@ void describe("A composition root reused only by other compositions must not wra
   });
 });
 
-void describe("A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.", () => {
+void describe("A composition entrypoint exposed to routes must combine two or more features.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       { code: read("compositions/landing/landing.tsx"), filename: file("compositions/landing/landing.tsx") },
