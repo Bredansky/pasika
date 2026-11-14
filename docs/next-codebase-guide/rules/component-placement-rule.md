@@ -3,6 +3,8 @@
 Without clear placement, it is hard to tell where a component belongs and reuse can create tangled dependencies. This rule gives each component a specific place in the application structure.
 
 - A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.
+- A composition entrypoint imported by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through its composition children. A component used only by compositions MAY remain as a composition-scoped child at its CCF.
+- Component re-export barrels MUST NOT determine a component's CCF; their importing files MUST count as the actual consumers. Tests MUST NOT determine a production component's CCF.
 - A component with no consumers outside `src/app/` or configuration modules, and that does not import from two or more feature folders other than its own, MUST live in the feature folder it represents or supports. If no existing feature applies, it MUST introduce a new feature folder.
 - A component with at least one consumer outside `src/app/` and configuration modules MUST live in its CCF, calculated without imports from `src/app/` or configuration modules.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
@@ -56,7 +58,7 @@ import { BillingPanel } from "@/features/billing/BillingPanel";
 import { HomeBanner } from "@/features/home/HomeBanner";
 ```
 
-Why: the component imports from two feature folders other than the one it lives in, so it lives in `src/compositions/`. A component's own feature folder never counts as one of them, which is what leaves a component that reads its own siblings or support folders in the feature it represents.
+Why: the component integrates two feature folders, directly or through composition-scoped children, so it lives in `src/compositions/`. A single-feature wrapper does not qualify, and a component's own feature folder does not count as a foreign dependency.
 
 ## Incorrect — Ordinary Component Under `src/app/`
 

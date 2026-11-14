@@ -64,8 +64,44 @@ const FIXTURE: Record<string, string> = {
   "features/editor/editor-selector.tsx":
     'import { CredentialBadge } from "@/features/credentials/credential-badge";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
   "features/credentials/credential-badge.tsx": "export function CredentialBadge() { return <span />; }\n",
+  "app/editor/page.tsx":
+    'import { EditorSelector } from "@/compositions/editor-selector";\nexport default function Page() { return <EditorSelector />; }\n',
   "compositions/editor-selector.tsx":
-    'import { CredentialBadge } from "@/features/credentials/credential-badge";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
+    'import { CredentialBadge } from "@/features/credentials/credential-badge"; import { ProductPrice } from "@/features/products/product-price";\nexport function EditorSelector() { return <CredentialBadge />; }\n',
+
+  // A route-exposed one-feature composition, imported through a component barrel.
+  "app/solo/page.tsx":
+    'import { Solo } from "@/compositions/solo";\nexport default function Page() { return <Solo />; }\n',
+  "compositions/solo/index.ts": 'export { Solo } from "./solo";\n',
+  "compositions/solo/solo.tsx":
+    'import { HomeHero } from "@/features/home/home-hero";\nexport function Solo() { return <HomeHero />; }\n',
+  "features/home/home-hero.tsx": "export function HomeHero() { return <div />; }\n",
+
+  // An eligible composition reaches its second feature through a composition child.
+  "app/landing/page.tsx":
+    'import { Landing } from "@/compositions/landing";\nexport default function Page() { return <Landing />; }\n',
+  "compositions/landing/index.ts": 'export { Landing } from "./landing";\n',
+  "compositions/landing/landing.tsx":
+    'import { HomeHero } from "@/features/home/home-hero"; import { LandingContent } from "./landing-content";\nexport function Landing() { return <LandingContent />; }\n',
+  "compositions/landing/landing-content.tsx":
+    'import { LiveBanner } from "@/features/stream/live-banner";\nexport function LandingContent() { return <LiveBanner />; }\n',
+  "compositions/landing/landing-content.test.tsx":
+    'import { LandingContent } from "./landing-content";\nexport const tested = LandingContent;\n',
+  // Test-only imports are not placement consumers.
+  "features/home/home-hero.test.tsx":
+    'import { TestDriven } from "@/shared/test-driven";\nexport const subject = TestDriven;\n',
+  "shared/test-driven.tsx": "export function TestDriven() { return <span />; }\n",
+  "features/stream/live-banner.tsx": "export function LiveBanner() { return <div />; }\n",
+
+  // A single feature reached via a nested composition still does not qualify.
+  "app/wrapper/page.tsx":
+    'import { Wrapper } from "@/compositions/wrapper";\nexport default function Page() { return <Wrapper />; }\n',
+  "compositions/wrapper/index.ts": 'export { Wrapper } from "./wrapper";\n',
+  "compositions/wrapper/wrapper.tsx":
+    'import { StreamOnly } from "@/compositions/stream-only";\nexport function Wrapper() { return <StreamOnly />; }\n',
+  "compositions/stream-only/index.ts": 'export { StreamOnly } from "./stream-only";\n',
+  "compositions/stream-only/stream-only.tsx":
+    'import { LiveBanner } from "@/features/stream/live-banner";\nexport function StreamOnly() { return <LiveBanner />; }\n',
 };
 
 // realpath: on macOS the temp dir is a symlink, and the rule resolves its source
@@ -191,7 +227,7 @@ void describe("A component whose CCF is src/features/ MUST live in src/shared/."
   });
 });
 
-void describe("A feature component importing a foreign feature MUST live in src/compositions/.", () => {
+void describe("A feature component cannot import another feature directly.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("compositions/editor-selector.tsx"), filename: file("compositions/editor-selector.tsx") }],
     invalid: [
@@ -200,7 +236,67 @@ void describe("A feature component importing a foreign feature MUST live in src/
         filename: file("features/editor/editor-selector.tsx"),
         errors: [
           {
-            message: `Move this component to src/compositions/ — it imports from another feature folder. ${DOC}`,
+            message: `A feature component cannot import another feature. Remove the cross-feature dependency or create a composition that integrates at least two features. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A composition entrypoint imported by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through its composition children. A component used only by compositions MAY remain as a composition-scoped child at its CCF.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [
+      { code: read("compositions/landing/landing.tsx"), filename: file("compositions/landing/landing.tsx") },
+      {
+        code: read("compositions/landing/landing-content.tsx"),
+        filename: file("compositions/landing/landing-content.tsx"),
+      },
+    ],
+    invalid: [
+      {
+        code: read("compositions/solo/solo.tsx"),
+        filename: file("compositions/solo/solo.tsx"),
+        errors: [
+          {
+            message:
+              `A composition must combine at least two distinct feature folders, directly or through composition children; found home. ` +
+              `Move it into the feature it represents or integrate multiple features. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: read("compositions/wrapper/wrapper.tsx"),
+        filename: file("compositions/wrapper/wrapper.tsx"),
+        errors: [
+          {
+            message:
+              `A composition must combine at least two distinct feature folders, directly or through composition children; found stream. ` +
+              `Move it into the feature it represents or integrate multiple features. ${DOC}`,
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("Component re-export barrels MUST NOT determine a component's CCF; their importing files MUST count as the actual consumers. Tests MUST NOT determine a production component's CCF.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [{ code: read("features/search/search-form.tsx"), filename: file("features/search/search-form.tsx") }],
+    invalid: [
+      {
+        code: read("shared/test-driven.tsx"),
+        filename: file("shared/test-driven.tsx"),
+        errors: [{ message: featureMessage("src/shared/") }],
+      },
+      {
+        code: read("compositions/solo/solo.tsx"),
+        filename: file("compositions/solo/solo.tsx"),
+        errors: [
+          {
+            message:
+              `A composition must combine at least two distinct feature folders, directly or through composition children; found home. ` +
+              `Move it into the feature it represents or integrate multiple features. ${DOC}`,
           },
         ],
       },

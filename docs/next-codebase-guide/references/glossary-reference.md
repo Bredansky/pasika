@@ -10,7 +10,7 @@ These terms name the parts of the `src/` tree, the way an item's location is der
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Layer                       | One of the five scopes an item can belong to: `app`, `compositions`, `features`, `shared`, or `root`.                              |
 | Feature                     | One folder under `src/features/` holding the components and support files of a single product capability.                          |
-| Composition                 | A component that imports from two or more feature folders.                                                                         |
+| Composition                 | An entrypoint component integrating two or more distinct feature folders, directly or through its composition children.            |
 | Support file                | A hook, type, schema, constant, or pure function that supports other code rather than rendering UI.                                |
 | Support folder              | A folder named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/` that holds support files of that kind.                    |
 | Closest common folder (CCF) | The closest folder under `src/` shared by every direct consumer of one exported item; sibling exports do not contribute consumers. |
