@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "When calculating a component's CCF, re-export barrels MUST resolve to their importers, and tests MUST NOT count as consumers.",
-      "hash": "01e49cc642",
+      "text": "When calculating a component's CCF, barrel files MUST be skipped in favor of the files that import through them, and tests MUST NOT count as consumers.",
+      "hash": "d398c1e131",
       "ref": "pasika/component-placement"
     },
     {

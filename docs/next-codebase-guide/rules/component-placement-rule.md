@@ -4,7 +4,7 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 
 - A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.
 - A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.
-- When calculating a component's CCF, re-export barrels MUST resolve to their importers, and tests MUST NOT count as consumers.
+- When calculating a component's CCF, barrel files MUST be skipped in favor of the files that import through them, and tests MUST NOT count as consumers.
 - A component used only by `src/app/` or configuration modules that does not integrate two or more distinct feature folders MUST live in the feature folder it represents or supports, creating one if necessary.
 - A component with consumers outside `src/app/` and configuration modules MUST live in its CCF, excluding those modules, unless it is a composition entrypoint also used by them.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.

@@ -282,7 +282,7 @@ void describe("A composition entrypoint used by `src/app/` or a configuration mo
   });
 });
 
-void describe("When calculating a component's CCF, re-export barrels MUST resolve to their importers, and tests MUST NOT count as consumers.", () => {
+void describe("When calculating a component's CCF, barrel files MUST be skipped in favor of the files that import through them, and tests MUST NOT count as consumers.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("features/search/search-form.tsx"), filename: file("features/search/search-form.tsx") }],
     invalid: [
