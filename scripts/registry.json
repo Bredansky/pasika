@@ -386,9 +386,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `\"use client\"` as its first directive ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).",
-      "hash": "19751a21f1",
-      "ref": "pasika/require-client-boundary"
+      "text": "An App Router file MUST declare `\"use client\"` as its first directive if it is `error.tsx` or `global-error.tsx`, and MUST NOT declare it otherwise unless it or its imports require client-only features ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).",
+      "hash": "f952c56a52",
+      "ref": "pasika/require-client-boundary, pasika/no-redundant-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
@@ -400,12 +400,6 @@
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
       "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
       "hash": "71aa99e0ad",
-      "ref": "pasika/no-redundant-client-boundary"
-    },
-    {
-      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Except for the error files above, a file used by the App Router MUST NOT declare `\"use client\"` unless it or its imports need client-only features.",
-      "hash": "cf1abde444",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {

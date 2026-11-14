@@ -112,12 +112,31 @@ write("features/unconsumed/pure.tsx", '"use client";\nexport function Pure() { r
 
 process.chdir(root);
 
-void describe('A Next.js App Router `error.tsx` or `global-error.tsx` file MUST declare `"use client"` as its first directive (Next.js error file convention).', () => {
+void describe('An App Router file MUST declare `"use client"` as its first directive if it is `error.tsx` or `global-error.tsx`, and MUST NOT declare it otherwise unless it or its imports require client-only features (Next.js error file convention).', () => {
   ruleTester.run("require-client-boundary", requireClientBoundaryRule, {
     valid: [fixture("app/allowed/error.tsx"), fixture("app/allowed/global-error.tsx")],
     invalid: [
       { ...fixture("app/required/error.tsx"), errors: [{ message: /error boundaries require "use client"/u }] },
       { ...fixture("app/global-error.tsx"), errors: [{ message: /error boundaries require "use client"/u }] },
+    ],
+  });
+
+  ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
+    valid: [
+      fixture("features/marked/button.tsx"),
+      fixture("features/external/carousel-wrapper.tsx"),
+      fixture("features/unconsumed/pure.tsx"),
+      fixture("app/allowed/error.tsx"),
+    ],
+    invalid: [
+      {
+        ...fixture("features/presentation/badge.tsx"),
+        errors: [{ message: /unnecessary for this server-compatible module/u }],
+      },
+      {
+        ...fixture("app/unused-client/page.tsx"),
+        errors: [{ message: /unnecessary for this server-compatible module/u }],
+      },
     ],
   });
 });
@@ -149,26 +168,5 @@ void describe('A file imported only by code already behind a `"use client"` boun
       fixture("features/marked/button.tsx"),
     ],
     invalid: [{ ...fixture("features/nested/child.tsx"), errors: [{ message: /all runtime consumers are already/u }] }],
-  });
-});
-
-void describe('Except for the error files above, a file used by the App Router MUST NOT declare `"use client"` unless it or its imports need client-only features.', () => {
-  ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
-    valid: [
-      fixture("features/marked/button.tsx"),
-      fixture("features/external/carousel-wrapper.tsx"),
-      fixture("features/unconsumed/pure.tsx"),
-      fixture("app/allowed/error.tsx"),
-    ],
-    invalid: [
-      {
-        ...fixture("features/presentation/badge.tsx"),
-        errors: [{ message: /unnecessary for this server-compatible module/u }],
-      },
-      {
-        ...fixture("app/unused-client/page.tsx"),
-        errors: [{ message: /unnecessary for this server-compatible module/u }],
-      },
-    ],
   });
 });
