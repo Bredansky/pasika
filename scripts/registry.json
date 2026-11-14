@@ -410,8 +410,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.",
-      "hash": "cd609ddd3a",
+      "text": "A composition entrypoint MUST integrate two or more distinct feature folders, directly or through composition children, regardless of its consumers.",
+      "hash": "c96592a392",
       "ref": "pasika/component-placement"
     },
     {
