@@ -55,6 +55,17 @@ const FIXTURE: Record<string, string> = {
   "features/home/video-frame/video-frame.tsx":
     'import { HeaderLabel } from "../header-label";\nexport function VideoFrame() { return <HeaderLabel />; }\n',
   "compositions/subtotal.tsx": "export function Subtotal() { return <span />; }\n",
+  // Karaylo regression: multiple composition consumers of a single-feature wrapper.
+  "compositions/milestone.tsx":
+    'import { HomeHero } from "@/features/home/home-hero";\nexport function Milestone() { return <HomeHero />; }\n',
+  "compositions/highlights/donation-milestone.tsx":
+    'import { Milestone } from "../milestone";\nexport function DonationMilestone() { return <Milestone />; }\n',
+  "compositions/highlights/video-milestone.tsx":
+    'import { Milestone } from "../milestone";\nexport function VideoMilestone() { return <Milestone />; }\n',
+  "compositions/next-stream-section/scheduled-milestone.tsx":
+    'import { Milestone } from "../milestone";\nexport function ScheduledMilestone() { return <Milestone />; }\n',
+
+
   "features/payments/payment-summary.tsx":
     'import { Total } from "./total";\nimport { StatusBadge } from "@/shared/status-badge";\nimport { Badge } from "./badge";\nexport function PaymentSummary() { return <Total />; }\n',
   "features/payments/total.tsx": "export function Total() { return <span />; }\n",
@@ -267,6 +278,28 @@ void describe("As an exception, a composition entrypoint that is also imported b
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [{ code: read("compositions/landing/landing.tsx"), filename: file("compositions/landing/landing.tsx") }],
     invalid: [],
+  });
+});
+
+void describe("A composition root reused only by other compositions must not wrap one feature.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [
+      // A composition-only helper importing no feature remains valid.
+      { code: read("compositions/subtotal.tsx"), filename: file("compositions/subtotal.tsx") },
+    ],
+    invalid: [
+      {
+        code: read("compositions/milestone.tsx"),
+        filename: file("compositions/milestone.tsx"),
+        errors: [
+          {
+            message:
+              `A composition must combine at least two distinct feature folders, directly or through composition children; found home. ` +
+              `Move it into the feature it represents or integrate multiple features. ${DOC}`,
+          },
+        ],
+      },
+    ],
   });
 });
 
