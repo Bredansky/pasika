@@ -161,9 +161,12 @@ function isStaticClassAlias(node: AncestorNode): boolean {
   return (
     declaration.parent?.type === "VariableDeclaration" &&
     declaration.parent.kind === "const" &&
-    typeof identifier === "object" && identifier !== null &&
-    "type" in identifier && identifier.type === "Identifier" &&
-    "name" in identifier && typeof identifier.name === "string" &&
+    typeof identifier === "object" &&
+    identifier !== null &&
+    "type" in identifier &&
+    identifier.type === "Identifier" &&
+    "name" in identifier &&
+    typeof identifier.name === "string" &&
     /(?:^className$|ClassName$|ClassNames$|Classes$)/.test(identifier.name)
   );
 }
