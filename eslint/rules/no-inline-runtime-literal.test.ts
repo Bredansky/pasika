@@ -397,7 +397,8 @@ void describe("Every runtime string or numeric value MUST be represented by a na
         code: "const bytes = calculate(20 * 1024);",
         errors: [{ message: MESSAGE }, { message: MESSAGE }],
       },
-      { filename: file, code: "const aboveLimit = size > 5000;", errors: [{ message: MESSAGE }] },      { filename: file, code: "const width = ready ? 0 : 1;", errors: [{ message: MESSAGE }, { message: MESSAGE }] },
+      { filename: file, code: "const aboveLimit = size > 5000;", errors: [{ message: MESSAGE }] },
+      { filename: file, code: "const width = ready ? 0 : 1;", errors: [{ message: MESSAGE }, { message: MESSAGE }] },
       { filename: file, code: "const View = () => <Canvas width={300} />;", errors: [{ message: MESSAGE }] },
       { filename: file, code: "const View = () => <Canvas className={20} />;", errors: [{ message: MESSAGE }] },
       {
@@ -433,3 +434,4 @@ void describe("When specified, static Next.js config.matcher values and string o
     ],
   });
 });
+
