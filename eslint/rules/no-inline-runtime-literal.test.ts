@@ -11,11 +11,11 @@ void describe("Every runtime string or numeric value MUST be represented by a na
     valid: [
       {
         filename: file,
-        code: 'const className = active ? "h-35" : "h-20"; render(className);',
+        code: 'const View = () => <div className={active ? "h-35" : "h-20"} />;',
       },
       {
         filename: file,
-        code: 'const variants = { small: "h-8", large: "h-12" }; use(variants);',
+        code: 'const small = "h-8"; const large = "h-12"; const variants = { small, large }; use(variants);',
       },
       { filename: file, code: 'const heading = "h-35"; show(heading);' },
       { filename: file, code: 'const message = "Loading"; show(message);' },
@@ -122,7 +122,7 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
       {
         filename: file,
-        code: 'const navClassName = `text-sm`;',
+        code: "const navClassName = `text-sm`;",
         errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
       },
       {
