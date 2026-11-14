@@ -410,14 +410,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.",
-      "hash": "cd609ddd3a",
-      "ref": "pasika/component-placement"
-    },
-    {
-      "doc": "next-codebase-guide/rules/component-placement-rule.md",
-      "text": "A top-level composition component reused exclusively by other compositions MUST NOT wrap exactly one feature folder; it belongs to that feature instead. Composition-scoped child components and helpers that do not wrap a single feature remain exempt.",
-      "hash": "2bd59e8931",
+      "text": "A composition entrypoint MUST integrate two or more distinct feature folders, directly or through composition children, regardless of its consumers.",
+      "hash": "c96592a392",
       "ref": "pasika/component-placement"
     },
     {
