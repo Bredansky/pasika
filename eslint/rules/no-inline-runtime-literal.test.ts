@@ -4,10 +4,20 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
+const STATIC_CLASS_ALIAS_MESSAGE = `Do not extract static Tailwind class strings into named class aliases; write the classes at the JSX className use site. ${DOC}`;
 
 void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
+      {
+        filename: file,
+        code: 'const View = () => <div className={active ? "h-35" : "h-20"} />;',
+      },
+      {
+        filename: file,
+        code: 'const small = "h-8"; const large = "h-12"; const variants = { small, large }; use(variants);',
+      },
+      { filename: file, code: 'const heading = "h-35"; show(heading);' },
       { filename: file, code: 'const message = "Loading"; show(message);' },
       { filename: file, code: `const greeting = \`Hello \${user}\`; show(greeting);` },
       { filename: file, code: 'enum ApiRoute { Post = "/api/post" }; send(ApiRoute.Post);' },
@@ -100,6 +110,21 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
     ],
     invalid: [
+      {
+        filename: srcFile("constants/milestone-classes.ts"),
+        code: 'export const milestoneContentClassName = "h-35";',
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const buttonClasses = "flex items-center gap-2";',
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
+      {
+        filename: file,
+        code: "const navClassName = `text-sm`;",
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
       {
         filename: file,
         code: 'import { Inter } from "another-font-library"; const font = Inter({ subsets: ["latin"] });',
