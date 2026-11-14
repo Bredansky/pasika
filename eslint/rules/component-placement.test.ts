@@ -65,7 +65,6 @@ const FIXTURE: Record<string, string> = {
   "app/stream/page.tsx":
     'import { StreamPageContent } from "@/compositions/stream-page-content";\nexport default function Page() { return <StreamPageContent />; }\n',
 
-
   // Karaylo regression: multiple composition consumers of a single-feature wrapper.
   "compositions/milestone.tsx":
     'import { HomeHero } from "@/features/home/home-hero";\nexport function Milestone() { return <HomeHero />; }\n',
@@ -241,8 +240,6 @@ void describe("When calculating a composition component's CCF, consumers under s
       { code: read("features/payments/total.tsx"), filename: file("features/payments/total.tsx") },
       // Every consumer is a composition, so compositions count.
       { code: read("compositions/subtotal.tsx"), filename: file("compositions/subtotal.tsx") },
-      { code: read("compositions/stream-card.tsx"), filename: file("compositions/stream-card.tsx") },
-      { code: read("compositions/stream-schedule-section.tsx"), filename: file("compositions/stream-schedule-section.tsx") },
     ],
     invalid: [],
   });
@@ -293,27 +290,36 @@ void describe("As an exception, a composition entrypoint that is also imported b
   });
 });
 
-void describe("A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children; a composition component reused by multiple compositions MUST NOT wrap exactly one feature folder.", () => {
-  ruleTester.run("component-placement", componentPlacementRule, {
-    valid: [
-      // A composition-only helper importing no feature remains valid.
-      { code: read("compositions/subtotal.tsx"), filename: file("compositions/subtotal.tsx") },
-    ],
-    invalid: [
-      {
-        code: read("compositions/milestone.tsx"),
-        filename: file("compositions/milestone.tsx"),
-        errors: [
-          {
-            message:
-              `A composition must combine at least two distinct feature folders, directly or through composition children; found home. ` +
-              `Move it into the feature it represents or integrate multiple features. ${DOC}`,
-          },
-        ],
-      },
-    ],
-  });
-});
+void describe(
+  "A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children; a composition component reused by multiple compositions MUST NOT wrap exactly one feature folder.",
+  () => {
+    ruleTester.run("component-placement", componentPlacementRule, {
+      valid: [
+        // A composition-only helper importing no feature remains valid.
+        { code: read("compositions/subtotal.tsx"), filename: file("compositions/subtotal.tsx") },
+        // Private composition children can use one feature, directly or via children.
+        { code: read("compositions/stream-card.tsx"), filename: file("compositions/stream-card.tsx") },
+        {
+          code: read("compositions/stream-schedule-section.tsx"),
+          filename: file("compositions/stream-schedule-section.tsx"),
+        },
+      ],
+      invalid: [
+        {
+          code: read("compositions/milestone.tsx"),
+          filename: file("compositions/milestone.tsx"),
+          errors: [
+            {
+              message:
+                `A composition must combine at least two distinct feature folders, directly or through composition children; found home. ` +
+                `Move it into the feature it represents or integrate multiple features. ${DOC}`,
+            },
+          ],
+        },
+      ],
+    });
+  },
+);
 
 void describe("A composition entrypoint exposed to routes must combine two or more features.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
