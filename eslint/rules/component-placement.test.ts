@@ -65,7 +65,6 @@ const FIXTURE: Record<string, string> = {
   "compositions/next-stream-section/scheduled-milestone.tsx":
     'import { Milestone } from "../milestone";\nexport function ScheduledMilestone() { return <Milestone />; }\n',
 
-
   "features/payments/payment-summary.tsx":
     'import { Total } from "./total";\nimport { StatusBadge } from "@/shared/status-badge";\nimport { Badge } from "./badge";\nexport function PaymentSummary() { return <Total />; }\n',
   "features/payments/total.tsx": "export function Total() { return <span />; }\n",
