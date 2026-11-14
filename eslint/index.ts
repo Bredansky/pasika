@@ -13,6 +13,7 @@ import tsParser from "@typescript-eslint/parser";
 import type { Linter } from "eslint";
 import { apiContractRule } from "./rules/api-contract";
 import { applicationStructureRule } from "./rules/application-structure";
+import { noRedundantClientBoundaryRule, requireClientBoundaryRule } from "./rules/client-boundary";
 import { cnHelperRule } from "./rules/cn-helper";
 import { componentCasingRule } from "./rules/component-casing";
 import { componentNestingRule } from "./rules/component-nesting";
@@ -123,6 +124,8 @@ const pasikaNextjsAppRules = {
   // Next.js/React application rules.
   "component-placement": componentPlacementRule,
   "component-casing": componentCasingRule,
+  "require-client-boundary": requireClientBoundaryRule,
+  "no-redundant-client-boundary": noRedundantClientBoundaryRule,
   "application-structure": applicationStructureRule,
   "data-component-case": dataComponentCaseRule,
   "jsx-hygiene": jsxHygieneRule,

@@ -9,6 +9,7 @@ References without a consistent creation process scatter lookup material. This r
 - A Reference with a single lookup block MUST NOT add a section heading for it.
 - A Reference with two or more lookup blocks MUST add a section heading for every block, including the first.
 - Every lookup block of a shared glossary MUST be read by the first step of a How To section.
+- A Glossary Reference MUST NOT define a term appearing in fewer than two other documentation files belonging to the same guide.
 - A Reference MUST NOT use a heading deeper than level 2.
 
 ## Incorrect — Reference Links to Another Document

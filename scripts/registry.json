@@ -194,6 +194,12 @@
     },
     {
       "doc": "documentation-guide/rules/reference-creation-rule.md",
+      "text": "A Glossary Reference MUST NOT define a term appearing in fewer than two other documentation files belonging to the same guide.",
+      "hash": "626177137f",
+      "ref": "pasika/glossary-shared-terms"
+    },
+    {
+      "doc": "documentation-guide/rules/reference-creation-rule.md",
       "text": "A Reference MUST NOT use a heading deeper than level 2.",
       "hash": "d8899e0d2a",
       "ref": "pasika/reference-max-heading-depth"
@@ -377,6 +383,24 @@
       "text": "A feature folder, `src/compositions/`, `src/shared/`, and a nested component folder MAY each contain support folders, and any other folder in these scopes MUST be a component folder containing a `.tsx` file with the same name and an `index.ts` that named-re-exports that component.",
       "hash": "42f258782a",
       "ref": "pasika/application-structure"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "An App Router file MUST declare `\"use client\"` as its first directive if it is `error.tsx` or `global-error.tsx`, and MUST NOT declare it otherwise unless it or its imports require client-only features ([Next.js error file convention](https://nextjs.org/docs/app/api-reference/file-conventions/error)).",
+      "hash": "f952c56a52",
+      "ref": "pasika/require-client-boundary, pasika/no-redundant-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary.",
+      "hash": "f6e0fbc186",
+      "ref": "pasika/require-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
+      "hash": "71aa99e0ad",
+      "ref": "pasika/no-redundant-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",

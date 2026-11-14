@@ -13,14 +13,15 @@ Use this no matter whether you are adding a new component or extracting from exi
 5. Classify the component as smart or dumb per the [Smart vs Dumb Component Rule](rules/smart-vs-dumb-component-rule.md).
 6. Keep each component file to exactly one React component per the [No Mixed Concerns Rule](rules/no-mixed-concerns-rule.md).
 7. Extract interactive elements per the [Interactive Component Rule](rules/interactive-component-rule.md).
-8. Extract sole-state-owner blocks per the [Sole State Owner Rule](rules/sole-state-owner-rule.md).
-9. Extract repeated structures per the [Repeated Structure Rule](rules/repeated-structure-rule.md).
-10. Extract a group of elements when one clear component name describes it per the [Nameable Visual Concept Rule](rules/nameable-visual-concept-rule.md).
-11. For every component extracted in steps 7 to 10, repeat steps 4 to 6.
-12. Repeat steps 7 to 10 for an extracted component only when one of those extraction conditions applies to its JSX; stop when no new component is required.
-13. Nest a component when it gains exclusive children per the [Folder Nesting Rule](rules/folder-nesting-rule.md).
-14. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
-15. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so every component module has predictable exports and import paths.
+8. Place `"use client"` at server-to-client module boundaries per the [Client Boundary Rule](rules/client-boundary-rule.md).
+9. Extract sole-state-owner blocks per the [Sole State Owner Rule](rules/sole-state-owner-rule.md).
+10. Extract repeated structures per the [Repeated Structure Rule](rules/repeated-structure-rule.md).
+11. Extract a group of elements when one clear component name describes it per the [Nameable Visual Concept Rule](rules/nameable-visual-concept-rule.md).
+12. For every component extracted in steps 7, 9, 10, and 11, repeat steps 4 to 6.
+13. Repeat steps 7, 9, 10, and 11 for an extracted component only when one of those extraction conditions applies to its JSX; stop when no new component is required.
+14. Nest a component when it gains exclusive children per the [Folder Nesting Rule](rules/folder-nesting-rule.md).
+15. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
+16. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so every component module has predictable exports and import paths.
 
 ## How To Organize a Type or Schema
 
