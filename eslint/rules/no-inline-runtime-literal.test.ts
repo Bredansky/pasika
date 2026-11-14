@@ -104,9 +104,21 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
     ],
     invalid: [
-      { filename: srcFile("constants/milestone-classes.ts"), code: 'export const milestoneContentClassName = "h-35";', errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }] },
-      { filename: file, code: 'const buttonClasses = "flex items-center gap-2";', errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }] },
-      { filename: file, code: 'const navClassName = `text-sm`;', errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }] },
+      {
+        filename: srcFile("constants/milestone-classes.ts"),
+        code: 'export const milestoneContentClassName = "h-35";',
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const buttonClasses = "flex items-center gap-2";',
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const navClassName = `text-sm`;',
+        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+      },
       {
         filename: file,
         code: 'import { Inter } from "another-font-library"; const font = Inter({ subsets: ["latin"] });',
