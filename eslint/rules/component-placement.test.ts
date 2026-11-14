@@ -141,7 +141,7 @@ void describe("A component used only by src/app/ or configuration modules that d
   });
 });
 
-void describe("A component with consumers outside src/app/ and configuration modules MUST live in its CCF, excluding those modules, unless it is a composition entrypoint also used by them.", () => {
+void describe("A component with consumers outside src/app/ and configuration modules MUST live in its CCF, excluding those modules from the calculation.", () => {
   ruleTester.run("component-placement", componentPlacementRule, {
     valid: [
       {
@@ -243,6 +243,13 @@ void describe("A feature component cannot import another feature directly.", () 
         ],
       },
     ],
+  });
+});
+
+void describe("As an exception, a composition entrypoint that is also imported by `src/app/` or a configuration module MUST remain in `src/compositions/` if it integrates two or more distinct features.", () => {
+  ruleTester.run("component-placement", componentPlacementRule, {
+    valid: [{ code: read("compositions/landing/landing.tsx"), filename: file("compositions/landing/landing.tsx") }],
+    invalid: [],
   });
 });
 

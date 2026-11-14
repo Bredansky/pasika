@@ -6,7 +6,8 @@ Without clear placement, it is hard to tell where a component belongs and reuse 
 - A composition entrypoint used by `src/app/` or a configuration module MUST integrate two or more distinct feature folders, directly or through composition children.
 - When calculating a component's CCF, barrel files MUST be skipped in favor of the files that import through them, and tests MUST NOT count as consumers.
 - A component used only by `src/app/` or configuration modules that does not integrate two or more distinct feature folders MUST live in the feature folder it represents or supports, creating one if necessary.
-- A component with consumers outside `src/app/` and configuration modules MUST live in its CCF, excluding those modules, unless it is a composition entrypoint also used by them.
+- A component with consumers outside `src/app/` and configuration modules MUST live in its CCF, excluding those modules from the calculation.
+- As an exception, a composition entrypoint that is also imported by `src/app/` or a configuration module MUST remain in `src/compositions/` if it integrates two or more distinct features.
 - When calculating a component's CCF, consumers under `src/compositions/` MUST count only when no consumer is outside `src/compositions/`.
 - A component whose CCF is `src/features/` MUST live in `src/shared/`.
 - `src/app/` MUST contain [Next.js App Router framework-convention files and assets](https://nextjs.org/docs/app/getting-started/project-structure#routing-files), plus styles required by routing files, but MUST NOT contain ordinary components or support folders.
