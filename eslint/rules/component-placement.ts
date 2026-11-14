@@ -86,13 +86,15 @@ export const componentPlacementRule: Rule.RuleModule = {
     const currentFolder = folderSegmentsOf(componentFile, sourceRoot);
     const placement = resolveComponentPlacement(componentFile, index);
     const consumers = componentConsumers(componentFile, index);
+    const compositionRoot = isCompositionRoot(segments);
     const exposedComposition =
-      isCompositionRoot(segments) &&
+      compositionRoot &&
       consumers.some((consumer) => {
         const consumerSegments = segmentsOf(consumer, sourceRoot);
         return isUnderApp(consumerSegments) || isConfigModule(consumerSegments);
       });
-    const combinedFeatures = exposedComposition ? combinedFeatureFolders(componentFile, index) : [];
+    // Composition-only consumers must not legitimize a wrapper around one feature.
+    const combinedFeatures = compositionRoot ? combinedFeatureFolders(componentFile, index) : [];
     const ownFeature = segments[0] === "features" ? segments[1] : undefined;
     const importsForeignFeature = module.imports.some((moduleImport) => {
       const resolved = resolveSpecifier(componentFile, moduleImport.specifier, sourceRoot);
@@ -102,7 +104,7 @@ export const componentPlacementRule: Rule.RuleModule = {
 
     return {
       Program(node) {
-        if (exposedComposition) {
+        if (exposedComposition || (compositionRoot && combinedFeatures.length === 1)) {
           if (combinedFeatures.length < 2) {
             context.report({
               node,
