@@ -274,6 +274,21 @@ export const applicationStructureRule: Rule.RuleModule = {
     const kinds = exportedKinds(filename);
     const isConfigModuleRoot = topLevel === "config" && segments.length === 3 && path.basename(filename) === "index.ts";
     if (isConfigModuleRoot) return {};
+
+    // Keep narrowly grouped runtime contracts out of the shared constants barrel.
+    // Each direct constants/<group>/ folder must provide its own index.ts.
+    const isIndexedConstantGroup =
+      path.basename(path.dirname(path.dirname(filename))) === "constants" &&
+      fs.existsSync(path.join(path.dirname(filename), "index.ts"));
+    const groupedFileKind = expectedSupportFolder(kinds);
+    if (
+      isIndexedConstantGroup &&
+      !kinds.has("component") &&
+      (groupedFileKind === "constants" || groupedFileKind === undefined)
+    ) {
+      return {};
+    }
+
     if (!SUPPORT_FOLDERS.has(currentFolder)) {
       const expected = expectedSupportFolder(kinds);
       if (expected !== undefined && segments.length > 2) {

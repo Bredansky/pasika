@@ -21,7 +21,7 @@ function emptyFixture(folder: string, index: string): string {
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.", () => {
+void describe("A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const grouped = fixture(
     "constants",
@@ -129,6 +129,29 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
         code: 'export const value = 1;\nexport * from "./invoice-schema";',
         filename: mixedAndWildcard,
         errors: 1,
+      },
+    ],
+  });
+});
+
+void describe("A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-server-barrel-"));
+  const directory = path.join(root, "src", "constants");
+  mkdirSync(directory, { recursive: true });
+  const index = path.join(directory, "index.ts");
+  writeFileSync(path.join(directory, "public-a.ts"), "export const a = 1;\n");
+  writeFileSync(path.join(directory, "public-b.ts"), "export const b = 2;\n");
+  writeFileSync(path.join(directory, "auth.server.ts"), "export const secret = 3;\n");
+  const safeSource = 'export * from "./public-a";\nexport * from "./public-b";\n';
+  writeFileSync(index, safeSource);
+
+  ruleTester.run("support-folder-shape", supportFolderShapeRule, {
+    valid: [{ code: safeSource, filename: index }],
+    invalid: [
+      {
+        code: `${safeSource}export * from "./auth.server";\n`,
+        filename: index,
+        errors: [{ message: /must not re-export server-only modules/ }],
       },
     ],
   });

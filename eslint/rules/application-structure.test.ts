@@ -117,7 +117,7 @@ void describe("src/features/ MUST contain only feature folders.", () => {
   });
 });
 
-void describe("A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds.", () => {
+void describe("A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds. One exception is a direct constants/<group>/ subfolder with its own index.ts, for independently imported constant groups (for example, client-loaded API contracts).", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
     valid: [
       valid("features/billing/utils/format-date.ts"),
@@ -361,6 +361,25 @@ void describe("A non-index .ts module MUST NOT merely forward a sibling componen
               "Avoid a forwarding .ts file for a sibling component: move the implementation from confirmation-dialog-component.tsx to confirmation-dialog.tsx and remove the .ts facade.",
           },
         ],
+      },
+    ],
+  });
+});
+
+write("constants/api/index.ts", 'export * from "./donation-progress";\n');
+write("constants/api/donation-progress.ts", "export const donationProgressApiContract = 1;\n");
+write("constants/orphan/donation-progress.ts", "export const donationProgressApiContract = 1;\n");
+
+void describe("Indexed subgroups under constants/ MAY hold API contracts without leaking them through the root barrel.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [
+      { code: "export const donationProgressApiContract = 1;", filename: file("constants/api/donation-progress.ts") },
+    ],
+    invalid: [
+      {
+        code: "export const donationProgressApiContract = 1;",
+        filename: file("constants/orphan/donation-progress.ts"),
+        errors: 1,
       },
     ],
   });
