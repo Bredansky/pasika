@@ -72,6 +72,41 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
+    // An index holding one constant for one component is an unnecessary extraction.
+    // Independent consumers and multi-export constant modules still use CCF placement.
+    if (supportFolder === "constants" && path.basename(supportFile) === "index.ts") {
+      const exports = index.modules.get(supportFile)?.exports ?? [];
+      const [onlyExport] = exports;
+      if (exports.length === 1 && onlyExport?.kind === "constant") {
+        const consumers = index.symbolConsumers.get(symbolKey(supportFile, onlyExport.name));
+        if (consumers?.size === 1) {
+          const [consumer] = consumers;
+          const component = consumer
+            ? index.modules.get(consumer)?.exports.some((entry) => entry.kind === "component")
+            : false;
+          const sameFeature =
+            consumer !== undefined &&
+            segmentsOf(consumer, sourceRoot)[0] === "features" &&
+            segmentsOf(consumer, sourceRoot)[1] === segmentsOf(supportFile, sourceRoot)[1] &&
+            segmentsOf(supportFile, sourceRoot)[0] === "features";
+          if (component && sameFeature) {
+            return {
+              Program(node) {
+                context.report({
+                  node,
+                  loc: { line: 1, column: 0 },
+                  message:
+                    `${onlyExport.name} is only consumed by ${describeConsumers([consumer], sourceRoot)}; ` +
+                    "declare it beside its owning component instead of extracting a constants/ folder. " +
+                    "See docs/next-codebase-guide/rules/constants-rule.md",
+                });
+              },
+            };
+          }
+        }
+      }
+    }
+
     let placement = resolveSupportPlacement(supportFile, supportFolder, index);
     const groupedExportKind = EXPORT_KIND_BY_SUPPORT_FOLDER.get(supportFolder);
     if (groupedExportKind !== undefined) {
