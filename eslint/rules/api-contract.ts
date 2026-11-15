@@ -43,6 +43,62 @@ function importedBindings(program: ESTree.Program): Set<string> {
   return names;
 }
 
+/**
+ * An awaited import() is an imported contract too. Keep provenance tied to a
+ * literal module specifier, including parallel imports through Promise.all.
+ */
+function dynamicContractNames(pattern: ESTree.ObjectPattern): string[] {
+  return pattern.properties.flatMap((property) => {
+    if (property.type !== "Property" || property.value.type !== "Identifier") return [];
+    let importedName: string | undefined;
+    if (property.key.type === "Identifier") {
+      importedName = property.key.name;
+    } else if (property.key.type === "Literal" && typeof property.key.value === "string") {
+      importedName = property.key.value;
+    }
+    return importedName?.endsWith("ApiContract") ? [property.value.name] : [];
+  });
+}
+
+function dynamicallyImportedContracts(node: ESTree.VariableDeclarator): string[] {
+  if (node.init?.type !== "AwaitExpression") return [];
+  const awaited = node.init.argument;
+
+  if (
+    node.id.type === "ObjectPattern" &&
+    awaited.type === "ImportExpression" &&
+    awaited.source.type === "Literal" &&
+    typeof awaited.source.value === "string"
+  ) {
+    return dynamicContractNames(node.id);
+  }
+
+  if (
+    node.id.type !== "ArrayPattern" ||
+    awaited.type !== "CallExpression" ||
+    awaited.callee.type !== "MemberExpression" ||
+    !isNamed(awaited.callee.object, "Promise") ||
+    !isNamed(awaited.callee.property, "all") ||
+    awaited.arguments[0]?.type !== "ArrayExpression"
+  ) {
+    return [];
+  }
+
+  const sources = awaited.arguments[0].elements;
+  return node.id.elements.flatMap((pattern, index) => {
+    const source = sources[index];
+    if (
+      pattern?.type !== "ObjectPattern" ||
+      source?.type !== "ImportExpression" ||
+      source.source.type !== "Literal" ||
+      typeof source.source.value !== "string"
+    ) {
+      return [];
+    }
+    return dynamicContractNames(pattern);
+  });
+}
+
 function memberPropertyName(node: ESTree.MemberExpression): string | undefined {
   if (!node.computed && node.property.type === "Identifier") return node.property.name;
   if (node.computed && node.property.type === "Literal" && typeof node.property.value === "string") {
@@ -151,6 +207,9 @@ export const apiContractRule: Rule.RuleModule = {
       },
 
       VariableDeclarator(node) {
+        for (const name of dynamicallyImportedContracts(node)) {
+          imports.add(name);
+        }
         if (node.id.type !== "Identifier") return;
 
         if (node.id.name === HELPER) {

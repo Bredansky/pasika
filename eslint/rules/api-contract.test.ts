@@ -158,6 +158,23 @@ return zodFetch({ contract: apiContracts.ordersApiContract });`,
         filename: srcFile("features/files/relay-file.ts"),
         code: `return zodFetch({ url: "https://api.example.com/file" });`,
       },
+      {
+        filename: srcFile("features/orders/load-orders.ts"),
+        code: `async function load() {
+  const [{ zodFetch }, { ordersApiContract }] = await Promise.all([
+    import("pasika/zod-fetch"),
+    import("@/constants/api"),
+  ]);
+  return zodFetch({ contract: ordersApiContract });
+}`,
+      },
+      {
+        filename: srcFile("features/orders/load-orders.ts"),
+        code: `async function load() {
+  const { ordersApiContract: contract } = await import("@/constants/api");
+  return zodFetch({ contract });
+}`,
+      },
     ],
     invalid: [
       {
@@ -183,6 +200,18 @@ return zodFetch({ contract: ordersApiContract });`,
         filename: srcFile("features/orders/load-orders.ts"),
         code: `const apiContracts = { ordersApiContract };
 return zodFetch({ contract: apiContracts.ordersApiContract });`,
+        errors: [
+          {
+            message: `A schema-validated request must use an imported API contract through zodFetch({ contract }). ${DOC}`,
+          },
+        ],
+      },
+      {
+        filename: srcFile("features/orders/load-orders.ts"),
+        code: `async function load(moduleName) {
+  const [{ ordersApiContract }] = await Promise.all([import(moduleName)]);
+  return zodFetch({ contract: ordersApiContract });
+}`,
         errors: [
           {
             message: `A schema-validated request must use an imported API contract through zodFetch({ contract }). ${DOC}`,

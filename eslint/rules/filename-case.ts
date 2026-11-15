@@ -39,7 +39,7 @@ const NEXT_ROUTING_FILES = new Set([
 ]);
 
 /** Suffixes that form a compound extension with the real extension (e.g. .example.tsx, .test.ts). */
-const COMPOUND_SUFFIXES = new Set(["example", "test", "spec", "stories"]);
+const COMPOUND_SUFFIXES = new Set(["example", "test", "spec", "stories", "server"]);
 
 /**
  * Checks whether a string is in kebab-case.
