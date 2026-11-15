@@ -55,6 +55,16 @@ const FIXTURE: Record<string, string> = {
   "features/home/constants/index.ts": 'export enum RetroCardSurface { Card = "card", Gradient = "gradient" }\n',
   "features/home/retro-card.tsx":
     'import { RetroCardSurface } from "./constants";\nexport function RetroCard() { return <div>{RetroCardSurface.Card}</div>; }\n',
+  "features/home/support-section.tsx":
+    'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export function SupportSection() { return <RetroCard />; }',
+  "features/home/retro-card-surface.test.ts":
+    'import { RetroCardSurface } from "./constants"; export const values = Object.values(RetroCardSurface);',
+  "features/archive/constants/index.ts": 'export enum ArchiveSurface { Card = "card", Gradient = "gradient" }',
+  "features/archive/card.tsx":
+    'import { ArchiveSurface } from "./constants"; export function ArchiveCard() { return <div>{ArchiveSurface.Card}</div>; }',
+  "features/archive/banner.tsx":
+    'import { ArchiveSurface } from "./constants"; export function ArchiveBanner() { return <div>{ArchiveSurface.Gradient}</div>; }',
+
   // Shared between independent components: keep the enum extracted.
   "features/home/constants/shared-surface.ts": 'export enum SharedSurface { Card = "card", Gradient = "gradient" }\n',
   "features/home/first-shared-card.tsx":
@@ -258,14 +268,14 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
 
 void describe("A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [ok("features/home/constants/shared-surface.ts")],
+    valid: [ok("features/home/constants/shared-surface.ts"), ok("features/archive/constants/index.ts")],
     invalid: [
       {
         ...ok("features/home/constants/index.ts"),
         errors: [
           {
             message:
-              "RetroCardSurface is only consumed by src/features/home/retro-card.tsx; " +
+              "RetroCardSurface is consumed only alongside RetroCard (src/features/home/retro-card.tsx); " +
               "declare it beside its owning component instead of extracting a constants/ folder. " +
               "See docs/next-codebase-guide/rules/constants-rule.md",
           },

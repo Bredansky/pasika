@@ -23,7 +23,7 @@ import {
   segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf";
-import { getProjectIndex, symbolKey } from "../project/index";
+import { getProjectIndex, isTestConsumer, symbolKey } from "../project/index";
 import type { ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
@@ -72,37 +72,45 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
-    // An index holding one constant for one component is an unnecessary extraction.
-    // Independent consumers and multi-export constant modules still use CCF placement.
+    // A single exported constant/enum belongs to a component when every
+    // production consumer also imports that component. Tests do not establish
+    // independent ownership; unrelated consumers still require extraction.
     if (supportFolder === "constants" && path.basename(supportFile) === "index.ts") {
       const exports = index.modules.get(supportFile)?.exports ?? [];
       const [onlyExport] = exports;
       if (exports.length === 1 && onlyExport?.kind === "constant") {
-        const consumers = index.symbolConsumers.get(symbolKey(supportFile, onlyExport.name));
-        if (consumers?.size === 1) {
-          const [consumer] = consumers;
-          const component = consumer
-            ? index.modules.get(consumer)?.exports.some((entry) => entry.kind === "component")
-            : false;
-          const sameFeature =
-            consumer !== undefined &&
-            segmentsOf(consumer, sourceRoot)[0] === "features" &&
-            segmentsOf(consumer, sourceRoot)[1] === segmentsOf(supportFile, sourceRoot)[1] &&
-            segmentsOf(supportFile, sourceRoot)[0] === "features";
-          if (component && sameFeature) {
-            return {
-              Program(node) {
-                context.report({
-                  node,
-                  loc: { line: 1, column: 0 },
-                  message:
-                    `${onlyExport.name} is only consumed by ${describeConsumers([consumer], sourceRoot)}; ` +
-                    "declare it beside its owning component instead of extracting a constants/ folder. " +
-                    "See docs/next-codebase-guide/rules/constants-rule.md",
-                });
-              },
-            };
-          }
+        const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, onlyExport.name)) ?? [])].filter(
+          (consumer) => !isTestConsumer(consumer),
+        );
+        const sameFeature = (consumer: string): boolean =>
+          segmentsOf(consumer, sourceRoot)[0] === "features" &&
+          segmentsOf(consumer, sourceRoot)[1] === segmentsOf(supportFile, sourceRoot)[1] &&
+          segmentsOf(supportFile, sourceRoot)[0] === "features";
+
+        for (const owner of consumers) {
+          if (!sameFeature(owner)) continue;
+          const components = index.modules.get(owner)?.exports.filter((entry) => entry.kind === "component") ?? [];
+          const owningComponent = components.find((component) => {
+            const companionConsumers = index.symbolConsumers.get(symbolKey(owner, component.name));
+            return consumers.every((consumer) => consumer === owner || companionConsumers?.has(consumer));
+          });
+          if (!owningComponent) continue;
+
+          return {
+            Program(node) {
+              context.report({
+                node,
+                loc: { line: 1, column: 0 },
+                message:
+                  `${onlyExport.name} is consumed only alongside ${owningComponent.name} (${describeConsumers(
+                    [owner],
+                    sourceRoot,
+                  )}); ` +
+                  `declare it beside its owning component instead of extracting a constants/ folder. ` +
+                  `See docs/next-codebase-guide/rules/constants-rule.md`,
+              });
+            },
+          };
         }
       }
     }

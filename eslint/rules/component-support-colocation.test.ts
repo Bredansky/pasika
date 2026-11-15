@@ -11,6 +11,25 @@ const FIXTURE: Record<string, string> = {
   "app/divider/page.tsx":
     'import { Divider, DividerVariant } from "@/shared/divider"; export default function Page() { return <Divider variant={DividerVariant.Diamonds} />; }',
 
+  "shared/divider-variant.test.ts":
+    'import { DividerVariant } from "./divider"; export const values = Object.values(DividerVariant);',
+  "shared/with-extracted.test.ts":
+    'import { extractedVariant } from "@/constants"; export const observed = extractedVariant;',
+
+  "features/home/constants/index.ts": 'export enum RetroCardSurface { Card = "card", Gradient = "gradient" }',
+  "features/home/retro-card.tsx":
+    'import { RetroCardSurface } from "./constants"; export function RetroCard() { return <div>{RetroCardSurface.Card}</div>; }',
+  "features/home/support-section.tsx":
+    'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export function SupportSection() { return <RetroCard />; }',
+  "features/home/retro-card-surface.test.ts":
+    'import { RetroCardSurface } from "./constants"; export const surfaces = Object.values(RetroCardSurface);',
+  "features/home/local-card.tsx":
+    'export enum LocalCardSurface { Card = "card", Gradient = "gradient" }; export function LocalCard() { return <div>{LocalCardSurface.Card}</div>; }',
+  "features/home/local-support.tsx":
+    'import { LocalCardSurface, LocalCard } from "./local-card"; export function LocalSupport() { return <LocalCard />; }',
+  "features/home/local-card.test.ts":
+    'import { LocalCardSurface } from "./local-card"; export const surfaces = Object.values(LocalCardSurface);',
+
   "shared/standalone.tsx":
     'export enum StandaloneVariant { A = "a", B = "b" }; export function Standalone() { return <span />; }',
   "features/unrelated.ts":
@@ -67,6 +86,10 @@ void describe("A constant, enum, type, or schema imported only by a component an
         errors: [{ message: message("constant", "extractedVariant", "WithExtracted") }],
       },
       {
+        ...fixture("features/home/retro-card.tsx"),
+        errors: [{ message: message("constant", "RetroCardSurface", "RetroCard") }],
+      },
+      {
         ...fixture("shared/form.tsx"),
         errors: [
           { message: message("schema", "formSchema", "Form") },
@@ -79,7 +102,7 @@ void describe("A constant, enum, type, or schema imported only by a component an
 
 void describe("An enum colocated with its component MUST NOT require extraction when every external consumer imports both.", () => {
   ruleTester.run("enum-placement:component-owned", enumPlacementRule, {
-    valid: [fixture("shared/divider.tsx")],
+    valid: [fixture("shared/divider.tsx"), fixture("features/home/local-card.tsx")],
     invalid: [
       {
         ...fixture("shared/standalone.tsx"),
