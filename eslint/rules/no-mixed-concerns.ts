@@ -11,7 +11,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, resolveSpecifier, symbolKey, type ProjectIndex } from "../project/index";
+import { getProjectIndex, isTestConsumer, resolveSpecifier, symbolKey, type ProjectIndex } from "../project/index";
 import type { ExportKind } from "../project/parse-module";
 import { parseComponentInfo } from "./component-conventions";
 import { sourceRootOf } from "./project-root";
@@ -114,7 +114,7 @@ export const noMixedConcernsRule: Rule.RuleModule = {
               ]);
               if (!consumers.has(file)) continue;
               const independentlyUsed = [...consumers].some((consumer) => {
-                if (consumer === file || componentConsumers.has(consumer)) return false;
+                if (consumer === file || isTestConsumer(consumer) || componentConsumers.has(consumer)) return false;
                 // Re-export barrels forward the symbol but do not independently use it.
                 const isForwarder = index.modules
                   .get(consumer)
@@ -156,7 +156,9 @@ export const noMixedConcernsRule: Rule.RuleModule = {
           const consumers = index?.symbolConsumers.get(symbolKey(file, name));
           if (!consumers) return;
 
-          const independent = [...consumers].filter((consumer) => !componentConsumers.has(consumer));
+          const independent = [...consumers].filter(
+            (consumer) => !isTestConsumer(consumer) && !componentConsumers.has(consumer),
+          );
           if (independent.length > 0) {
             context.report({
               loc,

@@ -24,6 +24,9 @@ export interface ProjectIndex {
 
 export const symbolKey = (file: string, name: string): string => `${file}\u0000${name}`;
 
+/** Tests observe a symbol but do not establish its production ownership. */
+export const isTestConsumer = (file: string): boolean => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path.basename(file));
+
 function listSourceFiles(dir: string): string[] {
   let entries: string[];
   try {
