@@ -21,7 +21,7 @@ function emptyFixture(folder: string, index: string): string {
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.", () => {
+void describe("A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.", () => {
   const valid = fixture("constants", "export const value = 1;\n", "retry.ts");
   const grouped = fixture(
     "constants",
@@ -134,7 +134,7 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
   });
 });
 
-void describe("Server-only constants are excluded from shared barrels.", () => {
+void describe("A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-barrel-"));
   const directory = path.join(root, "src", "constants");
   mkdirSync(directory, { recursive: true });

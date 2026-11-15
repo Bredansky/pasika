@@ -15,7 +15,7 @@ function project(): { root: string; consumer: string } {
   return { root, consumer };
 }
 
-void describe("A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.", () => {
+void describe("A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.", () => {
   const { root, consumer } = project();
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import { maxRetries } from "./constants";', filename: consumer }],
@@ -98,7 +98,7 @@ void describe("Consumers MUST import an extracted type or schema through the ind
   });
 });
 
-void describe("Server-only constants bypass the public barrel and cannot be imported by Client Components.", () => {
+void describe("A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-constant-"));
   const constants = path.join(root, "src", "constants");
   const importer = path.join(root, "src", "utils", "load-contract.ts");
