@@ -56,13 +56,11 @@ const FIXTURE: Record<string, string> = {
   "features/home/retro-card.tsx":
     'import { RetroCardSurface } from "./constants";\nexport function RetroCard() { return <div>{RetroCardSurface.Card}</div>; }\n',
   // Shared between independent components: keep the enum extracted.
-  "features/home/constants/shared-surface.ts":
-    'export enum SharedSurface { Card = "card", Gradient = "gradient" }\n',
+  "features/home/constants/shared-surface.ts": 'export enum SharedSurface { Card = "card", Gradient = "gradient" }\n',
   "features/home/first-shared-card.tsx":
     'import { SharedSurface } from "./constants/shared-surface";\nexport function FirstSharedCard() { return <div>{SharedSurface.Card}</div>; }\n',
   "features/home/second-shared-card.tsx":
     'import { SharedSurface } from "./constants/shared-surface";\nexport function SecondSharedCard() { return <div>{SharedSurface.Gradient}</div>; }\n',
-
 
   "features/billing/constants/invoice-status.ts": 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n',
   "features/billing/types/index.ts": "export type DateRange = { from: Date };\n",
@@ -399,8 +397,7 @@ void describe("A utility used only to implement one configuration file MUST live
 
 void describe("An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    // A type or constant whose meaning comes from the configuration may stay
-    // with it however widely it is read.
+    // A type or constant whose meaning comes from the configuration may stay    // with it however widely it is read.
     valid: [ok("config/player/types/index.ts"), ok("config/player/constants/index.ts")],
     invalid: [
       {
