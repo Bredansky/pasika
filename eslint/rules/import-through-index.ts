@@ -26,6 +26,20 @@ export const importThroughIndexRule: Rule.RuleModule = {
           );
           const supportFolder = supportFolderIndex >= 0 ? targetSegments[supportFolderIndex] : undefined;
           if (!supportFolder) continue;
+
+          // Server-only constants intentionally bypass the shared support barrel.
+          // Importing them from a Client Component is always a mistake.
+          const serverOnlyConstant =
+            supportFolder === "constants" && /\.server\.[cm]?[jt]sx?$/.test(path.basename(target));
+          if (serverOnlyConstant) {
+            if (/^\s*["']use client["'];?/.test(context.sourceCode.text)) {
+              context.report({
+                node,
+                message: `Client Components must not import server-only constant "${specifier}".`,
+              });
+            }
+            continue;
+          }
           const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
           const withinSameSupportFolder =
             importerSegments.length > supportFolderIndex + 1 &&

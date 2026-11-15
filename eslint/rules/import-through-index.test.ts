@@ -15,7 +15,7 @@ function project(): { root: string; consumer: string } {
   return { root, consumer };
 }
 
-void describe("A `constants/` folder MUST expose constants through `index.ts`, defining them there when it has at most one sibling file and re-exporting grouped constants otherwise; imports between sibling files MUST be direct.", () => {
+void describe("A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.", () => {
   const { root, consumer } = project();
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import { maxRetries } from "./constants";', filename: consumer }],
@@ -95,5 +95,34 @@ void describe("Consumers MUST import an extracted type or schema through the ind
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ code: 'import type { Invoice } from "./types";', filename: consumer }],
     invalid: [{ code: 'import type { Invoice } from "./types/invoice";', filename: consumer, errors: 1 }],
+  });
+});
+
+void describe("A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-server-constant-"));
+  const constants = path.join(root, "src", "constants");
+  const importer = path.join(root, "src", "utils", "load-contract.ts");
+  mkdirSync(constants, { recursive: true });
+  mkdirSync(path.dirname(importer), { recursive: true });
+  writeFileSync(path.join(constants, "index.ts"), 'export * from "./paths";\n');
+  writeFileSync(path.join(constants, "paths.ts"), 'export const route = "/api/example";\n');
+  writeFileSync(path.join(constants, "api-contracts.server.ts"), 'export const tokenEndpoint = "/token";\n');
+
+  ruleTester.run("import-through-index", importThroughIndexRule, {
+    valid: [{ code: 'import { tokenEndpoint } from "../constants/api-contracts.server";', filename: importer }],
+    invalid: [
+      {
+        code: '"use client";\nimport { tokenEndpoint } from "../constants/api-contracts.server";',
+        filename: importer,
+        errors: [
+          { message: 'Client Components must not import server-only constant "../constants/api-contracts.server".' },
+        ],
+      },
+      {
+        code: 'import { route } from "../constants/paths";',
+        filename: importer,
+        errors: 1,
+      },
+    ],
   });
 });

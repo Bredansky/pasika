@@ -18,6 +18,7 @@ const rootSupportFolders = new Set(["config", "constants", "hooks", "locales", "
 const architecturalLayers = new Set(["app", "compositions", "features", "shared"]);
 const moduleExtensions = new Set([".cjs", ".cts", ".js", ".jsx", ".mjs", ".mts", ".ts", ".tsx"]);
 const styleExtensions = new Set([".css", ".less", ".sass", ".scss"]);
+const serverModuleSuffix = ".server";
 
 function resolveSourceImport(sourceRoot: string, filename: string, importPath: string): string | undefined {
   if (importPath.startsWith("@/")) {
@@ -157,7 +158,7 @@ export const importBoundariesRule: Rule.RuleModule = {
       const [importerLayer = "", importerFeature] = importer;
       const [importedLayer = "", importedFeature] = imported;
       const extension = path.extname(importPath);
-      const isCodeModule = !extension || moduleExtensions.has(extension);
+      const isCodeModule = !extension || moduleExtensions.has(extension) || extension === serverModuleSuffix;
       const isAppLocalStyleImport =
         importerLayer === "app" && importedLayer === "app" && styleExtensions.has(extension);
       const importedIsRootSupport = rootSupportFolders.has(importedLayer);

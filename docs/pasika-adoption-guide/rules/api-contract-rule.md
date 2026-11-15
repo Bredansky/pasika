@@ -50,7 +50,7 @@ import * as apiContracts from "@/constants";
 return zodFetch({ contract: apiContracts.ordersApiContract });
 ```
 
-Why: the contract supplies the path, method, request schema when present, and response schema from one imported value, while the qualified reference keeps the source name explicit at the object boundary.
+Why: the contract supplies the path, method, request schema when present, and response schema from one imported value, while the qualified reference keeps the source name explicit at the object boundary. The same contract can be loaded lazily through an awaited literal `import()` or `Promise.all([import(...)])` without pulling validation into the initial bundle.
 
 ## Incorrect — Contract Exists Only Locally
 
