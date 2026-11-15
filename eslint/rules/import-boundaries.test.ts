@@ -78,6 +78,14 @@ void describe("An import between architectural layers MUST use the @/* alias, ev
         filename: srcFile("constants/format.ts"),
       },
       {
+        code: 'import { ordersApiContract } from "../constants/orders-api-contract.server";',
+        filename: srcFile("utils/stream-api.ts"),
+      },
+      {
+        code: 'import { ordersApiContract } from "@/constants/orders-api-contract.server";',
+        filename: srcFile("features/orders/load-orders.ts"),
+      },
+      {
         code: 'export * from "@/shared/retro-button";',
         filename: srcFile("compositions/donation-milestone.tsx"),
       },
@@ -316,6 +324,11 @@ void describe("A configuration module MUST import only from root support folders
       {
         code: 'import { Invoice } from "@/features/billing/invoice";',
         filename: srcFile("config/home-feed/index.ts"),
+        errors: [{ message: BOUNDARY_MESSAGE }],
+      },
+      {
+        code: 'import { Checkout } from "../compositions/checkout.server";',
+        filename: srcFile("utils/stream-api.ts"),
         errors: [{ message: BOUNDARY_MESSAGE }],
       },
       {

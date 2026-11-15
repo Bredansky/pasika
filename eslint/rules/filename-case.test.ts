@@ -118,6 +118,7 @@ void describe("A file that does not define a component MUST have a kebab-case na
       { code: "export function formatDate() {}", filename: srcFile("utils/format-date.ts") },
       { code: "export function useInvoiceSort() {}", filename: srcFile("features/billing/hooks/use-invoice-sort.ts") },
       { code: "export const maxRetries = 3;", filename: srcFile("constants/index.ts") },
+      { code: "export const ordersApiContract = {};", filename: srcFile("constants/orders-api-contract.server.ts") },
       // Outside src/ the convention does not apply.
       { code: "export function formatDate() {}", filename: "scripts/formatDate.ts" },
     ],
@@ -140,6 +141,11 @@ void describe("A file that does not define a component MUST have a kebab-case na
       {
         code: "export const maxRetries = 3;",
         filename: srcFile("features/billing/constants/max_retries.ts"),
+        errors: 1,
+      },
+      {
+        code: "export const ordersApiContract = {};",
+        filename: srcFile("constants/OrdersApiContract.server.ts"),
         errors: 1,
       },
     ],
