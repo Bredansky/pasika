@@ -51,6 +51,17 @@ const FIXTURE: Record<string, string> = {
     "",
   ].join("\n"),
   "features/billing/constants/index.ts": "export const maxRetries = 3;\n",
+  // A lone component-owned enum should not be extracted into constants/index.ts.
+  "features/home/constants/index.ts": 'export enum RetroCardSurface { Card = "card", Gradient = "gradient" }\n',
+  "features/home/retro-card.tsx":
+    'import { RetroCardSurface } from "./constants";\nexport function RetroCard() { return <div>{RetroCardSurface.Card}</div>; }\n',
+  // Shared between independent components: keep the enum extracted.
+  "features/home/constants/shared-surface.ts": 'export enum SharedSurface { Card = "card", Gradient = "gradient" }\n',
+  "features/home/first-shared-card.tsx":
+    'import { SharedSurface } from "./constants/shared-surface";\nexport function FirstSharedCard() { return <div>{SharedSurface.Card}</div>; }\n',
+  "features/home/second-shared-card.tsx":
+    'import { SharedSurface } from "./constants/shared-surface";\nexport function SecondSharedCard() { return <div>{SharedSurface.Gradient}</div>; }\n',
+
   "features/billing/constants/invoice-status.ts": 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n',
   "features/billing/types/index.ts": "export type DateRange = { from: Date };\n",
   "features/billing/utils/calc-total.ts": "export function calcTotal() { return 0; }\n",
@@ -245,6 +256,25 @@ void describe("When a utility's CCF is src/features/, it MUST move to src/utils/
   });
 });
 
+void describe("A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [ok("features/home/constants/shared-surface.ts")],
+    invalid: [
+      {
+        ...ok("features/home/constants/index.ts"),
+        errors: [
+          {
+            message:
+              "RetroCardSurface is only consumed by src/features/home/retro-card.tsx; " +
+              "declare it beside its owning component instead of extracting a constants/ folder. " +
+              "See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
+    ],
+  });
+});
+
 void describe("A `constants/` file MUST split exported constants whose direct consumers have different CCFs.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [],
@@ -367,8 +397,7 @@ void describe("A utility used only to implement one configuration file MUST live
 
 void describe("An extracted configuration schema or utility MUST move to its matching root support folder when a consumer outside its configuration module imports it.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    // A type or constant whose meaning comes from the configuration may stay
-    // with it however widely it is read.
+    // A type or constant whose meaning comes from the configuration may stay    // with it however widely it is read.
     valid: [ok("config/player/types/index.ts"), ok("config/player/constants/index.ts")],
     invalid: [
       {
