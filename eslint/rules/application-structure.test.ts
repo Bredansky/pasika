@@ -365,3 +365,22 @@ void describe("A non-index .ts module MUST NOT merely forward a sibling componen
     ],
   });
 });
+
+write("constants/api/index.ts", 'export * from "./donation-progress";\n');
+write("constants/api/donation-progress.ts", "export const donationProgressApiContract = 1;\n");
+write("constants/orphan/donation-progress.ts", "export const donationProgressApiContract = 1;\n");
+
+void describe("Indexed subgroups under constants/ MAY hold API contracts without leaking them through the root barrel.", () => {
+  ruleTester.run("application-structure", applicationStructureRule, {
+    valid: [
+      { code: "export const donationProgressApiContract = 1;", filename: file("constants/api/donation-progress.ts") },
+    ],
+    invalid: [
+      {
+        code: "export const donationProgressApiContract = 1;",
+        filename: file("constants/orphan/donation-progress.ts"),
+        errors: 1,
+      },
+    ],
+  });
+});

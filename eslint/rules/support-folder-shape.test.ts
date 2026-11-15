@@ -133,3 +133,26 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
     ],
   });
 });
+
+void describe("Server-only constants are excluded from shared barrels.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-server-barrel-"));
+  const directory = path.join(root, "src", "constants");
+  mkdirSync(directory, { recursive: true });
+  const index = path.join(directory, "index.ts");
+  writeFileSync(path.join(directory, "public-a.ts"), "export const a = 1;\n");
+  writeFileSync(path.join(directory, "public-b.ts"), "export const b = 2;\n");
+  writeFileSync(path.join(directory, "auth.server.ts"), "export const secret = 3;\n");
+  const safeSource = 'export * from "./public-a";\nexport * from "./public-b";\n';
+  writeFileSync(index, safeSource);
+
+  ruleTester.run("support-folder-shape", supportFolderShapeRule, {
+    valid: [{ code: safeSource, filename: index }],
+    invalid: [
+      {
+        code: `${safeSource}export * from "./auth.server";\n`,
+        filename: index,
+        errors: [{ message: /must not re-export server-only modules/ }],
+      },
+    ],
+  });
+});

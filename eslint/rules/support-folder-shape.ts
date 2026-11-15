@@ -30,7 +30,12 @@ export const supportFolderShapeRule: Rule.RuleModule = {
       return {};
     }
 
-    const siblingModules = entries.filter((entry) => entry !== baseName && /\.(?:[cm]?tsx?|jsx?)$/.test(entry));
+    // Server-only constants are intentionally absent from the shared support barrel.
+    const serverOnlyModules =
+      folder === "constants" ? entries.filter((entry) => /\.server\.[cm]?tsx?$/.test(entry)) : [];
+    const siblingModules = entries.filter(
+      (entry) => entry !== baseName && /\.(?:[cm]?tsx?|jsx?)$/.test(entry) && !serverOnlyModules.includes(entry),
+    );
 
     return {
       Program(node) {
@@ -49,6 +54,16 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         }
 
         const guide = `docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`;
+        const leakedServerModules = serverOnlyModules.filter((entry) =>
+          exportedFiles.has(entry.replace(/\.(?:[cm]?tsx?)$/, "")),
+        );
+        if (leakedServerModules.length > 0) {
+          context.report({
+            node,
+            message: `constants/index.ts must not re-export server-only modules: ${leakedServerModules.join(", ")}. Import them directly. See ${guide}`,
+          });
+          return;
+        }
 
         // Pick one strategy for the whole folder: define directly, or group
         // into re-exported sibling files. A support index without siblings

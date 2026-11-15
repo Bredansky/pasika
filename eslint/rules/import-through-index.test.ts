@@ -97,3 +97,32 @@ void describe("Consumers MUST import an extracted type or schema through the ind
     invalid: [{ code: 'import type { Invoice } from "./types/invoice";', filename: consumer, errors: 1 }],
   });
 });
+
+void describe("Server-only constants bypass the public barrel and cannot be imported by Client Components.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-server-constant-"));
+  const constants = path.join(root, "src", "constants");
+  const importer = path.join(root, "src", "utils", "load-contract.ts");
+  mkdirSync(constants, { recursive: true });
+  mkdirSync(path.dirname(importer), { recursive: true });
+  writeFileSync(path.join(constants, "index.ts"), 'export * from "./paths";\n');
+  writeFileSync(path.join(constants, "paths.ts"), 'export const route = "/api/example";\n');
+  writeFileSync(path.join(constants, "api-contracts.server.ts"), 'export const tokenEndpoint = "/token";\n');
+
+  ruleTester.run("import-through-index", importThroughIndexRule, {
+    valid: [{ code: 'import { tokenEndpoint } from "../constants/api-contracts.server";', filename: importer }],
+    invalid: [
+      {
+        code: '"use client";\nimport { tokenEndpoint } from "../constants/api-contracts.server";',
+        filename: importer,
+        errors: [
+          { message: 'Client Components must not import server-only constant "../constants/api-contracts.server".' },
+        ],
+      },
+      {
+        code: 'import { route } from "../constants/paths";',
+        filename: importer,
+        errors: 1,
+      },
+    ],
+  });
+});
