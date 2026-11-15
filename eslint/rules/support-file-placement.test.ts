@@ -180,6 +180,23 @@ const FIXTURE: Record<string, string> = {
   "app/shared/page.tsx":
     'import { typeOnlyData } from "@/features/shared/constants"; import { Card } from "@/features/shared/card"; export default function Page() { return <Card />; }',
 
+  // An exported enum also used to construct another exported value remains
+  // owned by its current module, even if its external importers share a deeper CCF.
+  "features/merch-owned/constants/index.ts": [
+    'enum FilterType { All = "all", Clothing = "clothing" }',
+    "const filterCategories = Object.values(FilterType);",
+    "const products = [{ category: FilterType.Clothing }];",
+    "export { FilterType, filterCategories, products };",
+    "",
+  ].join("\n"),
+  "features/merch-owned/merch-catalog/index.ts": 'export { MerchCatalog } from "./merch-catalog";',
+  "features/merch-owned/merch-catalog/merch-catalog.tsx":
+    'import { FilterType } from "../constants"; export function MerchCatalog() { return <div>{FilterType.All}</div>; }',
+  "features/merch-owned/merch-catalog/merch-filter-button.tsx":
+    'import type { FilterType } from "../constants"; export function MerchFilterButton(props: { type: FilterType }) { return <button>{props.type}</button>; }',
+  "app/merch-owned/page.tsx":
+    'import { products, filterCategories } from "@/features/merch-owned/constants"; export default function Page() { return <p>{products.length}{filterCategories.length}</p>; }',
+
   // A constant in one configuration module consumed only by another: the other
   // module owns it, so it must move there even though it lives in config.
   "config/theme/index.ts":
@@ -319,7 +336,7 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
 
 void describe("Each exported value in a multi-export constants/index.ts MUST be colocated with the component that owns its runtime use.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [ok("features/shared/constants/index.ts")],
+    valid: [ok("features/shared/constants/index.ts"), ok("features/merch-owned/constants/index.ts")],
     invalid: [
       {
         ...ok("features/merch/constants/index.ts"),

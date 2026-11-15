@@ -92,10 +92,15 @@ export const noMixedConcernsRule: Rule.RuleModule = {
         const sourceRoot = sourceRootOf(context);
         const index = getProjectIndex(sourceRoot);
         const componentConsumers = index?.symbolConsumers.get(symbolKey(file, componentName)) ?? new Set<string>();
+        const isNextPageOrLayout = /(?:^|[/\\])src[/\\]app[/\\](?:[^/\\]+[/\\])*(?:page|layout)\.tsx$/.test(
+          context.filename,
+        );
         // A support value used exclusively by this component and its own
         // consumers has not earned an independent constants/types/schemas module.
         // A consumer importing it without the component changes its ownership.
-        if (index) {
+        // Next.js entry points are orchestrators rather than reusable
+        // component owners. App-only constants must remain in feature modules.
+        if (index && !isNextPageOrLayout) {
           const examined = new Set<string>();
           for (const imported of index.modules.get(file)?.imports ?? []) {
             const importedFile = resolveSpecifier(file, imported.specifier, sourceRoot);
@@ -104,6 +109,10 @@ export const noMixedConcernsRule: Rule.RuleModule = {
             for (const name of imported.names) {
               const support = componentSupportExport(importedFile, name, index);
               if (!support) continue;
+              // A value imported solely for its TypeScript shape is not
+              // component-owned runtime state. Actual exported types still
+              // participate in component ownership.
+              if (support.kind !== "type" && imported.typeOnlyNames?.includes(name)) continue;
               const key = symbolKey(support.file, support.name);
               if (examined.has(key)) continue;
               examined.add(key);
@@ -133,10 +142,6 @@ export const noMixedConcernsRule: Rule.RuleModule = {
             }
           }
         }
-
-        const isNextPageOrLayout = /(?:^|[/\\])src[/\\]app[/\\](?:[^/\\]+[/\\])*(?:page|layout)\.tsx$/.test(
-          context.filename,
-        );
 
         const checkSupportingExport = (name: string, loc: { line: number; column: number }): void => {
           if (name === componentName) return;

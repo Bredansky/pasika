@@ -75,6 +75,23 @@ describe("parseModule", () => {
     ]);
   });
 
+  it("records local references from runtime initializers but not export declarations", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
+    tempDirs.push(root);
+    const file = path.join(root, "merch.ts");
+    writeFileSync(
+      file,
+      [
+        'enum FilterType { Clothing = "clothing" }',
+        "const products = [{ category: FilterType.Clothing }];",
+        "export { FilterType, products };",
+        "",
+      ].join("\n"),
+    );
+    expect(parseModule(file).localValueReferences).toContain("FilterType");
+    expect(parseModule(file).localValueReferences).not.toContain("products");
+  });
+
   it("records type-only imports separately from runtime symbol uses", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);

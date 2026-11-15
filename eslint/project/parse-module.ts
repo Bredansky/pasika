@@ -34,6 +34,8 @@ export interface ParsedModule {
   reexports: ModuleImport[];
   exports: ModuleExport[];
   namedNumericLiterals: NamedNumericLiteral[];
+  /** Identifiers referenced by local runtime expressions, excluding export lists. */
+  localValueReferences: string[];
 }
 
 const isPascalCase = (name: string): boolean => /^[A-Z][A-Za-z0-9]*$/.test(name);
@@ -174,6 +176,30 @@ export function parseModule(file: string): ParsedModule {
   };
 
   collectNamedNumericLiterals(sourceFile);
+
+  // Internal dependencies matter for placement: for example a feature-level
+  // product collection built with FilterType keeps FilterType at the same scope
+  // even if its direct external importers are nested in a component folder.
+  const localValueReferences = new Set<string>();
+  const visitValue = (node: ts.Node): void => {
+    if (
+      ts.isIdentifier(node) &&
+      !(ts.isPropertyAccessExpression(node.parent) && node.parent.name === node) &&
+      !(ts.isPropertyAssignment(node.parent) && node.parent.name === node)
+    ) {
+      localValueReferences.add(node.text);
+    }
+    ts.forEachChild(node, visitValue);
+  };
+  for (const statement of sourceFile.statements) {
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        if (declaration.initializer) visitValue(declaration.initializer);
+      }
+    } else if (ts.isFunctionDeclaration(statement) && statement.body) {
+      visitValue(statement.body);
+    }
+  }
 
   const addImport = (
     specifierNode: ts.Expression,
@@ -436,5 +462,12 @@ export function parseModule(file: string): ParsedModule {
     }
   }
 
-  return { file: path.resolve(file), imports, reexports, exports, namedNumericLiterals };
+  return {
+    file: path.resolve(file),
+    imports,
+    reexports,
+    exports,
+    namedNumericLiterals,
+    localValueReferences: [...localValueReferences],
+  };
 }

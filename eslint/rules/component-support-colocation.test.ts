@@ -55,6 +55,16 @@ const FIXTURE: Record<string, string> = {
   "features/independent-reader.ts":
     'import { sharedValue } from "@/constants/shared"; export const value = sharedValue;',
 
+  "features/merch/constants/page-values.ts": 'export const pageOnlyStats = [{ value: "42" }];',
+  "app/merch/page.tsx":
+    'import { pageOnlyStats } from "@/features/merch/constants/page-values"; export default function MerchPage() { return <main>{pageOnlyStats.length}</main>; }',
+  "features/merch/constants/index.ts":
+    'const products = [{ id: 1 }]; enum FilterType { All = "all", Clothing = "clothing" } export { products, FilterType };',
+  "features/merch/merch-product-card.tsx":
+    'import type { products } from "./constants"; export function MerchProductCard({ product }: { product: (typeof products)[number] }) { return <div>{product.id}</div>; }',
+  "features/merch/merch-filter-button.tsx":
+    'import { type FilterType } from "./constants"; export function MerchFilterButton({ value }: { value: FilterType }) { return <button>{value}</button>; }',
+
   "shared/owned-type.tsx":
     "export type OwnedProps = { active: boolean }; export function OwnedType({ active }: OwnedProps) { return <span>{active}</span>; }",
   "app/owned-type/page.tsx":
@@ -79,7 +89,14 @@ const message = (kind: string, name: string, component: string): string =>
 
 void describe("A constant, enum, type, or schema imported only by a component and consumers that also import the component MUST be defined in its `.tsx` file, not in a separate support module. Independently consumed values MUST remain in their matching `constants/`, `types/`, or `schemas/` folder.", () => {
   ruleTester.run("no-mixed-concerns:component-owned-support", noMixedConcernsRule, {
-    valid: [fixture("shared/divider.tsx"), fixture("shared/independent-value.tsx"), fixture("shared/owned-type.tsx")],
+    valid: [
+      fixture("shared/divider.tsx"),
+      fixture("shared/independent-value.tsx"),
+      fixture("shared/owned-type.tsx"),
+      fixture("features/merch/merch-product-card.tsx"),
+      fixture("features/merch/merch-filter-button.tsx"),
+      fixture("app/merch/page.tsx"),
+    ],
     invalid: [
       {
         ...fixture("shared/with-extracted.tsx"),
