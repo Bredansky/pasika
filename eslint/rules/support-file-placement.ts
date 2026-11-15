@@ -142,15 +142,22 @@ export const supportFilePlacementRule: Rule.RuleModule = {
       const utilityExports =
         index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === groupedExportKind) ?? [];
       const placements = utilityExports
-        .map((entry) => ({
-          name: entry.name,
-          placement: resolveSupportPlacement(
-            supportFile,
-            supportFolder,
-            index,
-            index.symbolConsumers.get(symbolKey(supportFile, entry.name)),
-          ),
-        }))
+        .map((entry) => {
+          const consumers = new Set(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? []);
+          // An exported value that another declaration in this module uses
+          // cannot be relocated using only its external importers' CCF.
+          // The module itself remains one of its direct owners.
+          if (
+            supportFolder === "constants" &&
+            index.modules.get(supportFile)?.localValueReferences.includes(entry.name)
+          ) {
+            consumers.add(supportFile);
+          }
+          return {
+            name: entry.name,
+            placement: resolveSupportPlacement(supportFile, supportFolder, index, consumers),
+          };
+        })
         .filter(
           (entry): entry is { name: string; placement: NonNullable<typeof entry.placement> } =>
             entry.placement !== undefined,
