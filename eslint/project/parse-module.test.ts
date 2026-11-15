@@ -51,6 +51,53 @@ describe("parseModule", () => {
 
     expect(parseModule(file).exports).toEqual([{ name: "ordersApiContract", kind: "constant", line: 2 }]);
   });
+  it("classifies local named exports without treating external re-exports as locally owned", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
+    tempDirs.push(root);
+    const file = path.join(root, "constants.ts");
+    writeFileSync(
+      file,
+      [
+        'const imageSizes = "100vw";',
+        'enum ProductKind { Merch = "merch" }',
+        "type Product = { name: string };",
+        "export { imageSizes, ProductKind as Kind, type Product };",
+        'export { unrelated } from "./elsewhere";',
+        "",
+      ].join("\n"),
+    );
+
+    expect(parseModule(file).exports).toEqual([
+      { name: "imageSizes", kind: "constant", line: 4 },
+      { name: "Kind", kind: "constant", line: 4 },
+      { name: "Product", kind: "type", line: 4 },
+      { name: "unrelated", kind: "other", line: 5 },
+    ]);
+  });
+
+  it("records type-only imports separately from runtime symbol uses", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
+    tempDirs.push(root);
+    const file = path.join(root, "consumer.ts");
+    writeFileSync(
+      file,
+      [
+        'import type { products } from "./constants";',
+        'import { type Product, imageSizes } from "./constants";',
+        "",
+      ].join("\n"),
+    );
+    expect(parseModule(file).imports).toEqual([
+      { specifier: "./constants", names: ["products"], typeOnlyNames: ["products"], line: 1 },
+      {
+        specifier: "./constants",
+        names: ["Product", "imageSizes"],
+        typeOnlyNames: ["Product"],
+        line: 2,
+      },
+    ]);
+  });
+
   it("collects names exported through object destructuring", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-parse-module-"));
     tempDirs.push(root);

@@ -72,46 +72,67 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
-    // A single exported constant/enum belongs to a component when every
-    // production consumer also imports that component. Tests do not establish
-    // independent ownership; unrelated consumers still require extraction.
+    // Inspect each constant independently, even when the module also exports
+    // unrelated values. A consumer importing the component alongside the value
+    // is not independent reuse; test-only and type-only imports do not establish
+    // runtime ownership.
     if (supportFolder === "constants" && path.basename(supportFile) === "index.ts") {
-      const exports = index.modules.get(supportFile)?.exports ?? [];
-      const [onlyExport] = exports;
-      if (exports.length === 1 && onlyExport?.kind === "constant") {
-        const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, onlyExport.name)) ?? [])].filter(
-          (consumer) => !isTestConsumer(consumer),
-        );
-        const sameFeature = (consumer: string): boolean =>
-          segmentsOf(consumer, sourceRoot)[0] === "features" &&
-          segmentsOf(consumer, sourceRoot)[1] === segmentsOf(supportFile, sourceRoot)[1] &&
-          segmentsOf(supportFile, sourceRoot)[0] === "features";
+      const exports = index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === "constant") ?? [];
+      const featureSegments = segmentsOf(supportFile, sourceRoot);
+      const findings: { name: string; component: string; owner: string; line: number }[] = [];
 
-        for (const owner of consumers) {
-          if (!sameFeature(owner)) continue;
-          const components = index.modules.get(owner)?.exports.filter((entry) => entry.kind === "component") ?? [];
-          const owningComponent = components.find((component) => {
-            const companionConsumers = index.symbolConsumers.get(symbolKey(owner, component.name));
-            return consumers.every((consumer) => consumer === owner || companionConsumers?.has(consumer));
-          });
-          if (!owningComponent) continue;
+      if (featureSegments[0] === "features") {
+        for (const entry of exports) {
+          const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])].filter(
+            (consumer) => !isTestConsumer(consumer),
+          );
+          if (consumers.length === 0) continue;
 
-          return {
-            Program(node) {
+          for (const owner of consumers) {
+            const ownerSegments = segmentsOf(owner, sourceRoot);
+            if (ownerSegments[0] !== "features" || ownerSegments[1] !== featureSegments[1]) continue;
+            const module = index.modules.get(owner);
+            if (!module) continue;
+
+            // A type-only use of an exported data object does not make that
+            // object an implementation detail of the importing component.
+            const runtimeImport = module.imports.some(
+              (imported) => imported.names.includes(entry.name) && !imported.typeOnlyNames?.includes(entry.name),
+            );
+            if (!runtimeImport) continue;
+
+            const component = module.exports
+              .filter((exported) => exported.kind === "component")
+              .find((exported) => {
+                const componentConsumers = index.symbolConsumers.get(symbolKey(owner, exported.name));
+                return consumers.every((consumer) => consumer === owner || componentConsumers?.has(consumer));
+              });
+            if (!component) continue;
+
+            findings.push({ name: entry.name, component: component.name, owner, line: entry.line });
+            break;
+          }
+        }
+      }
+
+      if (findings.length > 0) {
+        return {
+          Program(node) {
+            for (const finding of findings) {
               context.report({
                 node,
-                loc: { line: 1, column: 0 },
+                loc: { line: finding.line, column: 0 },
                 message:
-                  `${onlyExport.name} is consumed only alongside ${owningComponent.name} (${describeConsumers(
-                    [owner],
+                  `${finding.name} is consumed only alongside ${finding.component} (${describeConsumers(
+                    [finding.owner],
                     sourceRoot,
                   )}); ` +
                   `declare it beside its owning component instead of extracting a constants/ folder. ` +
                   `See docs/next-codebase-guide/rules/constants-rule.md`,
               });
-            },
-          };
-        }
+            }
+          },
+        };
       }
     }
 

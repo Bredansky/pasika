@@ -148,6 +148,38 @@ const FIXTURE: Record<string, string> = {
   "config/player/constants/index.ts": "export const playerDefaults = { volume: 1 };\n",
   "types/only-config.ts": "export type OnlyConfigType = string;\n",
 
+  // Merch-style files export many local declarations via a named export list.
+  // Only the values always used with MerchProductCard are component-owned.
+  "features/merch/constants/index.ts": [
+    "enum StarOrdinal { First = 1, Second = 2 }",
+    "const starOrdinals = [StarOrdinal.First, StarOrdinal.Second];",
+    'const cardImageSizes = "(max-width: 640px) 100vw";',
+    'const sharedFilter = "all";',
+    "const products = [{ id: 1 }];",
+    'const pageOnlyBanner = "promo";',
+    "export { starOrdinals, cardImageSizes, sharedFilter, products, pageOnlyBanner };",
+    "",
+  ].join("\n"),
+  "features/merch/merch-product-card.tsx":
+    'import { starOrdinals, cardImageSizes, sharedFilter } from "./constants"; import type { products } from "./constants"; export function MerchProductCard() { return <div>{starOrdinals.length}{cardImageSizes}{sharedFilter}</div>; }',
+  "features/merch/merch-catalog.tsx":
+    'import { sharedFilter } from "./constants"; export function MerchCatalog() { return <p>{sharedFilter}</p>; }',
+  "app/merch/page.tsx":
+    'import { cardImageSizes, products, pageOnlyBanner } from "@/features/merch/constants"; import { MerchProductCard } from "@/features/merch/merch-product-card"; export default function MerchPage() { return <MerchProductCard />; }',
+  "features/merch/card.test.ts":
+    'import { starOrdinals } from "./constants"; export const count = starOrdinals.length;',
+
+  // Independent runtime users and type-only component imports must not make
+  // exported data appear to belong to a particular component.
+  "features/shared/constants/index.ts":
+    'const sharedValue = "shared"; const typeOnlyData = [{ id: 1 }]; export { sharedValue, typeOnlyData };',
+  "features/shared/card.tsx":
+    'import { sharedValue } from "./constants"; import type { typeOnlyData } from "./constants"; export function Card() { return <span>{sharedValue}</span>; }',
+  "features/shared/list.tsx":
+    'import { sharedValue } from "./constants"; export function List() { return <span>{sharedValue}</span>; }',
+  "app/shared/page.tsx":
+    'import { typeOnlyData } from "@/features/shared/constants"; import { Card } from "@/features/shared/card"; export default function Page() { return <Card />; }',
+
   // A constant in one configuration module consumed only by another: the other
   // module owns it, so it must move there even though it lives in config.
   "config/theme/index.ts":
@@ -280,6 +312,23 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
               "See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
+      },
+    ],
+  });
+});
+
+void describe("Each exported value in a multi-export constants/index.ts MUST be colocated with the component that owns its runtime use.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [ok("features/shared/constants/index.ts")],
+    invalid: [
+      {
+        ...ok("features/merch/constants/index.ts"),
+        errors: ["starOrdinals", "cardImageSizes"].map((name) => ({
+          message:
+            `${name} is consumed only alongside MerchProductCard (src/features/merch/merch-product-card.tsx); ` +
+            `declare it beside its owning component instead of extracting a constants/ folder. ` +
+            `See docs/next-codebase-guide/rules/constants-rule.md`,
+        })),
       },
     ],
   });
