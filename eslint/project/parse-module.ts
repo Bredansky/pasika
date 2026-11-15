@@ -16,6 +16,8 @@ export interface ModuleImport {
   specifier: string;
   /** Names taken from the module; empty for a side-effect or namespace import. */
   names: string[];
+  /** Names imported only for types do not establish runtime ownership. */
+  typeOnlyNames?: string[];
   line: number;
 }
 
@@ -173,9 +175,19 @@ export function parseModule(file: string): ParsedModule {
 
   collectNamedNumericLiterals(sourceFile);
 
-  const addImport = (specifierNode: ts.Expression, names: string[], node: ts.Node): void => {
+  const addImport = (
+    specifierNode: ts.Expression,
+    names: string[],
+    node: ts.Node,
+    typeOnlyNames: string[] = [],
+  ): void => {
     if (!ts.isStringLiteral(specifierNode)) return;
-    imports.push({ specifier: specifierNode.text, names, line: lineOf(sourceFile, node) });
+    imports.push({
+      specifier: specifierNode.text,
+      names,
+      ...(typeOnlyNames.length > 0 ? { typeOnlyNames } : {}),
+      line: lineOf(sourceFile, node),
+    });
   };
 
   /**
@@ -292,17 +304,47 @@ export function parseModule(file: string): ParsedModule {
     return [...names];
   };
 
+  // Named export lists often refer to declarations defined earlier in the
+  // module (const value = ...; export { value }). Preserve their real kinds
+  // rather than treating every name in such a list as an opaque re-export.
+  const localKinds = new Map<string, ExportKind>();
+  for (const statement of sourceFile.statements) {
+    if (ts.isVariableStatement(statement)) {
+      for (const declaration of statement.declarationList.declarations) {
+        for (const identifier of bindingIdentifiers(declaration.name)) {
+          localKinds.set(identifier.text, classifyValue(identifier.text, declaration.initializer, isTsx));
+        }
+      }
+    } else if (ts.isEnumDeclaration(statement)) {
+      localKinds.set(statement.name.text, "constant");
+    } else if (ts.isFunctionDeclaration(statement) && statement.name) {
+      localKinds.set(statement.name.text, classifyFunction(statement.name.text, isTsx, returnsJsx(statement)));
+    } else if (ts.isTypeAliasDeclaration(statement) || ts.isInterfaceDeclaration(statement)) {
+      localKinds.set(statement.name.text, "type");
+    }
+  }
+
   for (const statement of sourceFile.statements) {
     if (ts.isImportDeclaration(statement)) {
       const names: string[] = [];
+      const typeOnlyNames: string[] = [];
       const bindings = statement.importClause?.namedBindings;
       if (statement.importClause?.name) names.push(statement.importClause.name.text);
       if (bindings && ts.isNamedImports(bindings)) {
-        for (const element of bindings.elements) names.push(element.propertyName?.text ?? element.name.text);
+        for (const element of bindings.elements) {
+          const name = element.propertyName?.text ?? element.name.text;
+          names.push(name);
+          if (element.isTypeOnly) typeOnlyNames.push(name);
+        }
       } else if (bindings && ts.isNamespaceImport(bindings)) {
         names.push(...namespaceMemberNames(bindings.name.text));
       }
-      addImport(statement.moduleSpecifier, names, statement);
+      addImport(
+        statement.moduleSpecifier,
+        names,
+        statement,
+        statement.importClause?.phaseModifier === ts.SyntaxKind.TypeKeyword ? names : typeOnlyNames,
+      );
       continue;
     }
 
@@ -328,7 +370,10 @@ export function parseModule(file: string): ParsedModule {
         for (const element of statement.exportClause.elements) {
           exports.push({
             name: element.name.text,
-            kind: "other",
+            kind:
+              statement.moduleSpecifier === undefined
+                ? (localKinds.get(element.propertyName?.text ?? element.name.text) ?? "other")
+                : "other",
             line: lineOf(sourceFile, element),
           });
         }
