@@ -141,7 +141,7 @@ void describe('An App Router file MUST declare `"use client"` as its first direc
   });
 });
 
-void describe('A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a "use client" boundary.', () => {
+void describe('A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a "use client" boundary (Next.js Server and Client Components).', () => {
   ruleTester.run("require-client-boundary", requireClientBoundaryRule, {
     valid: [
       fixture("features/marked/button.tsx"),
@@ -160,7 +160,7 @@ void describe('A Server Component MUST NOT use client-only React hooks, JSX even
   });
 });
 
-void describe('A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive.', () => {
+void describe('A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive (Next.js use client).', () => {
   ruleTester.run("no-redundant-client-boundary", noRedundantClientBoundaryRule, {
     valid: [
       fixture("features/nested/parent.tsx"),

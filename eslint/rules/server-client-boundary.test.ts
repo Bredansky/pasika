@@ -90,14 +90,14 @@ void describe("A shared constants/, types/, or schemas/ index.ts barrel (includi
   });
 });
 
-void describe("Any *.server.ts, *.server.tsx, or server.ts module is server-only, as is a module importing server-only. A support-folder server.ts MUST import server-only so Next.js enforces the separation during compilation too.", () => {
+void describe("Any *.server.ts, *.server.tsx, or server.ts module is server-only, as is a module importing server-only. A support-folder server.ts MUST import server-only so Next.js enforces the separation during compilation too (Next.js server-only guidance).", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("constants/server.ts")],
     invalid: [{ ...fixture("schemas/server.ts"), errors: 1 }],
   });
 });
 
-void describe("Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency. A shared runtime schema or API contract is **not** server-only just because a route handler uses it.", () => {
+void describe("Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency (TypeScript type-only imports). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("features/demo/type-only.tsx"), fixture("schemas/index.ts"), fixture("features/demo/shared.tsx")],
     invalid: [{ ...fixture("features/demo/marked.tsx"), errors: 1 }],

@@ -392,14 +392,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary.",
-      "hash": "f6e0fbc186",
+      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary ([Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)).",
+      "hash": "d5066dd22e",
       "ref": "pasika/require-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
-      "hash": "71aa99e0ad",
+      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive ([Next.js use client](https://nextjs.org/docs/app/api-reference/directives/use-client)).",
+      "hash": "0f9dacaa96",
       "ref": "pasika/no-redundant-client-boundary"
     },
     {
@@ -416,26 +416,20 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Any `*.server.ts`, `*.server.tsx`, or `server.ts` module is server-only, as is a module importing `server-only`. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too.",
-      "hash": "b5ba465442",
+      "text": "Any `*.server.ts`, `*.server.tsx`, or `server.ts` module is server-only, as is a module importing `server-only`. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "687ce132ae",
       "ref": "pasika/server-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "`constants/`, `types/`, and `schemas/` MAY provide an optional `server.ts` entry. Consumers outside the folder MUST use it instead of directly importing server-only support modules. Non-barrel folders such as `utils/` use direct imports, with the same transitive safety checks.",
-      "hash": "bece3397be",
-      "ref": "pasika/import-through-index"
-    },
-    {
-      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency. A shared runtime schema or API contract is **not** server-only just because a route handler uses it.",
-      "hash": "43e6e9a4cf",
+      "text": "Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency ([TypeScript type-only imports](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html)). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.",
+      "hash": "573e77dd21",
       "ref": "pasika/server-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Large shared contracts MAY be loaded from independent runtime entry points with `import()`; a production build MUST verify the resulting client bundle sizes.",
-      "hash": "fbc5c90162",
+      "text": "Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).",
+      "hash": "e0861847cc",
       "note": "Production bundle-size verification requires an actual Next.js build and cannot be established by static ESLint."
     },
     {
