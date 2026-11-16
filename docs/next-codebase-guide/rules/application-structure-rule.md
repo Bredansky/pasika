@@ -6,7 +6,7 @@ Without a fixed set of folders, every contributor invents a new place for code a
 - A TypeScript file anywhere in the repository, or a JavaScript file under `src/`, MUST NOT exceed 300 lines.
 - `src/` MUST contain only the `app/`, `compositions/`, `features/`, and `shared/` folders, the root support folders, `config/`, `locales/`, and the files a framework requires at the `src` root.
 - `src/features/` MUST contain only feature folders.
-- A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain directly nested groups; each group MUST have its own `index.ts` and contain only the parent's support kind.
+- A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain directly nested groups, each with its own `index.ts`.
 - A `types/`, `schemas/`, or `constants/` folder MUST NOT mix unrelated support kinds; keep types, schemas, and constants in their matching folders.
 - A support folder MUST NOT contain a component.
 - A file that does not define a component MUST have a kebab-case name.

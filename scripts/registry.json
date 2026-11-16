@@ -356,8 +356,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain directly nested groups; each group MUST have its own `index.ts` and contain only the parent's support kind.",
-      "hash": "df81eac668",
+      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain directly nested groups, each with its own `index.ts`.",
+      "hash": "b91a4c4fc1",
       "ref": "pasika/application-structure"
     },
     {
