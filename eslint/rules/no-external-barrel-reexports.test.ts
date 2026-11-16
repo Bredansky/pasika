@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noExternalBarrelReexportsRule } from "./no-external-barrel-reexports";
 
-void describe("A shared index.ts MUST re-export only public modules from its own folder.", () => {
+void describe("A shared index.ts MUST NOT re-export modules from outside its own folder.", () => {
   const configEntry = srcFile("config/social/index.ts");
   const constantsEntry = srcFile("constants/index.ts");
   const componentEntry = srcFile("features/social/platform-cards/index.ts");

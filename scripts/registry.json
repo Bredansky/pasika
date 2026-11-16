@@ -614,8 +614,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A shared `index.ts` MUST re-export only public modules from its own folder.",
-      "hash": "fdc4619739",
+      "text": "A shared `index.ts` MUST NOT re-export modules from outside its own folder.",
+      "hash": "29c64692a6",
       "ref": "pasika/no-external-barrel-reexports"
     },
     {
