@@ -2,15 +2,13 @@
 
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
-- A type or schema with no external consumer MUST NOT be exported.
 - A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.
-- Importing a type or schema alongside the component that defines it MUST NOT require extraction.
 - A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the CCF of their consumers.
 - When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
 - A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` re-exports.
 - A file in `types/` or `schemas/` MUST calculate each exported type or schema's CCF from that item's direct consumers and MUST split exports whose CCFs differ.
-- Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.
+- Client-safe extracted types and schemas MUST be imported through their folder's `index.ts`.
 - A type or schema used only to implement one configuration file MUST live in that file's `types/` or `schemas/` folder.
 - A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration file.
 - A schema's name MUST be `camelCase`.
@@ -50,17 +48,13 @@ src/
 │   └── billing/
 │       └── invoice.tsx
 └── types/
-    ├── billing.ts
     └── index.ts
 ```
 
 ```ts
-// src/types/billing.ts
+// src/types/index.ts
 export type InvoiceStatus = "draft" | "paid";
 export type PaymentMethod = "card" | "bank";
-
-// src/types/index.ts
-export type { InvoiceStatus, PaymentMethod } from "./billing";
 ```
 
 ```tsx
@@ -103,45 +97,6 @@ import { type DateRange } from "../types";
 
 Why: the component and hook can use the billing feature's types index independently.
 
-## Incorrect — Schema Imported Independently from a Component
-
-```tsx
-// src/features/billing/invoice-form.tsx
-import { z } from "zod";
-
-export const invoiceSchema = z.object({
-  amount: z.number().positive(),
-});
-```
-
-```ts
-// src/features/billing/hooks/use-invoice-draft.ts
-import { invoiceSchema } from "../invoice-form";
-```
-
-Why: the hook reaches into a component file for a schema it uses independently.
-
-## Correct — Independently Used Schema Extracted
-
-```ts
-// src/features/billing/schemas/index.ts
-import { z } from "zod";
-
-export const invoiceSchema = z.object({
-  amount: z.number().positive(),
-});
-```
-
-```tsx
-// src/features/billing/invoice-form.tsx
-import { invoiceSchema } from "./schemas";
-
-// src/features/billing/hooks/use-invoice-draft.ts
-import { invoiceSchema } from "../schemas";
-```
-
-Why: the component and hook can use the billing feature's schemas index independently.
-
 ## Incorrect — Schema Named in PascalCase
 
 ```ts
@@ -171,7 +126,7 @@ Why: `invoiceSchema` is `camelCase`, matching the naming convention for constant
 ## Incorrect — Route-Only Schema in `src/schemas/`
 
 ```ts
-// src/schemas/github-error-response-schema.ts
+// src/schemas/index.ts
 import { z } from "zod";
 
 export const githubErrorResponseSchema = z.object({
@@ -181,7 +136,7 @@ export const githubErrorResponseSchema = z.object({
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-import { githubErrorResponseSchema } from "@/schemas/github-error-response-schema";
+import { githubErrorResponseSchema } from "@/schemas";
 ```
 
 Why: the schema's only consumer is a route under `src/app/`, which never counts toward a CCF, so `src/schemas/` has not been earned by any real reuse.
@@ -189,7 +144,7 @@ Why: the schema's only consumer is a route under `src/app/`, which never counts 
 ## Correct — Route-Only Schema in the Feature It Represents
 
 ```ts
-// src/features/editor/schemas/github-error-response-schema.ts
+// src/features/editor/schemas/index.ts
 import { z } from "zod";
 
 export const githubErrorResponseSchema = z.object({
@@ -199,7 +154,7 @@ export const githubErrorResponseSchema = z.object({
 
 ```ts
 // src/app/api/render-instagram-content/route.ts
-import { githubErrorResponseSchema } from "@/features/editor/schemas/github-error-response-schema";
+import { githubErrorResponseSchema } from "@/features/editor/schemas";
 ```
 
 Why: with no consumer outside `src/app/`, the schema belongs in the feature it represents, the same way a component with no outside consumer does.

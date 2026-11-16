@@ -12,7 +12,7 @@ function fixture(folder: "constants" | "types" | "schemas", siblingName: string,
   return path.join(directory, "index.ts");
 }
 
-void describe("A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.", () => {
+void describe("A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.", () => {
   const constantsBarrel = fixture(
     "constants",
     "colors.ts",
@@ -112,6 +112,26 @@ void describe("A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export
         filename: emptyModuleBarrel,
         output: null,
         errors: [{ message: /MUST re-export a local sibling module with export \*/ }],
+      },
+    ],
+  });
+});
+
+void describe("Nested support server barrels also require wildcard re-exports", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-nested-star-"));
+  const directory = path.join(root, "src", "schemas", "api");
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, "index.ts"), "export const sharedValue = 1;");
+  writeFileSync(path.join(directory, "private.ts"), "export const secret = 1;");
+  const filename = path.join(directory, "server.ts");
+  ruleTester.run("require-barrel-star-exports", requireBarrelStarExportsRule, {
+    valid: [{ filename, code: 'import "server-only"; export * from "./private";' }],
+    invalid: [
+      {
+        filename,
+        code: 'import "server-only"; export { secret } from "./private";',
+        output: 'import "server-only"; export * from "./private";',
+        errors: 1,
       },
     ],
   });

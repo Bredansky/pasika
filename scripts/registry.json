@@ -356,8 +356,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. One exception is a direct `constants/<group>/` subfolder with its own `index.ts`, for independently imported constant groups (for example, client-loaded API contracts).",
-      "hash": "c1c3e86072",
+      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain directly nested groups, each with its own `index.ts`.",
+      "hash": "b91a4c4fc1",
       "ref": "pasika/application-structure"
     },
     {
@@ -392,15 +392,33 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary.",
-      "hash": "f6e0fbc186",
+      "text": "A Server Component MUST NOT use client-only React hooks, JSX event handlers, or browser-only APIs in its own file or through imported modules unless the client-only code is behind a `\"use client\"` boundary ([Next.js Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)).",
+      "hash": "d5066dd22e",
       "ref": "pasika/require-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
-      "hash": "71aa99e0ad",
+      "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive ([Next.js use client](https://nextjs.org/docs/app/api-reference/directives/use-client)).",
+      "hash": "0f9dacaa96",
       "ref": "pasika/no-redundant-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "6b41a012f1",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.",
+      "hash": "2dc979724d",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A support-folder `server.ts` MUST import `server-only` to prevent client-side imports at build time ([Next.js documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "9794b99e4c",
+      "ref": "pasika/server-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
@@ -571,12 +589,6 @@
       "ref": "pasika/import-through-index, pasika/support-folder-shape"
     },
     {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.",
-      "hash": "0c0d4c0353",
-      "ref": "pasika/support-folder-shape, pasika/import-through-index"
-    },
-    {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
@@ -590,20 +602,20 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.",
-      "hash": "4d510b2f82",
+      "text": "A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.",
+      "hash": "5308a1cc5e",
       "ref": "pasika/require-barrel-star-exports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An `index.ts` barrel MUST re-export only public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or a `.server.ts` module.",
-      "hash": "18c7e2d2e3",
+      "text": "An `index.ts` or support-folder `server.ts` MUST NOT re-export modules from outside its own folder.",
+      "hash": "49a50ed152",
       "ref": "pasika/no-external-barrel-reexports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.",
-      "hash": "5debd63923",
+      "text": "Server-only runtime dependencies from `constants/`, `types/`, or `schemas/` MUST be imported through the folder's `server.ts` entry point.",
+      "hash": "6ce8f149fa",
       "ref": "pasika/import-through-index"
     },
     {
@@ -1016,20 +1028,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema with no external consumer MUST NOT be exported.",
-      "hash": "3f453eef44",
-      "ref": "pasika/type-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
-      "ref": "pasika/type-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
-      "hash": "061a5c0936",
       "ref": "pasika/type-extraction"
     },
     {
@@ -1064,8 +1064,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.",
-      "hash": "24fb9c0774",
+      "text": "Client-safe extracted types and schemas MUST be imported through their folder's `index.ts`.",
+      "hash": "4692802f36",
       "ref": "pasika/import-through-index"
     },
     {

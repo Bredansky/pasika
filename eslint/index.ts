@@ -66,6 +66,7 @@ import { requireBarrelStarExportsRule } from "./rules/require-barrel-star-export
 import { rootSupportPlacementRule } from "./rules/root-support-placement";
 import { routeHandlerShapeRule } from "./rules/route-handler-shape";
 import { schemaCasingRule } from "./rules/schema-casing";
+import { serverClientBoundaryRule } from "./rules/server-client-boundary";
 import { soleStateOwnerRule } from "./rules/sole-state-owner";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
 import { stayFlatRule } from "./rules/stay-flat";
@@ -126,6 +127,7 @@ const pasikaNextjsAppRules = {
   "component-casing": componentCasingRule,
   "require-client-boundary": requireClientBoundaryRule,
   "no-redundant-client-boundary": noRedundantClientBoundaryRule,
+  "server-client-boundary": serverClientBoundaryRule,
   "application-structure": applicationStructureRule,
   "data-component-case": dataComponentCaseRule,
   "jsx-hygiene": jsxHygieneRule,

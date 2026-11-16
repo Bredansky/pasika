@@ -7,6 +7,7 @@
  * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 
+import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 
@@ -30,9 +31,20 @@ export const noExternalBarrelReexportsRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = path.resolve(context.filename);
-    if (!INDEX_FILES.has(path.basename(filename))) return {};
-
+    const basename = path.basename(filename);
     const directory = path.dirname(filename);
+    const parent = path.basename(directory);
+    const grandparent = path.basename(path.dirname(directory));
+    const support = ["constants", "schemas", "types"];
+    if (
+      !INDEX_FILES.has(basename) &&
+      !(
+        basename === "server.ts" &&
+        (support.includes(parent) || (support.includes(grandparent) && fs.existsSync(path.join(directory, "index.ts"))))
+      )
+    ) {
+      return {};
+    }
 
     function checkSource(node: Rule.Node, specifier: unknown): void {
       if (!isExternalSource(directory, specifier)) return;
@@ -40,7 +52,7 @@ export const noExternalBarrelReexportsRule: Rule.RuleModule = {
       context.report({
         node,
         message:
-          `index.ts must re-export only modules within its own folder; "${String(specifier)}" belongs elsewhere. ` +
+          `Support barrels must re-export only modules within their own folder; "${String(specifier)}" belongs elsewhere. ` +
           "Import directly from the owning module instead. " +
           "See docs/next-codebase-guide/rules/exports-and-imports-rule.md",
       });

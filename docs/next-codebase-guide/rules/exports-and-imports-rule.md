@@ -4,9 +4,9 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - An internal application export with no consumers MUST be removed or kept private when locally used.
-- A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
-- An `index.ts` barrel MUST re-export only public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or a `.server.ts` module.
-- A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.
+- A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.
+- An `index.ts` or support-folder `server.ts` MUST NOT re-export modules from outside its own folder.
+- Server-only runtime dependencies from `constants/`, `types/`, or `schemas/` MUST be imported through the folder's `server.ts` entry point.
 - Consecutive import declarations MUST NOT be separated by a blank line.
 - An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - An import between architectural layers MUST use the `@/*` alias, even when a relative path would require only one parent traversal.
@@ -70,16 +70,14 @@ import { format } from "../../utils/format";
 
 Why: relative imports may traverse at most one parent directory. A `../../` path must use the `@/*` alias instead.
 
-## Correct — Relative Nearby, Alias When Deep
+## Correct — Alias For Deep Import
 
 ```ts
-// src/features/stream/StreamBoard/schedule.ts
-import { debounce } from "@/utils/debounce";
-import { formatSlot } from "./utils/format-slot";
-import { type StreamSlot } from "./types";
+// src/features/billing/InvoiceCard/rows/row.tsx
+import { format } from "@/features/billing/utils/format";
 ```
 
-Why: imports in the current directory or direct parent use relative paths; the distant utility requires multiple parent traversals, so it uses the alias.
+Why: imports requiring multiple parent traversals use the `@/*` alias.
 
 ## Incorrect — Alias For A Direct Parent Import
 

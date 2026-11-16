@@ -275,16 +275,17 @@ export const applicationStructureRule: Rule.RuleModule = {
     const isConfigModuleRoot = topLevel === "config" && segments.length === 3 && path.basename(filename) === "index.ts";
     if (isConfigModuleRoot) return {};
 
-    // Keep narrowly grouped runtime contracts out of the shared constants barrel.
-    // Each direct constants/<group>/ folder must provide its own index.ts.
-    const isIndexedConstantGroup =
-      path.basename(path.dirname(path.dirname(filename))) === "constants" &&
+    // Independent support groups have their own public entrypoint.
+    // This is a generic runtime import boundary, not an API/constants exception.
+    const groupOwner = path.basename(path.dirname(path.dirname(filename)));
+    const isIndexedSupportGroup =
+      new Set(["constants", "schemas", "types"]).has(groupOwner) &&
       fs.existsSync(path.join(path.dirname(filename), "index.ts"));
     const groupedFileKind = expectedSupportFolder(kinds);
     if (
-      isIndexedConstantGroup &&
+      isIndexedSupportGroup &&
       !kinds.has("component") &&
-      (groupedFileKind === "constants" || groupedFileKind === undefined)
+      (groupedFileKind === groupOwner || groupedFileKind === undefined)
     ) {
       return {};
     }

@@ -1,7 +1,12 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
+import ts from "typescript";
 import { segmentsOf } from "../project/ccf";
 import { resolveSpecifier } from "../project/index";
+import { moduleDependencies, serverSupportModules } from "../project/server-support-modules";
+
+const SUPPORT_FOLDERS = new Set(["constants", "types", "schemas"]);
 
 export const importThroughIndexRule: Rule.RuleModule = {
   meta: {
@@ -15,35 +20,48 @@ export const importThroughIndexRule: Rule.RuleModule = {
     const filename = path.resolve(context.filename);
     const sourceRoot = sourceRootOf(context, filename);
     const importerSegments = segmentsOf(filename, sourceRoot);
+    const serverModulesCache = new Map<string, Set<string>>();
     return {
       Program(node) {
-        for (const specifier of importSpecifiers(context.sourceCode.text)) {
+        const source = ts.createSourceFile(filename, context.sourceCode.text, ts.ScriptTarget.Latest, true);
+        for (const { specifier, runtime } of moduleDependencies(source)) {
           const target = resolveSpecifier(filename, specifier, sourceRoot);
           if (!target) continue;
           const targetSegments = segmentsOf(target, sourceRoot);
-          const supportFolderIndex = targetSegments.findIndex((segment) =>
-            ["constants", "types", "schemas"].includes(segment),
-          );
-          const supportFolder = supportFolderIndex >= 0 ? targetSegments[supportFolderIndex] : undefined;
-          if (!supportFolder) continue;
+          const supportFolderIndex = targetSegments.findIndex((segment) => SUPPORT_FOLDERS.has(segment));
+          if (supportFolderIndex < 0) continue;
 
-          // Server-only constants intentionally bypass the shared support barrel.
-          // Importing them from a Client Component is always a mistake.
-          const serverOnlyConstant =
-            supportFolder === "constants" && /\.server\.[cm]?[jt]sx?$/.test(path.basename(target));
-          if (serverOnlyConstant) {
-            if (/^\s*["']use client["'];?/.test(context.sourceCode.text)) {
-              context.report({
-                node,
-                message: `Client Components must not import server-only constant "${specifier}".`,
-              });
-            }
+          const supportFolder = targetSegments[supportFolderIndex];
+          const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
+          const candidateGroup = targetSegments[supportFolderIndex + 1];
+          const groupDirectory = candidateGroup ? path.join(sourceRoot, ...folderIndex, candidateGroup) : undefined;
+          const indexedGroup =
+            groupDirectory !== undefined &&
+            targetSegments.length > supportFolderIndex + 2 &&
+            fs.existsSync(path.join(groupDirectory, "index.ts"));
+          const entryFolder = indexedGroup && candidateGroup ? [...folderIndex, candidateGroup] : folderIndex;
+          const supportDirectory = path.join(sourceRoot, ...entryFolder);
+
+          let serverModules = serverModulesCache.get(supportDirectory);
+          if (!serverModules) {
+            serverModules = serverSupportModules(supportDirectory);
+            serverModulesCache.set(supportDirectory, serverModules);
+          }
+          const serverTarget = serverModules.has(path.basename(target).replace(/\.[cm]?[jt]sx?$/u, ""));
+          const serverEntry = path.basename(target) === "server.ts" && targetSegments.length === entryFolder.length + 1;
+          const withinSameSupportFolder =
+            importerSegments.length > entryFolder.length &&
+            entryFolder.every((segment, index) => importerSegments[index] === segment);
+          if (serverEntry) continue;
+          if (serverTarget) {
+            // Type-only references are erased and cannot introduce a server runtime dependency.
+            if (!runtime || withinSameSupportFolder) continue;
+            context.report({
+              node,
+              message: `Import server-only support modules through @/${entryFolder.join("/")}/server instead of "${specifier}". See the next-codebase-guide exports and imports rules.`,
+            });
             continue;
           }
-          const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
-          const withinSameSupportFolder =
-            importerSegments.length > supportFolderIndex + 1 &&
-            folderIndex.every((segment, index) => importerSegments[index] === segment);
           if (path.basename(target).startsWith("index.")) {
             if (supportFolder === "constants" && withinSameSupportFolder) {
               context.report({
@@ -56,7 +74,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
             continue;
           }
           if (withinSameSupportFolder) continue;
-          const expected = `@/${folderIndex.join("/")}`;
+          const expected = `@/${entryFolder.join("/")}`;
           context.report({
             node,
             message:
@@ -69,21 +87,9 @@ export const importThroughIndexRule: Rule.RuleModule = {
   },
 };
 
-function importSpecifiers(source: string): string[] {
-  const specifiers: string[] = [];
-  const pattern = /\bimport\s+(?:(?:type\s+)?[\s\S]*?\sfrom\s+)?["'](?<specifier>[^"']+)["']/g;
-  for (const match of source.matchAll(pattern)) {
-    const specifier = match.groups?.specifier;
-    if (specifier) specifiers.push(specifier);
-  }
-  return specifiers;
-}
-
 function sourceRootOf(context: { cwd?: string }, filename: string): string {
   const marker = `${path.sep}src${path.sep}`;
   const srcIndex = filename.lastIndexOf(marker);
-  // Prefer the src root implied by the linted file's own path, which is immune
-  // to cwd entirely; fall back to ESLint's cwd rather than the process cwd.
   if (srcIndex >= 0) return filename.slice(0, srcIndex + marker.length - 1);
   return path.resolve(context.cwd ?? process.cwd(), "src");
 }
