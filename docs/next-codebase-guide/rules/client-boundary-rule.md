@@ -7,7 +7,7 @@ Next.js App Router pages are Server Components by default. This rule keeps `"use
 - A file imported only by code already behind a `"use client"` boundary MUST NOT repeat the directive ([Next.js use client](https://nextjs.org/docs/app/api-reference/directives/use-client)).
 - A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
 - A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.
-- Pasika treats `*.server.ts`, `*.server.tsx`, and `server.ts` files, plus modules importing `server-only` or Node.js built-ins, as server-only. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
+- A support-folder `server.ts` MUST import `server-only` so Next.js enforces its server boundary during compilation ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)). Pasika also identifies imports of `server-only` or Node.js built-ins as server-only; filenames alone do not establish a boundary.
 - Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency ([TypeScript type-only imports](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html)). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.
 - Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).
 
@@ -130,8 +130,12 @@ Why: the error boundary has the directive Next.js requires.
 ## Incorrect — Hidden Server Dependency Through a Shared Barrel
 
 ```tsx
+// src/constants/stream-api-contracts.ts
+import "server-only";
+export const streamYouTubeLiveApiContract = {} as const;
+
 // src/constants/index.ts
-export * from "./stream-api-contracts.server";
+export * from "./stream-api-contracts";
 
 // src/features/stream/stream-widget.tsx
 ("use client");
@@ -149,7 +153,7 @@ export * from "./api-route-paths";
 
 // src/constants/server.ts — server-only
 import "server-only";
-export * from "./stream-api-contracts.server";
+export * from "./stream-api-contracts";
 
 // src/app/api/stream-status/route.ts — server consumer
 import { streamYouTubeLiveApiContract } from "@/constants/server";

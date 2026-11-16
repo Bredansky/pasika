@@ -7,13 +7,12 @@
  * @see docs/next-codebase-guide/rules/client-boundary-rule.md
  */
 import { readFileSync } from "node:fs";
-import { builtinModules } from "node:module";
 import path from "node:path";
 import ts from "typescript";
+import { isServerOnlySpecifier } from "./server-support-modules";
 import { getProjectIndex, resolveSpecifier } from "./index";
 
 const ROUTE_ENTRY = /(?:^|[/\\])(?:page|layout|template|loading|not-found|default)\.[cm]?[jt]sx?$/u;
-const NODE_BUILTINS = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
 const SAFE_EXTERNALS = new Set([
   "react",
   "react/jsx-runtime",
@@ -109,14 +108,13 @@ function parseClientModule(file: string, sourceRoot: string): ClientModule {
     ts.isExpressionStatement(first) &&
     ts.isStringLiteral(first.expression) &&
     first.expression.text === "use client";
-  const serverFilename = /(?:^|[/\\])(?:server|[^/\\]+\.server)\.[cm]?[jt]sx?$/u.test(file);
   const imports = new Set<string>();
-  let serverOnly = serverFilename;
+  let serverOnly = false;
   let clientSignal = false;
   let externalUnknown = false;
 
   const addImport = (specifier: string): void => {
-    if (specifier === "server-only" || specifier.startsWith("node:") || NODE_BUILTINS.has(specifier)) {
+    if (isServerOnlySpecifier(specifier)) {
       serverOnly = true;
       return;
     }

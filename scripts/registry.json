@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Pasika treats `*.server.ts`, `*.server.tsx`, and `server.ts` files, plus modules importing `server-only` or Node.js built-ins, as server-only. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
-      "hash": "93534db6b6",
+      "text": "A support-folder `server.ts` MUST import `server-only` so Next.js enforces its server boundary during compilation ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)). Pasika also identifies imports of `server-only` or Node.js built-ins as server-only; filenames alone do not establish a boundary.",
+      "hash": "575048baaa",
       "ref": "pasika/server-client-boundary"
     },
     {
@@ -632,8 +632,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `constants/`, `types/`, or `schemas/` folder MAY expose server-only modules through a separate `server.ts` barrel. `server.ts` MUST import `server-only`; external consumers MUST import server-only support modules through that entry point, not directly through `.server.ts`. No module reachable from a Client Component or from a shared `index.ts` barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.",
-      "hash": "a9dd0c8f07",
+      "text": "A `constants/`, `types/`, or `schemas/` folder MAY expose server-only modules through a separate `server.ts` barrel. `server.ts` MUST import `server-only`; external consumers MUST import server-only support modules through that entry point, not directly from their implementation files. No module reachable from a Client Component or from a shared `index.ts` barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.",
+      "hash": "b7f1fed4f2",
       "ref": "pasika/import-through-index"
     },
     {

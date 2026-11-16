@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
+import { serverSupportModules } from "../project/server-support-modules";
 
 const SUPPORT_FOLDERS = new Set(["constants", "types", "schemas"]);
 const INDEX_NAMES = new Set(["index.ts", "index.tsx", "index.mts", "index.cts"]);
@@ -33,8 +34,11 @@ export const supportFolderShapeRule: Rule.RuleModule = {
       return {};
     }
 
-    // The shared barrel exports only shared modules; the server barrel exports only server-only modules.
-    const serverOnlyModules = entries.filter((entry) => /\.server\.[cm]?tsx?$/.test(entry));
+    // The server barrel owns server-only siblings; the shared index owns client-safe siblings.
+    const serverModules = serverSupportModules(directory);
+    const serverOnlyModules = entries.filter(
+      (entry) => /\.(?:[cm]?tsx?|jsx?)$/u.test(entry) && serverModules.has(entry.replace(/\.(?:[cm]?tsx?|jsx?)$/u, "")),
+    );
     const siblingModules = entries.filter((entry) => {
       if (entry === baseName || entry === "server.ts" || !/\.(?:[cm]?tsx?|jsx?)$/.test(entry)) return false;
       return serverEntry ? serverOnlyModules.includes(entry) : !serverOnlyModules.includes(entry);

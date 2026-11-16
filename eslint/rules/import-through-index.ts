@@ -3,6 +3,7 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import { segmentsOf } from "../project/ccf";
 import { resolveSpecifier } from "../project/index";
+import { serverSupportModules } from "../project/server-support-modules";
 
 export const importThroughIndexRule: Rule.RuleModule = {
   meta: {
@@ -16,6 +17,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
     const filename = path.resolve(context.filename);
     const sourceRoot = sourceRootOf(context, filename);
     const importerSegments = segmentsOf(filename, sourceRoot);
+    const serverModulesCache = new Map<string, Set<string>>();
     return {
       Program(node) {
         for (const specifier of importSpecifiers(context.sourceCode.text)) {
@@ -31,8 +33,14 @@ export const importThroughIndexRule: Rule.RuleModule = {
           // Server-only modules use the optional server.ts entry; shared modules use index.ts.
           // Subfolders with their own index.ts are independent public entry points.
           const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
-          const serverTarget = /\.server\.[cm]?[jt]sx?$/.test(path.basename(target));
-          const serverEntry = path.basename(target) === "server.ts";
+          const supportDirectory = path.join(sourceRoot, ...folderIndex);
+          let serverModules = serverModulesCache.get(supportDirectory);
+          if (!serverModules) {
+            serverModules = serverSupportModules(supportDirectory);
+            serverModulesCache.set(supportDirectory, serverModules);
+          }
+          const serverTarget = serverModules.has(path.basename(target).replace(/\.[cm]?[jt]sx?$/u, ""));
+          const serverEntry = path.basename(target) === "server.ts" && targetSegments.length === supportFolderIndex + 2;
           const candidateGroup = targetSegments[supportFolderIndex + 1];
           const groupDirectory = candidateGroup ? path.join(sourceRoot, ...folderIndex, candidateGroup) : undefined;
           const indexedGroup =

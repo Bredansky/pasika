@@ -106,20 +106,17 @@ void describe("constants/, types/, and schemas/ MAY provide an optional server.t
   mkdirSync(path.dirname(importer), { recursive: true });
   writeFileSync(path.join(constants, "index.ts"), 'export * from "./paths";\\n');
   writeFileSync(path.join(constants, "paths.ts"), 'export const route = "/api/example";\\n');
-  writeFileSync(path.join(constants, "api-contracts.server.ts"), 'export const tokenEndpoint = "/token";\\n');
-  writeFileSync(
-    path.join(constants, "server.ts"),
-    'import "server-only";\\nexport * from "./api-contracts.server";\\n',
-  );
+  writeFileSync(path.join(constants, "api-contracts.ts"), 'export const tokenEndpoint = "/token";\\n');
+  writeFileSync(path.join(constants, "server.ts"), 'import "server-only";\\nexport * from "./api-contracts";\\n');
 
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [
       { code: 'import { tokenEndpoint } from "../constants/server";', filename: importer },
-      { code: 'import { tokenEndpoint } from "./api-contracts.server";', filename: path.join(constants, "server.ts") },
+      { code: 'import { tokenEndpoint } from "./api-contracts";', filename: path.join(constants, "server.ts") },
     ],
     invalid: [
       {
-        code: 'import { tokenEndpoint } from "../constants/api-contracts.server";',
+        code: 'import { tokenEndpoint } from "../constants/api-contracts";',
         filename: importer,
         errors: 1,
       },
@@ -142,18 +139,18 @@ void describe("Independently indexed support groups MUST be imported through the
   });
 });
 
-void describe("A constants/, types/, or schemas/ folder MAY expose server-only modules through a separate server.ts barrel. server.ts MUST import server-only; external consumers MUST import server-only support modules through that entry point, not directly through .server.ts. No module reachable from a Client Component or from a shared index.ts barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.", () => {
+void describe("A constants/, types/, or schemas/ folder MAY expose server-only modules through a separate server.ts barrel. server.ts MUST import server-only; external consumers MUST import server-only support modules through that entry point, not directly from their implementation files. No module reachable from a Client Component or from a shared index.ts barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-schema-entry-"));
   const schemas = path.join(root, "src", "schemas");
   const consumer = path.join(root, "src", "features", "billing", "invoice.ts");
   mkdirSync(schemas, { recursive: true });
   mkdirSync(path.dirname(consumer), { recursive: true });
   writeFileSync(path.join(schemas, "index.ts"), "export const sharedSchema = 1;\\n");
-  writeFileSync(path.join(schemas, "private.server.ts"), "export const privateSchema = 1;\\n");
-  writeFileSync(path.join(schemas, "server.ts"), 'import "server-only";\\nexport * from "./private.server";\\n');
+  writeFileSync(path.join(schemas, "private.ts"), "export const privateSchema = 1;\\n");
+  writeFileSync(path.join(schemas, "server.ts"), 'import "server-only";\\nexport * from "./private";\\n');
 
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ filename: consumer, code: 'import { privateSchema } from "@/schemas/server";' }],
-    invalid: [{ filename: consumer, code: 'import { privateSchema } from "@/schemas/private.server";', errors: 1 }],
+    invalid: [{ filename: consumer, code: 'import { privateSchema } from "@/schemas/private";', errors: 1 }],
   });
 });

@@ -134,14 +134,15 @@ void describe("A `types/` or `schemas/` folder with no sibling file MUST define 
   });
 });
 
-void describe("A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.", () => {
+void describe("Server-only support files must not be re-exported through the shared index.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-barrel-"));
   const directory = path.join(root, "src", "constants");
   mkdirSync(directory, { recursive: true });
   const index = path.join(directory, "index.ts");
   writeFileSync(path.join(directory, "public-a.ts"), "export const a = 1;\n");
   writeFileSync(path.join(directory, "public-b.ts"), "export const b = 2;\n");
-  writeFileSync(path.join(directory, "auth.server.ts"), "export const secret = 3;\n");
+  writeFileSync(path.join(directory, "auth.ts"), 'import "server-only";\nexport const secret = 3;\n');
+  writeFileSync(path.join(directory, "server.ts"), 'import "server-only";\nexport * from "./auth";\n');
   const safeSource = 'export * from "./public-a";\nexport * from "./public-b";\n';
   writeFileSync(index, safeSource);
 
@@ -149,9 +150,34 @@ void describe("A `.server.ts` constant or API contract MUST NOT be re-exported f
     valid: [{ code: safeSource, filename: index }],
     invalid: [
       {
-        code: `${safeSource}export * from "./auth.server";\n`,
+        code: `${safeSource}export * from "./auth";\n`,
         filename: index,
         errors: [{ message: /must not re-export server-only modules/ }],
+      },
+    ],
+  });
+});
+
+void describe("The server barrel owns private implementations regardless of their file names.", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-server-barrel-members-"));
+  const directory = path.join(root, "src", "constants");
+  mkdirSync(directory, { recursive: true });
+  const index = path.join(directory, "index.ts");
+  const server = path.join(directory, "server.ts");
+  writeFileSync(index, "export const publicValue = 1;\n");
+  writeFileSync(path.join(directory, "private-config.ts"), "export const secret = 2;\n");
+  writeFileSync(server, 'import "server-only";\nexport * from "./private-config";\n');
+
+  ruleTester.run("support-folder-shape", supportFolderShapeRule, {
+    valid: [
+      { filename: index, code: "export const publicValue = 1;" },
+      { filename: server, code: 'import "server-only";\nexport * from "./private-config";' },
+    ],
+    invalid: [
+      {
+        filename: index,
+        code: 'export * from "./private-config";',
+        errors: [{ message: /must not re-export server-only modules/u }],
       },
     ],
   });
