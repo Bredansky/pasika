@@ -422,12 +422,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency ([TypeScript type-only imports](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html)). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.",
-      "hash": "573e77dd21",
-      "ref": "pasika/server-client-boundary"
-    },
-    {
-      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
       "text": "Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).",
       "hash": "e0861847cc",
       "note": "Production bundle-size verification requires an actual Next.js build and cannot be established by static ESLint."

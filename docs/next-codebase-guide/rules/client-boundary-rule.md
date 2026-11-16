@@ -8,7 +8,6 @@ Next.js App Router pages are Server Components by default. This rule keeps `"use
 - A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
 - A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.
 - A support-folder `server.ts` MUST import `server-only` to prevent client-side imports at build time ([Next.js documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
-- Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency ([TypeScript type-only imports](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html)). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.
 - Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).
 
 ## Incorrect — Interactive Component Without a Boundary

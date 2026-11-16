@@ -101,7 +101,7 @@ void describe("A support-folder server.ts MUST import server-only to prevent cli
   });
 });
 
-void describe("Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency (TypeScript type-only imports). A shared runtime schema or API contract is **not** server-only just because a route handler uses it.", () => {
+void describe("Type-only imports and shared contracts do not introduce server-only runtime dependencies", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("features/demo/type-only.tsx"), fixture("schemas/index.ts"), fixture("features/demo/shared.tsx")],
     invalid: [{ ...fixture("features/demo/marked.tsx"), errors: 1 }],
