@@ -590,8 +590,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A server-only constant or API contract MUST NOT be re-exported from `constants/index.ts`; when exported outside its support folder, it MUST be exported through `constants/server.ts`, which MUST import `server-only`. All transitive runtime dependencies of `index.ts` MUST remain client-safe.",
-      "hash": "dd03ef0ea7",
+      "text": "Server-only constants and API contracts MUST be exported through `constants/server.ts`, not `constants/index.ts`.",
+      "hash": "0d1e91bd68",
       "ref": "pasika/server-client-boundary"
     },
     {

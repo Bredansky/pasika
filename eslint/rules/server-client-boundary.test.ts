@@ -108,7 +108,7 @@ void describe("Type-only imports and shared contracts do not introduce server-on
   });
 });
 
-void describe("A server-only constant or API contract MUST NOT be re-exported from constants/index.ts; when exported outside its support folder, it MUST be exported through constants/server.ts, which MUST import server-only. All transitive runtime dependencies of index.ts MUST remain client-safe.", () => {
+void describe("Server-only constants and API contracts MUST be exported through constants/server.ts, not constants/index.ts.", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("constants/server.ts")],
     invalid: [{ ...fixture("constants/index.ts"), errors: 1 }],
