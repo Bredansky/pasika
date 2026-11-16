@@ -94,7 +94,7 @@ void describe("A shared constants/, types/, or schemas/ index.ts barrel (includi
   });
 });
 
-void describe("A support-folder server.ts MUST import server-only so Next.js enforces its server boundary during compilation (Next.js server-only guidance). Pasika also identifies imports of server-only or Node.js built-ins as server-only; filenames alone do not establish a boundary.", () => {
+void describe("A support-folder server.ts MUST import server-only to prevent client-side imports at build time (Next.js documentation).", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("constants/server.ts")],
     invalid: [{ ...fixture("schemas/server.ts"), errors: 1 }],

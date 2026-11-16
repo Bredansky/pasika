@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A support-folder `server.ts` MUST import `server-only` so Next.js enforces its server boundary during compilation ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)). Pasika also identifies imports of `server-only` or Node.js built-ins as server-only; filenames alone do not establish a boundary.",
-      "hash": "575048baaa",
+      "text": "A support-folder `server.ts` MUST import `server-only` to prevent client-side imports at build time ([Next.js documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "9794b99e4c",
       "ref": "pasika/server-client-boundary"
     },
     {
