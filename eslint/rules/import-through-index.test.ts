@@ -139,7 +139,7 @@ void describe("Independently indexed support groups MUST be imported through the
   });
 });
 
-void describe("A constants/, types/, or schemas/ folder MAY expose server-only modules through a separate server.ts barrel. server.ts MUST import server-only; external consumers MUST import server-only support modules through that entry point, not directly from their implementation files. No module reachable from a Client Component or from a shared index.ts barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.", () => {
+void describe("Runtime imports of server-only modules from constants/, types/, or schemas/ MUST use the folder's server.ts entry point.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-schema-entry-"));
   const schemas = path.join(root, "src", "schemas");
   const consumer = path.join(root, "src", "features", "billing", "invoice.ts");

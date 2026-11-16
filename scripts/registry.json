@@ -614,14 +614,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An `index.ts` shared barrel MUST re-export only client-safe public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or any server-only module.",
-      "hash": "cdec28bba1",
+      "text": "A shared `index.ts` MUST re-export only public modules from its own folder.",
+      "hash": "fdc4619739",
       "ref": "pasika/no-external-barrel-reexports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `constants/`, `types/`, or `schemas/` folder MAY expose server-only modules through a separate `server.ts` barrel. `server.ts` MUST import `server-only`; external consumers MUST import server-only support modules through that entry point, not directly from their implementation files. No module reachable from a Client Component or from a shared `index.ts` barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.",
-      "hash": "b7f1fed4f2",
+      "text": "Runtime imports of server-only modules from `constants/`, `types/`, or `schemas/` MUST use the folder's `server.ts` entry point.",
+      "hash": "639b15dc9e",
       "ref": "pasika/import-through-index"
     },
     {
