@@ -5,8 +5,8 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
 - An internal application export with no consumers MUST be removed or kept private when locally used.
 - A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.
-- An `index.ts` barrel MUST re-export only public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or a `.server.ts` module.
-- A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.
+- An `index.ts` shared barrel MUST re-export only client-safe public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or any server-only module.
+- A `constants/`, `types/`, or `schemas/` folder MAY expose server-only modules through a separate `server.ts` barrel. `server.ts` MUST import `server-only`; external consumers MUST import server-only support modules through that entry point, not directly through `.server.ts`. No module reachable from a Client Component or from a shared `index.ts` barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.
 - Consecutive import declarations MUST NOT be separated by a blank line.
 - An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - An import between architectural layers MUST use the `@/*` alias, even when a relative path would require only one parent traversal.

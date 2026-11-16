@@ -7,11 +7,13 @@
  * @see docs/next-codebase-guide/rules/client-boundary-rule.md
  */
 import { readFileSync } from "node:fs";
+import { builtinModules } from "node:module";
 import path from "node:path";
 import ts from "typescript";
 import { getProjectIndex, resolveSpecifier } from "./index";
 
 const ROUTE_ENTRY = /(?:^|[/\\])(?:page|layout|template|loading|not-found|default)\.[cm]?[jt]sx?$/u;
+const NODE_BUILTINS = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
 const SAFE_EXTERNALS = new Set([
   "react",
   "react/jsx-runtime",
@@ -40,6 +42,7 @@ const BROWSER_GLOBALS = new Set([
 export interface ClientModule {
   file: string;
   client: boolean;
+  serverOnly: boolean;
   clientSignal: boolean;
   externalUnknown: boolean;
   imports: string[];
@@ -106,11 +109,17 @@ function parseClientModule(file: string, sourceRoot: string): ClientModule {
     ts.isExpressionStatement(first) &&
     ts.isStringLiteral(first.expression) &&
     first.expression.text === "use client";
+  const serverFilename = /(?:^|[/\\])(?:server|[^/\\]+\.server)\.[cm]?[jt]sx?$/u.test(file);
   const imports = new Set<string>();
+  let serverOnly = serverFilename;
   let clientSignal = false;
   let externalUnknown = false;
 
   const addImport = (specifier: string): void => {
+    if (specifier === "server-only" || specifier.startsWith("node:") || NODE_BUILTINS.has(specifier)) {
+      serverOnly = true;
+      return;
+    }
     if (specifier === "client-only") {
       clientSignal = true;
       return;
@@ -157,7 +166,7 @@ function parseClientModule(file: string, sourceRoot: string): ClientModule {
   };
   visit(source);
 
-  return { file, client, clientSignal, externalUnknown, imports: [...imports], consumers: new Set() };
+  return { file, client, serverOnly, clientSignal, externalUnknown, imports: [...imports], consumers: new Set() };
 }
 
 function traverse(roots: string[], modules: Map<string, ClientModule>, stopAtClient: boolean): Set<string> {

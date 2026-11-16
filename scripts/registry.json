@@ -356,8 +356,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
-      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. One exception is a direct `constants/<group>/` subfolder with its own `index.ts`, for independently imported constant groups (for example, client-loaded API contracts).",
-      "hash": "c1c3e86072",
+      "text": "A folder holding support files MUST be named `hooks/`, `types/`, `schemas/`, `constants/`, or `utils/`, matching the kind of file it holds. A `constants/`, `types/`, or `schemas/` folder MAY contain a directly nested `<group>/` with its own `index.ts` for genuinely independent runtime entry points; the group MUST hold only the parent's support kind.",
+      "hash": "dcacce8295",
       "ref": "pasika/application-structure"
     },
     {
@@ -401,6 +401,42 @@
       "text": "A file imported only by code already behind a `\"use client\"` boundary MUST NOT repeat the directive.",
       "hash": "71aa99e0ad",
       "ref": "pasika/no-redundant-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()`.",
+      "hash": "0f1403a8d7",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.",
+      "hash": "2dc979724d",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "Any `*.server.ts`, `*.server.tsx`, or `server.ts` module is server-only, as is a module importing `server-only`. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too.",
+      "hash": "b5ba465442",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "`constants/`, `types/`, and `schemas/` MAY provide an optional `server.ts` entry. Consumers outside the folder MUST use it instead of directly importing server-only support modules. Non-barrel folders such as `utils/` use direct imports, with the same transitive safety checks.",
+      "hash": "bece3397be",
+      "ref": "pasika/import-through-index"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "Type-only imports and re-exports MAY reference server-only types without creating a browser runtime dependency. A shared runtime schema or API contract is **not** server-only just because a route handler uses it.",
+      "hash": "43e6e9a4cf",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "Large shared contracts MAY be loaded from independent runtime entry points with `import()`; a production build MUST verify the resulting client bundle sizes.",
+      "hash": "fbc5c90162",
+      "note": "Production bundle-size verification requires an actual Next.js build and cannot be established by static ESLint."
     },
     {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
@@ -572,9 +608,9 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.",
-      "hash": "0c0d4c0353",
-      "ref": "pasika/support-folder-shape, pasika/import-through-index"
+      "text": "A server-only constant or API contract MUST NOT be re-exported from `constants/index.ts`; when exported outside its support folder, it MUST be exported through `constants/server.ts`, which MUST import `server-only`. All transitive runtime dependencies of `index.ts` MUST remain client-safe.",
+      "hash": "dd03ef0ea7",
+      "ref": "pasika/server-client-boundary"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
@@ -596,14 +632,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An `index.ts` barrel MUST re-export only public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or a `.server.ts` module.",
-      "hash": "18c7e2d2e3",
+      "text": "An `index.ts` shared barrel MUST re-export only client-safe public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or any server-only module.",
+      "hash": "cdec28bba1",
       "ref": "pasika/no-external-barrel-reexports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `.server.ts` constants module MUST be imported directly by server consumers, bypassing the public support barrel; Client Components MUST NOT import these modules.",
-      "hash": "5debd63923",
+      "text": "A `constants/`, `types/`, or `schemas/` folder MAY expose server-only modules through a separate `server.ts` barrel. `server.ts` MUST import `server-only`; external consumers MUST import server-only support modules through that entry point, not directly through `.server.ts`. No module reachable from a Client Component or from a shared `index.ts` barrel MAY depend at runtime on server-only code. Genuine type-only imports are exempt.",
+      "hash": "a9dd0c8f07",
       "ref": "pasika/import-through-index"
     },
     {
@@ -1064,8 +1100,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.",
-      "hash": "24fb9c0774",
+      "text": "Consumers MUST import a client-safe extracted type or schema through `index.ts` in its `types/` or `schemas/` folder. Server-only schemas MUST be imported through an optional `server.ts` support barrel, never through `index.ts`; type-only imports do not create runtime client dependencies.",
+      "hash": "fb59ec3fa8",
       "ref": "pasika/import-through-index"
     },
     {

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import { segmentsOf } from "../project/ccf";
@@ -27,23 +28,32 @@ export const importThroughIndexRule: Rule.RuleModule = {
           const supportFolder = supportFolderIndex >= 0 ? targetSegments[supportFolderIndex] : undefined;
           if (!supportFolder) continue;
 
-          // Server-only constants intentionally bypass the shared support barrel.
-          // Importing them from a Client Component is always a mistake.
-          const serverOnlyConstant =
-            supportFolder === "constants" && /\.server\.[cm]?[jt]sx?$/.test(path.basename(target));
-          if (serverOnlyConstant) {
-            if (/^\s*["']use client["'];?/.test(context.sourceCode.text)) {
-              context.report({
-                node,
-                message: `Client Components must not import server-only constant "${specifier}".`,
-              });
-            }
+          // Server-only modules use the optional server.ts entry; shared modules use index.ts.
+          // Subfolders with their own index.ts are independent public entry points.
+          const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
+          const serverTarget = /\.server\.[cm]?[jt]sx?$/.test(path.basename(target));
+          const serverEntry = path.basename(target) === "server.ts";
+          const candidateGroup = targetSegments[supportFolderIndex + 1];
+          const groupDirectory = candidateGroup ? path.join(sourceRoot, ...folderIndex, candidateGroup) : undefined;
+          const indexedGroup =
+            groupDirectory !== undefined &&
+            targetSegments.length > supportFolderIndex + 2 &&
+            path.basename(target) !== "index.ts" &&
+            path.basename(target) !== "server.ts" &&
+            fs.existsSync(path.join(groupDirectory, "index.ts"));
+          const entryFolder = indexedGroup ? [...folderIndex, candidateGroup] : folderIndex;
+          const withinSameSupportFolder =
+            importerSegments.length > entryFolder.length &&
+            entryFolder.every((segment, index) => importerSegments[index] === segment);
+          if (serverEntry) continue;
+          if (serverTarget) {
+            if (withinSameSupportFolder) continue;
+            context.report({
+              node,
+              message: `Import server-only support modules through @/${folderIndex.join("/")}/server instead of "${specifier}". See the next-codebase-guide exports and imports rules.`,
+            });
             continue;
           }
-          const folderIndex = targetSegments.slice(0, supportFolderIndex + 1);
-          const withinSameSupportFolder =
-            importerSegments.length > supportFolderIndex + 1 &&
-            folderIndex.every((segment, index) => importerSegments[index] === segment);
           if (path.basename(target).startsWith("index.")) {
             if (supportFolder === "constants" && withinSameSupportFolder) {
               context.report({
@@ -56,7 +66,7 @@ export const importThroughIndexRule: Rule.RuleModule = {
             continue;
           }
           if (withinSameSupportFolder) continue;
-          const expected = `@/${folderIndex.join("/")}`;
+          const expected = `@/${entryFolder.join("/")}`;
           context.report({
             node,
             message:

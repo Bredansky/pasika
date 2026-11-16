@@ -1,7 +1,7 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noExternalBarrelReexportsRule } from "./no-external-barrel-reexports";
 
-void describe("An index.ts barrel MUST re-export only public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or a .server.ts module.", () => {
+void describe("An index.ts shared barrel MUST re-export only client-safe public modules within its own folder; it MUST NOT re-export symbols from a parent folder, another feature, a package, or any server-only module.", () => {
   const configEntry = srcFile("config/social/index.ts");
   const constantsEntry = srcFile("constants/index.ts");
   const componentEntry = srcFile("features/social/platform-cards/index.ts");
@@ -23,7 +23,7 @@ void describe("An index.ts barrel MUST re-export only public modules within its 
       {
         code: 'export { twitchUrl, youtubeUrl } from "@/constants";',
         filename: configEntry,
-        errors: [{ message: /must re-export only modules within its own folder/ }],
+        errors: [{ message: /must re-export only modules within their own folder/ }],
       },
       {
         code: 'export * from "../constants";',

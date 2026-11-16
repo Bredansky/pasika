@@ -30,7 +30,14 @@ export const noExternalBarrelReexportsRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = path.resolve(context.filename);
-    if (!INDEX_FILES.has(path.basename(filename))) return {};
+    const basename = path.basename(filename);
+    const parent = path.basename(path.dirname(filename));
+    if (
+      !INDEX_FILES.has(basename) &&
+      !(basename === "server.ts" && ["constants", "schemas", "types"].includes(parent))
+    ) {
+      return {};
+    }
 
     const directory = path.dirname(filename);
 
@@ -40,7 +47,7 @@ export const noExternalBarrelReexportsRule: Rule.RuleModule = {
       context.report({
         node,
         message:
-          `index.ts must re-export only modules within its own folder; "${String(specifier)}" belongs elsewhere. ` +
+          `Support barrels must re-export only modules within their own folder; "${String(specifier)}" belongs elsewhere. ` +
           "Import directly from the owning module instead. " +
           "See docs/next-codebase-guide/rules/exports-and-imports-rule.md",
       });

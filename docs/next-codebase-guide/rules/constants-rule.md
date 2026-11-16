@@ -15,7 +15,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.
-- A `.server.ts` constant or API contract MUST NOT be re-exported from the shared `constants/index.ts`, MUST be imported directly by server code, and MUST NOT be imported by a Client Component.
+- A server-only constant or API contract MUST NOT be re-exported from `constants/index.ts`; when exported outside its support folder, it MUST be exported through `constants/server.ts`, which MUST import `server-only`. All transitive runtime dependencies of `index.ts` MUST remain client-safe.
 
 ## Incorrect — Inline Runtime Values
 

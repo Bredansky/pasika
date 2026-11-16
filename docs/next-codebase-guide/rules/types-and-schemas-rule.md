@@ -10,7 +10,7 @@ Types and schemas are easy to bury in component files or scatter across the proj
 - When a type or schema's CCF is `src/features/`, it MUST move to `src/types/` or `src/schemas/`.
 - A `types/` or `schemas/` folder with no sibling file MUST define its exports directly in `index.ts`; with exactly one sibling file, it MUST define that file's exports directly in `index.ts`; with several sibling files, it MUST group related types and schemas in files that `index.ts` re-exports.
 - A file in `types/` or `schemas/` MUST calculate each exported type or schema's CCF from that item's direct consumers and MUST split exports whose CCFs differ.
-- Consumers MUST import an extracted type or schema through the `index.ts` in that type or schema's `types/` or `schemas/` folder.
+- Consumers MUST import a client-safe extracted type or schema through `index.ts` in its `types/` or `schemas/` folder. Server-only schemas MUST be imported through an optional `server.ts` support barrel, never through `index.ts`; type-only imports do not create runtime client dependencies.
 - A type or schema used only to implement one configuration file MUST live in that file's `types/` or `schemas/` folder.
 - A type MAY stay in `src/config/<config-name>/` when its meaning is derived from the configuration that it parameterizes, even when consumers exist outside the configuration file.
 - A schema's name MUST be `camelCase`.

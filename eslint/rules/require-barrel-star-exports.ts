@@ -40,8 +40,12 @@ export const requireBarrelStarExportsRule: Rule.RuleModule = {
   },
   create(context) {
     const filename = path.resolve(context.filename);
-    if (!INDEX_NAMES.has(path.basename(filename))) return {};
-    if (!SUPPORT_FOLDERS.has(path.basename(path.dirname(filename)))) return {};
+    const basename = path.basename(filename);
+    if (!INDEX_NAMES.has(basename) && basename !== "server.ts") return {};
+    const directory = path.dirname(filename);
+    const owner = path.basename(directory);
+    const parent = path.basename(path.dirname(directory));
+    if (!SUPPORT_FOLDERS.has(owner) && !(basename !== "server.ts" && SUPPORT_FOLDERS.has(parent))) return {};
 
     return {
       ExportNamedDeclaration(node) {

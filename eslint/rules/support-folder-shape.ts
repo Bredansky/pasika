@@ -17,12 +17,15 @@ export const supportFolderShapeRule: Rule.RuleModule = {
   create(context) {
     const filename = path.resolve(context.filename);
     const baseName = path.basename(filename);
-    if (!INDEX_NAMES.has(baseName)) return {};
-
-    const folder = path.basename(path.dirname(filename));
-    if (!SUPPORT_FOLDERS.has(folder)) return {};
+    if (!INDEX_NAMES.has(baseName) && baseName !== "server.ts") return {};
 
     const directory = path.dirname(filename);
+    const ownFolder = path.basename(directory);
+    const parentFolder = path.basename(path.dirname(directory));
+    const folder = SUPPORT_FOLDERS.has(ownFolder) ? ownFolder : parentFolder;
+    if (!SUPPORT_FOLDERS.has(folder) || (baseName === "server.ts" && ownFolder !== folder)) return {};
+    const serverEntry = baseName === "server.ts";
+
     let entries: string[];
     try {
       entries = fs.readdirSync(directory);
@@ -30,12 +33,12 @@ export const supportFolderShapeRule: Rule.RuleModule = {
       return {};
     }
 
-    // Server-only constants are intentionally absent from the shared support barrel.
-    const serverOnlyModules =
-      folder === "constants" ? entries.filter((entry) => /\.server\.[cm]?tsx?$/.test(entry)) : [];
-    const siblingModules = entries.filter(
-      (entry) => entry !== baseName && /\.(?:[cm]?tsx?|jsx?)$/.test(entry) && !serverOnlyModules.includes(entry),
-    );
+    // The shared barrel exports only shared modules; the server barrel exports only server-only modules.
+    const serverOnlyModules = entries.filter((entry) => /\.server\.[cm]?tsx?$/.test(entry));
+    const siblingModules = entries.filter((entry) => {
+      if (entry === baseName || entry === "server.ts" || !/\.(?:[cm]?tsx?|jsx?)$/.test(entry)) return false;
+      return serverEntry ? serverOnlyModules.includes(entry) : !serverOnlyModules.includes(entry);
+    });
 
     return {
       Program(node) {
@@ -54,13 +57,13 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         }
 
         const guide = `docs/next-codebase-guide/rules/${folder === "constants" ? "constants" : "types-and-schemas"}-rule.md`;
-        const leakedServerModules = serverOnlyModules.filter((entry) =>
-          exportedFiles.has(entry.replace(/\.(?:[cm]?tsx?)$/, "")),
-        );
+        const leakedServerModules = !serverEntry
+          ? serverOnlyModules.filter((entry) => exportedFiles.has(entry.replace(/\.(?:[cm]?tsx?)$/, "")))
+          : [];
         if (leakedServerModules.length > 0) {
           context.report({
             node,
-            message: `constants/index.ts must not re-export server-only modules: ${leakedServerModules.join(", ")}. Import them directly. See ${guide}`,
+            message: `${folder}/index.ts must not re-export server-only modules: ${leakedServerModules.join(", ")}. Use server.ts instead. See ${guide}`,
           });
           return;
         }
@@ -91,7 +94,7 @@ export const supportFolderShapeRule: Rule.RuleModule = {
         }
         if (hasDirectExport) return;
 
-        if (siblingModules.length === 1 && hasAnyReExport) {
+        if (!serverEntry && siblingModules.length === 1 && hasAnyReExport) {
           context.report({
             node,
             message: `${folder}/index.ts re-exports exactly one sibling module; define that module's exports directly in index.ts instead. See ${guide}`,
@@ -107,7 +110,7 @@ export const supportFolderShapeRule: Rule.RuleModule = {
 
         context.report({
           node,
-          message: `${folder}/index.ts must re-export every support file: ${missing.join(", ")}. See ${guide}`,
+          message: `${folder}/${serverEntry ? "server.ts" : "index.ts"} must re-export every ${serverEntry ? "server-only " : ""}support file: ${missing.join(", ")}. See ${guide}`,
         });
       },
     };
