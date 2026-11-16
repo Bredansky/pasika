@@ -589,12 +589,6 @@
       "ref": "pasika/import-through-index, pasika/support-folder-shape"
     },
     {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Server-only constants and API contracts MUST be exported through `constants/server.ts`, not `constants/index.ts`.",
-      "hash": "0d1e91bd68",
-      "ref": "pasika/server-client-boundary"
-    },
-    {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",
@@ -608,14 +602,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A `constants/`, `types/`, or `schemas/` `index.ts` MUST re-export a local sibling module only with `export * from` or `export type * from`; it MUST NOT use named re-exports to filter or rename that module's exports.",
-      "hash": "4d510b2f82",
+      "text": "A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.",
+      "hash": "5308a1cc5e",
       "ref": "pasika/require-barrel-star-exports"
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "A shared `index.ts` MUST NOT re-export modules from outside its own folder.",
-      "hash": "29c64692a6",
+      "text": "An `index.ts` or support-folder `server.ts` MUST NOT re-export modules from outside its own folder.",
+      "hash": "49a50ed152",
       "ref": "pasika/no-external-barrel-reexports"
     },
     {

@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
-import { isServerOnlySpecifier } from "./server-support-modules";
+import { isServerOnlySpecifier, moduleDependencies } from "./server-support-modules";
 import { getProjectIndex, resolveSpecifier } from "./index";
 
 const ROUTE_ENTRY = /(?:^|[/\\])(?:page|layout|template|loading|not-found|default)\.[cm]?[jt]sx?$/u;
@@ -57,22 +57,6 @@ export interface ClientGraph {
 }
 
 const graphs = new WeakMap<object, ClientGraph>();
-
-function isRuntimeImport(clause: ts.ImportClause | undefined): boolean {
-  if (!clause) return true; // bare side-effect import
-  if (clause.phaseModifier === ts.SyntaxKind.TypeKeyword) return false;
-  if (clause.name) return true;
-  const bindings = clause.namedBindings;
-  return !bindings || !ts.isNamedImports(bindings) || bindings.elements.some((element) => !element.isTypeOnly);
-}
-
-function isRuntimeReexport(node: ts.ExportDeclaration): boolean {
-  if (node.isTypeOnly) return false;
-  if (node.exportClause && ts.isNamedExports(node.exportClause)) {
-    return node.exportClause.elements.some((element) => !element.isTypeOnly);
-  }
-  return true;
-}
 
 function isClientHook(node: ts.CallExpression): boolean {
   const callee = node.expression;
@@ -130,31 +114,13 @@ function parseClientModule(file: string, sourceRoot: string): ClientModule {
     }
   };
 
-  for (const statement of source.statements) {
-    if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
-      if (isRuntimeImport(statement.importClause)) addImport(statement.moduleSpecifier.text);
-    } else if (
-      ts.isExportDeclaration(statement) &&
-      statement.moduleSpecifier &&
-      ts.isStringLiteral(statement.moduleSpecifier) &&
-      isRuntimeReexport(statement)
-    ) {
-      addImport(statement.moduleSpecifier.text);
-    }
+  for (const dependency of moduleDependencies(source)) {
+    if (dependency.runtime) addImport(dependency.specifier);
   }
 
   const visit = (node: ts.Node): void => {
     if (ts.isCallExpression(node)) {
       if (isClientHook(node)) clientSignal = true;
-      const firstArgument = node.arguments[0];
-      if (firstArgument && ts.isStringLiteral(firstArgument)) {
-        if (
-          node.expression.kind === ts.SyntaxKind.ImportKeyword ||
-          (ts.isIdentifier(node.expression) && node.expression.text === "require")
-        ) {
-          addImport(firstArgument.text);
-        }
-      }
     }
     if (ts.isJsxAttribute(node) && ts.isIdentifier(node.name) && /^on[A-Z]/u.test(node.name.text)) {
       clientSignal = true;

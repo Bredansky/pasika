@@ -98,7 +98,7 @@ void describe("Client-safe extracted types and schemas MUST be imported through 
   });
 });
 
-void describe("constants/, types/, and schemas/ MAY provide an optional server.ts entry. Consumers outside the folder MUST use it instead of directly importing server-only support modules. Non-barrel folders such as utils/ use direct imports, with the same transitive safety checks.", () => {
+void describe("Server-only constants are imported through server.ts while shared constants use index.ts.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-support-"));
   const constants = path.join(root, "src", "constants");
   const importer = path.join(root, "src", "utils", "load-contract.ts");
@@ -152,5 +152,74 @@ void describe("Server-only runtime dependencies from constants/, types/, or sche
   ruleTester.run("import-through-index", importThroughIndexRule, {
     valid: [{ filename: consumer, code: 'import { privateSchema } from "@/schemas/server";' }],
     invalid: [{ filename: consumer, code: 'import { privateSchema } from "@/schemas/private";', errors: 1 }],
+  });
+});
+
+void describe("Runtime server entry enforcement covers every dependency form without flagging erased types", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-runtime-import-forms-"));
+  const schemas = path.join(root, "src", "schemas");
+  const consumer = path.join(root, "src", "features", "billing", "invoice.ts");
+  mkdirSync(schemas, { recursive: true });
+  mkdirSync(path.dirname(consumer), { recursive: true });
+  writeFileSync(path.join(schemas, "index.ts"), 'export * from "./public";\n');
+  writeFileSync(path.join(schemas, "public.ts"), "export type PublicShape = string;\n");
+  writeFileSync(
+    path.join(schemas, "private.ts"),
+    'import "server-only"; export type PrivateShape = number; export const secret = 1;',
+  );
+  writeFileSync(path.join(schemas, "server.ts"), 'import "server-only"; export * from "./private";');
+  ruleTester.run("import-through-index", importThroughIndexRule, {
+    valid: [
+      { filename: consumer, code: 'import type { PrivateShape } from "@/schemas/private";' },
+      { filename: consumer, code: 'import { type PrivateShape } from "@/schemas/private";' },
+      { filename: consumer, code: 'export type { PrivateShape } from "@/schemas/private";' },
+      { filename: consumer, code: 'import { secret } from "@/schemas/server";' },
+      { filename: consumer, code: 'export * from "@/schemas/server";' },
+      { filename: consumer, code: 'import { type PublicShape } from "@/schemas";' },
+      {
+        filename: consumer,
+        code: '// import { secret } from "@/schemas/private";\nexport const text = "require(\\"@/schemas/private\\")";',
+      },
+    ],
+    invalid: [
+      { filename: consumer, code: 'import { secret } from "@/schemas/private";', errors: 1 },
+      { filename: consumer, code: 'import { type PrivateShape, secret } from "@/schemas/private";', errors: 1 },
+      { filename: consumer, code: 'export * from "@/schemas/private";', errors: 1 },
+      { filename: consumer, code: 'export { secret } from "@/schemas/private";', errors: 1 },
+      { filename: consumer, code: 'export const load = () => import("@/schemas/private");', errors: 1 },
+      { filename: consumer, code: 'export const load = () => require("@/schemas/private");', errors: 1 },
+      { filename: consumer, code: 'import type { PublicShape } from "@/schemas/public";', errors: 1 },
+    ],
+  });
+});
+
+void describe("Nested schemas group exposes independent shared and server entries", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-nested-server-entry-"));
+  const schemas = path.join(root, "src", "schemas", "api");
+  const consumer = path.join(root, "src", "features", "billing", "invoice.ts");
+  mkdirSync(schemas, { recursive: true });
+  mkdirSync(path.dirname(consumer), { recursive: true });
+  writeFileSync(path.join(schemas, "index.ts"), 'export * from "./public";\n');
+  writeFileSync(path.join(schemas, "public.ts"), "export const publicValue = 1;\n");
+  writeFileSync(path.join(schemas, "private.ts"), "export const secret = 1;\n");
+  writeFileSync(path.join(schemas, "server.ts"), 'import "server-only"; export * from "./private";');
+  ruleTester.run("import-through-index", importThroughIndexRule, {
+    valid: [
+      { filename: consumer, code: 'import { publicValue } from "@/schemas/api";' },
+      { filename: consumer, code: 'import { secret } from "@/schemas/api/server";' },
+      { filename: path.join(schemas, "server.ts"), code: 'import { secret } from "./private";' },
+    ],
+    invalid: [
+      {
+        filename: consumer,
+        code: 'import { secret } from "@/schemas/api/private";',
+        errors: [{ message: /through @\/schemas\/api\/server/u }],
+      },
+      {
+        filename: consumer,
+        code: 'export const load = () => import("@/schemas/api/private");',
+        errors: [{ message: /through @\/schemas\/api\/server/u }],
+      },
+    ],
   });
 });

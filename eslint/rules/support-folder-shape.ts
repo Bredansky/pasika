@@ -24,7 +24,12 @@ export const supportFolderShapeRule: Rule.RuleModule = {
     const ownFolder = path.basename(directory);
     const parentFolder = path.basename(path.dirname(directory));
     const folder = SUPPORT_FOLDERS.has(ownFolder) ? ownFolder : parentFolder;
-    if (!SUPPORT_FOLDERS.has(folder) || (baseName === "server.ts" && ownFolder !== folder)) return {};
+    if (
+      !SUPPORT_FOLDERS.has(folder) ||
+      (baseName === "server.ts" && ownFolder !== folder && !fs.existsSync(path.join(directory, "index.ts")))
+    ) {
+      return {};
+    }
     const serverEntry = baseName === "server.ts";
 
     let entries: string[];

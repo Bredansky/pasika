@@ -1,7 +1,10 @@
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noExternalBarrelReexportsRule } from "./no-external-barrel-reexports";
 
-void describe("A shared index.ts MUST NOT re-export modules from outside its own folder.", () => {
+void describe("An index.ts or support-folder server.ts MUST NOT re-export modules from outside its own folder.", () => {
   const configEntry = srcFile("config/social/index.ts");
   const constantsEntry = srcFile("constants/index.ts");
   const componentEntry = srcFile("features/social/platform-cards/index.ts");
@@ -50,6 +53,21 @@ void describe("A shared index.ts MUST NOT re-export modules from outside its own
         filename: configEntry,
         errors: 1,
       },
+    ],
+  });
+});
+
+void describe("Nested server barrels MUST NOT re-export from outside their folder", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-nested-barrel-"));
+  const directory = path.join(root, "src", "schemas", "api");
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, "index.ts"), "export const sharedValue = 1;");
+  const server = path.join(directory, "server.ts");
+  ruleTester.run("no-external-barrel-reexports", noExternalBarrelReexportsRule, {
+    valid: [{ filename: server, code: 'import "server-only"; export * from "./private";' }],
+    invalid: [
+      { filename: server, code: 'import "server-only"; export * from "../private";', errors: 1 },
+      { filename: server, code: 'import "server-only"; export * from "@/schemas/private";', errors: 1 },
     ],
   });
 });

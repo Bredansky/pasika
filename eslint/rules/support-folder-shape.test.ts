@@ -182,3 +182,29 @@ void describe("The server barrel owns private implementations regardless of thei
     ],
   });
 });
+
+void describe("A nested support group keeps server-only exports out of its shared index", () => {
+  const root = mkdtempSync(path.join(tmpdir(), "pasika-nested-support-shape-"));
+  const directory = path.join(root, "src", "schemas", "api");
+  mkdirSync(directory, { recursive: true });
+  const index = path.join(directory, "index.ts");
+  const server = path.join(directory, "server.ts");
+  writeFileSync(index, 'export * from "./public";\nexport * from "./public-b";\n');
+  writeFileSync(path.join(directory, "public.ts"), "export const publicValue = 1;\n");
+  writeFileSync(path.join(directory, "public-b.ts"), "export const otherValue = 2;\n");
+  writeFileSync(path.join(directory, "private.ts"), "export const privateValue = 1;\n");
+  writeFileSync(server, 'import "server-only"; export * from "./private";\n');
+  ruleTester.run("support-folder-shape", supportFolderShapeRule, {
+    valid: [
+      { filename: index, code: 'export * from "./public";\nexport * from "./public-b";' },
+      { filename: server, code: 'import "server-only"; export * from "./private";' },
+    ],
+    invalid: [
+      {
+        filename: index,
+        code: 'export * from "./private";',
+        errors: [{ message: /must not re-export server-only modules/u }],
+      },
+    ],
+  });
+});

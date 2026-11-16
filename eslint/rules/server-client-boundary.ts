@@ -7,6 +7,7 @@
  *
  * @see docs/next-codebase-guide/rules/client-boundary-rule.md
  */
+import fs from "node:fs";
 import path from "node:path";
 import type { Rule } from "eslint";
 import { getClientGraph, type ClientGraph } from "../project/client-boundary-graph";
@@ -22,7 +23,12 @@ function isSupportEntry(file: string): boolean {
 }
 
 function isServerEntry(file: string): boolean {
-  return path.basename(file) === "server.ts" && SUPPORT_FOLDERS.has(path.basename(path.dirname(file)));
+  if (path.basename(file) !== "server.ts") return false;
+  const directory = path.dirname(file);
+  return (
+    SUPPORT_FOLDERS.has(path.basename(directory)) ||
+    (SUPPORT_FOLDERS.has(path.basename(path.dirname(directory))) && fs.existsSync(path.join(directory, "index.ts")))
+  );
 }
 
 function pathToServerOnly(start: string, graph: ClientGraph): string[] | undefined {
@@ -67,7 +73,10 @@ export const serverClientBoundaryRule: Rule.RuleModule = {
       Program(node) {
         if (serverEntry) {
           const hasMarker = context.sourceCode.ast.body.some(
-            (statement) => statement.type === "ImportDeclaration" && statement.source.value === "server-only",
+            (statement) =>
+              statement.type === "ImportDeclaration" &&
+              statement.source.value === "server-only" &&
+              statement.specifiers.length === 0,
           );
           if (!hasMarker) {
             context.report({
@@ -80,7 +89,7 @@ export const serverClientBoundaryRule: Rule.RuleModule = {
         if (!clientEntry && !sharedEntry) return;
         const chain = pathToServerOnly(file, graph);
         if (!chain) return;
-        const display = chain.map((entry) => path.relative(sourceRoot, entry).replaceAll("\\\\", "/")).join(" -> ");
+        const display = chain.map((entry) => path.relative(sourceRoot, entry).replaceAll("\\", "/")).join(" -> ");
         context.report({
           node,
           message: `${clientEntry ? "Client entry" : "Shared support barrel"} reaches server-only code: ${display}. Separate shared and server entry points. See ${DOC}`,

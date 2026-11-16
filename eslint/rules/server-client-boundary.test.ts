@@ -33,6 +33,12 @@ write("constants/only.ts", 'import "server-only";\nexport const onlyOnServer = 1
 write("schemas/index.ts", 'export type { PrivateShape } from "./internal";');
 write("schemas/internal.ts", 'import "server-only";\nexport type PrivateShape = { id: string };');
 write("schemas/server.ts", 'export * from "./internal";');
+write("schemas/api/index.ts", 'export * from "./type-only-node";');
+write("schemas/api/type-only-node.ts", 'import { type Stats } from "node:fs"; export type FileInfo = Stats;');
+write("schemas/api/private.ts", 'import "server-only"; export const token = 1;');
+write("schemas/api/server.ts", 'export * from "./private";');
+write("schemas/tools/index.ts", "export const publicValue = 1;");
+write("schemas/tools/server.ts", 'import "server-only"; export const privateValue = 1;');
 
 write(
   "features/demo/direct.tsx",
@@ -89,28 +95,17 @@ void describe("A Client Component MUST NOT depend on a server-only module, direc
 
 void describe("A shared constants/, types/, or schemas/ index.ts barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
-    valid: [fixture("schemas/index.ts")],
+    valid: [fixture("schemas/index.ts"), fixture("schemas/api/index.ts")],
     invalid: [{ ...fixture("constants/index.ts"), errors: 1 }],
   });
 });
 
 void describe("A support-folder server.ts MUST import server-only to prevent client-side imports at build time (Next.js documentation).", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
-    valid: [fixture("constants/server.ts")],
-    invalid: [{ ...fixture("schemas/server.ts"), errors: 1 }],
-  });
-});
-
-void describe("Type-only imports and shared contracts do not introduce server-only runtime dependencies", () => {
-  ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
-    valid: [fixture("features/demo/type-only.tsx"), fixture("schemas/index.ts"), fixture("features/demo/shared.tsx")],
-    invalid: [{ ...fixture("features/demo/marked.tsx"), errors: 1 }],
-  });
-});
-
-void describe("Server-only constants and API contracts MUST be exported through constants/server.ts, not constants/index.ts.", () => {
-  ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
-    valid: [fixture("constants/server.ts")],
-    invalid: [{ ...fixture("constants/index.ts"), errors: 1 }],
+    valid: [fixture("constants/server.ts"), fixture("schemas/tools/server.ts")],
+    invalid: [
+      { ...fixture("schemas/server.ts"), errors: 1 },
+      { ...fixture("schemas/api/server.ts"), errors: 1 },
+    ],
   });
 });
