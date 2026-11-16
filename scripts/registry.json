@@ -620,8 +620,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "Runtime imports of server-only modules from `constants/`, `types/`, or `schemas/` MUST use the folder's `server.ts` entry point.",
-      "hash": "639b15dc9e",
+      "text": "Server-only runtime dependencies from `constants/`, `types/`, or `schemas/` MUST be imported through the folder's `server.ts` entry point.",
+      "hash": "6ce8f149fa",
       "ref": "pasika/import-through-index"
     },
     {

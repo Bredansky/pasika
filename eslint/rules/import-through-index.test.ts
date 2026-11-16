@@ -139,7 +139,7 @@ void describe("Independently indexed support groups MUST be imported through the
   });
 });
 
-void describe("Runtime imports of server-only modules from constants/, types/, or schemas/ MUST use the folder's server.ts entry point.", () => {
+void describe("Server-only runtime dependencies from constants/, types/, or schemas/ MUST be imported through the folder's server.ts entry point.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-server-schema-entry-"));
   const schemas = path.join(root, "src", "schemas");
   const consumer = path.join(root, "src", "features", "billing", "invoice.ts");
