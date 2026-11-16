@@ -404,8 +404,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()`.",
-      "hash": "0f1403a8d7",
+      "text": "A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "6b41a012f1",
       "ref": "pasika/server-client-boundary"
     },
     {
@@ -416,8 +416,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Any `*.server.ts`, `*.server.tsx`, or `server.ts` module is server-only, as is a module importing `server-only`. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
-      "hash": "687ce132ae",
+      "text": "Pasika treats `*.server.ts`, `*.server.tsx`, and `server.ts` files, plus modules importing `server-only` or Node.js built-ins, as server-only. A support-folder `server.ts` MUST import `server-only` so Next.js enforces the separation during compilation too ([Next.js server-only guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).",
+      "hash": "93534db6b6",
       "ref": "pasika/server-client-boundary"
     },
     {

@@ -65,7 +65,7 @@ write("features/demo/server.ts", 'import "server-only";\nexport { onlyOnServer }
 
 process.chdir(root);
 
-void describe("A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or require().", () => {
+void describe("A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or require() (Next.js environment poisoning guidance).", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [
       fixture("features/demo/type-only.tsx"),
@@ -90,7 +90,7 @@ void describe("A shared constants/, types/, or schemas/ index.ts barrel (includi
   });
 });
 
-void describe("Any *.server.ts, *.server.tsx, or server.ts module is server-only, as is a module importing server-only. A support-folder server.ts MUST import server-only so Next.js enforces the separation during compilation too (Next.js server-only guidance).", () => {
+void describe("Pasika treats *.server.ts, *.server.tsx, and server.ts files, plus modules importing server-only or Node.js built-ins, as server-only. A support-folder server.ts MUST import server-only so Next.js enforces the separation during compilation too (Next.js server-only guidance).", () => {
   ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
     valid: [fixture("constants/server.ts")],
     invalid: [{ ...fixture("schemas/server.ts"), errors: 1 }],
