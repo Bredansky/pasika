@@ -20,7 +20,9 @@ import { LikeButton } from "@/features/posts/like-button";
 export default function Page() {
   return <LikeButton />;
 }
+```
 
+```tsx
 // src/features/posts/like-button.tsx
 export function LikeButton() {
   return <button onClick={() => alert("Liked")}>Like</button>;
@@ -57,9 +59,11 @@ export function LikeButton() {
     </button>
   );
 }
+```
 
+```tsx
 // src/features/posts/like-icon.tsx
-("use client");
+"use client";
 
 export function LikeIcon() {
   return <svg aria-hidden="true" />;
@@ -133,12 +137,16 @@ Why: the error boundary has the directive Next.js requires.
 // src/constants/stream-api-contracts.ts
 import "server-only";
 export const streamYouTubeLiveApiContract = {} as const;
+```
 
+```ts
 // src/constants/index.ts
 export * from "./stream-api-contracts";
+```
 
+```tsx
 // src/features/stream/stream-widget.tsx
-("use client");
+"use client";
 
 import { streamYouTubeLiveApiContract } from "@/constants";
 ```
@@ -150,11 +158,15 @@ Why: a Client Component reaches a server-only dependency through a shared barrel
 ```ts
 // src/constants/index.ts — shared, client-safe
 export * from "./api-route-paths";
+```
 
+```ts
 // src/constants/server.ts — server-only
 import "server-only";
 export * from "./stream-api-contracts";
+```
 
+```ts
 // src/app/api/stream-status/route.ts — server consumer
 import { streamYouTubeLiveApiContract } from "@/constants/server";
 ```
