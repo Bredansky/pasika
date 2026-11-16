@@ -1034,20 +1034,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "A type or schema with no external consumer MUST NOT be exported.",
-      "hash": "3f453eef44",
-      "ref": "pasika/type-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
-      "ref": "pasika/type-extraction"
-    },
-    {
-      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "Importing a type or schema alongside the component that defines it MUST NOT require extraction.",
-      "hash": "061a5c0936",
       "ref": "pasika/type-extraction"
     },
     {
@@ -1082,8 +1070,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
-      "text": "Consumers MUST import a client-safe extracted type or schema through `index.ts` in its `types/` or `schemas/` folder. Server-only schemas MUST be imported through an optional `server.ts` support barrel, never through `index.ts`; type-only imports do not create runtime client dependencies.",
-      "hash": "fb59ec3fa8",
+      "text": "Client-safe extracted types and schemas MUST be imported through their folder's `index.ts`.",
+      "hash": "4692802f36",
       "ref": "pasika/import-through-index"
     },
     {

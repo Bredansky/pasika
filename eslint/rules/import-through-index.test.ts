@@ -84,7 +84,7 @@ void describe("Modules within the same constants folder MUST import sibling file
   });
 });
 
-void describe("Consumers MUST import a client-safe extracted type or schema through index.ts in its types/ or schemas/ folder. Server-only schemas MUST be imported through an optional server.ts support barrel, never through index.ts; type-only imports do not create runtime client dependencies.", () => {
+void describe("Client-safe extracted types and schemas MUST be imported through their folder's index.ts.", () => {
   const root = mkdtempSync(path.join(tmpdir(), "pasika-import-index-types-"));
   const support = path.join(root, "src", "features", "billing", "types");
   const consumer = path.join(root, "src", "features", "billing", "invoice.ts");

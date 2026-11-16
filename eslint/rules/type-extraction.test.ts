@@ -59,7 +59,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 
-void describe("A type or schema with no external consumer MUST NOT be exported.", () => {
+void describe("Unused type exports are reported", () => {
   ruleTester.run("type-extraction", typeExtractionRule, {
     valid: [
       {
@@ -89,6 +89,10 @@ void describe("A type or schema declared in a component MUST stay in that compon
         code: read("features/billing/invoice-form.tsx"),
         filename: file("features/billing/invoice-form.tsx"),
       },
+      {
+        code: read("features/billing/invoice-page.tsx"),
+        filename: file("features/billing/invoice-page.tsx"),
+      },
     ],
     invalid: [
       {
@@ -101,23 +105,6 @@ void describe("A type or schema declared in a component MUST stay in that compon
         ],
       },
     ],
-  });
-});
-
-void describe("Importing a type or schema alongside the component that defines it MUST NOT require extraction.", () => {
-  ruleTester.run("type-extraction", typeExtractionRule, {
-    valid: [
-      // A consumer imports the schema alongside the component: no extraction.
-      {
-        code: read("features/billing/invoice-form.tsx"),
-        filename: file("features/billing/invoice-form.tsx"),
-      },
-      {
-        code: read("features/billing/invoice-page.tsx"),
-        filename: file("features/billing/invoice-page.tsx"),
-      },
-    ],
-    invalid: [],
   });
 });
 
