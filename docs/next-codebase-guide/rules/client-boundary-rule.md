@@ -8,18 +8,8 @@ Next.js App Router pages are Server Components by default. This rule keeps `"use
 - A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
 - A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.
 - A support-folder `server.ts` MUST import `server-only` to prevent client-side imports at build time ([Next.js documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
-- Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).
 
 ## Incorrect — Interactive Component Without a Boundary
-
-```tsx
-// src/app/page.tsx
-import { LikeButton } from "@/features/posts/like-button";
-
-export default function Page() {
-  return <LikeButton />;
-}
-```
 
 ```tsx
 // src/features/posts/like-button.tsx
@@ -28,7 +18,7 @@ export function LikeButton() {
 }
 ```
 
-Why: the server page imports a button that needs browser-side event handling, but the button has no client boundary.
+Why: JSX event handlers require a client boundary.
 
 ## Correct — Interactive Component Declares a Boundary
 

@@ -421,12 +421,6 @@
       "ref": "pasika/server-client-boundary"
     },
     {
-      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
-      "text": "Large shared contracts MAY be loaded from independent runtime entry points with `import()` ([Next.js lazy loading](https://nextjs.org/docs/app/guides/lazy-loading)); a production build MUST verify the resulting client bundle sizes ([Next.js bundle analysis](https://nextjs.org/docs/app/guides/package-bundling)).",
-      "hash": "e0861847cc",
-      "note": "Production bundle-size verification requires an actual Next.js build and cannot be established by static ESLint."
-    },
-    {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
       "text": "A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.",
       "hash": "10844fbc57",
