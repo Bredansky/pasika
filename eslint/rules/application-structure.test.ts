@@ -117,7 +117,7 @@ void describe("src/features/ MUST contain only feature folders.", () => {
   });
 });
 
-void describe("A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds. A constants/, types/, or schemas/ folder MAY contain a directly nested <group>/ with its own index.ts for genuinely independent runtime entry points; the group MUST hold only the parent's support kind.", () => {
+void describe("A folder holding support files MUST be named hooks/, types/, schemas/, constants/, or utils/, matching the kind of file it holds. A constants/, types/, or schemas/ folder MAY contain directly nested groups; each group MUST have its own index.ts and contain only the parent's support kind.", () => {
   ruleTester.run("application-structure", applicationStructureRule, {
     valid: [
       valid("features/billing/utils/format-date.ts"),
