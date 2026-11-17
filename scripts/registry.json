@@ -1663,6 +1663,18 @@
       "ref": "pasika/vitest-coverage"
     },
     {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A Next.js application MUST configure separate named Vitest `node` and `dom` projects, route `*.dom.test.{ts,tsx}` and `*.dom.spec.{ts,tsx}` files to jsdom, and keep shared coverage settings at the root of `vitest.config.ts`.",
+      "hash": "b6ebdd43f4",
+      "note": "Review vitest.config.ts projects and globs; file naming is enforced by filename-case and per-file overrides by no-vitest-environment-directive."
+    },
+    {
+      "doc": "pasika-adoption-guide/rules/vitest-coverage-rule.md",
+      "text": "A Next.js application MUST NOT select the Vitest environment with a per-file directive.",
+      "hash": "280ec7721b",
+      "ref": "pasika/no-vitest-environment-directive"
+    },
+    {
       "doc": "pasika-adoption-guide/rules/vulyk-docs-rule.md",
       "text": "A repository adopting the framework MUST list `vulyk` in `devDependencies` rather than `dependencies` so `vulyk.config.ts` is typechecked and the repository resolves a pinned CLI.",
       "hash": "5bfbf02d0e",
