@@ -1316,6 +1316,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "An enum member or shared static class-name constant MUST NOT supply styling through JSX className, cn(), clsx(), or cva(); display-only documentation metadata MAY use those strings.",
+      "hash": "e55aeb7ecb",
+      "ref": "pasika/no-styling-class-alias"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
       "text": "Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.",
       "hash": "49839344b2",
       "ref": "pasika/no-duplicate-jsx-classes"
