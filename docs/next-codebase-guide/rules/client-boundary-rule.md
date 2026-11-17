@@ -178,7 +178,8 @@ Why: the module's server boundary is obscured by ordinary imports.
 ```ts
 // src/utils/fresh-video.ts
 import "server-only";
+
 import { zodFetch } from "pasika/zod-fetch";
 ```
 
-Why: the first import announces the server-only boundary to reviewers. This ordering does not strengthen runtime protection; it is a readability convention. Import declarations remain consecutive, as required by the exports and imports rule.
+Why: the marker appears first and a blank line visually separates the server boundary from ordinary imports. This is a readability convention and does not strengthen runtime protection.

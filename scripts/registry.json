@@ -626,8 +626,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "Consecutive import declarations MUST NOT be separated by a blank line.",
-      "hash": "d0a25ccac0",
+      "text": "Consecutive import declarations MUST NOT be separated by a blank line unless the preceding import is `import \"server-only\";`.",
+      "hash": "e845758d8d",
+      "ref": "pasika/import-spacing"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "A `server-only` marker MUST be separated from the next import declaration by a blank line.",
+      "hash": "d78ffc9e33",
       "ref": "pasika/import-spacing"
     },
     {

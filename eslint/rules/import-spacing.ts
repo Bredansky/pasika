@@ -1,15 +1,18 @@
 /**
  * ESLint rule: pasika/import-spacing
  *
- * Keeps top-level import declarations visually contiguous by removing blank
- * lines between consecutive imports.
+ * Keeps ordinary import declarations contiguous while visually separating
+ * the server-only side-effect marker from the imports that follow.
  *
  * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 import type { Rule } from "eslint";
 
 const MESSAGE =
-  "Consecutive import declarations must not be separated by a blank line. " +
+  "Consecutive ordinary import declarations must not be separated by a blank line. " +
+  "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
+const SERVER_ONLY_MESSAGE =
+  'Leave a blank line after import "server-only"; before other imports. ' +
   "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 function hasBlankLine(text: string): boolean {
@@ -27,7 +30,7 @@ export const importSpacingRule: Rule.RuleModule = {
     type: "layout",
     fixable: "whitespace",
     docs: {
-      description: "Disallow blank lines between consecutive import declarations.",
+      description: "Keep ordinary imports together and separate the server-only boundary marker.",
     },
   },
   create(context) {
@@ -45,8 +48,22 @@ export const importSpacingRule: Rule.RuleModule = {
           if (previousEnd === undefined || currentStart === undefined) continue;
 
           const gap = context.sourceCode.text.slice(previousEnd, currentStart);
-          if (!hasBlankLine(gap)) continue;
+          const isServerOnlyMarker = previous.source.value === "server-only" && previous.specifiers.length === 0;
+          if (isServerOnlyMarker) {
+            if (hasBlankLine(gap)) continue;
 
+            context.report({
+              node: current,
+              message: SERVER_ONLY_MESSAGE,
+              fix(fixer) {
+                const newline = context.sourceCode.text.includes("\r\n") ? "\r\n" : "\n";
+                return fixer.insertTextBefore(current, gap.includes("\n") ? newline : newline + newline);
+              },
+            });
+            continue;
+          }
+
+          if (!hasBlankLine(gap)) continue;
           context.report({
             node: current,
             message: MESSAGE,

@@ -7,7 +7,8 @@ Without consistent exports, import paths, and layer boundaries, it is harder to 
 - A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.
 - An `index.ts` or support-folder `server.ts` MUST NOT re-export modules from outside its own folder.
 - Server-only runtime dependencies from `constants/`, `types/`, or `schemas/` MUST be imported through the folder's `server.ts` entry point.
-- Consecutive import declarations MUST NOT be separated by a blank line.
+- Consecutive import declarations MUST NOT be separated by a blank line unless the preceding import is `import "server-only";`.
+- A `server-only` marker MUST be separated from the next import declaration by a blank line.
 - An import within the same architectural layer whose target is in the current directory or its direct parent directory MUST use a relative path with `./` or `../`.
 - An import between architectural layers MUST use the `@/*` alias, even when a relative path would require only one parent traversal.
 - A relative import MUST NOT traverse more than one parent directory; use the `@/*` alias instead of `../../` or deeper paths.
