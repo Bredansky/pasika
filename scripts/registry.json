@@ -1310,9 +1310,9 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Shared component styling MUST be reused through component composition rather than shared class-name constants.",
-      "hash": "9371ca92ee",
-      "note": "Determining whether a shared visual treatment warrants component composition requires architectural review, not only syntax matching."
+      "text": "Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.",
+      "hash": "d6aa368e6c",
+      "ref": "pasika/no-styling-class-alias"
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",

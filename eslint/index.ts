@@ -52,6 +52,7 @@ import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noRedundantAliasRule } from "./rules/no-redundant-alias";
+import { noStylingClassAliasRule } from "./rules/no-styling-class-alias";
 import { noUnusedAppExportsRule } from "./rules/no-unused-app-exports";
 import { noUnusedCvaOptionsRule } from "./rules/no-unused-cva-options";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
@@ -135,6 +136,7 @@ const pasikaNextjsAppRules = {
   "ui-state": uiStateRule,
   "no-mixed-concerns": noMixedConcernsRule,
   "no-duplicate-jsx-classes": noDuplicateJsxClassesRule,
+  "no-styling-class-alias": noStylingClassAliasRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
   "no-literal-inline-style": noLiteralInlineStyleRule,
   "unknown-utility": unknownUtilityRule,

@@ -2,8 +2,36 @@
 
 Shared class-name constants separate reusable visual styling from its markup. Repeated static class sets across native JSX elements also duplicate styling ownership.
 
-- Shared component styling MUST be reused through component composition rather than shared class-name constants.
+- Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.
 - Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.
+
+## Incorrect — Enum Used As A Styling Alias
+
+```tsx
+enum PrimitiveCssClass {
+  Glow = "hover:shadow-retro-glow",
+  FireBar = "h-3px",
+}
+
+<div className={PrimitiveCssClass.FireBar} />;
+```
+
+Why: the enum hides styling classes from their JSX owner instead of modeling a real application domain.
+
+## Correct — Literal Styling With Separate Showcase Metadata
+
+```tsx
+enum PrimitiveCssExample {
+  FireBar = ".h-3px",
+}
+
+const exampleMetadata = { className: PrimitiveCssExample.FireBar };
+
+<div className="h-3px" />;
+<code>{exampleMetadata.className}</code>;
+```
+
+Why: the enum is documentation text only; the rendered element owns its styling.
 
 ## Incorrect — Sharing Class Names Between Components
 
