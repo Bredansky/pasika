@@ -25,6 +25,25 @@ write("utils/cycle-b.ts", 'export * from "./cycle-a";\nexport * from "./private"
 write("utils/public.ts", "export const publicValue = 1;");
 write("utils/arbitrary.server.ts", "export const ordinary = 2;");
 write("utils/server.ts", "export const ordinary = 3;");
+write(
+  "utils/marker-first.ts",
+  'import "server-only";\nimport { ordinary } from "./server";\nexport const value = ordinary;',
+);
+write(
+  "utils/marker-after.ts",
+  'import { ordinary } from "./server";\nimport "server-only";\nexport const value = ordinary;',
+);
+write(
+  "utils/marker-after-type.ts",
+  'import type { Sample } from "./type-only";\nimport "server-only";\nexport type Value = Sample;',
+);
+write("utils/marker-after-directive.ts", '"use strict";\nimport "server-only";\nexport const value = 1;');
+write("utils/type-only.ts", "export type Sample = string;");
+write("schemas/nested/index.ts", "export const shared = 1;");
+write(
+  "schemas/nested/server.ts",
+  'import { shared } from "./index";\nimport "server-only";\nexport const value = shared;',
+);
 write("constants/index.ts", 'export * from "./shared";\nexport * from "./leaky";');
 write("constants/shared.ts", "export const shared = 1;");
 write("constants/leaky.ts", 'export * from "../utils/bridge";');
@@ -89,6 +108,22 @@ void describe("A Client Component MUST NOT depend on a server-only module, direc
       { ...fixture("features/demo/dynamic.tsx"), errors: 1 },
       { ...fixture("features/demo/require.tsx"), errors: 1 },
       { ...fixture("features/demo/cycle.tsx"), errors: 1 },
+    ],
+  });
+});
+
+void describe('A module importing "server-only" MUST place its side-effect marker before every other import declaration.', () => {
+  ruleTester.run("server-client-boundary", serverClientBoundaryRule, {
+    valid: [
+      fixture("utils/marker-first.ts"),
+      fixture("utils/marker-after-directive.ts"),
+      fixture("utils/server.ts"),
+      fixture("constants/server.ts"),
+    ],
+    invalid: [
+      { ...fixture("utils/marker-after.ts"), errors: [{ message: /first import declaration/ }] },
+      { ...fixture("utils/marker-after-type.ts"), errors: [{ message: /first import declaration/ }] },
+      { ...fixture("schemas/nested/server.ts"), errors: [{ message: /first import declaration/ }] },
     ],
   });
 });

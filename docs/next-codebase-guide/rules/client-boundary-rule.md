@@ -8,6 +8,7 @@ Next.js App Router pages are Server Components by default. This rule keeps `"use
 - A Client Component MUST NOT depend on a server-only module, directly or through any runtime imports, re-exports, dynamic imports, or `require()` ([Next.js environment poisoning guidance](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
 - A shared `constants/`, `types/`, or `schemas/` `index.ts` barrel (including indexed subgroups) MUST NOT have a transitive runtime dependency on server-only modules.
 - A support-folder `server.ts` MUST import `server-only` to prevent client-side imports at build time ([Next.js documentation](https://nextjs.org/docs/app/getting-started/server-and-client-components#preventing-environment-poisoning)).
+- A module importing `"server-only"` MUST place its side-effect marker before every other import declaration.
 
 ## Incorrect — Interactive Component Without a Boundary
 
@@ -161,3 +162,24 @@ import { streamYouTubeLiveApiContract } from "@/constants/server";
 ```
 
 Why: shared imports remain safe for the client, while server code uses the guarded server entry point.
+
+## Incorrect — Server-Only Marker After An Import
+
+```ts
+// src/utils/fresh-video.ts
+import { zodFetch } from "pasika/zod-fetch";
+import "server-only";
+```
+
+Why: the module's server boundary is obscured by ordinary imports.
+
+## Correct — Server-Only Marker First
+
+```ts
+// src/utils/fresh-video.ts
+import "server-only";
+
+import { zodFetch } from "pasika/zod-fetch";
+```
+
+Why: the marker appears first and a blank line visually separates the server boundary from ordinary imports. This is a readability convention and does not strengthen runtime protection.
