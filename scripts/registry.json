@@ -1310,14 +1310,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Shared component styling MUST be reused through component composition rather than shared class-name constants.",
-      "hash": "9371ca92ee",
-      "note": "Determining whether a shared visual treatment warrants component composition requires architectural review, not only syntax matching."
-    },
-    {
-      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "An enum member or shared static class-name constant MUST NOT supply styling through JSX className, cn(), clsx(), or cva(); display-only documentation metadata MAY use those strings.",
-      "hash": "e55aeb7ecb",
+      "text": "Class-name aliases (enum members or shared static constants) MUST NOT supply styling through JSX className, cn(), clsx(), or cva(); shared styling belongs in reusable components, while display-only documentation metadata MAY retain those strings.",
+      "hash": "de2e1dbdb3",
       "ref": "pasika/no-styling-class-alias"
     },
     {
