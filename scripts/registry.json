@@ -1310,8 +1310,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Class-name aliases (enum members or shared static constants) MUST NOT supply styling through JSX className, cn(), clsx(), or cva(); shared styling belongs in reusable components, while display-only documentation metadata MAY retain those strings.",
-      "hash": "de2e1dbdb3",
+      "text": "Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.",
+      "hash": "d6aa368e6c",
       "ref": "pasika/no-styling-class-alias"
     },
     {

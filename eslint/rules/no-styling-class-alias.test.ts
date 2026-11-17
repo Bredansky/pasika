@@ -11,7 +11,7 @@ const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
 const MESSAGE = `Do not use enum members or shared class-name constants to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
 const file = srcFile("features/editor/button.tsx");
 
-void describe("Class-name aliases (enum members or shared static constants) MUST NOT supply styling through JSX className, cn(), clsx(), or cva(); shared styling belongs in reusable components, while display-only documentation metadata MAY retain those strings.", () => {
+void describe("Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.", () => {
   ruleTester.run("no-styling-class-alias", noStylingClassAliasRule, {
     valid: [
       { filename: file, code: 'function Card() { return <div className="border-2 p-4" />; }' },
