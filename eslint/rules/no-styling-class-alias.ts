@@ -161,26 +161,101 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
       });
     }
 
+    /** CVA variant names and defaultVariants are selectors, not CSS classes. */
+    function inspectCvaOptions(node: ts.Node): void {
+      if (!ts.isObjectLiteralExpression(node)) return;
+      for (const entry of node.properties) {
+        if (!ts.isPropertyAssignment(entry) || !ts.isIdentifier(entry.name)) continue;
+        if (entry.name.text === "variants" && ts.isObjectLiteralExpression(entry.initializer)) {
+          for (const variant of entry.initializer.properties) {
+            if (!ts.isPropertyAssignment(variant) || !ts.isObjectLiteralExpression(variant.initializer)) continue;
+            for (const option of variant.initializer.properties) {
+              if (ts.isPropertyAssignment(option)) inspectStyle(option.initializer);
+            }
+          }
+        }
+        if (entry.name.text === "compoundVariants" && ts.isArrayLiteralExpression(entry.initializer)) {
+          for (const item of entry.initializer.elements) {
+            if (!ts.isObjectLiteralExpression(item)) continue;
+            for (const property of item.properties) {
+              if (!ts.isPropertyAssignment(property) || !ts.isIdentifier(property.name)) continue;
+              if (property.name.text === "class" || property.name.text === "className") {
+                inspectStyle(property.initializer);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /** Follow class-producing values, not predicates, enum keys or variant selectors. */
     function inspectStyle(expression: ts.Node): void {
       if (ts.isPropertyAccessExpression(expression) && ts.isIdentifier(expression.expression)) {
         const binding = lookup(file, expression.expression.text);
-        if (binding?.kind === "enum" && binding.members?.has(expression.name.text)) {
-          report(expression);
-          return;
-        }
+        if (binding?.kind === "enum" && binding.members?.has(expression.name.text)) report(expression);
+        return;
       }
       if (ts.isIdentifier(expression)) {
         const binding = lookup(file, expression.text);
         if (binding?.kind === "const" && (binding.origin !== file || binding.exported)) {
-          // Declarations under constants/ are already rejected by
-          // no-inline-runtime-literal; avoid reporting them twice here.
+          // no-inline-runtime-literal already reports constants/ declarations.
           if (binding.origin !== file || !path.relative(root, file).split(path.sep).includes("constants")) {
             report(expression);
           }
-          return;
         }
+        return;
       }
-      ts.forEachChild(expression, inspectStyle);
+      if (ts.isConditionalExpression(expression)) {
+        inspectStyle(expression.whenTrue);
+        inspectStyle(expression.whenFalse);
+        return;
+      }
+      if (ts.isBinaryExpression(expression)) {
+        if (expression.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) {
+          if (
+            expression.operatorToken.kind === ts.SyntaxKind.BarBarToken ||
+            expression.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+          ) {
+            inspectStyle(expression.left);
+          } else return;
+        }
+        inspectStyle(expression.right);
+        return;
+      }
+      if (ts.isCallExpression(expression) && ts.isIdentifier(expression.expression)) {
+        if (expression.expression.text === "cva") {
+          if (expression.arguments[0]) inspectStyle(expression.arguments[0]);
+          if (expression.arguments[1]) inspectCvaOptions(expression.arguments[1]);
+        } else if (expression.expression.text === "cn" || expression.expression.text === "clsx") {
+          for (const argument of expression.arguments) inspectStyle(argument);
+        }
+        return;
+      }
+      if (ts.isArrayLiteralExpression(expression)) {
+        for (const item of expression.elements) inspectStyle(ts.isSpreadElement(item) ? item.expression : item);
+        return;
+      }
+      if (ts.isObjectLiteralExpression(expression)) {
+        // clsx object keys name CSS classes; property values are boolean conditions.
+        for (const property of expression.properties) {
+          if (ts.isPropertyAssignment(property) && ts.isComputedPropertyName(property.name)) {
+            inspectStyle(property.name.expression);
+          }
+        }
+        return;
+      }
+      if (
+        ts.isParenthesizedExpression(expression) ||
+        ts.isAsExpression(expression) ||
+        ts.isSatisfiesExpression(expression) ||
+        ts.isNonNullExpression(expression)
+      ) {
+        inspectStyle(expression.expression);
+        return;
+      }
+      if (ts.isTemplateExpression(expression)) {
+        for (const span of expression.templateSpans) inspectStyle(span.expression);
+      }
     }
 
     function visit(node: ts.Node): void {
@@ -195,7 +270,7 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         ts.isIdentifier(node.expression) &&
         ["cn", "clsx", "cva"].includes(node.expression.text)
       ) {
-        for (const argument of node.arguments) inspectStyle(argument);
+        inspectStyle(node);
         return;
       }
       ts.forEachChild(node, visit);

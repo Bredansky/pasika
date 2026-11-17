@@ -34,6 +34,30 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
       },
       { filename: file, code: 'const localClassName = "p-4"; const variant = cva(localClassName);' },
       {
+        filename: file,
+        code: 'enum Surface { Card = "card", Gradient = "gradient" }; const view = <div className={cn("p-2", surface === Surface.Gradient ? "bg-blue" : "bg-red")} />;',
+      },
+      {
+        filename: file,
+        code: 'enum Color { Primary = "primary", Accent = "accent" }; const view = <div className={cn(color === Color.Primary ? "text-primary" : "text-accent")} />;',
+      },
+      {
+        filename: file,
+        code: 'enum Position { Top = "top", Bottom = "bottom" }; const view = <div className={cn("h-3", position === Position.Top && "bg-blue")} />;',
+      },
+      {
+        filename: file,
+        code: 'enum Variant { Pretty = "pretty" }; const view = <h1 className={cn("text-xl", variant === Variant.Pretty && "text-pretty")} />;',
+      },
+      {
+        filename: file,
+        code: 'enum Size { Small = "sm", Large = "lg" }; const variants = cva("p-2", { variants: { size: { [Size.Small]: "text-xs", [Size.Large]: "text-lg" } }, defaultVariants: { size: Size.Small }, compoundVariants: [{ size: Size.Large, class: "shadow-lg" }] });',
+      },
+      {
+        filename: file,
+        code: 'enum Button { Primary = "primary", Ghost = "ghost" }; const variants = cva(["inline-flex", "gap-2"], { variants: { variant: { [Button.Primary]: cn("bg-blue", "text-white"), [Button.Ghost]: cn("bg-transparent") } }, defaultVariants: { variant: Button.Primary } });',
+      },
+      {
         filename: srcFile("features/editor/button.test.tsx"),
         code: 'enum CSS { Border = "p-4" }; const element = <div className={CSS.Border} />;',
       },
@@ -67,6 +91,21 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
       {
         filename: file,
         code: 'export const buttonClasses = "px-3 py-2"; const classes = clsx(buttonClasses, "rounded");',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'enum ClassName { Active = "bg-blue" }; const view = <div className={isActive && ClassName.Active} />;',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'enum ClassName { Active = "bg-blue" }; const view = <div className={clsx({ [ClassName.Active]: active })} />;',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'enum ClassName { Active = "bg-blue" }; const variants = cva("flex", { variants: { tone: { on: "text-white" } }, defaultVariants: { tone: "on" }, compoundVariants: [{ tone: "on", class: ClassName.Active }] });',
         errors: [{ message: MESSAGE }],
       },
     ],
