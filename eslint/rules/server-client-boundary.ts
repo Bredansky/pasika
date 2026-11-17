@@ -4,6 +4,7 @@
  * A shared support entry must never transitively expose server-only code.
  * A "use client" entry must never reach server-only code through any runtime
  * import, re-export, require(), or dynamic import().
+ * A server-only marker must precede every other import declaration.
  *
  * @see docs/next-codebase-guide/rules/client-boundary-rule.md
  */
@@ -56,7 +57,7 @@ export const serverClientBoundaryRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Prevent client dependency graphs and shared support barrels from reaching server-only modules.",
+      description: "Prevent server-only boundary leaks and require server-only markers to precede other imports.",
     },
   },
   create(context) {
@@ -67,18 +68,25 @@ export const serverClientBoundaryRule: Rule.RuleModule = {
     const clientEntry = module?.client === true;
     const sharedEntry = isSupportEntry(file);
     const serverEntry = isServerEntry(file);
-    if (!graph || !module || (!clientEntry && !sharedEntry && !serverEntry)) return {};
+    if (!file.startsWith(sourceRoot + path.sep)) return {};
 
     return {
       Program(node) {
+        const imports = context.sourceCode.ast.body.filter((statement) => statement.type === "ImportDeclaration");
+        const marker = imports.find(
+          (statement) => statement.source.value === "server-only" && statement.specifiers.length === 0,
+        );
+        if (marker && imports[0] !== marker) {
+          context.report({
+            node: marker,
+            message: `The "server-only" marker MUST be the first import declaration. See ${DOC}`,
+          });
+        }
+
+        if (!graph || !module || (!clientEntry && !sharedEntry && !serverEntry)) return;
+
         if (serverEntry) {
-          const hasMarker = context.sourceCode.ast.body.some(
-            (statement) =>
-              statement.type === "ImportDeclaration" &&
-              statement.source.value === "server-only" &&
-              statement.specifiers.length === 0,
-          );
-          if (!hasMarker) {
+          if (!marker) {
             context.report({
               node,
               message: `A support server.ts entry MUST import "server-only" to enforce its Next.js server boundary. See ${DOC}`,

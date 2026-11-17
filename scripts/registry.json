@@ -421,6 +421,12 @@
       "ref": "pasika/server-client-boundary"
     },
     {
+      "doc": "next-codebase-guide/rules/client-boundary-rule.md",
+      "text": "A module importing `\"server-only\"` MUST place its side-effect marker before every other import declaration.",
+      "hash": "d68d381179",
+      "ref": "pasika/server-client-boundary"
+    },
+    {
       "doc": "next-codebase-guide/rules/component-placement-rule.md",
       "text": "A component that imports from two or more feature folders other than its own MUST live in `src/compositions/`.",
       "hash": "10844fbc57",
