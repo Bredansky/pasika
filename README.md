@@ -16,10 +16,10 @@ The documentation an agent works from, the ESLint rules that documentation turns
 npm i -D zirka eslint prettier typescript
 ```
 
-Standalone, the presets need the language plugins as peers:
+Standalone, the presets need ESLint-only packages as dev dependencies (runtime helper consumers do not):
 
 ```sh
-npm i -D pasika eslint @eslint/css @eslint/json @eslint/markdown
+npm i -D pasika eslint typescript @typescript-eslint/parser @tailwindcss/node @eslint/css-tree @eslint/css @eslint/json @eslint/markdown yaml
 ```
 
 The runtime helpers resolve `clsx` / `tailwind-merge`, `zod`, and `next` as optional peers, so install only the ones whose imports you use.
@@ -54,13 +54,13 @@ Without `zirka`, import `pasikaNextjsApp` from `pasika/eslint` and export it dir
 
 95 rules over five scopes:
 
-| Scope             | Rules | Language plugin                      |
-| ----------------- | ----- | ------------------------------------ |
-| `src/**` TS / TSX | 51    | `@typescript-eslint/parser`, bundled |
-| `docs/**/*.md`    | 25    | `@eslint/markdown`                   |
-| Stylesheets       | 12    | `@eslint/css`                        |
-| `package.json`    | 6     | `@eslint/json`                       |
-| `.husky/*`        | 1     | —                                    |
+| Scope             | Rules | Language plugin                                                  |
+| ----------------- | ----- | ---------------------------------------------------------------- |
+| `src/**` TS / TSX | 51    | `@typescript-eslint/parser`, optional peer (install for linting) |
+| `docs/**/*.md`    | 25    | `@eslint/markdown`                                               |
+| Stylesheets       | 12    | `@eslint/css`                                                    |
+| `package.json`    | 6     | `@eslint/json`                                                   |
+| `.husky/*`        | 1     | —                                                                |
 
 The requirement behind every rule id is in the guides; `npx tsx scripts/coverage.ts --json` prints the mapping. CI fails when a requirement has no recorded answer, when its text changed, when its ref names no rule, or when a rule-governed requirement has no test titled with it.
 

@@ -1,8 +1,8 @@
 /**
  * TypeScript alignment diagnostic.
  *
- * The `pasikaNextjsApp` preset ships its own `@typescript-eslint/parser` (a runtime
- * dependency), which runs on the TypeScript version pasika bundles. The
+ * The `pasikaNextjsApp` preset resolves `@typescript-eslint/parser` (an optional peer
+ * dependency), which runs on the TypeScript version the consuming project installs. The
  * type-aware rules a consumer enables through zirka run on whatever TypeScript
  * the consumer's `node_modules` hoists. When those two TypeScript copies have
  * different *majors*, the type objects the parser builds carry one `TypeFlags`
