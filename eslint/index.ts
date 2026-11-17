@@ -56,6 +56,7 @@ import { noStylingClassAliasRule } from "./rules/no-styling-class-alias";
 import { noUnusedAppExportsRule } from "./rules/no-unused-app-exports";
 import { noUnusedCvaOptionsRule } from "./rules/no-unused-cva-options";
 import { noUtilBarrelRule } from "./rules/no-util-barrel";
+import { noVitestEnvironmentDirectiveRule } from "./rules/no-vitest-environment-directive";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
 import { preferObjectDestructuringRule } from "./rules/prefer-object-destructuring";
@@ -137,6 +138,7 @@ const pasikaNextjsAppRules = {
   "no-mixed-concerns": noMixedConcernsRule,
   "no-duplicate-jsx-classes": noDuplicateJsxClassesRule,
   "no-styling-class-alias": noStylingClassAliasRule,
+  "no-vitest-environment-directive": noVitestEnvironmentDirectiveRule,
   "no-arbitrary-tailwind": noArbitraryTailwindRule,
   "no-literal-inline-style": noLiteralInlineStyleRule,
   "unknown-utility": unknownUtilityRule,
@@ -258,6 +260,14 @@ const pasikaNextjsAppConfig: Linter.Config = {
     pasika: pasikaPlugin,
   },
   rules: Object.fromEntries(pasikaNextjsAppRuleIds.map((id) => [id, "error"])),
+};
+
+/** The Next.js preset also enforces test conventions in root-level tests/ files. */
+const pasikaNextjsTestConfig: Linter.Config = {
+  files: ["tests/**/*.{test,spec}.{ts,tsx}"],
+  languageOptions: pasikaAppLanguageOptions,
+  plugins: { pasika: pasikaPlugin },
+  rules: { "pasika/no-vitest-environment-directive": "error" },
 };
 
 /** Type information for ownership-aware contract rules, without forcing JS files into a TS project. */
@@ -444,6 +454,7 @@ export const pasikaNextjsApp: Linter.Config[] = pasikaNextjsAppWithDiagnostic([
   ...pasikaApp,
   pasikaNextjsAppPackageJsonConfig,
   pasikaNextjsAppConfig,
+  pasikaNextjsTestConfig,
   pasikaTypedProjectServiceConfig,
   tailwindStructureRules,
   tailwindImportGraph,

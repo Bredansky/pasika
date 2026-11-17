@@ -9,6 +9,8 @@ Coverage that measures nothing still passes. This rule requires a repository's t
 - A repository MUST measure coverage of its source files, not its test files.
 - A repository MUST enable `coverage.thresholds.autoUpdate` with `true` or the monotonic 0.1-point buffered formatter; the formatter SHOULD be used when the installed Vitest version supports the two-argument callback so cross-platform V8 noise does not over-tighten thresholds.
 - A repository MUST declare a `test:unit:staged` script in package.json that runs `vitest related` without coverage and configure `lint-staged` to run it (`npm run test:unit:staged --`) for staged JavaScript or TypeScript files.
+- A Next.js application MUST configure separate named Vitest `node` and `dom` projects, route `*.dom.test.{ts,tsx}` and `*.dom.spec.{ts,tsx}` files to jsdom, and keep shared coverage settings at the root of `vitest.config.ts`.
+- A Next.js application MUST NOT select the Vitest environment with a per-file directive.
 
 ## Incorrect — Coverage Package Missing, Threshold Left at Zero
 
@@ -141,3 +143,62 @@ coverage: {
 ```
 
 Why: `lint-staged` runs relevant tests for changed files, while `test:unit:coverage` measures total coverage and updates thresholds without reacting to tiny platform differences. CI runs `npm run test:unit:coverage:check` without updating thresholds and checks that the configuration stays unchanged; local hooks handle updates.
+
+## Incorrect — Selecting A Browser Test Environment Per File
+
+```ts
+// src/features/card/card.test.tsx
+// @vitest-environment jsdom
+import { render } from "@testing-library/react";
+```
+
+Why: file directives scatter environment configuration across tests and make it easy to run browser-dependent tests in the wrong environment.
+
+## Correct — Named Node And DOM Vitest Projects
+
+```ts
+// vitest.config.ts
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    projects: [
+      {
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["src/**/*.{test,spec}.{ts,tsx}", "tests/**/*.{test,spec}.{ts,tsx}"],
+          exclude: ["**/*.dom.{test,spec}.{ts,tsx}"],
+        },
+      },
+      {
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          include: ["src/**/*.dom.{test,spec}.{ts,tsx}", "tests/**/*.dom.{test,spec}.{ts,tsx}"],
+        },
+      },
+    ],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.{test,spec}.{ts,tsx}", "src/**/*.d.ts"],
+      thresholds: {
+        lines: 9,
+        functions: 8,
+        branches: 6,
+        statements: 9,
+        autoUpdate: true,
+      },
+    },
+  },
+});
+```
+
+```tsx
+// src/features/card/card.dom.test.tsx
+import { render } from "@testing-library/react";
+// Tests use jsdom automatically through the filename; no environment directive needed.
+```
+
+Why: DOM tests opt into jsdom through their names, ordinary tests stay in Node, and one root coverage gate measures both projects without running any test twice. Shared Vite aliases and plugins remain at the root, which inline projects inherit in Vitest 5.

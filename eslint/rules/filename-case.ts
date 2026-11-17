@@ -85,6 +85,10 @@ export const filenameCaseRule: Rule.RuleModule = {
     const baseExt = path.extname(base);
     if (baseExt && COMPOUND_SUFFIXES.has(baseExt.slice(1))) {
       base = path.basename(base, baseExt);
+      // A .dom.test/.dom.spec suffix marks the Vitest jsdom project, not part of the base name.
+      if ((baseExt === ".test" || baseExt === ".spec") && base.endsWith(".dom")) {
+        base = base.slice(0, -".dom".length);
+      }
     }
 
     // Next.js routing files are exempt
