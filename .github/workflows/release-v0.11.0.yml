@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   tag:
@@ -24,9 +25,16 @@ jobs:
           test "$(node -p 'require("./package.json").version')" = "0.11.0"
           if git ls-remote --exit-code --tags origin refs/tags/v0.11.0 >/dev/null 2>&1; then
             echo "Tag v0.11.0 already exists"
-            exit 0
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a v0.11.0 -m "Release Pasika 0.11.0"
+            git push origin refs/tags/v0.11.0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a v0.11.0 -m "Release Pasika 0.11.0"
-          git push origin refs/tags/v0.11.0
+
+      # GITHUB_TOKEN-created tag pushes do not trigger other workflows.
+      # workflow_dispatch is exempt from this restriction.
+      - name: Trigger the existing publish workflow for v0.11.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish.yml --ref v0.11.0
