@@ -1,0 +1,32 @@
+name: Release Pasika v0.11.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Tag the validated Pasika v0.11.0 release
+        run: |
+          set -euo pipefail
+          test "$(node -p 'require("./package.json").version')" = "0.11.0"
+          if git ls-remote --exit-code --tags origin refs/tags/v0.11.0 >/dev/null 2>&1; then
+            echo "Tag v0.11.0 already exists"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a v0.11.0 -m "Release Pasika 0.11.0"
+          git push origin refs/tags/v0.11.0
