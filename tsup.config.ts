@@ -28,8 +28,8 @@ export default defineConfig({
   target: "esnext",
   // The pasika presets ship the parser and the ESLint language blocks, so the
   // TypeScript parser and the ESLint language plugins they wire at runtime stay
-  // external imports (never inlined). The parser is a runtime dependency; the
-  // language plugins are peerDependencies that consumers already install.
+  // external imports (never inlined). The parser and language plugins are optional peerDependencies: consumers
+  // install them as devDependencies only when using pasika/eslint.
   // The helpers' own imports stay external for the same reason: a consumer's zod,
   // clsx, tailwind-merge, and next are the peer installations the helpers run on.
   external: [

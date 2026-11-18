@@ -1,6 +1,6 @@
 {
   "name": "pasika",
-  "version": "0.10.191",
+  "version": "0.11.0",
   "description": "Reusable agent setup package",
   "repository": {
     "type": "git",
@@ -68,21 +68,17 @@
       "npm run format:staged --"
     ]
   },
-  "dependencies": {
-    "@eslint/css-tree": "4.0.5",
-    "@tailwindcss/node": "4.3.3",
-    "@typescript-eslint/parser": "8.68.0",
-    "typescript": "6.0.3",
-    "yaml": "2.9.0"
-  },
   "devDependencies": {
     "@eslint/css": "1.4.0",
+    "@eslint/css-tree": "4.0.5",
     "@eslint/json": "2.0.1",
     "@eslint/markdown": "8.0.3",
     "@humanwhocodes/momoa": "3.3.12",
+    "@tailwindcss/node": "4.3.5",
     "@types/estree": "1.0.9",
     "@types/mdast": "4.0.4",
     "@types/node": "26.4.0",
+    "@typescript-eslint/parser": "8.73.0",
     "@vitest/coverage-v8": "5.0.0",
     "clsx": "2.1.1",
     "eslint": "10.9.1",
@@ -97,20 +93,44 @@
     "typescript": "6.0.3",
     "vitest": "5.0.0",
     "vulyk": "0.15.2",
+    "yaml": "2.9.0",
     "zirka": "0.0.83",
     "zod": "4.4.3"
   },
   "peerDependencies": {
     "@eslint/css": ">=1.4.0",
+    "@eslint/css-tree": ">=4.0.5",
     "@eslint/json": ">=2.0.1",
     "@eslint/markdown": ">=8.0.3",
+    "@tailwindcss/node": ">=4.3.3 <5",
+    "@typescript-eslint/parser": ">=8.68.0 <9",
     "clsx": ">=2.0.0",
     "next": ">=15.0.0",
     "tailwind-merge": ">=3.0.0",
     "tailwindcss": "^4.0.0",
+    "typescript": ">=6 <7",
+    "yaml": ">=2.9.0",
     "zod": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "@eslint/css": {
+      "optional": true
+    },
+    "@eslint/css-tree": {
+      "optional": true
+    },
+    "@eslint/json": {
+      "optional": true
+    },
+    "@eslint/markdown": {
+      "optional": true
+    },
+    "@tailwindcss/node": {
+      "optional": true
+    },
+    "@typescript-eslint/parser": {
+      "optional": true
+    },
     "clsx": {
       "optional": true
     },
@@ -121,6 +141,12 @@
       "optional": true
     },
     "tailwindcss": {
+      "optional": true
+    },
+    "typescript": {
+      "optional": true
+    },
+    "yaml": {
       "optional": true
     },
     "zod": {
