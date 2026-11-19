@@ -28,4 +28,4 @@ function PreviewCard({ select }: { select: () => void }) {
 }
 ```
 
-Why: the card keeps its `article` semantics, while the `button` provides keyboard focus and Enter/Space activation automatically. For navigation, use an `a` element with an `href` instead. Avoid adding `role`, `tabIndex`, and keyboard handlers to a non-interactive element when a native control works.
+Why: the card keeps its `article` semantics, while the `button` provides keyboard focus and Enter/Space activation automatically. For navigation, use an `a` element with an `href`; prefer native controls over manually adding `role`, `tabIndex`, and keyboard handlers.
