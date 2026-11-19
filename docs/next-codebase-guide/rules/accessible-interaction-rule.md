@@ -1,29 +1,31 @@
 # Accessible Interaction Rule
 
-Clickable surfaces must remain usable with a keyboard, including when they are styled as cards or other non-native controls.
+When an element handles clicks, users must also be able to reach and activate it with a keyboard. Prefer native interactive elements for actions and links.
 
 - A clickable non-interactive JSX surface MUST support keyboard and focus interaction.
 
-## Incorrect — Mouse-Only Selection
+## Incorrect — Click Handler on a Non-Interactive Card
 
 ```tsx
 function PreviewCard({ select }: { select: () => void }) {
-  return <article onClick={select}>Preview</article>;
+  return <article onClick={select}>Select preview</article>;
 }
 ```
 
-Why: the article is not a keyboard-operable control, so users cannot focus and activate it reliably.
+Why: `article` groups content; it is not an interactive control. Clicking works with a mouse, but the card cannot be focused or activated with Enter or Space.
 
-## Correct — Native Interactive Control
+## Correct — Button Inside the Card
 
 ```tsx
 function PreviewCard({ select }: { select: () => void }) {
   return (
-    <button type="button" onClick={select}>
-      Select preview
-    </button>
+    <article>
+      <button type="button" onClick={select}>
+        Select preview
+      </button>
+    </article>
   );
 }
 ```
 
-Why: a native button supplies focus and keyboard activation without custom role or key handling.
+Why: the card keeps its `article` semantics, while the `button` provides keyboard focus and Enter/Space activation automatically. For navigation, use an `a` element with an `href` instead. Avoid adding `role`, `tabIndex`, and keyboard handlers to a non-interactive element when a native control works.
