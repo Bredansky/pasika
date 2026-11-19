@@ -829,6 +829,24 @@
       "ref": "pasika/no-mixed-concerns"
     },
     {
+      "doc": "next-codebase-guide/rules/react-render-purity-rule.md",
+      "text": "A React component MUST NOT invoke imperative DOM methods on ref.current during render.",
+      "hash": "8696828aa5",
+      "ref": "pasika/no-render-ref-dom-calls"
+    },
+    {
+      "doc": "next-codebase-guide/rules/accessible-interaction-rule.md",
+      "text": "A clickable non-interactive JSX surface MUST support keyboard and focus interaction.",
+      "hash": "b07c42ddcd",
+      "ref": "pasika/accessible-click-target"
+    },
+    {
+      "doc": "next-codebase-guide/rules/external-store-subscription-rule.md",
+      "text": "A useSyncExternalStore subscription MUST have a stable function identity.",
+      "hash": "b5a15c1ea7",
+      "ref": "pasika/stable-external-store-subscribe"
+    },
+    {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
       "text": "A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.",
       "hash": "74f4efb1d9",

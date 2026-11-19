@@ -11,6 +11,7 @@ import jsonPlugin from "@eslint/json";
 import markdown from "@eslint/markdown";
 import tsParser from "@typescript-eslint/parser";
 import type { Linter } from "eslint";
+import { accessibleClickTargetRule } from "./rules/accessible-click-target";
 import { apiContractRule } from "./rules/api-contract";
 import { applicationStructureRule } from "./rules/application-structure";
 import { noRedundantClientBoundaryRule, requireClientBoundaryRule } from "./rules/client-boundary";
@@ -52,6 +53,7 @@ import { noInlineRuntimeLiteralRule } from "./rules/no-inline-runtime-literal";
 import { noLiteralInlineStyleRule } from "./rules/no-literal-inline-style";
 import { noMixedConcernsRule } from "./rules/no-mixed-concerns";
 import { noRedundantAliasRule } from "./rules/no-redundant-alias";
+import { noRenderRefDomCallsRule } from "./rules/no-render-ref-dom-calls";
 import { noStylingClassAliasRule } from "./rules/no-styling-class-alias";
 import { noUnusedAppExportsRule } from "./rules/no-unused-app-exports";
 import { noUnusedCvaOptionsRule } from "./rules/no-unused-cva-options";
@@ -71,6 +73,7 @@ import { schemaCasingRule } from "./rules/schema-casing";
 import { serverClientBoundaryRule } from "./rules/server-client-boundary";
 import { soleStateOwnerRule } from "./rules/sole-state-owner";
 import { sourceUnderSrcRule } from "./rules/source-under-src";
+import { stableExternalStoreSubscribeRule } from "./rules/stable-external-store-subscribe";
 import { stayFlatRule } from "./rules/stay-flat";
 import { supportFilePlacementRule } from "./rules/support-file-placement";
 import { supportFolderShapeRule } from "./rules/support-folder-shape";
@@ -134,6 +137,9 @@ const pasikaNextjsAppRules = {
   "data-component-case": dataComponentCaseRule,
   "jsx-hygiene": jsxHygieneRule,
   "interactive-component": interactiveComponentRule,
+  "accessible-click-target": accessibleClickTargetRule,
+  "no-render-ref-dom-calls": noRenderRefDomCallsRule,
+  "stable-external-store-subscribe": stableExternalStoreSubscribeRule,
   "ui-state": uiStateRule,
   "no-mixed-concerns": noMixedConcernsRule,
   "no-duplicate-jsx-classes": noDuplicateJsxClassesRule,
