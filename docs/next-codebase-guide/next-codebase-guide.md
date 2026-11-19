@@ -22,6 +22,7 @@ Use this no matter whether you are adding a new component or extracting from exi
 14. Nest a component when it gains exclusive children per the [Folder Nesting Rule](rules/folder-nesting-rule.md).
 15. Keep the component's JSX clean per the [JSX Hygiene Rule](rules/jsx-hygiene-rule.md).
 16. Follow the [Exports and Imports Rule](rules/exports-and-imports-rule.md) so every component module has predictable exports and import paths.
+17. Follow the [React Runtime Safety Rule](rules/react-runtime-safety-rule.md) so rendering, click interaction, and external subscriptions stay safe.
 
 ## How To Organize a Type or Schema
 
