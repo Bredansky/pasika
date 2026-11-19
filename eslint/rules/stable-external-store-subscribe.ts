@@ -4,7 +4,7 @@
  * An inline subscribe callback changes identity on each render, causing
  * useSyncExternalStore to unsubscribe and resubscribe repeatedly.
  *
- * @see docs/next-codebase-guide/rules/react-runtime-safety-rule.md
+ * @see docs/next-codebase-guide/rules/external-store-subscription-rule.md
  */
 import type { Rule } from "eslint";
 

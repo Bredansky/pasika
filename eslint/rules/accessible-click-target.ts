@@ -4,7 +4,7 @@
  * Clickable non-interactive JSX surfaces must expose an appropriate role,
  * keyboard interaction and focusability. Native controls are preferred.
  *
- * @see docs/next-codebase-guide/rules/react-runtime-safety-rule.md
+ * @see docs/next-codebase-guide/rules/accessible-interaction-rule.md
  */
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";

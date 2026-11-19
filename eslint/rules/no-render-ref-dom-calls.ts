@@ -4,7 +4,7 @@
  * React render must remain pure. An imperative DOM call through a ref belongs
  * in an event handler or an effect, never in the component's render path.
  *
- * @see docs/next-codebase-guide/rules/react-runtime-safety-rule.md
+ * @see docs/next-codebase-guide/rules/react-render-purity-rule.md
  */
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
