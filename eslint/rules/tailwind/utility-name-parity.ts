@@ -2,6 +2,7 @@
  * ESLint rule: pasika/utility-name-parity
  *
  * Require property/value parity for simple static, single-@apply utilities.
+ * Recognized provider-owned CSS variables may use shorter property-prefixed names.
  * Complex values use property-prefixed semantic names instead of opaque hashes.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
@@ -165,6 +166,22 @@ function expectedName(operation: Operation): string | undefined {
   return value ? `${propertyPrefix(operation.property)}-${value}` : undefined;
 }
 
+const defaultProviderVariablePrefixes = ["--radix-"];
+
+function configuredProviderPrefixes(option: unknown): string[] {
+  if (typeof option !== "object" || option === null || !("providerVariablePrefixes" in option)) return [];
+  const prefixes: unknown = option.providerVariablePrefixes;
+  return Array.isArray(prefixes)
+    ? prefixes.filter((prefix: unknown): prefix is string => typeof prefix === "string")
+    : [];
+}
+
+/** Only an exact provider-owned var() may omit the full variable name. */
+function providerVariableName(value: string, prefixes: string[]): string | undefined {
+  const variable = /^var\((?<variable>--[a-z][a-z0-9-]*)\)$/u.exec(value)?.groups?.variable;
+  return variable && prefixes.some((prefix) => variable.startsWith(prefix)) ? variable : undefined;
+}
+
 function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): string | undefined {
   const children = blockChildren(utility);
   if (children.length !== 1) return undefined;
@@ -175,14 +192,27 @@ function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => stri
 
 export const utilityNameParityRule: CSSRuleDefinition = {
   meta: {
-    schema: [],
+    schema: [
+      {
+        type: "object",
+        properties: {
+          providerVariablePrefixes: {
+            type: "array",
+            uniqueItems: true,
+            items: { type: "string", pattern: "^--[a-z][a-z0-9-]*-$" },
+          },
+        },
+        additionalProperties: false,
+      },
+    ],
     type: "problem",
     docs: {
       description:
-        "Use property/value-derived names for simple values and property-prefixed semantic names for complex values.",
+        "Use property/value-derived names for simple values, allowing semantic names for provider-owned CSS variables.",
     },
   },
   create(context) {
+    const providerPrefixes = [...defaultProviderVariablePrefixes, ...configuredProviderPrefixes(context.options[0])];
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const candidates = atrulesNamed(node, "utility").flatMap((utility) => {
@@ -211,6 +241,23 @@ export const utilityNameParityRule: CSSRuleDefinition = {
             continue;
           }
           const expected = expectedName(operation);
+          if (candidate.name === expected) continue;
+          const providerVariable = providerVariableName(operation.value, providerPrefixes);
+          if (providerVariable) {
+            const prefix = `${propertyPrefix(operation.property)}-`;
+            if (
+              candidate.name.startsWith(prefix) &&
+              candidate.name.length > prefix.length &&
+              !/-hash-[a-f0-9]{12}$/u.test(candidate.name)
+            ) {
+              continue;
+            }
+            context.report({
+              node: candidate.utility,
+              message: `Custom utility "${candidate.name}" uses provider CSS variable "${providerVariable}"; use a semantic name starting with "${prefix}" and no opaque hash.`,
+            });
+            continue;
+          }
           if (!expected) {
             // Complex values need a semantic suffix, but must still identify
             // the exact CSS property rather than just the general effect.
@@ -230,7 +277,6 @@ export const utilityNameParityRule: CSSRuleDefinition = {
             }
             continue;
           }
-          if (candidate.name === expected) continue;
           context.report({
             node: candidate.utility,
             message: `Custom utility "${candidate.name}" maps ${operation.property}: ${operation.value}; rename it "${expected}" to preserve property/value parity.`,

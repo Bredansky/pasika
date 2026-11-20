@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
+void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. An exact `var()` from a recognized third-party namespace MAY instead use a property-prefixed semantic name. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
@@ -13,6 +13,19 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility border-2px-ridge-color-retro-edge { @apply [border:2px_ridge_var(--color-retro-edge)]; }" },
       { code: "@utility grid-template-columns-2fr-1fr { @apply [grid-template-columns:2fr_1fr]; }" },
       { code: "@utility mask-image-art { @apply mask-[var(--art)]; }" },
+      {
+        code: "@utility transform-origin-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+      },
+      {
+        code: "@utility transform-origin-tooltip { @apply origin-(--radix-tooltip-content-transform-origin); }",
+      },
+      {
+        code: "@utility transform-origin-radix-tooltip-content-transform-origin { @apply origin-(--radix-tooltip-content-transform-origin); }",
+      },
+      {
+        code: "@utility transform-origin-acme-tooltip { @apply origin-(--acme-tooltip-transform-origin); }",
+        options: [{ providerVariablePrefixes: ["--acme-"] }],
+      },
       { code: "@utility font-weight-family { @apply font-(--family); }" },
       {
         code: "@utility mask-image-art { @apply mask-[var(--art)]; } @utility grid-template-columns-2fr-1fr { @apply grid-cols-[2fr_1fr]; }",
@@ -61,6 +74,26 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility clip-path-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }" },
     ],
     invalid: [
+      {
+        code: "@utility transform-origin-tooltip { @apply origin-(--tooltip-transform-origin); }",
+        errors: [{ message: /rename it "transform-origin-tooltip-transform-origin"/u }],
+      },
+      {
+        code: "@utility transform-origin-acme-tooltip { @apply origin-(--acme-tooltip-transform-origin); }",
+        errors: [{ message: /rename it "transform-origin-acme-tooltip-transform-origin"/u }],
+      },
+      {
+        code: "@utility origin-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /use a semantic name starting with "transform-origin-"/u }],
+      },
+      {
+        code: "@utility transform-origin-hash-000000000001 { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /and no opaque hash/u }],
+      },
+      {
+        code: "@utility transform-origin- { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /use a semantic name starting with "transform-origin-"/u }],
+      },
       {
         code: "@utility will-change-transform-comma-opacity { @apply [will-change:transform,_opacity]; }",
         errors: [
