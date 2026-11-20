@@ -29,7 +29,10 @@ function fixture(files: Record<string, string> = {}): string {
 }
 
 void describe("Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.", () => {
-  const root = fixture({ "app/layout.tsx": '<html data-theme="ocean" />;' });
+  const root = fixture({
+    "app/layout.tsx": '<html data-theme="ocean" />;',
+    "app/theme.tsx": 'document.documentElement.setAttribute("data-theme", selectedTheme);',
+  });
   const globals = path.join(root, "src", "app", "styles", "globals.css");
   const home = path.join(root, "src", "app", "styles", "home.css");
   mkdirSync(path.dirname(globals), { recursive: true });
@@ -142,6 +145,7 @@ void describe("Mode-specific Tailwind classes require their registered data-them
   const root = fixture({
     "features/home/ui.tsx": 'export const ui = <div className="dark:bg-base-canvas midnight:text-base-ink" />;',
     "app/layout.tsx": '<html data-theme="midnight" />;',
+    "app/theme.tsx": "<html data-theme={selectedMode} />;",
   });
   const globals = path.join(root, "src", "app", "styles", "globals.css");
   const original = process.cwd();
@@ -168,6 +172,71 @@ void describe("Mode-specific Tailwind classes require their registered data-them
     });
   } finally {
     process.chdir(original);
+  }
+});
+
+void describe("Appearance-mode @custom-variant definitions MUST have a runtime data-theme activation in application source; unused CSS-only modes MUST NOT be defined.", () => {
+  const root = fixture({
+    "app/layout.tsx": '<html data-theme="light" />;',
+    "features/home/home.test.tsx": '<html data-theme="dark" />;',
+  });
+  const globals = path.join(root, "src", "app", "styles", "globals.css");
+  const original = process.cwd();
+  process.chdir(root);
+  try {
+    tailwindRuleTester.run("unwired-theme-modes", themeModeRule, {
+      valid: [{ filename: globals, code: GLOBAL }],
+      invalid: [
+        {
+          filename: globals,
+          code: `${GLOBAL + DARK}\\n:root { @variant dark { --color-base-canvas: black; } }`,
+          errors: [
+            {
+              message:
+                'Appearance mode "dark" has no runtime data-theme activation in src/. Remove the unused @custom-variant and mode styles, or wire the mode into the application.',
+            },
+          ],
+        },
+        {
+          filename: globals,
+          code: GLOBAL + MIDNIGHT,
+          errors: [
+            {
+              message:
+                'Appearance mode "midnight" has no runtime data-theme activation in src/. Remove the unused @custom-variant and mode styles, or wire the mode into the application.',
+            },
+          ],
+        },
+      ],
+    });
+  } finally {
+    process.chdir(original);
+  }
+});
+
+void describe("Static mode attributes, dynamic data-theme binding, next-themes providers, and attribute setters MUST count as runtime appearance-mode activation.", () => {
+  const supportedSources = [
+    '<html data-theme="dark" />;',
+    "<html data-theme={selectedMode} />;",
+    '<ThemeProvider attribute="data-theme"><App /></ThemeProvider>;',
+    'document.documentElement.setAttribute("data-theme", "dark");',
+    'document.documentElement.setAttribute("data-theme", selectedMode);',
+    'document.documentElement.dataset.theme = "dark";',
+    "document.documentElement.dataset.theme = selectedMode;",
+  ];
+  for (const [index, source] of supportedSources.entries()) {
+    const root = fixture({ "app/layout.tsx": source });
+    const globals = path.join(root, "src", "app", "styles", "globals.css");
+    const original = process.cwd();
+    process.chdir(root);
+    try {
+      tailwindRuleTester.run(`runtime-theme-activation-${String(index)}`, themeModeRule, {
+        valid: [{ filename: globals, code: GLOBAL + DARK }],
+        invalid: [],
+      });
+    } finally {
+      process.chdir(original);
+    }
   }
 });
 

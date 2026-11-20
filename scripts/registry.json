@@ -1406,6 +1406,18 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Appearance-mode @custom-variant definitions MUST have a runtime data-theme activation in application source; unused CSS-only modes MUST NOT be defined.",
+      "hash": "511946b031",
+      "ref": "pasika/theme-mode"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Static mode attributes, dynamic data-theme binding, next-themes providers, and attribute setters MUST count as runtime appearance-mode activation.",
+      "hash": "d06eba17be",
+      "ref": "pasika/theme-mode"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.",
       "hash": "8c13966574",
       "ref": "pasika/color-role-usage, pasika/unknown-utility"

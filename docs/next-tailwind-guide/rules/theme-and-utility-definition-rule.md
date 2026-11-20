@@ -11,6 +11,8 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
+- Appearance-mode @custom-variant definitions MUST have a runtime data-theme activation in application source; unused CSS-only modes MUST NOT be defined.
+- Static mode attributes, dynamic data-theme binding, next-themes providers, and attribute setters MUST count as runtime appearance-mode activation.
 - Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.
 - Fixed colors used more than once in a stylesheet MUST be defined as `--color-*` tokens and referenced through `var()`; colors used exactly once MUST be written directly in any CSS declaration or `@apply` expression.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.
@@ -22,6 +24,29 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Custom `@utility` declarations, non-foundational `@theme inline` tokens, and custom `@keyframes` MUST have a static reference in project CSS or source; unused definitions MUST be removed.
 - CSS definitions MUST use component file paths including extensions for single consumers within each scope, or feature paths and app/compositions/shared roots for multiple consumers; mixed consumer scopes and definitions MUST be sorted alphabetically.
 - A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.
+
+## Incorrect — A Dark Mode Declared Only in CSS
+
+```css
+/* src/app/styles/globals.css */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+If no application source applies `data-theme="dark"`, binds a dynamic `data-theme`, or configures a compatible theme provider, the dark-mode variant is unreachable. Remove the variant and its `@variant dark` overrides rather than retaining a nonfunctional theme.
+
+## Correct — Dark Mode Is Activated at Runtime
+
+```tsx
+// src/app/theme-provider.tsx
+<ThemeProvider attribute="data-theme">{children}</ThemeProvider>
+```
+
+```css
+/* src/app/styles/globals.css */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+```
+
+Why: a real runtime theme selector can activate the canonical Tailwind variant; merely installing `next-themes` or declaring dark CSS cannot.
 
 ## Incorrect — Direct Selector Overrides a Fixed Radius
 
