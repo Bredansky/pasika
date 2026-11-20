@@ -331,6 +331,12 @@
       "note": "the documentation parser skips folders whose names start with an underscore"
     },
     {
+      "doc": "next-codebase-guide/rules/accessible-interaction-rule.md",
+      "text": "A clickable non-interactive JSX surface MUST support keyboard and focus interaction.",
+      "hash": "b07c42ddcd",
+      "ref": "pasika/accessible-click-target"
+    },
+    {
       "doc": "next-codebase-guide/rules/application-structure-rule.md",
       "text": "Application source MUST live under `src/`.",
       "hash": "0a5c03a95d",
@@ -685,6 +691,12 @@
       "ref": "pasika/import-boundaries"
     },
     {
+      "doc": "next-codebase-guide/rules/external-store-subscription-rule.md",
+      "text": "A useSyncExternalStore subscription MUST have a stable function identity.",
+      "hash": "b5a15c1ea7",
+      "ref": "pasika/stable-external-store-subscribe"
+    },
+    {
       "doc": "next-codebase-guide/rules/folder-nesting-rule.md",
       "text": "A component MUST stay flat until it has one or more exclusive child components, then MUST be nested in a folder with the same name.",
       "hash": "6adf7c4309",
@@ -833,18 +845,6 @@
       "text": "A React component MUST NOT invoke imperative DOM methods on ref.current during render.",
       "hash": "8696828aa5",
       "ref": "pasika/no-render-ref-dom-calls"
-    },
-    {
-      "doc": "next-codebase-guide/rules/accessible-interaction-rule.md",
-      "text": "A clickable non-interactive JSX surface MUST support keyboard and focus interaction.",
-      "hash": "b07c42ddcd",
-      "ref": "pasika/accessible-click-target"
-    },
-    {
-      "doc": "next-codebase-guide/rules/external-store-subscription-rule.md",
-      "text": "A useSyncExternalStore subscription MUST have a stable function identity.",
-      "hash": "b5a15c1ea7",
-      "ref": "pasika/stable-external-store-subscribe"
     },
     {
       "doc": "next-codebase-guide/rules/redundant-aliases-rule.md",
@@ -1388,9 +1388,15 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.",
-      "hash": "ee3518909c",
+      "text": "Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables through `var()` with optional literal fallbacks.",
+      "hash": "b999c5366d",
       "ref": "pasika/root-variables"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "Theme tokens that map to CSS variables supplied by external packages MUST end with a comment naming the source npm package on the same declaration line.",
+      "hash": "8eefee3eac",
+      "ref": "pasika/external-provider-comment"
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",

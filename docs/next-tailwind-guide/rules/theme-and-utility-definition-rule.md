@@ -8,7 +8,8 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Numeric spacing utilities MUST be backed by the base `--spacing` token after the global theme reset.
 - A theme token MUST NOT directly alias a different theme token through `var()`.
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
-- Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
+- Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables through `var()` with optional literal fallbacks.
+- Theme tokens that map to CSS variables supplied by external packages MUST end with a comment naming the source npm package on the same declaration line.
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Appearance modes MUST be used by application code; unused CSS-only modes MUST be removed.
@@ -62,27 +63,28 @@ Why: a fixed token must not be overridden through a selector; a runtime token re
 
 Why: because the radius varies, `@theme inline` maps it to its same-named `:root` default and `@variant compact` override. A fixed radius needs only its literal `@theme inline` value.
 
-## Incorrect — External Mapping Without a Fallback
+## Incorrect — Missing External Package Source
 
 ```css
 @theme inline {
-  --font-sans: var(--font-inter);
+  --spacing-radix-select-available: var(--radix-select-content-available-height);
 }
 ```
 
-Why: a value supplied by an external provider requires a fallback inside `var()` so the utility still has a valid value when the provider variable is missing.
+Why: a valid external mapping still needs an inline comment identifying the npm package that provides its runtime CSS variable.
 
-## Correct — External CSS Variables Share the Inline Theme
+## Correct — External Mappings Identify Their Source Package
 
 ```css
 @theme inline {
   --radius-base: 8px;
-  --font-sans: var(--font-inter, Arial);
-  --color-brand-canvas: var(--vendor-brand-color, #2563eb);
+  --spacing-radix-select-available: var(--radix-select-content-available-height); /* @radix-ui/react-select */
+  --font-sans: var(--font-inter, Arial); /* next */
+  --color-brand-canvas: var(--vendor-brand-color, #2563eb); /* @company/tokens */
 }
 ```
 
-Why: fixed tokens and external mappings share `@theme inline`. Each external variable has a literal fallback, and the exception is not limited to fonts.
+Why: external mappings can omit a fallback when the consuming CSS property has a suitable initial behavior. Include a literal fallback when a valid replacement is needed, and always identify the source package.
 
 ## Incorrect — Mode Styles Without a Custom Variant
 

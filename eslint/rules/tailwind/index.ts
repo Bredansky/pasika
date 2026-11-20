@@ -8,6 +8,7 @@ import { colorLiteralUsageRule } from "./color-literal-usage";
 import { colorRoleUsageRule } from "./color-role-usage";
 import { cssEntryPointRule } from "./css-entry-point";
 import { customUtilityApplyRule } from "./custom-utility-apply";
+import { externalProviderCommentRule } from "./external-provider-comment";
 import { featureCssPlacementRule } from "./feature-css-placement";
 import { globalStylesheetRule } from "./global-stylesheet";
 import { noAttributeSelectorRule } from "./no-attribute-selector";
@@ -29,6 +30,7 @@ export const tailwindRules = {
   "at-rule-spacing": atRuleSpacingRule,
   "theme-reset": themeResetRule,
   "tailwind-default-comment": tailwindDefaultCommentRule,
+  "external-provider-comment": externalProviderCommentRule,
   "theme-token-order": themeTokenOrderRule,
   "theme-mode": themeModeRule,
   "color-role-usage": colorRoleUsageRule,
