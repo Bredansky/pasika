@@ -131,7 +131,7 @@ Why: this adds a separate mode-switching mechanism through a CSS selector instea
 </html>
 ```
 
-Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. Application code must set `data-theme` on `html` for the override to apply to `:root`; defining the CSS variant alone does not activate it.
+Why: `@variant midnight` overrides the runtime color, while `@theme inline` exposes it through `bg-primary-canvas`. The application must apply the matching `data-theme` attribute to the document root for this override to take effect.
 
 ## Incorrect — Color Token Aliased to Another Token
 
