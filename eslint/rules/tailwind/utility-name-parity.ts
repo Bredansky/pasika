@@ -2,7 +2,7 @@
  * ESLint rule: pasika/utility-name-parity
  *
  * Require property/value parity for simple static, single-@apply utilities.
- * Recognized provider-owned CSS variables may use shorter property-prefixed names.
+ * Registered provider CSS variables may use shorter utility names that retain the provider name.
  * Complex values use property-prefixed semantic names instead of opaque hashes.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
@@ -166,20 +166,33 @@ function expectedName(operation: Operation): string | undefined {
   return value ? `${propertyPrefix(operation.property)}-${value}` : undefined;
 }
 
-const defaultProviderVariablePrefixes = ["--radix-"];
+interface ProviderVariable {
+  name: string;
+  prefix: string;
+}
 
-function configuredProviderPrefixes(option: unknown): string[] {
-  if (typeof option !== "object" || option === null || !("providerVariablePrefixes" in option)) return [];
-  const prefixes: unknown = option.providerVariablePrefixes;
-  return Array.isArray(prefixes)
-    ? prefixes.filter((prefix: unknown): prefix is string => typeof prefix === "string")
+const defaultProviderVariables: ProviderVariable[] = [{ name: "radix", prefix: "--radix-" }];
+
+function configuredProviderVariables(option: unknown): ProviderVariable[] {
+  if (typeof option !== "object" || option === null || !("providerVariables" in option)) return [];
+  const providers: unknown = option.providerVariables;
+  return Array.isArray(providers)
+    ? providers.filter(
+        (provider: unknown): provider is ProviderVariable =>
+          typeof provider === "object" &&
+          provider !== null &&
+          "name" in provider &&
+          typeof provider.name === "string" &&
+          "prefix" in provider &&
+          typeof provider.prefix === "string",
+      )
     : [];
 }
 
-/** Only an exact provider-owned var() may omit the full variable name. */
-function providerVariableName(value: string, prefixes: string[]): string | undefined {
+/** Only a single exact var() from a registered namespace qualifies for the shortened name. */
+function matchingProvider(value: string, providers: ProviderVariable[]): ProviderVariable | undefined {
   const variable = /^var\((?<variable>--[a-z][a-z0-9-]*)\)$/u.exec(value)?.groups?.variable;
-  return variable && prefixes.some((prefix) => variable.startsWith(prefix)) ? variable : undefined;
+  return variable ? providers.find((provider) => variable.startsWith(provider.prefix)) : undefined;
 }
 
 function singleApply(utility: CssNodePlain, textOf: (node: CssNodePlain) => string): string | undefined {
@@ -196,10 +209,18 @@ export const utilityNameParityRule: CSSRuleDefinition = {
       {
         type: "object",
         properties: {
-          providerVariablePrefixes: {
+          providerVariables: {
             type: "array",
             uniqueItems: true,
-            items: { type: "string", pattern: "^--[a-z][a-z0-9-]*-$" },
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", pattern: "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" },
+                prefix: { type: "string", pattern: "^--[a-z][a-z0-9-]*-$" },
+              },
+              required: ["name", "prefix"],
+              additionalProperties: false,
+            },
           },
         },
         additionalProperties: false,
@@ -208,11 +229,11 @@ export const utilityNameParityRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Use property/value-derived names for simple values, allowing semantic names for provider-owned CSS variables.",
+        "Use property/value-derived names for simple values, or property/provider-prefixed semantic names for registered CSS variables.",
     },
   },
   create(context) {
-    const providerPrefixes = [...defaultProviderVariablePrefixes, ...configuredProviderPrefixes(context.options[0])];
+    const providers = [...defaultProviderVariables, ...configuredProviderVariables(context.options[0])];
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
         const candidates = atrulesNamed(node, "utility").flatMap((utility) => {
@@ -241,10 +262,9 @@ export const utilityNameParityRule: CSSRuleDefinition = {
             continue;
           }
           const expected = expectedName(operation);
-          if (candidate.name === expected) continue;
-          const providerVariable = providerVariableName(operation.value, providerPrefixes);
-          if (providerVariable) {
-            const prefix = `${propertyPrefix(operation.property)}-`;
+          const provider = matchingProvider(operation.value, providers);
+          if (provider) {
+            const prefix = `${propertyPrefix(operation.property)}-${provider.name}-`;
             if (
               candidate.name.startsWith(prefix) &&
               candidate.name.length > prefix.length &&
@@ -254,10 +274,11 @@ export const utilityNameParityRule: CSSRuleDefinition = {
             }
             context.report({
               node: candidate.utility,
-              message: `Custom utility "${candidate.name}" uses provider CSS variable "${providerVariable}"; use a semantic name starting with "${prefix}" and no opaque hash.`,
+              message: `Custom utility "${candidate.name}" uses a CSS variable registered to provider "${provider.name}"; use a semantic name starting with "${prefix}" and no opaque hash.`,
             });
             continue;
           }
+          if (candidate.name === expected) continue;
           if (!expected) {
             // Complex values need a semantic suffix, but must still identify
             // the exact CSS property rather than just the general effect.

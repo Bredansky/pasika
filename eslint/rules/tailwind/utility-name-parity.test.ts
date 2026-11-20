@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { describe, tailwindRuleTester } from "./rule-tester";
 import { utilityNameParityRule } from "./utility-name-parity";
 
-void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. An exact `var()` from a recognized third-party namespace MAY instead use a property-prefixed semantic name. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
+void describe("Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. An exact `var()` from a registered provider namespace MAY instead use a semantic utility name prefixed by the CSS property and provider name. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.", () => {
   tailwindRuleTester.run("utility-name-parity", utilityNameParityRule, {
     valid: [
       { code: "@utility bg-size-200pct-100pct { @apply [background-size:200%_100%]; }" },
@@ -24,7 +24,11 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       },
       {
         code: "@utility transform-origin-acme-tooltip { @apply origin-(--acme-tooltip-transform-origin); }",
-        options: [{ providerVariablePrefixes: ["--acme-"] }],
+        options: [{ providerVariables: [{ name: "acme", prefix: "--acme-" }] }],
+      },
+      {
+        code: "@utility transform-origin-acme-tooltip { @apply origin-(--vendor-tooltip-origin); }",
+        options: [{ providerVariables: [{ name: "acme", prefix: "--vendor-" }] }],
       },
       { code: "@utility font-weight-family { @apply font-(--family); }" },
       {
@@ -87,16 +91,34 @@ void describe("Custom single-property utilities MUST use property/value-derived 
         errors: [{ message: /rename it "transform-origin-acme-tooltip-transform-origin"/u }],
       },
       {
-        code: "@utility origin-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
-        errors: [{ message: /use a semantic name starting with "transform-origin-"/u }],
+        code: "@utility transform-origin-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /semantic name starting with "transform-origin-radix-"/u }],
       },
       {
-        code: "@utility transform-origin-hash-000000000001 { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        code: "@utility transform-origin-acme-tooltip { @apply origin-(--radix-tooltip-content-transform-origin); }",
+        errors: [{ message: /semantic name starting with "transform-origin-radix-"/u }],
+      },
+      {
+        code: "@utility origin-radix-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /semantic name starting with "transform-origin-radix-"/u }],
+      },
+      {
+        code: "@utility transform-origin-radix-hash-000000000001 { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
         errors: [{ message: /and no opaque hash/u }],
       },
       {
-        code: "@utility transform-origin- { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
-        errors: [{ message: /use a semantic name starting with "transform-origin-"/u }],
+        code: "@utility transform-origin-radix- { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        errors: [{ message: /semantic name starting with "transform-origin-radix-"/u }],
+      },
+      {
+        code: "@utility transform-origin-tooltip { @apply origin-(--acme-tooltip-transform-origin); }",
+        options: [{ providerVariables: [{ name: "acme", prefix: "--acme-" }] }],
+        errors: [{ message: /semantic name starting with "transform-origin-acme-"/u }],
+      },
+      {
+        code: "@utility transform-origin-vendor-tooltip-origin { @apply origin-(--vendor-tooltip-origin); }",
+        options: [{ providerVariables: [{ name: "acme", prefix: "--vendor-" }] }],
+        errors: [{ message: /semantic name starting with "transform-origin-acme-"/u }],
       },
       {
         code: "@utility will-change-transform-comma-opacity { @apply [will-change:transform,_opacity]; }",
