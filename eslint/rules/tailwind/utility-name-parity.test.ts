@@ -14,10 +14,10 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility grid-template-columns-2fr-1fr { @apply [grid-template-columns:2fr_1fr]; }" },
       { code: "@utility mask-image-art { @apply mask-[var(--art)]; }" },
       {
-        code: "@utility transform-origin-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
+        code: "@utility transform-origin-radix-dropdown-menu { @apply origin-(--radix-dropdown-menu-content-transform-origin); }",
       },
       {
-        code: "@utility transform-origin-tooltip { @apply origin-(--radix-tooltip-content-transform-origin); }",
+        code: "@utility transform-origin-radix-tooltip { @apply origin-(--radix-tooltip-content-transform-origin); }",
       },
       {
         code: "@utility transform-origin-radix-tooltip-content-transform-origin { @apply origin-(--radix-tooltip-content-transform-origin); }",
@@ -74,6 +74,10 @@ void describe("Custom single-property utilities MUST use property/value-derived 
       { code: "@utility clip-path-trapezoid { @apply [clip-path:polygon(0_0,_100%_0,_95%_100%,_5%_100%)]; }" },
     ],
     invalid: [
+      {
+        code: "@utility transform-origin-local-dropdown { @apply origin-(--local-dropdown-origin); }",
+        errors: [{ message: /rename it "transform-origin-local-dropdown-origin"/u }],
+      },
       {
         code: "@utility transform-origin-tooltip { @apply origin-(--tooltip-transform-origin); }",
         errors: [{ message: /rename it "transform-origin-tooltip-transform-origin"/u }],

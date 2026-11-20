@@ -302,29 +302,29 @@ Why: encoding every polygon coordinate produces a long, implementation-specific 
 
 Why: `polygon(...)` contains a function rather than 1–8 supported simple parts. `clip-path-trapezoid` preserves the CSS property and describes the shape; whether the semantic suffix is meaningful still requires review.
 
-## Incorrect — Short Name for a Local CSS Variable
+## Incorrect — Shortening an Application-Owned Variable Name
 
 ```css
-@utility transform-origin-dropdown-menu {
+@utility transform-origin-local-dropdown {
   @apply origin-(--local-dropdown-origin);
 }
 ```
 
-Why: locally owned variables do not qualify for the provider exception and still require property/value-derived utility names.
+Why: `--local-dropdown-origin` belongs to the application, so the utility must be named `transform-origin-local-dropdown-origin`. Only recognized third-party variables qualify for shorter names.
 
 ## Correct — Semantic Name for a Provider-Owned CSS Variable
 
 ```css
-@utility transform-origin-dropdown-menu {
+@utility transform-origin-radix-dropdown-menu {
   @apply origin-(--radix-dropdown-menu-content-transform-origin);
 }
 
-@utility transform-origin-tooltip {
+@utility transform-origin-radix-tooltip {
   @apply origin-(--radix-tooltip-content-transform-origin);
 }
 ```
 
-Why: Radix supplies these CSS variables at runtime, so property-prefixed semantic names can omit the full provider variable names. Only a single, exact `var()` from a recognized namespace qualifies; `--radix-` is built in, and other prefixes can be added through `providerVariablePrefixes` (for example `["--acme-"]`).
+Why: Radix owns these CSS variables, so the utility names can retain the CSS property and provider without repeating the full variable names. Only exact `var()` references in recognized namespaces qualify; `--radix-` works by default, with others configurable through `providerVariablePrefixes`.
 
 ## Incorrect — Semantic Name for a Simple Value
 
