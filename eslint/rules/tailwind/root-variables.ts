@@ -4,7 +4,7 @@
  * All tokens use @theme inline. Fixed values may compose theme tokens,
  * including variant-backed colors inside effects. Variant-driven tokens map
  * var(--same-name) to a :root default and an @variant override. External CSS
- * variables need literal fallbacks; direct token-to-token aliases are forbidden.
+ * variables may use literal fallbacks; direct token-to-token aliases are forbidden.
  *
  * @see docs/next-tailwind-guide/rules/theme-and-utility-definition-rule.md
  */
@@ -19,7 +19,7 @@ import { CSS_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 
 const INLINE_ONLY_MESSAGE = "Define all Tailwind theme tokens in @theme inline, including fixed values and resets.";
 const INLINE_MAPPING_MESSAGE = (name: string): string =>
-  `Tailwind token "${name}" must use a fixed value, same-named var(${name}), or an external var() with fallback in @theme inline.`;
+  `Tailwind token "${name}" must use a fixed value, same-named var(${name}), or an external var() mapping in @theme inline.`;
 const REDUNDANT_INLINE_MESSAGE = (name: string): string =>
   `Tailwind token "${name}" has no @variant override; define its fixed value directly in @theme inline.`;
 
@@ -69,7 +69,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
     type: "problem",
     docs: {
       description:
-        "Require @theme inline for fixed tokens, variant-driven same-name mappings, and external variables with fallbacks.",
+        "Require @theme inline for fixed tokens, variant-driven same-name mappings, and external CSS variables with optional fallbacks.",
     },
   },
   create(context) {
@@ -196,6 +196,7 @@ export const rootVariablesRule: CSSRuleDefinition = {
             const unquoted = value.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/gu, "");
             const referencesVariable = /\bvar\s*\(/iu.test(unquoted);
             const directReference = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*\)$/u.exec(unquoted.trim())?.groups?.target;
+            if (externalMapping(value, name, authoredVariables)) continue;
             if (directReference) {
               if (directReference !== name) {
                 context.report({
@@ -224,7 +225,6 @@ export const rootVariablesRule: CSSRuleDefinition = {
               });
               continue;
             }
-            if (externalMapping(value, name, authoredVariables)) continue;
             // A fallback cannot turn a project-owned token into an external mapping.
             const fallbackTarget = /^var\s*\(\s*(?<target>--[a-z][\w-]*)\s*,/u.exec(unquoted.trim())?.groups?.target;
             if (fallbackTarget && authoredVariables.has(fallbackTarget)) {

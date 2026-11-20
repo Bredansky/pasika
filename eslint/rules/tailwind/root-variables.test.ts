@@ -8,7 +8,7 @@ const INLINE_ONLY = "Define all Tailwind theme tokens in @theme inline, includin
 const mapping = (name: string): string =>
   `Tailwind token "${name}" must use a fixed value, same-named var(${
     name
-  }), or an external var() with fallback in @theme inline.`;
+  }), or an external var() mapping in @theme inline.`;
 const redundant = (name: string): string =>
   `Tailwind token "${name}" has no @variant override; define its fixed value directly in @theme inline.`;
 const wrong = (token: string, variable: string): string =>
@@ -106,7 +106,7 @@ void describe("Every Tailwind theme token, including fixed values and the defaul
         errors: [{ message: wrong("--color-brand-edge", "--color-brand-canvas") }],
       },
       {
-        code: "@theme inline { --radius-base: var(--other); }",
+        code: "@theme inline { --other: 10px; --radius-base: var(--other); }",
         errors: [{ message: wrong("--radius-base", "--other") }],
       },
       {
@@ -194,10 +194,12 @@ void describe("Only tokens with `@variant` overrides MUST map to a same-named `v
   });
 });
 
-void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables through `var()` with optional literal fallbacks.", () => {
   tailwindRuleTester.run("root-variables-external", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --font-sans: var(--font-inter, Arial); }" },
+      { code: "@theme inline { --font-sans: var(--font-inter); }" },
+      { code: "@theme inline { --spacing-radix-select-available: var(--radix-select-content-available-height); }" },
       { code: "@theme inline { --font-mono: var(--vendor-mono, ui-monospace, monospace); }" },
       { code: "@theme inline { --color-brand-canvas: var(--vendor-color, #2563eb); }" },
       { code: "@theme inline { --radius-button: var(--vendor-radius, 8px); }" },
@@ -208,10 +210,6 @@ void describe("Tokens without their own `@variant` overrides MUST define fixed v
       },
     ],
     invalid: [
-      {
-        code: "@theme inline { --font-sans: var(--font-inter); }",
-        errors: [{ message: wrong("--font-sans", "--font-inter") }],
-      },
       { code: "@theme inline { --font-sans: var(--font-inter, ); }", errors: [{ message: mapping("--font-sans") }] },
       {
         code: "@theme inline { --font-sans: var(--font-inter, Arial), sans-serif; }",
@@ -309,7 +307,7 @@ void describe("A theme token MUST NOT directly alias a different theme token thr
         { filename: filename("globals.css"), code: "@theme { --*: initial; }", errors: [{ message: INLINE_ONLY }] },
         {
           filename: filename("globals.css"),
-          code: "@theme inline { --color-primary-canvas: var(--other); }",
+          code: "@theme inline { --other: blue; --color-primary-canvas: var(--other); }",
           errors: [{ message: wrong("--color-primary-canvas", "--other") }],
         },
         {
@@ -329,7 +327,7 @@ void describe("A theme token MUST NOT directly alias a different theme token thr
   }
 });
 
-void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.", () => {
+void describe("Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables through `var()` with optional literal fallbacks.", () => {
   tailwindRuleTester.run("root-variables-three-value-forms", rootVariablesRule, {
     valid: [
       { code: "@theme inline { --radius-base: 8px; --font-sans: var(--font-inter, Arial); }" },
@@ -342,10 +340,6 @@ void describe("Tokens without their own `@variant` overrides MUST define fixed v
       {
         code: "@theme inline { --radius-base: 8px; --radius-button: var(--radius-base); }",
         errors: [{ message: wrong("--radius-button", "--radius-base") }],
-      },
-      {
-        code: "@theme inline { --font-sans: var(--font-inter); }",
-        errors: [{ message: wrong("--font-sans", "--font-inter") }],
       },
     ],
   });
