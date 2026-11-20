@@ -1454,8 +1454,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.",
-      "hash": "ef6792c87c",
+      "text": "Custom single-property utilities MUST use property/value-derived names when values contain 1–8 simple parts (numbers with units, hex colors, identifiers, or `var(--name)`) forming a value slug of at most 70 characters; `var(--name)` contributes `name` without a `var-` prefix. An exact `var()` from a registered provider namespace MAY instead use a semantic utility name prefixed by the CSS property and provider name. Otherwise the value is complex and the utility MUST use a property-prefixed semantic name when no theme-generated equivalent exists.",
+      "hash": "f59ca766b0",
       "ref": "pasika/utility-name-parity"
     },
     {
