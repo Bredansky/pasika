@@ -10,6 +10,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Only tokens with `@variant` overrides MUST map to a same-named `var()` in `@theme inline`, backed by a default `:root` declaration and matching `@variant` overrides.
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables through `var()` with optional literal fallbacks.
 - Theme tokens that map to CSS variables supplied by external packages MUST end with a comment naming the source npm package on the same declaration line.
+- External CSS variables referenced through @apply inside @utility MUST likewise end with a comment naming the source npm package on the @apply line.
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
 - Appearance modes MUST be used by application code; unused CSS-only modes MUST be removed.

@@ -1400,6 +1400,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "External CSS variables referenced through @apply inside @utility MUST likewise end with a comment naming the source npm package on the @apply line.",
+      "hash": "03c77e9f61",
+      "ref": "pasika/external-provider-comment"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "Fixed theme tokens MUST NOT be overridden outside `@theme inline`.",
       "hash": "c8bf409215",
       "ref": "pasika/root-variables"
