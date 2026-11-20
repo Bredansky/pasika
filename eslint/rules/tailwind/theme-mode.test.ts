@@ -175,7 +175,7 @@ void describe("Mode-specific Tailwind classes require their registered data-them
   }
 });
 
-void describe("Appearance-mode @custom-variant definitions MUST have a runtime data-theme activation in application source; unused CSS-only modes MUST NOT be defined.", () => {
+void describe("Appearance modes MUST be activated by application code; unused CSS-only mode definitions MUST be removed.", () => {
   const root = fixture({
     "app/layout.tsx": '<html data-theme="light" />;',
     "features/home/home.test.tsx": '<html data-theme="dark" />;',
@@ -214,7 +214,7 @@ void describe("Appearance-mode @custom-variant definitions MUST have a runtime d
   }
 });
 
-void describe("Static mode attributes, dynamic data-theme binding, next-themes providers, and attribute setters MUST count as runtime appearance-mode activation.", () => {
+void describe("Recognized runtime data-theme activation patterns", () => {
   const supportedSources = [
     '<html data-theme="dark" />;',
     "<html data-theme={selectedMode} />;",

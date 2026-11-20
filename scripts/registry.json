@@ -1406,14 +1406,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Appearance-mode @custom-variant definitions MUST have a runtime data-theme activation in application source; unused CSS-only modes MUST NOT be defined.",
-      "hash": "511946b031",
-      "ref": "pasika/theme-mode"
-    },
-    {
-      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Static mode attributes, dynamic data-theme binding, next-themes providers, and attribute setters MUST count as runtime appearance-mode activation.",
-      "hash": "d06eba17be",
+      "text": "Appearance modes MUST be activated by application code; unused CSS-only mode definitions MUST be removed.",
+      "hash": "396ea794ff",
       "ref": "pasika/theme-mode"
     },
     {
