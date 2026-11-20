@@ -11,7 +11,7 @@ Uncontrolled theme tokens and custom CSS create inconsistent styling APIs, dupli
 - Tokens without their own `@variant` overrides MUST define fixed values or composite effects in `@theme inline`, or map to external CSS variables with nonempty literal `var()` fallbacks.
 - Fixed theme tokens MUST NOT be overridden outside `@theme inline`.
 - Appearance modes MUST use `data-theme` and a canonical `@custom-variant` in `globals.css` named for the `data-theme` value (`dark`, `midnight`, etc.) and targeting the themed element and its descendants; mode-specific CSS declarations MUST use the registered `@variant` directive instead of direct `[data-theme]` style rules, `.dark` selectors, or CSS `prefers-color-scheme` queries.
-- Appearance modes MUST be activated by application code; unused CSS-only mode definitions MUST be removed.
+- Appearance modes MUST be used by application code; unused CSS-only modes MUST be removed.
 - Tailwind color tokens with semantic suffixes (`-canvas`, `-ink`, `-edge`) MUST match their utility roles: canvas for backgrounds, background images, fills, gradients, and ring offsets; ink for text, carets, and text decoration; edge for borders, outlines, focus rings, dividers, and SVG strokes. Color tokens shared across roles MUST omit the semantic suffix.
 - Fixed colors used more than once in a stylesheet MUST be defined as `--color-*` tokens and referenced through `var()`; colors used exactly once MUST be written directly in any CSS declaration or `@apply` expression.
 - `@utility`, `@theme inline`, default `:root`, and `@keyframes` names MUST be unique within each category across project CSS, including within one file; `@variant` overrides of runtime `:root` values are allowed.

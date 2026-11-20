@@ -1406,8 +1406,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
-      "text": "Appearance modes MUST be activated by application code; unused CSS-only mode definitions MUST be removed.",
-      "hash": "396ea794ff",
+      "text": "Appearance modes MUST be used by application code; unused CSS-only modes MUST be removed.",
+      "hash": "bbe8725707",
       "ref": "pasika/theme-mode"
     },
     {

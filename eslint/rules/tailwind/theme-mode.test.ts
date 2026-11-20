@@ -175,7 +175,7 @@ void describe("Mode-specific Tailwind classes require their registered data-them
   }
 });
 
-void describe("Appearance modes MUST be activated by application code; unused CSS-only mode definitions MUST be removed.", () => {
+void describe("Appearance modes MUST be used by application code; unused CSS-only modes MUST be removed.", () => {
   const root = fixture({
     "app/layout.tsx": '<html data-theme="light" />;',
     "features/home/home.test.tsx": '<html data-theme="dark" />;',
