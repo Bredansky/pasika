@@ -17,6 +17,11 @@ import { MODULE_EXTENSIONS, cachedTextReader, findFiles } from "./source-files";
 const MODE_NAME = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u;
 const MODE_REFERENCE = /(?:^|[^a-z0-9-])(?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*):(?=[a-z[(])/gu;
 const MODE_ATTRIBUTE = /data-theme\s*=\s*["'](?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']/gu;
+const DYNAMIC_MODE_ATTRIBUTE = /\bdata-theme\s*=\s*\{/u;
+const THEME_PROVIDER = /<ThemeProvider\b[^>]*\battribute\s*=\s*(?:["']data-theme["']|\{\s*["']data-theme["']\s*\})/u;
+const MODE_ASSIGNMENT =
+  /(?:\bsetAttribute\s*\(\s*["']data-theme["']\s*,\s*|\.dataset(?:\.theme|\[\s*["']theme["']\s*\])\s*=\s*)(?<value>["'][^"']+["']|[^\s,);]+)/gu;
+const MODE_LITERAL = /^["'](?<name>[a-z][a-z0-9]*(?:-[a-z0-9]+)*)["']$/u;
 const CUSTOM_REGISTRATION = /@custom-variant\s+(?<name>[a-z][a-z0-9-]*)\b(?<selector>[^;]*);/gu;
 const MODE_SELECTOR = /\[\s*data-theme\s*=\s*["']?(?<mode>[a-z][a-z0-9-]*)["']?\s*\]/u;
 const SELECTOR_OVERRIDE =
@@ -27,6 +32,8 @@ const SYSTEM_OVERRIDE =
 const MODE_LOCATION = "Declare appearance-mode @custom-variant definitions in globals.css only.";
 const MISSING_CSS_VARIANT = (name: string): string =>
   `CSS @variant "${name}" requires a matching @custom-variant declaration in globals.css.`;
+const UNWIRED_THEME_MODE = (name: string): string =>
+  `Appearance mode "${name}" has no runtime data-theme activation in src/. Remove the unused @custom-variant and mode styles, or wire the mode into the application.`;
 
 function variantName(prelude: string): string | undefined {
   return /^(?<name>[a-z][a-z0-9-]*)\b/u.exec(prelude.trim())?.groups?.name;
@@ -58,7 +65,7 @@ export const themeModeRule: CSSRuleDefinition = {
   meta: {
     schema: [],
     type: "problem",
-    docs: { description: "Require a single data-theme/@custom-variant strategy for appearance modes." },
+    docs: { description: "Require data-theme appearance modes to use canonical variants and have runtime activation." },
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
@@ -99,9 +106,32 @@ export const themeModeRule: CSSRuleDefinition = {
         // A short variant name is a mode only when its selector or a source
         // data-theme attribute identifies it as one; built-in variants stay untouched.
         const modeHints = new Set<string>();
+        let hasDynamicModeActivation = false;
         for (const file of findFiles(sourceRoot, MODULE_EXTENSIONS)) {
-          for (const match of read(file).matchAll(MODE_ATTRIBUTE)) {
+          // Test fixtures and stories do not establish actual application support.
+          if (/(?:[\\/\\\\]__tests__[\\/\\\\]|\.(?:test|spec|stories)\.[cm]?[jt]sx?$)/u.test(file)) continue;
+          const source = read(file);
+          for (const match of source.matchAll(MODE_ATTRIBUTE)) {
             if (match.groups?.name) modeHints.add(match.groups.name);
+          }
+          if (DYNAMIC_MODE_ATTRIBUTE.test(source) || THEME_PROVIDER.test(source)) {
+            hasDynamicModeActivation = true;
+          }
+          for (const match of source.matchAll(MODE_ASSIGNMENT)) {
+            const value = match.groups?.value?.trim() ?? "";
+            const literal = MODE_LITERAL.exec(value)?.groups?.name;
+            if (literal) modeHints.add(literal);
+            else hasDynamicModeActivation = true;
+          }
+        }
+        if (current === globalFile) {
+          for (const variant of atrulesNamed(node, "custom-variant")) {
+            if (variant.type !== "Atrule" || !variant.prelude) continue;
+            const prelude = generate(variant.prelude);
+            const name = variantName(prelude);
+            if (name && isModeVariant(name, prelude) && !modeHints.has(name) && !hasDynamicModeActivation) {
+              context.report({ node: variant, message: UNWIRED_THEME_MODE(name) });
+            }
           }
         }
         // CSS @variant references resolve against the named modes in globals.css.
