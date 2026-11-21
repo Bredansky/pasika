@@ -56,6 +56,7 @@ void describe("pasika presets", () => {
   it("applies theme utility mapping to CSS partials, not only globals.css", () => {
     const cssBlocks = pasikaNextjsApp.filter((block) => (block.files ?? []).includes("src/**/*.css"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/utility-mapping"] === "error"));
+    assert.ok(cssBlocks.some((block) => block.rules?.["pasika/custom-utility-apply"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/at-rule-spacing"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/theme-token-order"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/no-attribute-selector"] === "error"));
@@ -63,6 +64,17 @@ void describe("pasika presets", () => {
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/tailwind-default-comment"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/external-provider-comment"] === "error"));
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/unused-css-definition"] === "error"));
+  });
+
+  it("rejects bare CSS declarations in custom utilities inside imported stylesheet partials", async () => {
+    const eslint = new ESLint({ overrideConfigFile: true, overrideConfig: pasikaNextjsApp });
+    const [result] = await eslint.lintText("@utility text-size-offset { left: calc(50% + 10px); }", {
+      filePath: "src/app/styles/editor.css",
+    });
+    assert.ok(
+      result?.messages.some((message) => message.ruleId === "pasika/custom-utility-apply"),
+      "custom-utility-apply must reject direct declarations in CSS partials",
+    );
   });
 
   it("pasikaNextjsApp runs every source rule on src/**", () => {
