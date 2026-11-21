@@ -1484,6 +1484,12 @@
     },
     {
       "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
+      "text": "CSS consumer group comments MUST immediately precede their first definition without blank lines, and consecutive @theme or :root declarations in the same group MUST NOT be separated by blank lines.",
+      "hash": "4997b75b8b",
+      "ref": "pasika/theme-token-order"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/theme-and-utility-definition-rule.md",
       "text": "A utility class a component statically references MUST be a custom `@utility`, a theme-generated utility, or a built-in Tailwind utility.",
       "hash": "32603b13cc",
       "ref": "pasika/unknown-utility"
