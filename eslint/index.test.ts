@@ -66,7 +66,6 @@ void describe("pasika presets", () => {
     assert.ok(cssBlocks.some((block) => block.rules?.["pasika/unused-css-definition"] === "error"));
   });
 
-
   it("rejects bare CSS declarations in custom utilities inside imported stylesheet partials", async () => {
     const eslint = new ESLint({ overrideConfigFile: true, overrideConfig: pasikaNextjsApp });
     const [result] = await eslint.lintText("@utility text-size-offset { left: calc(50% + 10px); }", {
