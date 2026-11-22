@@ -92,20 +92,22 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
           "constants/dom-values.ts",
           'export const externalLinkTarget = "_blank"; export const externalLinkRel = "noopener noreferrer";',
         ),
-        file(
-          "features/social/other-link.ts",
-          'const externalLinkTarget = "_self"; const otherLinkRel = "noopener noreferrer";',
-        ),
-        file(
-          "features/social/nested-link.ts",
-          'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
-        ),
         file("features/publishing/unrelated.ts", 'const onlyOnce = "unique-value";'),
         file("features/payments/status.ts", 'export const payment = { status: "queued" };'),
         file("features/publishing/copy.ts", 'const message = "user not found"; const label = "success";'),
         file("features/publishing/example.test.ts", 'fetch("/api/publish");'),
       ],
       invalid: [
+        {
+          filename: path.join(root, "src/features/social/other-link.ts"),
+          code: 'const externalLinkTarget = "_self"; const otherLinkRel = "noopener noreferrer";',
+          errors: [{ message: redefined("externalLinkRel", '"noopener noreferrer"', "constants/dom-values.ts") }],
+        },
+        {
+          filename: path.join(root, "src/features/social/nested-link.ts"),
+          code: 'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
+          errors: [{ message: redefined("externalLinkTarget", '"_blank"', "constants/dom-values.ts") }],
+        },
         {
           filename: path.join(root, "src/features/social/duplicate-links.ts"),
           code: 'const externalLinkTarget = "_blank"; const externalLinkRel = "noopener noreferrer";',
