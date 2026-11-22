@@ -169,6 +169,27 @@ void describe("Known, fixed sets of two or more related string or numeric values
     ],
     invalid: [
       {
+        code: 'export const absolutePosition = "absolute";',
+        filename: file("constants/css.ts"),
+        errors: [
+          {
+            message: `Related named constants in the CssPosition domain must be members of one TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
+        code: 'export const visibilityHidden = "hidden"; export const overflowHidden = "hidden";',
+        filename: file("constants/css.ts"),
+        errors: [
+          {
+            message: `Related named constants in the CssVisibility domain must be members of one TypeScript enum. ${DOC}`,
+          },
+          {
+            message: `Related named constants in the CssOverflow domain must be members of one TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
+      {
         code: 'const publicationStatusPending = "pending"; const publicationStatusPublished = "published";',
         filename: file("features/publishing/constants/publication.ts"),
         errors: [

@@ -1,9 +1,9 @@
 /**
  * ESLint rule: pasika/prefer-enum
  *
- * A reusable closed domain of related string or numeric values should use a
- * TypeScript enum. Detect enum-shaped alternatives without requiring callers
- * to enumerate forbidden syntax forms in the documentation.
+ * Closed property domains use TypeScript enums even when the project names
+ * only one of their possible values. Other inferred domains must demonstrate
+ * at least two alternatives before requiring an enum.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -199,6 +199,48 @@ function normalized(value: string): string {
   return value.replace(/[^a-z0-9]/gi, "").toLowerCase();
 }
 
+/**
+ * A one-member enum is valid only when its members belong to a real platform
+ * property's multi-value domain, not merely because the enum has a nice name.
+ * CSS keywords come from css-tree; HTML tags come from the TS DOM declaration.
+ */
+export function isPlatformPropertyEnum(
+  enumName: string,
+  members: readonly { name: string; value: string | number }[],
+  program?: ts.Program,
+): boolean {
+  if (members.length === 0 || members.some((member) => typeof member.value !== "string")) return false;
+  if (enumName === "HtmlTagEnum") {
+    if (!program) return false;
+    const htmlTags = htmlTagNamesFor(program);
+    return (
+      htmlTags.size > 1 &&
+      members.every(
+        (member) => htmlTags.has(String(member.value)) && normalized(member.name) === normalized(String(member.value)),
+      )
+    );
+  }
+
+  const cssPropertyName = /^Css(?<property>[A-Z][A-Za-z0-9]*)Enum$/.exec(enumName)?.groups?.property;
+  if (!cssPropertyName) return false;
+  const property = cssPropertyName.replace(
+    /[A-Z]/g,
+    (part, index: number) => `${index ? "-" : ""}${part.toLowerCase()}`,
+  );
+  const keywords = cssKeywordsFor(property);
+  if (keywords.size < 2) return false;
+  return members.every(
+    (member) =>
+      keywords.has(String(member.value).toLowerCase()) &&
+      normalized(member.name) === normalized(String(member.value)) &&
+      Boolean(lexer.matchProperty(property, parse(String(member.value), { context: "value" })).matched),
+  );
+}
+
+function isPlatformDomain(domain: string): boolean {
+  return domain === "HtmlTag" || /^Css[A-Z]/.test(domain);
+}
+
 function cssDomain(name: string, value: string): string | undefined {
   // The property may precede or follow the keyword: positionRelative / absolutePosition.
   for (const match of name.matchAll(/[A-Z]/g)) {
@@ -242,10 +284,60 @@ function inferredDomain(name: string, value: string | number, htmlTags: Readonly
   return domain;
 }
 
+function cssPropertyDomain(property: string, value: string): string | undefined {
+  const cssProperty = property.replace(/[A-Z]/g, (part) => `-${part.toLowerCase()}`).replace(/^-/, "");
+  const keywords = cssKeywordsFor(cssProperty);
+  if (keywords.size < 2 || !keywords.has(value.toLowerCase())) return undefined;
+  if (!lexer.matchProperty(cssProperty, parse(value, { context: "value" })).matched) return undefined;
+  return `Css${property.charAt(0).toUpperCase()}${property.slice(1)}`;
+}
+
+function tsPropertyName(name: ts.PropertyName): string | undefined {
+  return ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : undefined;
+}
+
+function identifierExpression(expression: ts.Expression): ts.Identifier | undefined {
+  let current = expression;
+  while (ts.isAsExpression(current) || ts.isSatisfiesExpression(current) || ts.isParenthesizedExpression(current)) {
+    current = current.expression;
+  }
+  return ts.isIdentifier(current) ? current : undefined;
+}
+
+/** Require an actual CSS style context before interpreting generic constant names as keywords. */
+function isCssStyleObject(object: ts.ObjectLiteralExpression): boolean {
+  const parent = object.parent;
+  if (ts.isJsxExpression(parent) && ts.isJsxAttribute(parent.parent)) {
+    return ts.isIdentifier(parent.parent.name) && parent.parent.name.text === "style";
+  }
+  if (ts.isPropertyAssignment(parent)) return tsPropertyName(parent.name) === "style";
+  if (ts.isVariableDeclaration(parent) && parent.type) {
+    return /(?:^|\.)CSSProperties\b|CSSStyleDeclaration\b/.test(parent.type.getText());
+  }
+  if (ts.isAsExpression(parent) || ts.isSatisfiesExpression(parent)) {
+    return /(?:^|\.)CSSProperties\b|CSSStyleDeclaration\b/.test(parent.type.getText());
+  }
+  return false;
+}
+
 export function namedProgramDomains(program: ts.Program, sourceRoot: string): Set<string> {
   const cached = programDomainsCache.get(program);
   if (cached) return cached;
   const groups = new Map<string, { file: string; name: string; value: string | number }[]>();
+  const checker = program.getTypeChecker();
+  const declarations = new Map<ts.Symbol, { file: string; name: string; value: string | number; scope: string }>();
+  function addGroup(
+    scope: string,
+    domain: string,
+    member: { file: string; name: string; value: string | number },
+  ): void {
+    const key = `${scope}:${domain}`;
+    const members = groups.get(key) ?? [];
+    if (!members.some((existing) => existing.file === member.file && existing.name === member.name)) {
+      members.push(member);
+      groups.set(key, members);
+    }
+  }
   const htmlTags = htmlTagNamesFor(program);
   const root = sourceRoot + path.sep;
   for (const source of program.getSourceFiles()) {
@@ -266,18 +358,56 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
         if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) value = init.text;
         else if (ts.isNumericLiteral(init)) value = Number(init.text);
         if (value === undefined) continue;
+        const symbol = checker.getSymbolAtLocation(declaration.name);
+        if (symbol) declarations.set(symbol, { file, name, value, scope });
         const domain = inferredDomain(name, value, htmlTags);
-        if (!domain) continue;
-        const key = `${scope}:${domain}`;
-        const members = groups.get(key) ?? [];
-        members.push({ file, name, value });
-        groups.set(key, members);
+        if (domain) addGroup(scope, domain, { file, name, value });
       }
     }
   }
+  function recordCssUse(identifier: ts.Identifier, property: string): void {
+    const symbol = checker.getSymbolAtLocation(identifier);
+    if (!symbol) return;
+    const original = symbol.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+    const declaration = declarations.get(original);
+    if (!declaration || typeof declaration.value !== "string") return;
+    const domain = cssPropertyDomain(property, declaration.value);
+    if (domain) addGroup(declaration.scope, domain, declaration);
+  }
+
+  for (const source of program.getSourceFiles()) {
+    const file = path.resolve(source.fileName);
+    if (source.isDeclarationFile || !file.startsWith(root) || /\.(?:test|spec|mock)\.[jt]sx?$/.test(file)) continue;
+    function visit(node: ts.Node): void {
+      if (ts.isPropertyAssignment(node) && ts.isObjectLiteralExpression(node.parent) && isCssStyleObject(node.parent)) {
+        const name = tsPropertyName(node.name);
+        const identifier = identifierExpression(node.initializer);
+        if (name && identifier) recordCssUse(identifier, name);
+      }
+      if (
+        ts.isBinaryExpression(node) &&
+        node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+        ts.isPropertyAccessExpression(node.left) &&
+        ts.isPropertyAccessExpression(node.left.expression) &&
+        node.left.expression.name.text === "style"
+      ) {
+        const identifier = identifierExpression(node.right);
+        if (identifier) recordCssUse(identifier, node.left.name.text);
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
+  }
+
   const result = new Set<string>();
-  for (const members of groups.values()) {
-    if (new Set(members.map((m) => m.name)).size < 2 || new Set(members.map((m) => m.value)).size < 2) continue;
+  for (const [key, members] of groups) {
+    const platformDomain = isPlatformDomain(key.slice(key.indexOf(":") + 1));
+    if (
+      !platformDomain &&
+      (new Set(members.map((m) => m.name)).size < 2 || new Set(members.map((m) => m.value)).size < 2)
+    ) {
+      continue;
+    }
     for (const m of members) result.add(`${m.file}:${m.name}`);
   }
   programDomainsCache.set(program, result);
@@ -306,6 +436,7 @@ export const preferEnumRule: Rule.RuleModule = {
     const services = typedParserServices(context.sourceCode.parserServices);
     const htmlTags = services ? htmlTagNamesFor(services.program) : new Set<string>();
     const namedLocals = new Map<string, { node: VariableDeclaratorNode; name: string; value: string | number }[]>();
+    const genericNamedLocals = new Map<string, VariableDeclaratorNode>();
 
     function isTupleDomain(name: ESTree.Identifier): boolean {
       // The typed resolver follows imports and lexical shadowing. The local
@@ -340,6 +471,8 @@ export const preferEnumRule: Rule.RuleModule = {
           const members = namedLocals.get(domain) ?? [];
           members.push({ node, name: id.name, value });
           namedLocals.set(domain, members);
+        } else if (value !== undefined && moduleConst) {
+          genericNamedLocals.set(id.name, node);
         }
 
         if (init.type === "CallExpression" && isZodCall(init, "object")) {
@@ -407,7 +540,9 @@ export const preferEnumRule: Rule.RuleModule = {
       "Program:exit"() {
         const projectDomains = services ? namedProgramDomains(services.program, sourceRoot) : undefined;
         for (const [domain, members] of namedLocals) {
-          const localClosedSet = members.length >= 2 && new Set(members.map((m) => m.value)).size >= 2;
+          const localClosedSet =
+            (isPlatformDomain(domain) && members.length > 0) ||
+            (members.length >= 2 && new Set(members.map((m) => m.value)).size >= 2);
           for (const member of members) {
             if (!localClosedSet && !projectDomains?.has(`${filename}:${member.name}`)) continue;
             context.report({
@@ -417,6 +552,15 @@ export const preferEnumRule: Rule.RuleModule = {
               } domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md`,
             });
           }
+        }
+
+        for (const [name, node] of genericNamedLocals) {
+          if (!projectDomains?.has(`${filename}:${name}`)) continue;
+          context.report({
+            node,
+            message:
+              "A named CSS keyword must use its property-specific enum; different CSS properties must not share one generic constant. See docs/next-codebase-guide/rules/constants-rule.md",
+          });
         }
 
         const reportedTuples = new Set<string>();

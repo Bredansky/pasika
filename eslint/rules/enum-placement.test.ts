@@ -15,7 +15,7 @@ const file = (name: string, code: string): { filename: string; code: string } =>
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const SHARED = `An enum imported independently of its component must live in constants/ at its CCF; keep component-owned enums beside their component. ${DOC}`;
-const SINGLE = `A single named string or number value must be a const, not a one-member enum. ${DOC}`;
+const SINGLE = `A single named string or number value must be a const, not a one-member enum, unless it represents a property with multiple supported values. ${DOC}`;
 
 file(
   "features/billing/invoice.ts",
@@ -59,11 +59,14 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
   });
 });
 
-void describe("A single named string or number value MUST be represented by a `const`, not a one-member `enum`.", () => {
+void describe("A single named string or number value MUST be represented by a `const`, except when the value belongs to a verified multi-valued platform property, in which case it MUST use a property-specific `enum` even if only one member is currently used.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file("features/billing/one-const.ts", 'const publishRoute = "/api/publish"; export const send = publishRoute;'),
       file("features/billing/numeric-const.ts", "const width = 360; export const dimension = width;"),
+      file("features/billing/constants/css-position.ts", 'export enum CssPositionEnum { Absolute = "absolute" }'),
+      file("features/billing/constants/css-visibility.ts", 'export enum CssVisibilityEnum { Hidden = "hidden" }'),
+      file("features/billing/constants/css-overflow.ts", 'export enum CssOverflowEnum { Hidden = "hidden" }'),
     ],
     invalid: [
       {
@@ -72,6 +75,17 @@ void describe("A single named string or number value MUST be represented by a `c
       },
       {
         ...file("features/billing/constants/one-value.ts", "export enum SingleNumber { Width = 360 }"),
+        errors: [{ message: SINGLE }],
+      },
+      {
+        ...file(
+          "features/billing/constants/unrelated-css.ts",
+          'export enum CssPositionEnum { Arbitrary = "whatever" }',
+        ),
+        errors: [{ message: SINGLE }],
+      },
+      {
+        ...file("features/billing/constants/open-color.ts", 'export enum CssColorEnum { Red = "red" }'),
         errors: [{ message: SINGLE }],
       },
     ],
