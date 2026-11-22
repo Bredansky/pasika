@@ -17,8 +17,6 @@ function file(relative: string, code: string): { filename: string; code: string 
 const doc = "See docs/next-codebase-guide/rules/constants-rule.md";
 const shared = (name: string, value: string, files: number): string =>
   `The named string ${JSON.stringify(name)} repeats as ${JSON.stringify(value)}. Extract one shared const at the consumers' CCF and import it across ${String(files)} production files. ${doc}`;
-const local = (name: string, value: string): string =>
-  `The named string ${JSON.stringify(name)} repeats as ${JSON.stringify(value)}. Declare one file-local const in an enclosing scope and reuse it. ${doc}`;
 
 const first = file("features/home/empty-text.ts", 'const emptyText = ""; use(emptyText);');
 const second = file("features/editor/empty-text.ts", 'const emptyText = ""; use(emptyText);');
@@ -41,7 +39,10 @@ const tsxB = file(
 const semanticA = file("features/editor/semantic-a.ts", 'const eventName = "draft:created"; use(eventName);');
 const semanticB = file("features/editor/semantic-b.ts", 'const eventName = "draft:created"; use(eventName);');
 const canonical = file("constants/text.ts", 'export const canonicalBlank = "\\t";');
-const redundantCanonical = file("features/home/redundant-blank.ts", 'const otherCanonicalName = "\\t"; use(otherCanonicalName);');
+const redundantCanonical = file(
+  "features/home/redundant-blank.ts",
+  'const otherCanonicalName = "\\t"; use(otherCanonicalName);',
+);
 const unrelatedA = file("features/home/unrelated-a.ts", 'const emptyPrompt = ""; use(emptyPrompt);');
 const unrelatedB = file("features/editor/unrelated-b.ts", 'const emptyCaption = ""; use(emptyCaption);');
 const genericA = file("features/home/generic-a.ts", 'const value = ""; use(value);');
@@ -62,7 +63,10 @@ void describe("Named string constants with identical values MUST reuse one defin
       { ...second, errors: [{ message: shared("emptyText", "", 11) }] },
       { ...shortA, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
       { ...shortB, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
-      { ...localDuplicates, errors: [{ message: shared("localBlank", "", 11) }, { message: shared("localBlank", "", 11) }] },
+      {
+        ...localDuplicates,
+        errors: [{ message: shared("localBlank", "", 11) }, { message: shared("localBlank", "", 11) }],
+      },
       { ...wrappedA, errors: [{ message: shared("sharedBlank", "", 11) }] },
       { ...wrappedB, errors: [{ message: shared("sharedBlank", "", 11) }] },
       { ...tsxA, errors: [{ message: shared("emptyCardLabel", "", 11) }] },
@@ -71,8 +75,8 @@ void describe("Named string constants with identical values MUST reuse one defin
       { ...unrelatedB, errors: [{ message: shared("emptyCaption", "", 11) }] },
       { ...genericA, errors: [{ message: shared("value", "", 11) }] },
       { ...genericB, errors: [{ message: shared("value", "", 11) }] },
-      { ...newlineA, errors: [{ message: shared("newline", "\\n", 2) }] },
-      { ...newlineB, errors: [{ message: shared("lineBreak", "\\n", 2) }] },
+      { ...newlineA, errors: [{ message: shared("newline", "\n", 2) }] },
+      { ...newlineB, errors: [{ message: shared("lineBreak", "\n", 2) }] },
       {
         ...semanticA,
         errors: [
@@ -91,7 +95,11 @@ void describe("Named string constants with identical values MUST reuse one defin
       },
       {
         ...redundantCanonical,
-        errors: [{ message: `Reuse canonicalBlank from src/constants/text.ts instead of redefining "\\\\t". ${doc}` }],
+        errors: [
+          {
+            message: `Reuse canonicalBlank from src/constants/text.ts instead of redefining ${JSON.stringify("\t")}. ${doc}`,
+          },
+        ],
       },
     ],
   });

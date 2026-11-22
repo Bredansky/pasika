@@ -42,7 +42,7 @@ function declarations(file: string): NamedStringConstant[] {
       ts.isIdentifier(node.name) &&
       node.initializer &&
       ts.isVariableDeclarationList(node.parent) &&
-      (node.parent.flags & ts.NodeFlags.Const) !== 0
+      node.parent.flags === ts.NodeFlags.Const
     ) {
       const value = literalString(node.initializer);
       if (value !== undefined) {
