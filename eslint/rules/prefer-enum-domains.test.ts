@@ -5,7 +5,7 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { namedProgramDomains } from "./prefer-enum";
 
-describe("Named fixed domains must be inferred across declarations in the same feature without conflating independent features.", () => {
+describe("Independently declared named constants that explicitly identify different members of the same closed domain (such as `publicationStatusPending` and `publicationStatusPublished`) MUST be consolidated into one TypeScript enum, including when declarations are in different production files of the same feature. Unrelated names merely sharing vocabulary do not establish a closed domain.", () => {
   it("finds related status and numeric mode members across separate source files, but ignores unrelated constants", () => {
     const root = mkdtempSync(path.join(tmpdir(), "pasika-inferred-enum-"));
     const sourceRoot = path.join(root, "src");
