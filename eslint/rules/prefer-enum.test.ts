@@ -74,6 +74,8 @@ void describe("Known, fixed sets of two or more related string or numeric values
         code: 'const languageLabels = { ua: "UA" } as Record<string, string>;',
         filename: file("constants/index.ts"),
       },
+      // Arbitrary CSS value syntax is not a named keyword.
+      { code: 'const backgroundColorCustom = "#aabbcc";', filename: file("constants/colors.ts") },
       // A single literal is not a set of alternatives.
       {
         code: 'type OnlyStatus = "ready";',
@@ -168,6 +170,22 @@ void describe("Known, fixed sets of two or more related string or numeric values
       },
     ],
     invalid: [
+      {
+        code: 'export const transparent = "transparent";',
+        filename: file("constants/css.ts"),
+        errors: [
+          { message: `Related named constants in the CssColor domain must be members of one TypeScript enum. ${DOC}` },
+        ],
+      },
+      {
+        code: 'export const defaultFontStyle = "normal";',
+        filename: file("constants/css.ts"),
+        errors: [
+          {
+            message: `Related named constants in the CssFontStyle domain must be members of one TypeScript enum. ${DOC}`,
+          },
+        ],
+      },
       {
         code: 'export const absolutePosition = "absolute";',
         filename: file("constants/css.ts"),

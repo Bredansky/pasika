@@ -143,9 +143,10 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
     ]) {
       expect(detected.has(`${css}:${name}`)).toBe(true);
     }
-    for (const name of ["redColor", "blueColor", "nonstandardPosition"]) {
-      expect(detected.has(`${css}:${name}`)).toBe(false);
+    for (const name of ["redColor", "blueColor"]) {
+      expect(detected.has(`${css}:${name}`)).toBe(true);
     }
+    expect(detected.has(`${css}:nonstandardPosition`)).toBe(false);
   });
 
   it("requires one enum member per verified CSS property even when that keyword is the only one used", () => {
@@ -168,10 +169,17 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
       ].join("\\n"),
     );
     const detected = namedProgramDomains(ts.createProgram([css], { noEmit: true }), sourceRoot);
-    for (const name of ["absolutePosition", "visibilityHidden", "overflowHidden", "alignItemsCenter"]) {
+    for (const name of [
+      "absolutePosition",
+      "visibilityHidden",
+      "overflowHidden",
+      "alignItemsCenter",
+      "transparent",
+      "defaultFontStyle",
+    ]) {
       expect(detected.has(`${css}:${name}`)).toBe(true);
     }
-    for (const name of ["cssHidden", "transparent", "defaultFontStyle", "backgroundPosition", "nonstandardPosition"]) {
+    for (const name of ["cssHidden", "backgroundPosition", "nonstandardPosition"]) {
       expect(detected.has(`${css}:${name}`)).toBe(false);
     }
   });
@@ -207,7 +215,7 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
     const detected = namedProgramDomains(program, sourceRoot);
     expect(detected.has(`${constants}:cssHidden`)).toBe(true);
     expect(detected.has(`${constants}:alignmentCenter`)).toBe(true);
-    expect(detected.has(`${constants}:transparent`)).toBe(false);
+    expect(detected.has(`${constants}:transparent`)).toBe(true);
     expect(detected.has(`${constants}:otherHidden`)).toBe(false);
     expect(detected.has(`${constants}:radixAlignOnly`)).toBe(false);
   });
