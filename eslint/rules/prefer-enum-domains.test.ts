@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { namedProgramDomains } from "./prefer-enum";
+import { isPlatformPropertyEnum, namedProgramDomains } from "./prefer-enum";
 
 describe("Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.", () => {
   it("finds related status and numeric mode members across separate source files, but ignores unrelated constants", () => {
@@ -97,11 +97,12 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
       expect(detected.has(`${css}:${name}`)).toBe(true);
     }
 
-    for (const name of ["textAlignCenter", "alignItemsCenter", "backgroundPosition"]) {
-      expect(detected.has(`${css}:${name}`)).toBe(false);
+    for (const name of ["textAlignCenter", "alignItemsCenter"]) {
+      expect(detected.has(`${css}:${name}`)).toBe(true);
     }
+    expect(detected.has(`${css}:backgroundPosition`)).toBe(false);
     expect(detected.has(`${dom}:lonePresentationRole`)).toBe(false);
-    expect(detected.has(`${featureOnly}:divTag`)).toBe(false);
+    expect(detected.has(`${featureOnly}:divTag`)).toBe(true);
     expect(detected.has(`${unrelated}:categoryTag`)).toBe(false);
     expect(detected.has(`${unrelated}:htmlTag`)).toBe(false);
     expect(detected.has(`${unrelated}:absoluteStatus`)).toBe(false);
@@ -128,6 +129,8 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
     );
     const program = ts.createProgram([html, css], { noEmit: true });
     const detected = namedProgramDomains(program, sourceRoot);
+    expect(isPlatformPropertyEnum("HtmlTagEnum", [{ name: "Dialog", value: "dialog" }], program)).toBe(true);
+    expect(isPlatformPropertyEnum("HtmlTagEnum", [{ name: "Button", value: "dialog" }], program)).toBe(false);
 
     for (const name of ["dialogTagName", "pictureTag"]) {
       expect(detected.has(`${html}:${name}`)).toBe(true);
@@ -143,6 +146,70 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
     for (const name of ["redColor", "blueColor", "nonstandardPosition"]) {
       expect(detected.has(`${css}:${name}`)).toBe(false);
     }
+  });
+
+  it("requires one enum member per verified CSS property even when that keyword is the only one used", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-single-css-domain-"));
+    const sourceRoot = path.join(root, "src");
+    const css = path.join(sourceRoot, "constants/css.ts");
+    mkdirSync(path.dirname(css), { recursive: true });
+    writeFileSync(
+      css,
+      [
+        'export const absolutePosition = "absolute";',
+        'export const visibilityHidden = "hidden";',
+        'export const overflowHidden = "hidden";',
+        'export const alignItemsCenter = "center";',
+        'export const cssHidden = "hidden";',
+        'export const transparent = "transparent";',
+        'export const defaultFontStyle = "normal";',
+        'export const backgroundPosition = "center";',
+        'export const nonstandardPosition = "nonstandard";',
+      ].join("\\n"),
+    );
+    const detected = namedProgramDomains(ts.createProgram([css], { noEmit: true }), sourceRoot);
+    for (const name of ["absolutePosition", "visibilityHidden", "overflowHidden", "alignItemsCenter"]) {
+      expect(detected.has(`${css}:${name}`)).toBe(true);
+    }
+    for (const name of ["cssHidden", "transparent", "defaultFontStyle", "backgroundPosition", "nonstandardPosition"]) {
+      expect(detected.has(`${css}:${name}`)).toBe(false);
+    }
+  });
+
+  it("finds CSS property domains through imported constants used in real style slots", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-css-context-"));
+    const sourceRoot = path.join(root, "src");
+    const constants = path.join(sourceRoot, "constants/css.ts");
+    const usage = path.join(sourceRoot, "features/editor/style.tsx");
+    mkdirSync(path.dirname(constants), { recursive: true });
+    mkdirSync(path.dirname(usage), { recursive: true });
+    writeFileSync(
+      constants,
+      [
+        'export const cssHidden = "hidden";',
+        'export const alignmentCenter = "center";',
+        'export const transparent = "transparent";',
+        'export const otherHidden = "hidden";',
+        'export const radixAlignOnly = "center";',
+      ].join("\n"),
+    );
+    writeFileSync(
+      usage,
+      [
+        'import { cssHidden, alignmentCenter, transparent, otherHidden, radixAlignOnly } from "../../constants/css";',
+        "declare const measurer: HTMLElement;",
+        "measurer.style.visibility = cssHidden;",
+        "export const rendered = <div style={{ overflow: cssHidden, alignItems: alignmentCenter, backgroundColor: transparent }} />;",
+        "export const unrelated = { overflow: otherHidden, align: radixAlignOnly };",
+      ].join("\n"),
+    );
+    const program = ts.createProgram([constants, usage], { noEmit: true, jsx: ts.JsxEmit.Preserve });
+    const detected = namedProgramDomains(program, sourceRoot);
+    expect(detected.has(`${constants}:cssHidden`)).toBe(true);
+    expect(detected.has(`${constants}:alignmentCenter`)).toBe(true);
+    expect(detected.has(`${constants}:transparent`)).toBe(false);
+    expect(detected.has(`${constants}:otherHidden`)).toBe(false);
+    expect(detected.has(`${constants}:radixAlignOnly`)).toBe(false);
   });
 
   it("does not infer platform HTML tags when the program has no DOM lib", () => {
