@@ -1,4 +1,4 @@
-/** Repeated named strings that are indistinguishable by both name and value. */
+/** Repeated named strings grouped by their literal value, regardless of identifier. */
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { isProductionSource } from "./semantic-literals";
@@ -12,30 +12,6 @@ export interface NamedStringConstant {
   column: number;
   moduleLevel: boolean;
 }
-
-/** Generic lexical variable names don't prove that values share one meaning. */
-const ambiguousNames = new Set([
-  "code",
-  "data",
-  "error",
-  "id",
-  "input",
-  "item",
-  "key",
-  "label",
-  "message",
-  "name",
-  "output",
-  "path",
-  "query",
-  "result",
-  "status",
-  "text",
-  "title",
-  "type",
-  "url",
-  "value",
-]);
 
 function literalString(node: ts.Expression): string | undefined {
   let current = node;
@@ -66,8 +42,7 @@ function declarations(file: string): NamedStringConstant[] {
       ts.isIdentifier(node.name) &&
       node.initializer &&
       ts.isVariableDeclarationList(node.parent) &&
-      node.parent.flags === ts.NodeFlags.Const &&
-      !ambiguousNames.has(node.name.text)
+      (node.parent.flags & ts.NodeFlags.Const) !== 0
     ) {
       const value = literalString(node.initializer);
       if (value !== undefined) {
@@ -102,7 +77,7 @@ export function namedStringConstantsByKey(index: ProjectIndex): Map<string, Name
     if (!isProductionSource(file, index.sourceRoot)) continue;
     try {
       for (const entry of declarations(file)) {
-        const key = JSON.stringify([entry.name, entry.value]);
+        const key = JSON.stringify(entry.value);
         const group = groups.get(key) ?? [];
         group.push(entry);
         groups.set(key, group);
