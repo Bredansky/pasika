@@ -14,6 +14,35 @@ const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 void describe("Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.", () => {
   ruleTester.run("prefer-enum", preferEnumRule, {
     valid: [
+      // Sharing a "status", "mode", or "variant" prefix does not make configuration values alternatives.
+      {
+        code: 'const jobStatusLoggerContext = "Editor:JobStatus"; const jobStatusPollingMilliseconds = 5000;',
+        filename: file("features/editor/constants/status.ts"),
+      },
+      {
+        code: 'const mockModeCookiePrefix = "MOCK_API_CALLS="; const mockModeReloadDelayMilliseconds = 500;',
+        filename: file("features/editor/constants/mode.ts"),
+      },
+      {
+        code: 'const outlineVariantBaseClasses = "border shadow-xs"; const outlineVariantHoverClasses = "hover:text-primary";',
+        filename: file("shared/button/button.tsx"),
+      },
+      {
+        code: 'const badgeFocusTokens = "focus-visible:ring-3"; const badgeInvalidTokens = "aria-invalid:ring-2";',
+        filename: file("constants/dom-values.ts"),
+      },
+      {
+        code: 'const publicationStatusPending = "pending"; const retryModeImmediate = "immediate";',
+        filename: file("features/publishing/utils/options.ts"),
+      },
+      {
+        code: 'function f() { const publicationStatusPending = "pending"; const publicationStatusPublished = "published"; }',
+        filename: file("features/publishing/utils/local.ts"),
+      },
+      {
+        code: 'const publicationStatusPending = "pending"; const publicationStatusAlias = "pending";',
+        filename: file("features/publishing/constants/status.ts"),
+      },
       // Already an enum.
       {
         code: 'enum LanguageLabel { Ukrainian = "UA", Polish = "PL", English = "EN" }',
@@ -139,6 +168,34 @@ void describe("Known, fixed sets of two or more related string or numeric values
       },
     ],
     invalid: [
+      {
+        code: 'const publicationStatusPending = "pending"; const publicationStatusPublished = "published";',
+        filename: file("features/publishing/constants/publication.ts"),
+        errors: [
+          {
+            message:
+              "Related named constants in the publicationStatus domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+          {
+            message:
+              "Related named constants in the publicationStatus domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
+      {
+        code: "const editorViewModeGrid = 1; const editorViewModeList = 2;",
+        filename: file("features/editor/constants/view.ts"),
+        errors: [
+          {
+            message:
+              "Related named constants in the editorViewMode domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+          {
+            message:
+              "Related named constants in the editorViewMode domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
       {
         code: 'const languageLabels = { ua: "UA", pl: "PL", en: "EN" } as const;',
         filename: file("constants/index.ts"),

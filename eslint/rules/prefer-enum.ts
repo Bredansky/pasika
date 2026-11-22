@@ -127,6 +127,72 @@ function isTsLiteralTupleDeclaration(declaration: ts.Declaration): boolean {
   return values.every((value) => value !== undefined) && new Set(values).size >= 2;
 }
 
+/** Identify members of an explicitly named closed domain, not merely a shared topic. */
+const enumDomainPattern =
+  /^([a-z][A-Za-z0-9]*?(?:Status|State|Mode|Kind|Type|Variant|Category|Phase|Level|Direction|Format|Outcome|Reason))([A-Z][A-Za-z0-9]*)$/;
+const programDomainsCache = new WeakMap<ts.Program, Set<string>>();
+
+function inferredDomain(name: string, value: string | number): string | undefined {
+  const match = enumDomainPattern.exec(name);
+  if (!match) return undefined;
+  const member = match[2];
+  if (!member) return undefined;
+  // A string alternative should describe the member it names (Ready = "ready",
+  // InProgress = "in_progress"). Numeric codes must have an unambiguous,
+  // single-word member name. Similar topical prefixes are not enough.
+  if (typeof value === "string") {
+    const normalize = (s: string): string => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    if (normalize(value) !== normalize(member)) return undefined;
+  } else if (!/^[A-Z][a-z0-9]*$/.test(member)) {
+    return undefined;
+  }
+  return match[1];
+}
+
+export function namedProgramDomains(program: ts.Program, sourceRoot: string): Set<string> {
+  const cached = programDomainsCache.get(program);
+  if (cached) return cached;
+  const groups = new Map<string, { file: string; name: string; value: string | number }[]>();
+  const root = sourceRoot + path.sep;
+  for (const source of program.getSourceFiles()) {
+    const file = path.resolve(source.fileName);
+    if (source.isDeclarationFile || !file.startsWith(root) || /\.(?:test|spec|mock)\.[jt]sx?$/.test(file)) continue;
+    const pieces = file.slice(root.length).split(path.sep);
+    const scope = pieces[0] === "features" && pieces[1] ? pieces.slice(0, 2).join("/") : pieces[0];
+    for (const statement of source.statements) {
+      if (!ts.isVariableStatement(statement) || (statement.declarationList.flags & ts.NodeFlags.Const) === 0) continue;
+      for (const declaration of statement.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name) || !declaration.initializer) continue;
+        const name = declaration.name.text;
+        let init: ts.Expression = declaration.initializer;
+        while (ts.isParenthesizedExpression(init) || ts.isAsExpression(init) || ts.isSatisfiesExpression(init)) {
+          init = init.expression;
+        }
+        const value =
+          ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)
+            ? init.text
+            : ts.isNumericLiteral(init)
+              ? Number(init.text)
+              : undefined;
+        if (value === undefined) continue;
+        const domain = inferredDomain(name, value);
+        if (!domain) continue;
+        const key = scope + ":" + domain;
+        const members = groups.get(key) ?? [];
+        members.push({ file, name, value });
+        groups.set(key, members);
+      }
+    }
+  }
+  const result = new Set<string>();
+  for (const members of groups.values()) {
+    if (new Set(members.map((m) => m.name)).size < 2 || new Set(members.map((m) => m.value)).size < 2) continue;
+    for (const m of members) result.add(m.file + ":" + m.name);
+  }
+  programDomainsCache.set(program, result);
+  return result;
+}
+
 export const preferEnumRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -147,6 +213,7 @@ export const preferEnumRule: Rule.RuleModule = {
     const discriminatedUnions: CallExpressionNode[] = [];
     const reportedDiscriminants = new Set<ESTree.Literal>();
     const services = typedParserServices(context.sourceCode.parserServices);
+    const namedLocals = new Map<string, { node: VariableDeclaratorNode; name: string; value: string | number }[]>();
 
     function isTupleDomain(name: ESTree.Identifier): boolean {
       // The typed resolver follows imports and lexical shadowing. The local
@@ -166,6 +233,23 @@ export const preferEnumRule: Rule.RuleModule = {
       VariableDeclarator(node: VariableDeclaratorNode) {
         const { id, init } = node;
         if (id?.type !== "Identifier" || !init) return;
+        const value =
+          init.type === "Literal" && (typeof init.value === "string" || typeof init.value === "number")
+            ? init.value
+            : undefined;
+        const domain = value === undefined ? undefined : inferredDomain(id.name, value);
+        const declaration = node.parent;
+        const owner = declaration?.parent;
+        const moduleConst =
+          declaration?.type === "VariableDeclaration" &&
+          declaration.kind === "const" &&
+          (owner?.type === "Program" || (owner?.type === "ExportNamedDeclaration" && owner.parent?.type === "Program"));
+        if (domain && value !== undefined && moduleConst) {
+          const members = namedLocals.get(domain) ?? [];
+          members.push({ node, name: id.name, value });
+          namedLocals.set(domain, members);
+        }
+
         if (init.type === "CallExpression" && isZodCall(init, "object")) {
           objectSchemas.set(id.name, init);
         }
@@ -229,6 +313,21 @@ export const preferEnumRule: Rule.RuleModule = {
         }
       },
       "Program:exit"() {
+        const projectDomains = services ? namedProgramDomains(services.program, sourceRoot) : undefined;
+        for (const [domain, members] of namedLocals) {
+          const localClosedSet = members.length >= 2 && new Set(members.map((m) => m.value)).size >= 2;
+          for (const member of members) {
+            if (!localClosedSet && !projectDomains?.has(filename + ":" + member.name)) continue;
+            context.report({
+              node: member.node,
+              message:
+                "Related named constants in the " +
+                domain +
+                " domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+            });
+          }
+        }
+
         const reportedTuples = new Set<string>();
         for (const use of enumTupleUses) {
           if (reportedTuples.has(use.name.name) || !isTupleDomain(use.name)) continue;
