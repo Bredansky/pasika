@@ -106,4 +106,53 @@ describe("Known, fixed sets of two or more related string or numeric values MUST
     expect(detected.has(`${unrelated}:htmlTag`)).toBe(false);
     expect(detected.has(`${unrelated}:absoluteStatus`)).toBe(false);
   });
+
+  it("derives additional valid HTML tags and CSS keywords from installed specifications", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-native-dom-css-"));
+    const sourceRoot = path.join(root, "src");
+    const html = path.join(sourceRoot, "constants/html.ts");
+    const css = path.join(sourceRoot, "constants/css.ts");
+    mkdirSync(path.dirname(html), { recursive: true });
+    writeFileSync(html, 'export const dialogTagName = "dialog"; export const pictureTag = "picture";');
+    writeFileSync(
+      css,
+      [
+        'export const userSelectText = "text";',
+        'export const userSelectNone = "none";',
+        'export const textDecorationLineUnderline = "underline";',
+        'export const textDecorationLineOverline = "overline";',
+        'export const redColor = "red";',
+        'export const blueColor = "blue";',
+        'export const nonstandardPosition = "nonstandard";',
+      ].join("\n"),
+    );
+    const program = ts.createProgram([html, css], { noEmit: true });
+    const detected = namedProgramDomains(program, sourceRoot);
+
+    for (const name of ["dialogTagName", "pictureTag"]) {
+      expect(detected.has(`${html}:${name}`)).toBe(true);
+    }
+    for (const name of [
+      "userSelectText",
+      "userSelectNone",
+      "textDecorationLineUnderline",
+      "textDecorationLineOverline",
+    ]) {
+      expect(detected.has(`${css}:${name}`)).toBe(true);
+    }
+    for (const name of ["redColor", "blueColor", "nonstandardPosition"]) {
+      expect(detected.has(`${css}:${name}`)).toBe(false);
+    }
+  });
+
+  it("does not infer platform HTML tags when the program has no DOM lib", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "pasika-nodom-"));
+    const sourceRoot = path.join(root, "src");
+    const html = path.join(sourceRoot, "constants/html.ts");
+    mkdirSync(path.dirname(html), { recursive: true });
+    writeFileSync(html, 'export const buttonTagName = "button"; export const spanTag = "span";');
+    const program = ts.createProgram([html], { noEmit: true, noLib: true });
+    const detected = namedProgramDomains(program, sourceRoot);
+    expect(detected.size).toBe(0);
+  });
 });
