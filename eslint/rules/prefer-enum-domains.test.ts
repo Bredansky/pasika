@@ -34,12 +34,12 @@ describe("Named fixed domains must be inferred across declarations in the same f
       { noEmit: true },
     );
     const detected = namedProgramDomains(program, sourceRoot);
-    expect(detected.has(publishingPending + ":publicationStatusPending")).toBe(true);
-    expect(detected.has(publishingPublished + ":publicationStatusPublished")).toBe(true);
-    expect(detected.has(editorGrid + ":editorViewModeGrid")).toBe(true);
-    expect(detected.has(editorList + ":editorViewModeList")).toBe(true);
-    expect(detected.has(billingPending + ":publicationStatusPending")).toBe(false);
-    expect(detected.has(unrelated + ":badgeFocusTokens")).toBe(false);
-    expect(detected.has(testFile + ":publicationStatusPublished")).toBe(false);
+    expect(detected.has(`${publishingPending}:publicationStatusPending`)).toBe(true);
+    expect(detected.has(`${publishingPublished}:publicationStatusPublished`)).toBe(true);
+    expect(detected.has(`${editorGrid}:editorViewModeGrid`)).toBe(true);
+    expect(detected.has(`${editorList}:editorViewModeList`)).toBe(true);
+    expect(detected.has(`${billingPending}:publicationStatusPending`)).toBe(false);
+    expect(detected.has(`${unrelated}:badgeFocusTokens`)).toBe(false);
+    expect(detected.has(`${testFile}:publicationStatusPublished`)).toBe(false);
   });
 });

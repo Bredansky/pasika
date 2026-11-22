@@ -129,14 +129,15 @@ function isTsLiteralTupleDeclaration(declaration: ts.Declaration): boolean {
 
 /** Identify members of an explicitly named closed domain, not merely a shared topic. */
 const enumDomainPattern =
-  /^([a-z][A-Za-z0-9]*?(?:Status|State|Mode|Kind|Type|Variant|Category|Phase|Level|Direction|Format|Outcome|Reason))([A-Z][A-Za-z0-9]*)$/;
+  /^(?<domain>[a-z][A-Za-z0-9]*?(?:Status|State|Mode|Kind|Type|Variant|Category|Phase|Level|Direction|Format|Outcome|Reason))(?<member>[A-Z][A-Za-z0-9]*)$/;
 const programDomainsCache = new WeakMap<ts.Program, Set<string>>();
 
 function inferredDomain(name: string, value: string | number): string | undefined {
   const match = enumDomainPattern.exec(name);
   if (!match) return undefined;
-  const member = match[2];
-  if (!member) return undefined;
+  const member = match.groups?.member;
+  const domain = match.groups?.domain;
+  if (!member || !domain) return undefined;
   // A string alternative should describe the member it names (Ready = "ready",
   // InProgress = "in_progress"). Numeric codes must have an unambiguous,
   // single-word member name. Similar topical prefixes are not enough.
@@ -146,7 +147,7 @@ function inferredDomain(name: string, value: string | number): string | undefine
   } else if (!/^[A-Z][a-z0-9]*$/.test(member)) {
     return undefined;
   }
-  return match[1];
+  return domain;
 }
 
 export function namedProgramDomains(program: ts.Program, sourceRoot: string): Set<string> {
@@ -158,9 +159,9 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
     const file = path.resolve(source.fileName);
     if (source.isDeclarationFile || !file.startsWith(root) || /\.(?:test|spec|mock)\.[jt]sx?$/.test(file)) continue;
     const pieces = file.slice(root.length).split(path.sep);
-    const scope = pieces[0] === "features" && pieces[1] ? pieces.slice(0, 2).join("/") : pieces[0];
+    const scope = pieces[0] === "features" && pieces[1] ? pieces.slice(0, 2).join("/") : (pieces[0] ?? "src");
     for (const statement of source.statements) {
-      if (!ts.isVariableStatement(statement) || (statement.declarationList.flags & ts.NodeFlags.Const) === 0) continue;
+      if (!ts.isVariableStatement(statement) || statement.declarationList.flags !== ts.NodeFlags.Const) continue;
       for (const declaration of statement.declarationList.declarations) {
         if (!ts.isIdentifier(declaration.name) || !declaration.initializer) continue;
         const name = declaration.name.text;
@@ -168,16 +169,13 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
         while (ts.isParenthesizedExpression(init) || ts.isAsExpression(init) || ts.isSatisfiesExpression(init)) {
           init = init.expression;
         }
-        const value =
-          ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)
-            ? init.text
-            : ts.isNumericLiteral(init)
-              ? Number(init.text)
-              : undefined;
+        let value: string | number | undefined;
+        if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) value = init.text;
+        else if (ts.isNumericLiteral(init)) value = Number(init.text);
         if (value === undefined) continue;
         const domain = inferredDomain(name, value);
         if (!domain) continue;
-        const key = scope + ":" + domain;
+        const key = `${scope}:${domain}`;
         const members = groups.get(key) ?? [];
         members.push({ file, name, value });
         groups.set(key, members);
@@ -187,7 +185,7 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
   const result = new Set<string>();
   for (const members of groups.values()) {
     if (new Set(members.map((m) => m.name)).size < 2 || new Set(members.map((m) => m.value)).size < 2) continue;
-    for (const m of members) result.add(m.file + ":" + m.name);
+    for (const m of members) result.add(`${m.file}:${m.name}`);
   }
   programDomainsCache.set(program, result);
   return result;
@@ -243,7 +241,7 @@ export const preferEnumRule: Rule.RuleModule = {
         const moduleConst =
           declaration?.type === "VariableDeclaration" &&
           declaration.kind === "const" &&
-          (owner?.type === "Program" || (owner?.type === "ExportNamedDeclaration" && owner.parent?.type === "Program"));
+          (owner?.type === "Program" || (owner?.type === "ExportNamedDeclaration" && owner.parent.type === "Program"));
         if (domain && value !== undefined && moduleConst) {
           const members = namedLocals.get(domain) ?? [];
           members.push({ node, name: id.name, value });
@@ -317,13 +315,12 @@ export const preferEnumRule: Rule.RuleModule = {
         for (const [domain, members] of namedLocals) {
           const localClosedSet = members.length >= 2 && new Set(members.map((m) => m.value)).size >= 2;
           for (const member of members) {
-            if (!localClosedSet && !projectDomains?.has(filename + ":" + member.name)) continue;
+            if (!localClosedSet && !projectDomains?.has(`${filename}:${member.name}`)) continue;
             context.report({
               node: member.node,
-              message:
-                "Related named constants in the " +
-                domain +
-                " domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md",
+              message: `Related named constants in the ${
+                domain
+              } domain must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md`,
             });
           }
         }
