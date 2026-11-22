@@ -139,6 +139,63 @@ export const themeTokenOrderRule: CSSRuleDefinition = {
 
     return {
       "StyleSheet:exit"(node: StyleSheetPlain) {
+        const offsetAtLine = (line: number): number => context.sourceCode.getIndexFromLoc({ line, column: 1 });
+
+        // A consumer group heading belongs directly to its first definition.
+        // Only fix whitespace-only gaps; never remove intervening comments.
+        for (const group of groups) {
+          const first = items.find((item) => item.group === group);
+          if (!first) continue;
+          const gap = lines.slice(group.line, first.symbol.line - 1);
+          if (gap.length === 0 || !gap.every((line) => line.trim().length === 0)) continue;
+          context.report({
+            node,
+            loc: { start: { line: first.symbol.line, column: 1 }, end: { line: first.symbol.line, column: 2 } },
+            message: "A CSS consumer group comment must immediately precede its first definition.",
+            fix(fixer) {
+              return fixer.removeRange([offsetAtLine(group.line + 1), offsetAtLine(first.symbol.line)]);
+            },
+          });
+        }
+
+        // Theme and :root declarations in one consumer group form a compact run.
+        // Find the actual declaration terminator so multiline values are safe;
+        // never remove whitespace around intervening comments or nested blocks.
+        let preceding: Item | undefined;
+        for (const item of items) {
+          if (
+            preceding?.group &&
+            preceding.group === item.group &&
+            preceding.section === item.section &&
+            preceding.scope === item.scope &&
+            (item.symbol.kind === "theme-token" || item.symbol.kind === "root-variable") &&
+            preceding.symbol.kind === item.symbol.kind
+          ) {
+            const intermediate = lines.slice(preceding.symbol.line, item.symbol.line - 1);
+            let lastNonempty = -1;
+            for (let index = intermediate.length - 1; index >= 0; index -= 1) {
+              if (intermediate[index]?.trim()) {
+                lastNonempty = index;
+                break;
+              }
+            }
+            const lastLine = lastNonempty >= 0 ? intermediate[lastNonempty] : lines[preceding.symbol.line - 1];
+            const blankCount = intermediate.length - lastNonempty - 1;
+            if (blankCount > 0 && lastLine && /;\s*(?:\/\*[^\r\n]*\*\/\s*)?$/u.test(lastLine)) {
+              const firstBlankLine = preceding.symbol.line + lastNonempty + 2;
+              context.report({
+                node,
+                loc: { start: { line: item.symbol.line, column: 1 }, end: { line: item.symbol.line, column: 2 } },
+                message: "CSS declarations in the same consumer group must not contain separating blank lines.",
+                fix(fixer) {
+                  return fixer.removeRange([offsetAtLine(firstBlankLine), offsetAtLine(item.symbol.line)]);
+                },
+              });
+            }
+          }
+          preceding = item;
+        }
+
         for (const group of groups) {
           const next = lines.slice(group.line).find((line) => line.trim().length > 0);
           if (next !== undefined && !next.trimStart().startsWith("}") && !GROUP_RE.test(next)) continue;
