@@ -10,6 +10,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import { getProjectIndex } from "../project/index";
+import { namedStringConstantsByKey } from "../project/repeated-named-strings";
 import {
   featureOf,
   getSemanticLiteralIndex,
@@ -97,9 +98,14 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
     const project = getProjectIndex(root);
     if (!project?.modules.has(file)) return {};
     const index = getSemanticLiteralIndex(project);
+    const namedStrings = [...namedStringConstantsByKey(project).values()].filter((entries) =>
+      entries.some((entry) => entry.file === file),
+    );
     const current = index.uses.filter((entry) => entry.file === file);
     const imported = importedEnumLiteralUses(context, root);
-    if (current.length === 0 && imported.length === 0 && index.canonicals.length === 0) return {};
+    if (current.length === 0 && imported.length === 0 && index.canonicals.length === 0 && namedStrings.length === 0) {
+      return {};
+    }
 
     // Only values repeated at least twice within the same semantic role count
     // towards deciding whether an API route domain offers multiple alternatives.
@@ -147,7 +153,8 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
       VariableDeclarator(node) {
         const { id, init } = node;
         if (id.type !== "Identifier" || init?.type !== "Literal") return;
-        if (typeof init.value !== "string" && typeof init.value !== "number") return;
+        // Named strings, including empty ones, are handled in the project-wide pass below.
+        if (typeof init.value !== "number") return;
         const declaration = node.parent;
         if (declaration.type !== "VariableDeclaration" || declaration.kind !== "const") return;
         const container = declaration.parent;
@@ -169,6 +176,54 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
         });
       },
       Program(node) {
+        for (const entries of namedStrings) {
+          const matches = entries.filter((entry) => entry.file === file);
+          for (const entry of matches) {
+            const canonical = sharedConstants.filter(
+              (candidate) =>
+                candidate.name === entry.name && candidate.value === entry.value && candidate.file !== file,
+            );
+            // A local binding inside a function is not a reusable module definition.
+            if (canonical.length === 1 && !entry.moduleLevel) continue;
+            if (canonical.length === 1) {
+              const candidate = canonical[0];
+              if (!candidate) continue;
+              const relative = path.relative(root, candidate.file).replaceAll(path.sep, "/");
+              context.report({
+                node,
+                loc: { line: entry.line, column: entry.column },
+                message: `Reuse ${entry.name} from src/${relative} instead of redefining ${JSON.stringify(entry.value)}. ${DOC}`,
+              });
+              continue;
+            }
+            if (canonical.length > 1 || entries.length < 2) continue;
+            // The owner in a constants module is a definition, not a duplicate use.
+            if (
+              sharedConstants.some(
+                (candidate) =>
+                  candidate.file === file && candidate.name === entry.name && candidate.value === entry.value,
+              )
+            ) {
+              continue;
+            }
+            // The existing semantic-role pass already reports this exact occurrence.
+            const semantic = current.find((use) => use.line === entry.line && use.column === entry.column);
+            if (semantic) {
+              const key = `${semantic.kind}\u0000${String(semantic.value)}\u0000${semantic.role}`;
+              if ((groups.get(key)?.length ?? 0) >= 2) continue;
+            }
+            const count = new Set(entries.map((peer) => peer.file)).size;
+            const placement =
+              count === 1
+                ? "Declare one file-local const in an enclosing scope and reuse it."
+                : `Extract one shared const at the consumers' CCF and import it across ${String(count)} production files.`;
+            context.report({
+              node,
+              loc: { line: entry.line, column: entry.column },
+              message: `The named string ${JSON.stringify(entry.name)} repeats as ${JSON.stringify(entry.value)}. ${placement} ${DOC}`,
+            });
+          }
+        }
         for (const use of imported) {
           const relative = path.relative(root, use.sourceFile).replaceAll(path.sep, "/");
           context.report({
