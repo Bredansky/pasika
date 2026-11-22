@@ -59,7 +59,7 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
   });
 });
 
-void describe("A single named string or number value MUST be represented by a `const`, except when the value belongs to a verified multi-valued platform property, in which case it MUST use a property-specific `enum` even if only one member is currently used.", () => {
+void describe("A single named string or number value MUST be represented by a `const`, unless it belongs to a known, fixed domain with multiple possible values.", () => {
   ruleTester.run("enum-placement", enumPlacementRule, {
     valid: [
       file("features/billing/one-const.ts", 'const publishRoute = "/api/publish"; export const send = publishRoute;'),
