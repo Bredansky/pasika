@@ -67,6 +67,8 @@ void describe("A single named string or number value MUST be represented by a `c
       file("features/billing/constants/css-position.ts", 'export enum CssPositionEnum { Absolute = "absolute" }'),
       file("features/billing/constants/css-visibility.ts", 'export enum CssVisibilityEnum { Hidden = "hidden" }'),
       file("features/billing/constants/css-overflow.ts", 'export enum CssOverflowEnum { Hidden = "hidden" }'),
+      file("features/billing/constants/css-font-style.ts", 'export enum CssFontStyleEnum { Normal = "normal" }'),
+      file("features/billing/constants/css-color.ts", 'export enum CssColorEnum { Transparent = "transparent" }'),
     ],
     invalid: [
       {
@@ -85,7 +87,14 @@ void describe("A single named string or number value MUST be represented by a `c
         errors: [{ message: SINGLE }],
       },
       {
-        ...file("features/billing/constants/open-color.ts", 'export enum CssColorEnum { Red = "red" }'),
+        ...file("features/billing/constants/non-keyword-color.ts", 'export enum CssColorEnum { Custom = "#aabbcc" }'),
+        errors: [{ message: SINGLE }],
+      },
+      {
+        ...file(
+          "features/billing/constants/misnamed-css-color.ts",
+          'export enum CssColorEnum { Opaque = "transparent" }',
+        ),
         errors: [{ message: SINGLE }],
       },
     ],

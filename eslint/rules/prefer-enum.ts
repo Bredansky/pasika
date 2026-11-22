@@ -158,7 +158,7 @@ function htmlTagNamesFor(program: ts.Program): ReadonlySet<string> {
   return tags;
 }
 
-/** Collect concrete keyword alternatives from CSS specifications, including referenced grammar types. */
+/** Collect grammar-declared CSS keywords, even when a property also accepts functions or arbitrary values. */
 function cssKeywordsFor(property: string): ReadonlySet<string> {
   const cached = cssKeywordCache.get(property);
   if (cached) return cached;
@@ -166,7 +166,6 @@ function cssKeywordsFor(property: string): ReadonlySet<string> {
   const visitedTypes = new Set<string>();
   const visitedProperties = new Set<string>([property]);
   const syntax = lexer.getProperty(property)?.syntax;
-  let isClosed = Boolean(syntax);
   function collect(node: Parameters<typeof definitionSyntax.walk>[0]): void {
     definitionSyntax.walk(node, (part) => {
       if (part.type === "Keyword") {
@@ -176,21 +175,16 @@ function cssKeywordsFor(property: string): ReadonlySet<string> {
         visitedTypes.add(part.name);
         const nested = lexer.getType(part.name)?.syntax;
         if (nested) collect(nested);
-        else isClosed = false;
       } else if (part.type === "Property") {
         if (visitedProperties.has(part.name)) return;
         visitedProperties.add(part.name);
         const nested = lexer.getProperty(part.name)?.syntax;
         if (nested) collect(nested);
-        else isClosed = false;
-      } else if (part.type !== "Group" && part.type !== "Multiplier") {
-        // A function, arbitrary type or token admits values beyond a finite set.
-        isClosed = false;
       }
     });
   }
   if (syntax) collect(syntax);
-  const result = isClosed ? keywords : new Set<string>();
+  const result = keywords;
   cssKeywordCache.set(property, result);
   return result;
 }
@@ -200,8 +194,8 @@ function normalized(value: string): string {
 }
 
 /**
- * A one-member enum is valid only when its members belong to a real platform
- * property's multi-value domain, not merely because the enum has a nice name.
+ * A one-member enum is valid only when its members belong to verified named
+ * platform keyword choices, even if the property also permits arbitrary values.
  * CSS keywords come from css-tree; HTML tags come from the TS DOM declaration.
  */
 export function isPlatformPropertyEnum(
@@ -268,6 +262,23 @@ function inferredDomain(name: string, value: string | number, htmlTags: Readonly
     if (tag && normalized(tag) === normalized(value) && htmlTags.has(value)) return "HtmlTag";
     const css = cssDomain(name, value);
     if (css) return css;
+    // A bare named CSS color is a member of the shared <color> keyword domain.
+    if (
+      normalized(name) === normalized(value) &&
+      cssKeywordsFor("color").has(value.toLowerCase()) &&
+      lexer.matchType("color", parse(value, { context: "value" })).matched
+    ) {
+      return "CssColor";
+    }
+    // Default names still identify a property when the value is a proven keyword.
+    const defaultProperty = /^default(?<property>[A-Z][A-Za-z0-9]*)$/.exec(name)?.groups?.property;
+    if (defaultProperty) {
+      const propertyDomain = cssPropertyDomain(
+        defaultProperty.charAt(0).toLowerCase() + defaultProperty.slice(1),
+        value,
+      );
+      if (propertyDomain) return propertyDomain;
+    }
   }
 
   const match = enumDomainPattern.exec(name);
