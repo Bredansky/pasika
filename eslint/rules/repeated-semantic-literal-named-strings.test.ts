@@ -40,33 +40,39 @@ const tsxB = file(
 );
 const semanticA = file("features/editor/semantic-a.ts", 'const eventName = "draft:created"; use(eventName);');
 const semanticB = file("features/editor/semantic-b.ts", 'const eventName = "draft:created"; use(eventName);');
-const canonical = file("constants/text.ts", 'export const canonicalBlank = "";');
-const redundantCanonical = file("features/home/redundant-blank.ts", 'const canonicalBlank = ""; use(canonicalBlank);');
+const canonical = file("constants/text.ts", 'export const canonicalBlank = "\\t";');
+const redundantCanonical = file("features/home/redundant-blank.ts", 'const otherCanonicalName = "\\t"; use(otherCanonicalName);');
 const unrelatedA = file("features/home/unrelated-a.ts", 'const emptyPrompt = ""; use(emptyPrompt);');
 const unrelatedB = file("features/editor/unrelated-b.ts", 'const emptyCaption = ""; use(emptyCaption);');
 const genericA = file("features/home/generic-a.ts", 'const value = ""; use(value);');
 const genericB = file("features/editor/generic-b.ts", 'const value = ""; use(value);');
-const differentA = file("features/home/different-a.ts", 'const uniqueIndicator = "x"; use(uniqueIndicator);');
-const differentB = file("features/editor/different-b.ts", 'const uniqueIndicator = "y"; use(uniqueIndicator);');
+const differentA = file("features/home/different-a.ts", 'const uniqueIndicator = "q"; use(uniqueIndicator);');
+const differentB = file("features/editor/different-b.ts", 'const uniqueIndicator = "z"; use(uniqueIndicator);');
 const mutable = file("features/editor/mutable.ts", 'let emptyText = ""; use(emptyText);');
 const fixture = file("features/home/example.test.ts", 'const emptyText = ""; use(emptyText);');
 
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+const newlineA = file("features/home/newline.ts", 'const newline = "\\n"; use(newline);');
+const newlineB = file("features/editor/newline.ts", 'const lineBreak = "\\n"; use(lineBreak);');
+
+void describe("Named string constants with identical values MUST reuse one definition, regardless of name or length.", () => {
   ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
-    valid: [canonical, unrelatedA, unrelatedB, genericA, genericB, differentA, differentB, mutable, fixture],
+    valid: [canonical, differentA, differentB, mutable, fixture],
     invalid: [
-      { ...first, errors: [{ message: shared("emptyText", "", 2) }] },
-      { ...second, errors: [{ message: shared("emptyText", "", 2) }] },
+      { ...first, errors: [{ message: shared("emptyText", "", 11) }] },
+      { ...second, errors: [{ message: shared("emptyText", "", 11) }] },
       { ...shortA, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
       { ...shortB, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
-      {
-        ...localDuplicates,
-        errors: [{ message: local("localBlank", "") }, { message: local("localBlank", "") }],
-      },
-      { ...wrappedA, errors: [{ message: shared("sharedBlank", "", 2) }] },
-      { ...wrappedB, errors: [{ message: shared("sharedBlank", "", 2) }] },
-      { ...tsxA, errors: [{ message: shared("emptyCardLabel", "", 2) }] },
-      { ...tsxB, errors: [{ message: shared("emptyCardLabel", "", 2) }] },
+      { ...localDuplicates, errors: [{ message: shared("localBlank", "", 11) }, { message: shared("localBlank", "", 11) }] },
+      { ...wrappedA, errors: [{ message: shared("sharedBlank", "", 11) }] },
+      { ...wrappedB, errors: [{ message: shared("sharedBlank", "", 11) }] },
+      { ...tsxA, errors: [{ message: shared("emptyCardLabel", "", 11) }] },
+      { ...tsxB, errors: [{ message: shared("emptyCardLabel", "", 11) }] },
+      { ...unrelatedA, errors: [{ message: shared("emptyPrompt", "", 11) }] },
+      { ...unrelatedB, errors: [{ message: shared("emptyCaption", "", 11) }] },
+      { ...genericA, errors: [{ message: shared("value", "", 11) }] },
+      { ...genericB, errors: [{ message: shared("value", "", 11) }] },
+      { ...newlineA, errors: [{ message: shared("newline", "\\n", 2) }] },
+      { ...newlineB, errors: [{ message: shared("lineBreak", "\\n", 2) }] },
       {
         ...semanticA,
         errors: [
@@ -85,7 +91,7 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
       },
       {
         ...redundantCanonical,
-        errors: [{ message: `Reuse canonicalBlank from src/constants/text.ts instead of redefining "". ${doc}` }],
+        errors: [{ message: `Reuse canonicalBlank from src/constants/text.ts instead of redefining "\\\\t". ${doc}` }],
       },
     ],
   });
