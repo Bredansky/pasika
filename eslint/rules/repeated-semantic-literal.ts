@@ -144,7 +144,7 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
       }
     }
     const existingRouteEnum = routeDomains.size === 1 ? [...routeDomains.values()][0] : undefined;
-    // Exact same-name, same-value definitions reuse the canonical root constant.
+    // Reuse a canonical root constant by value, regardless of its identifier.
     const sharedConstants = index.canonicals.filter(
       (canonical) => !canonical.owner && canonical.file.startsWith(path.join(root, "constants") + path.sep),
     );
@@ -179,33 +179,21 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
         for (const entries of namedStrings) {
           const matches = entries.filter((entry) => entry.file === file);
           for (const entry of matches) {
-            const canonical = sharedConstants.filter(
-              (candidate) =>
-                candidate.name === entry.name && candidate.value === entry.value && candidate.file !== file,
-            );
-            // A local binding inside a function is not a reusable module definition.
-            if (canonical.length === 1 && !entry.moduleLevel) continue;
-            if (canonical.length === 1) {
-              const candidate = canonical[0];
-              if (!candidate) continue;
-              const relative = path.relative(root, candidate.file).replaceAll(path.sep, "/");
+            const canonical = sharedConstants
+              .filter((candidate) => candidate.value === entry.value)
+              .sort((a, b) => a.file.localeCompare(b.file) || a.name.localeCompare(b.name))[0];
+            // Keep one canonical definition, and flag every other declaration of its value.
+            if (canonical) {
+              if (canonical.file === file && canonical.name === entry.name && entry.moduleLevel) continue;
+              const relative = path.relative(root, canonical.file).replaceAll(path.sep, "/");
               context.report({
                 node,
                 loc: { line: entry.line, column: entry.column },
-                message: `Reuse ${entry.name} from src/${relative} instead of redefining ${JSON.stringify(entry.value)}. ${DOC}`,
+                message: `Reuse ${canonical.name} from src/${relative} instead of redefining ${JSON.stringify(entry.value)}. ${DOC}`,
               });
               continue;
             }
-            if (canonical.length > 1 || entries.length < 2) continue;
-            // The owner in a constants module is a definition, not a duplicate use.
-            if (
-              sharedConstants.some(
-                (candidate) =>
-                  candidate.file === file && candidate.name === entry.name && candidate.value === entry.value,
-              )
-            ) {
-              continue;
-            }
+            if (entries.length < 2) continue;
             // The existing semantic-role pass already reports this exact occurrence.
             const semantic = current.find((use) => use.line === entry.line && use.column === entry.column);
             if (semantic) {
