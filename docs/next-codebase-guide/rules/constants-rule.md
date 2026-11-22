@@ -16,8 +16,6 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.
 
-The known-domain exception also covers CSS keywords verified against the platform grammar, even when a CSS property allows custom colors, dimensions, or functions. For example, `CssColorEnum.Transparent` and `CssFontStyleEnum.Normal` represent such choices; an arbitrary hex color does not become an enum member.
-
 ## Incorrect — Inline Runtime Values
 
 ```tsx
