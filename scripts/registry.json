@@ -548,6 +548,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Independently declared named constants that explicitly identify different members of the same closed domain (such as `publicationStatusPending` and `publicationStatusPublished`) MUST be consolidated into one TypeScript enum, including when declarations are in different production files of the same feature. Unrelated names merely sharing vocabulary do not establish a closed domain.",
+      "hash": "3b203d27fc",
+      "ref": "pasika/prefer-enum"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
       "hash": "dd5da63697",
       "ref": "pasika/repeated-semantic-literal"
