@@ -130,9 +130,98 @@ function isTsLiteralTupleDeclaration(declaration: ts.Declaration): boolean {
 /** Identify members of an explicitly named closed domain, not merely a shared topic. */
 const enumDomainPattern =
   /^(?<domain>[a-z][A-Za-z0-9]*?(?:Status|State|Mode|Kind|Type|Variant|Category|Phase|Level|Direction|Format|Outcome|Reason))(?<member>[A-Z][A-Za-z0-9]*)$/;
+
+/** HTML tag names have a shared domain even when declarations put the member before Tag/TagName. */
+const htmlTagNames = new Set([
+  "a",
+  "article",
+  "aside",
+  "button",
+  "canvas",
+  "div",
+  "em",
+  "fieldset",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "img",
+  "input",
+  "label",
+  "li",
+  "main",
+  "nav",
+  "ol",
+  "option",
+  "p",
+  "section",
+  "select",
+  "span",
+  "strong",
+  "svg",
+  "table",
+  "tbody",
+  "td",
+  "textarea",
+  "th",
+  "thead",
+  "tr",
+  "ul",
+  "video",
+]);
+const htmlTagPattern = /^(?<member>[a-z][A-Za-z0-9]*?)(?:TagName|Tag)$/;
+
+/** CSS keywords are grouped only within the *same property*, never as one generic CSS enum. */
+const cssPropertyKeywords: Readonly<Record<string, ReadonlySet<string>>> = {
+  Position: new Set(["static", "relative", "absolute", "fixed", "sticky"]),
+  Visibility: new Set(["visible", "hidden", "collapse"]),
+  Overflow: new Set(["visible", "hidden", "clip", "scroll", "auto"]),
+  Display: new Set([
+    "none",
+    "block",
+    "inline",
+    "inline-block",
+    "flex",
+    "inline-flex",
+    "grid",
+    "inline-grid",
+    "contents",
+    "flow-root",
+  ]),
+  BoxSizing: new Set(["border-box", "content-box"]),
+  WhiteSpace: new Set(["normal", "nowrap", "pre", "pre-wrap", "pre-line", "break-spaces"]),
+  FontStyle: new Set(["normal", "italic", "oblique"]),
+  TextAlign: new Set(["left", "right", "center", "start", "end", "justify"]),
+  AlignItems: new Set(["normal", "stretch", "center", "start", "end", "flex-start", "flex-end", "baseline"]),
+};
+const cssSlotPattern =
+  /^(?:(?<prefix>position|visibility|overflow|display|boxSizing|whiteSpace|fontStyle|textAlign|alignItems)(?<prefixMember>[A-Z][A-Za-z0-9]*)|(?<suffixMember>[a-z][A-Za-z0-9]*?)(?<suffix>Position|Visibility|Overflow|Display|BoxSizing|WhiteSpace|FontStyle|TextAlign|AlignItems))$/;
 const programDomainsCache = new WeakMap<ts.Program, Set<string>>();
 
+function normalized(value: string): string {
+  return value.replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
 function inferredDomain(name: string, value: string | number): string | undefined {
+  if (typeof value === "string") {
+    const tag = htmlTagPattern.exec(name)?.groups?.member;
+    if (tag && normalized(tag) === normalized(value) && htmlTagNames.has(value)) return "HtmlTag";
+
+    const css = cssSlotPattern.exec(name)?.groups;
+    if (css) {
+      const property = css.suffix ?? (css.prefix && css.prefix.charAt(0).toUpperCase() + css.prefix.slice(1));
+      const member = css.suffixMember ?? css.prefixMember;
+      if (property && member && normalized(member) === normalized(value) && cssPropertyKeywords[property]?.has(value)) {
+        return `Css${property}`;
+      }
+    }
+  }
+
   const match = enumDomainPattern.exec(name);
   if (!match) return undefined;
   const member = match.groups?.member;
@@ -142,8 +231,7 @@ function inferredDomain(name: string, value: string | number): string | undefine
   // InProgress = "in_progress"). Numeric codes must have an unambiguous,
   // single-word member name. Similar topical prefixes are not enough.
   if (typeof value === "string") {
-    const normalize = (s: string): string => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
-    if (normalize(value) !== normalize(member)) return undefined;
+    if (normalized(value) !== normalized(member)) return undefined;
   } else if (!/^[A-Z][a-z0-9]*$/.test(member)) {
     return undefined;
   }

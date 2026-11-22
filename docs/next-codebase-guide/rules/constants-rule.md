@@ -227,6 +227,33 @@ const draftMediaRowSchema = z.object({ status: z.enum(DraftMediaStatusEnum) });
 
 Why: the enum is the single source of truth for runtime and type-level values. Ordinary tuples used for ordering, positional data, or options are unaffected unless they define an enum-like domain.
 
+## Incorrect — Separate Constants for One Fixed Platform Domain
+
+```ts
+export const buttonTagName = "button";
+export const spanTag = "span";
+export const absolutePosition = "absolute";
+export const relativePosition = "relative";
+```
+
+Why: `buttonTagName` and `spanTag` are alternatives in the HTML tag domain, while `absolutePosition` and `relativePosition` are alternatives in the CSS position domain.
+
+## Correct — Distinct Enums for HTML Tags and CSS Property Values
+
+```ts
+export enum HtmlTag {
+  Button = "button",
+  Span = "span",
+}
+
+export enum CssPosition {
+  Absolute = "absolute",
+  Relative = "relative",
+}
+```
+
+Why: A shared platform domain with two or more distinct alternatives needs one enum, including property-specific CSS pairs such as `overflowHidden` / `overflowVisible`. A shared spelling across different CSS properties (such as `overflow: "hidden"` and `visibility: "hidden"`) does not establish a shared enum, and a lone named keyword must remain a constant.
+
 ## Incorrect — Inline Literal Union for a Property
 
 ```ts
