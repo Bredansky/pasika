@@ -8,6 +8,7 @@
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import path from "node:path";
+import { definitionSyntax, lexer, parse } from "@eslint/css-tree";
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
 import ts from "typescript";
@@ -130,20 +131,111 @@ function isTsLiteralTupleDeclaration(declaration: ts.Declaration): boolean {
 /** Identify members of an explicitly named closed domain, not merely a shared topic. */
 const enumDomainPattern =
   /^(?<domain>[a-z][A-Za-z0-9]*?(?:Status|State|Mode|Kind|Type|Variant|Category|Phase|Level|Direction|Format|Outcome|Reason))(?<member>[A-Z][A-Za-z0-9]*)$/;
-const programDomainsCache = new WeakMap<ts.Program, Set<string>>();
 
-function inferredDomain(name: string, value: string | number): string | undefined {
+/** Valid HTML tags are provided by the TypeScript program, including lib.dom declarations. */
+const htmlTagPattern = /^(?<member>[a-z][A-Za-z0-9]*?)(?:TagName|Tag)$/;
+const programDomainsCache = new WeakMap<ts.Program, Set<string>>();
+const htmlTagCache = new WeakMap<ts.Program, ReadonlySet<string>>();
+const cssKeywordCache = new Map<string, ReadonlySet<string>>();
+
+function htmlTagNamesFor(program: ts.Program): ReadonlySet<string> {
+  const cached = htmlTagCache.get(program);
+  if (cached) return cached;
+  const source = program.getSourceFiles().find((file) => !file.isDeclarationFile);
+  const checker = program.getTypeChecker();
+  const symbol = source
+    ? checker.getSymbolsInScope(source, ts.SymbolFlags.Interface).find((item) => item.name === "HTMLElementTagNameMap")
+    : undefined;
+  const tags = new Set(
+    symbol
+      ? checker
+          .getDeclaredTypeOfSymbol(symbol)
+          .getProperties()
+          .map((property) => property.name)
+      : [],
+  );
+  htmlTagCache.set(program, tags);
+  return tags;
+}
+
+/** Collect concrete keyword alternatives from CSS specifications, including referenced grammar types. */
+function cssKeywordsFor(property: string): ReadonlySet<string> {
+  const cached = cssKeywordCache.get(property);
+  if (cached) return cached;
+  const keywords = new Set<string>();
+  const visitedTypes = new Set<string>();
+  const visitedProperties = new Set<string>([property]);
+  const syntax = lexer.getProperty(property)?.syntax;
+  let isClosed = Boolean(syntax);
+  function collect(node: Parameters<typeof definitionSyntax.walk>[0]): void {
+    definitionSyntax.walk(node, (part) => {
+      if (part.type === "Keyword") {
+        keywords.add(part.name.toLowerCase());
+      } else if (part.type === "Type") {
+        if (visitedTypes.has(part.name)) return;
+        visitedTypes.add(part.name);
+        const nested = lexer.getType(part.name)?.syntax;
+        if (nested) collect(nested);
+        else isClosed = false;
+      } else if (part.type === "Property") {
+        if (visitedProperties.has(part.name)) return;
+        visitedProperties.add(part.name);
+        const nested = lexer.getProperty(part.name)?.syntax;
+        if (nested) collect(nested);
+        else isClosed = false;
+      } else if (part.type !== "Group" && part.type !== "Multiplier") {
+        // A function, arbitrary type or token admits values beyond a finite set.
+        isClosed = false;
+      }
+    });
+  }
+  if (syntax) collect(syntax);
+  const result = isClosed ? keywords : new Set<string>();
+  cssKeywordCache.set(property, result);
+  return result;
+}
+
+function normalized(value: string): string {
+  return value.replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
+function cssDomain(name: string, value: string): string | undefined {
+  // The property may precede or follow the keyword: positionRelative / absolutePosition.
+  for (const match of name.matchAll(/[A-Z]/g)) {
+    const boundary = match.index;
+    const left = name.slice(0, boundary);
+    const right = name.slice(boundary);
+    const candidates: [string, string][] = [
+      [left, right],
+      [right, left],
+    ];
+    for (const [cssPropertyName, memberName] of candidates) {
+      if (normalized(memberName) !== normalized(value)) continue;
+      const property = cssPropertyName.replace(/[A-Z]/g, (part) => `-${part.toLowerCase()}`).replace(/^-/, "");
+      if (!lexer.getProperty(property) || !cssKeywordsFor(property).has(value.toLowerCase())) continue;
+      if (!lexer.matchProperty(property, parse(value, { context: "value" })).matched) continue;
+      return `Css${cssPropertyName.charAt(0).toUpperCase()}${cssPropertyName.slice(1)}`;
+    }
+  }
+  return undefined;
+}
+
+function inferredDomain(name: string, value: string | number, htmlTags: ReadonlySet<string>): string | undefined {
+  if (typeof value === "string") {
+    const tag = htmlTagPattern.exec(name)?.groups?.member;
+    if (tag && normalized(tag) === normalized(value) && htmlTags.has(value)) return "HtmlTag";
+    const css = cssDomain(name, value);
+    if (css) return css;
+  }
+
   const match = enumDomainPattern.exec(name);
   if (!match) return undefined;
   const member = match.groups?.member;
   const domain = match.groups?.domain;
   if (!member || !domain) return undefined;
-  // A string alternative should describe the member it names (Ready = "ready",
-  // InProgress = "in_progress"). Numeric codes must have an unambiguous,
-  // single-word member name. Similar topical prefixes are not enough.
+  // A string alternative should describe its member; numeric codes need a single-word member.
   if (typeof value === "string") {
-    const normalize = (s: string): string => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
-    if (normalize(value) !== normalize(member)) return undefined;
+    if (normalized(value) !== normalized(member)) return undefined;
   } else if (!/^[A-Z][a-z0-9]*$/.test(member)) {
     return undefined;
   }
@@ -154,6 +246,7 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
   const cached = programDomainsCache.get(program);
   if (cached) return cached;
   const groups = new Map<string, { file: string; name: string; value: string | number }[]>();
+  const htmlTags = htmlTagNamesFor(program);
   const root = sourceRoot + path.sep;
   for (const source of program.getSourceFiles()) {
     const file = path.resolve(source.fileName);
@@ -173,7 +266,7 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
         if (ts.isStringLiteral(init) || ts.isNoSubstitutionTemplateLiteral(init)) value = init.text;
         else if (ts.isNumericLiteral(init)) value = Number(init.text);
         if (value === undefined) continue;
-        const domain = inferredDomain(name, value);
+        const domain = inferredDomain(name, value, htmlTags);
         if (!domain) continue;
         const key = `${scope}:${domain}`;
         const members = groups.get(key) ?? [];
@@ -211,6 +304,7 @@ export const preferEnumRule: Rule.RuleModule = {
     const discriminatedUnions: CallExpressionNode[] = [];
     const reportedDiscriminants = new Set<ESTree.Literal>();
     const services = typedParserServices(context.sourceCode.parserServices);
+    const htmlTags = services ? htmlTagNamesFor(services.program) : new Set<string>();
     const namedLocals = new Map<string, { node: VariableDeclaratorNode; name: string; value: string | number }[]>();
 
     function isTupleDomain(name: ESTree.Identifier): boolean {
@@ -235,7 +329,7 @@ export const preferEnumRule: Rule.RuleModule = {
           init.type === "Literal" && (typeof init.value === "string" || typeof init.value === "number")
             ? init.value
             : undefined;
-        const domain = value === undefined ? undefined : inferredDomain(id.name, value);
+        const domain = value === undefined ? undefined : inferredDomain(id.name, value, htmlTags);
         const declaration = node.parent;
         const owner = declaration?.parent;
         const moduleConst =
