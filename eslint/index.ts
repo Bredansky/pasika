@@ -14,7 +14,6 @@ import type { Linter } from "eslint";
 import { accessibleClickTargetRule } from "./rules/accessible-click-target";
 import { apiContractRule } from "./rules/api-contract";
 import { applicationStructureRule } from "./rules/application-structure";
-import { barrelExportSpacingRule } from "./rules/barrel-export-spacing";
 import { noRedundantClientBoundaryRule, requireClientBoundaryRule } from "./rules/client-boundary";
 import { cnHelperRule } from "./rules/cn-helper";
 import { componentCasingRule } from "./rules/component-casing";
@@ -106,7 +105,6 @@ const pasikaNextjsAppRules = {
   "filename-case": filenameCaseRule,
   "import-boundaries": importBoundariesRule,
   "import-spacing": importSpacingRule,
-  "barrel-export-spacing": barrelExportSpacingRule,
   "named-exports": namedExportsRule,
   "support-file-placement": supportFilePlacementRule,
   "support-folder-shape": supportFolderShapeRule,

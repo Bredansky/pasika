@@ -1,12 +1,12 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
-import { barrelExportSpacingRule } from "./barrel-export-spacing";
+import { importSpacingRule } from "./import-spacing";
 
 const MESSAGE =
   "Consecutive star re-exports in an index barrel must not be separated by blank lines. " +
   "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 void describe("Consecutive star re-export declarations in an `index.*` barrel MUST NOT be separated by blank lines.", () => {
-  ruleTester.run("barrel-export-spacing", barrelExportSpacingRule, {
+  ruleTester.run("import-spacing", importSpacingRule, {
     valid: [
       { filename: srcFile("constants/index.ts"), code: 'export * from "./a";\nexport * from "./b";' },
       { filename: srcFile("constants/index.tsx"), code: 'export type * from "./types";\nexport * from "./runtime";' },

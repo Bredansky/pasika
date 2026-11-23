@@ -7,6 +7,7 @@
  * @see docs/next-codebase-guide/rules/exports-and-imports-rule.md
  */
 import type { Rule } from "eslint";
+import { enforceBarrelExportSpacing } from "./barrel-export-spacing";
 
 const MESSAGE =
   "Consecutive ordinary import declarations must not be separated by a blank line. " +
@@ -36,6 +37,7 @@ export const importSpacingRule: Rule.RuleModule = {
   create(context) {
     return {
       Program() {
+        enforceBarrelExportSpacing(context);
         const statements = context.sourceCode.ast.body;
 
         for (let index = 1; index < statements.length; index += 1) {

@@ -644,12 +644,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "Consecutive star re-export declarations in an `index.*` barrel MUST NOT be separated by blank lines.",
-      "hash": "80d9d90928",
-      "ref": "pasika/barrel-export-spacing"
-    },
-    {
-      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A `server-only` marker MUST be separated from the next import declaration by a blank line.",
       "hash": "d78ffc9e33",
       "ref": "pasika/import-spacing"
