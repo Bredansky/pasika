@@ -45,7 +45,7 @@
     "build": "tsup",
     "dogfood": "tsx scripts/dogfood.ts",
     "fix": "eslint . --fix",
-    "format": "prettier --check . --ignore-unknown",
+    "format": "prettier --write eslint/rules/no-as-const.test.ts eslint/rules/prefer-enum.test.ts && git diff -- eslint/rules/no-as-const.test.ts eslint/rules/prefer-enum.test.ts && exit 1",
     "format:staged": "prettier --write --ignore-unknown",
     "lint": "eslint .",
     "lint:staged": "eslint --fix",
