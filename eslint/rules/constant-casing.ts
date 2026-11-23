@@ -25,7 +25,7 @@ export const constantCasingRule: Rule.RuleModule = {
     type: "problem",
     fixable: "whitespace",
     docs: {
-      description: "Require camelCase module-level constants and compact related constant declarations.",
+      description: "Require camelCase module-level constants and compact consecutive constant declarations.",
     },
   },
   create(context) {
