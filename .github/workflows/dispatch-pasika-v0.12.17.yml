@@ -29,13 +29,10 @@ jobs:
       - name: Reproduce tarball and compare against published shasum
         run: |
           set -euo pipefail
-          npm pack --json --pack-destination "$RUNNER_TEMP" > "$RUNNER_TEMP/pasika-pack.json"
-          node --input-type=module -e '
-            import fs from "node:fs";
-            const pack = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/pasika-pack.json", "utf8"))[0];
-            console.log("SHASUM=" + pack.shasum);
-            console.log("INTEGRITY=" + pack.integrity);
-            if (pack.shasum !== "17a5aac4b6eb925f1dc23106d5c52cb12b320be3") {
-              throw new Error("Tarball shasum differs from npm publish log; do not reuse integrity");
-            }
-          '
+          npm pack --pack-destination "$RUNNER_TEMP" >/dev/null
+          tarball="$RUNNER_TEMP/pasika-0.12.17.tgz"
+          shasum="$(sha1sum "$tarball" | cut -d ' ' -f 1)"
+          echo "SHASUM=$shasum"
+          test "$shasum" = "17a5aac4b6eb925f1dc23106d5c52cb12b320be3" || { echo "Repacked tarball differs from published npm tarball"; exit 1; }
+          integrity="sha512-$(openssl dgst -sha512 -binary "$tarball" | base64 -w0)"
+          echo "INTEGRITY=$integrity"
