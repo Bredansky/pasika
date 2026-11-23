@@ -22,6 +22,7 @@ import type {
   VariableDeclaratorNode,
 } from "../ast-types";
 import { typedParserServices } from "./contract-ownership";
+import { semanticZodEnumMembers } from "./prefer-enum-zod";
 import { sourceRootOf } from "./project-root";
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
@@ -421,6 +422,7 @@ export function namedProgramDomains(program: ts.Program, sourceRoot: string): Se
     }
     for (const m of members) result.add(`${m.file}:${m.name}`);
   }
+  for (const member of semanticZodEnumMembers(program, sourceRoot)) result.add(member);
   programDomainsCache.set(program, result);
   return result;
 }
@@ -550,6 +552,7 @@ export const preferEnumRule: Rule.RuleModule = {
       },
       "Program:exit"() {
         const projectDomains = services ? namedProgramDomains(services.program, sourceRoot) : undefined;
+        const semanticMembers = services ? semanticZodEnumMembers(services.program, sourceRoot) : undefined;
         for (const [domain, members] of namedLocals) {
           const localClosedSet =
             (isPlatformDomain(domain) && members.length > 0) ||
@@ -566,11 +569,13 @@ export const preferEnumRule: Rule.RuleModule = {
         }
 
         for (const [name, node] of genericNamedLocals) {
-          if (!projectDomains?.has(`${filename}:${name}`)) continue;
+          const key = `${filename}:${name}`;
+          if (!projectDomains?.has(key)) continue;
           context.report({
             node,
-            message:
-              "A named CSS keyword must use its property-specific enum; different CSS properties must not share one generic constant. See docs/next-codebase-guide/rules/constants-rule.md",
+            message: semanticMembers?.has(key)
+              ? "Constants used as alternatives in a Zod enum must be members of one TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md"
+              : "A named CSS keyword must use its property-specific enum; different CSS properties must not share one generic constant. See docs/next-codebase-guide/rules/constants-rule.md",
           });
         }
 
