@@ -54,7 +54,8 @@ void describe("Consecutive `const` declarations in a `constants/` module MUST NO
       {
         // Names have no bearing on spacing: unrelated exports are still adjacent const declarations.
         code: 'export const telegramProxyFileIdQuery = "?file_id=";\n\nexport const telegramRelativeUrlBase = "http://localhost";',
-        output: 'export const telegramProxyFileIdQuery = "?file_id=";\nexport const telegramRelativeUrlBase = "http://localhost";',
+        output:
+          'export const telegramProxyFileIdQuery = "?file_id=";\nexport const telegramRelativeUrlBase = "http://localhost";',
         filename: srcFile("constants/telegram.ts"),
         errors: [{ message: MESSAGE }],
       },
