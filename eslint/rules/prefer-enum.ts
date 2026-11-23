@@ -6,6 +6,7 @@
  * at least two alternatives before requiring an enum.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
+ * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
  */
 import path from "node:path";
 import { definitionSyntax, lexer, parse } from "@eslint/css-tree";
@@ -49,6 +50,33 @@ function isEnumLiteralType(node: TsTypeNode): boolean {
 
 function isEnumLiteralUnion(node: TsTypeNode | undefined): boolean {
   return node?.type === "TSUnionType" && (node.types?.length ?? 0) >= 2 && (node.types ?? []).every(isEnumLiteralType);
+}
+
+/** Reject the pseudo-enum pattern: type Values = (typeof object)[keyof typeof object]. */
+function isObjectValueUnionAlias(node: TsTypeNode | undefined): boolean {
+  if (node?.type !== "TSIndexedAccessType") return false;
+
+  type QueryNode = TsTypeNode & {
+    exprName?: { type?: string; name?: string };
+    typeAnnotation?: QueryNode;
+  };
+  type KeyofNode = QueryNode & { operator?: string };
+  function hasIndexTypes(value: TsTypeNode): value is TsTypeNode & { objectType?: QueryNode; indexType?: KeyofNode } {
+    return value.type === "TSIndexedAccessType";
+  }
+  if (!hasIndexTypes(node)) return false;
+
+  function queryIdentifier(type: QueryNode | undefined): string | undefined {
+    let current = type;
+    while (current?.type === "TSParenthesizedType") current = current.typeAnnotation;
+    if (current?.type !== "TSTypeQuery" || current.exprName?.type !== "Identifier") return undefined;
+    return current.exprName.name;
+  }
+
+  const key = node.indexType;
+  if (key?.type !== "TSTypeOperator" || key.operator !== "keyof") return false;
+  const objectName = queryIdentifier(node.objectType);
+  return objectName !== undefined && objectName === queryIdentifier(key.typeAnnotation);
 }
 
 function isZodCall(node: Pick<ESTree.CallExpression, "callee"> | CallExpressionNode, method: string): boolean {
@@ -644,7 +672,16 @@ export const preferEnumRule: Rule.RuleModule = {
         });
       },
       TSTypeAliasDeclaration(node: TsTypeAliasDeclarationNode) {
-        if (node.typeParameters || !isEnumLiteralUnion(node.typeAnnotation)) return;
+        if (node.typeParameters) return;
+        if (isObjectValueUnionAlias(node.typeAnnotation)) {
+          context.report({
+            node,
+            message:
+              "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
+          });
+          return;
+        }
+        if (!isEnumLiteralUnion(node.typeAnnotation)) return;
 
         context.report({
           node,

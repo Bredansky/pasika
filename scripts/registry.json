@@ -1064,6 +1064,18 @@
     },
     {
       "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "Application source MUST NOT use `as const` assertions; use an explicit type, `satisfies`, a named constant, or a TypeScript enum instead.",
+      "hash": "122170c487",
+      "ref": "pasika/no-as-const"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
+      "text": "A type alias MUST NOT derive a union from an object's values through `(typeof value)[keyof typeof value]`; use an existing enum type or `typeof` a single named constant instead.",
+      "hash": "27c554ba1b",
+      "ref": "pasika/prefer-enum"
+    },
+    {
+      "doc": "next-codebase-guide/rules/types-and-schemas-rule.md",
       "text": "A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.",
       "hash": "165d0c0cad",
       "ref": "pasika/type-extraction"
