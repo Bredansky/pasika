@@ -548,6 +548,18 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Application source MUST NOT use `as const` assertions; use an explicit type, `satisfies`, a named constant, or a TypeScript enum instead.",
+      "hash": "122170c487",
+      "ref": "pasika/no-as-const"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A type alias MUST NOT derive a union from an object's values through `(typeof value)[keyof typeof value]`; use an existing enum type or `typeof` a single named constant instead.",
+      "hash": "27c554ba1b",
+      "ref": "pasika/prefer-enum"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
       "hash": "dd5da63697",
       "ref": "pasika/repeated-semantic-literal"

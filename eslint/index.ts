@@ -47,6 +47,7 @@ import { localePlacementRule } from "./rules/locale-placement";
 import { localesLocationRule } from "./rules/locales-location";
 import { namedExportsRule } from "./rules/named-exports";
 import { noArbitraryTailwindRule } from "./rules/no-arbitrary-tailwind";
+import { noAsConstRule } from "./rules/no-as-const";
 import { noCatchAllConstantsRule } from "./rules/no-catch-all-constants";
 import { noDuplicateJsxClassesRule } from "./rules/no-duplicate-jsx-classes";
 import { noExternalBarrelReexportsRule } from "./rules/no-external-barrel-reexports";
@@ -112,6 +113,7 @@ const pasikaNextjsAppRules = {
   "util-file-name": utilFileNameRule,
   "no-util-barrel": noUtilBarrelRule,
   "no-external-barrel-reexports": noExternalBarrelReexportsRule,
+  "no-as-const": noAsConstRule,
   "no-catch-all-constants": noCatchAllConstantsRule,
   "no-redundant-alias": noRedundantAliasRule,
   "no-inline-runtime-literal": noInlineRuntimeLiteralRule,

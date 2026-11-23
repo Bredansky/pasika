@@ -6,6 +6,8 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, unless it belongs to a known, fixed domain with multiple possible values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
+- Application source MUST NOT use `as const` assertions; use an explicit type, `satisfies`, a named constant, or a TypeScript enum instead.
+- A type alias MUST NOT derive a union from an object's values through `(typeof value)[keyof typeof value]`; use an existing enum type or `typeof` a single named constant instead.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
@@ -179,6 +181,24 @@ enum LanguageLabel {
 ```
 
 Why: `LanguageLabel` states its closed set of values as an `enum`, matching the constant's actual shape.
+
+## Incorrect — A Single-Value Object Pretending To Be An Enum
+
+```ts
+export const userAccountUserIdColumn = "user_id";
+export const UserAccountColumnEnum = { UserId: userAccountUserIdColumn } as const;
+export type UserAccountColumnEnum = (typeof UserAccountColumnEnum)[keyof typeof UserAccountColumnEnum];
+```
+
+Why: a one-member object with a const assertion and a derived union adds indirection but no meaningful alternatives.
+
+## Correct — A Single Named Column
+
+```ts
+export const userAccountUserIdColumn = "user_id";
+```
+
+Why: consumers use the named constant directly and can write `typeof userAccountUserIdColumn` when its type is genuinely needed. A domain with multiple alternatives should instead use a real TypeScript enum.
 
 ## Incorrect — Literal Union for a Fixed Named Set
 
