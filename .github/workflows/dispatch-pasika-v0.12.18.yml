@@ -1,4 +1,4 @@
-name: Dispatch Pasika v0.12.18 release
+name: Verify Pasika v0.12.18 published tarball integrity
 
 on:
   push:
@@ -6,27 +6,33 @@ on:
       - "automation/publish-v0.12.18-20261123"
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
 
 jobs:
-  dispatch:
+  integrity:
     runs-on: ubuntu-latest
     steps:
-      - name: Tag verified main and dispatch the official publisher
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
+      - name: Check out exact published tag
+        uses: actions/checkout@v6
+        with:
+          ref: v0.12.18
+
+      - name: Set up publishing Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify repacked checksum and emit full integrity
         run: |
           set -euo pipefail
-          main_sha="$(gh api "repos/$REPO/git/ref/heads/main" --jq '.object.sha')"
-          version="$(gh api "repos/$REPO/contents/package.json?ref=main" --jq '.content' | base64 -d | jq -r '.version')"
-          test "$version" = "0.12.18" || { echo "Unexpected version on main: $version"; exit 1; }
-          if gh api "repos/$REPO/git/ref/tags/v0.12.18" >/dev/null 2>&1; then
-            existing_sha="$(gh api "repos/$REPO/git/ref/tags/v0.12.18" --jq '.object.sha')"
-            test "$existing_sha" = "$main_sha" || { echo "Existing tag points to a different commit"; exit 1; }
-          else
-            gh api --method POST "repos/$REPO/git/refs" -f ref="refs/tags/v0.12.18" -f sha="$main_sha"
-          fi
-          gh workflow run publish.yml --repo "$REPO" --ref "v0.12.18"
-          echo "Dispatched official Pasika publish.yml for v0.12.18"
+          npm pack --pack-destination "$RUNNER_TEMP" >/dev/null
+          tarball="$RUNNER_TEMP/pasika-0.12.18.tgz"
+          shasum="$(sha1sum "$tarball" | cut -d ' ' -f 1)"
+          echo "SHASUM=$shasum"
+          test "$shasum" = "bc48fa05fab7808d23ee5c7a6563529df5db71fb" || { echo "Repacked tarball differs from published npm tarball"; exit 1; }
+          integrity="sha512-$(openssl dgst -sha512 -binary "$tarball" | base64 -w0)"
+          echo "INTEGRITY=$integrity"
