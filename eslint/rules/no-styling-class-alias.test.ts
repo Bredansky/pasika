@@ -112,7 +112,6 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
   });
 });
 
-
 const STATIC_CVA_ALIAS_MESSAGE = `Do not define CVA wrappers without real variants in constants/ modules; keep static Tailwind classes with their styling owner. ${DOC}`;
 
 void describe("Static CVA class wrappers MUST NOT be exported from constants/ modules, regardless of naming.", () => {
