@@ -16,6 +16,7 @@ import { sourceRootOf } from "./project-root";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
 const MESSAGE = `Do not use enum members or shared class-name constants to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
+const STATIC_CVA_ALIAS_MESSAGE = `Do not define CVA wrappers without real variants in constants/ modules; keep static Tailwind classes with their styling owner. ${DOC}`;
 
 interface Binding {
   kind: "enum" | "const";
@@ -56,6 +57,29 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     const sourceCache = new Map<string, ts.SourceFile | undefined>([[file, current]]);
     const lookupCache = new Map<string, Binding | undefined>();
     const visited = new Set<string>();
+
+    // Resolve CVA by its import, not by variable or class-name prefixes.
+    const cvaImports = new Set<string>();
+    const cvaNamespaces = new Set<string>();
+    for (const statement of current.statements) {
+      if (
+        !ts.isImportDeclaration(statement) ||
+        !ts.isStringLiteral(statement.moduleSpecifier) ||
+        statement.moduleSpecifier.text !== "class-variance-authority"
+      ) {
+        continue;
+      }
+      const bindings = statement.importClause?.namedBindings;
+      if (bindings && ts.isNamedImports(bindings)) {
+        for (const binding of bindings.elements) {
+          if (!binding.isTypeOnly && (binding.propertyName?.text ?? binding.name.text) === "cva") {
+            cvaImports.add(binding.name.text);
+          }
+        }
+      }
+      if (bindings && ts.isNamespaceImport(bindings)) cvaNamespaces.add(bindings.name.text);
+    }
+    const isConstantsModule = path.relative(root, file).split(path.sep).includes("constants");
 
     function loadSource(target: string): ts.SourceFile | undefined {
       if (sourceCache.has(target)) return sourceCache.get(target);
@@ -149,7 +173,7 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     }
 
     const reported = new Set<number>();
-    function report(node: ts.Node): void {
+    function report(node: ts.Node, message = MESSAGE): void {
       const pos = node.getStart(current);
       if (reported.has(pos)) return;
       reported.add(pos);
@@ -157,8 +181,47 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
       context.report({
         node: context.sourceCode.ast,
         loc: { line: location.line + 1, column: location.character },
-        message: MESSAGE,
+        message,
       });
+    }
+
+    /** Reject CVA used merely to export a static class set from constants/. */
+    function inspectCvaAlias(statement: ts.VariableStatement): void {
+      if (!isConstantsModule || statement.parent !== current) return;
+      for (const declaration of statement.declarationList.declarations) {
+        let initializer = declaration.initializer;
+        while (
+          initializer &&
+          (ts.isParenthesizedExpression(initializer) ||
+            ts.isAsExpression(initializer) ||
+            ts.isSatisfiesExpression(initializer))
+        ) {
+          initializer = initializer.expression;
+        }
+        if (!initializer || !ts.isCallExpression(initializer)) continue;
+        const callee = initializer.expression;
+        const importedCva =
+          (ts.isIdentifier(callee) && cvaImports.has(callee.text)) ||
+          (ts.isPropertyAccessExpression(callee) &&
+            callee.name.text === "cva" &&
+            ts.isIdentifier(callee.expression) &&
+            cvaNamespaces.has(callee.expression.text));
+        if (!importedCva) continue;
+
+        // A nonempty variants map is real CVA configuration, not a
+        // static styling alias. Do not guess about externally defined options.
+        const options = initializer.arguments[1];
+        if (options && !ts.isObjectLiteralExpression(options)) continue;
+        const hasVariants = options?.properties.some(
+          (property) =>
+            ts.isPropertyAssignment(property) &&
+            ((ts.isIdentifier(property.name) && property.name.text === "variants") ||
+              (ts.isStringLiteral(property.name) && property.name.text === "variants")) &&
+            ts.isObjectLiteralExpression(property.initializer) &&
+            property.initializer.properties.length > 0,
+        );
+        if (!hasVariants) report(declaration, STATIC_CVA_ALIAS_MESSAGE);
+      }
     }
 
     /** CVA variant names and defaultVariants are selectors, not CSS classes. */
@@ -259,6 +322,7 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     }
 
     function visit(node: ts.Node): void {
+      if (ts.isVariableStatement(node)) inspectCvaAlias(node);
       if (ts.isJsxAttribute(node) && ts.isIdentifier(node.name) && node.name.text === "className") {
         if (node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
           inspectStyle(node.initializer.expression);
