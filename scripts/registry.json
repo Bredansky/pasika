@@ -566,12 +566,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Consecutive related `const` declarations in a `constants/` module MUST NOT be separated by blank lines; comments and different declaration kinds MAY separate semantic groups.",
-      "hash": "2608a6e3f6",
-      "ref": "pasika/constant-spacing"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.",
       "hash": "a5cdb54496",
       "ref": "pasika/value-extraction, pasika/enum-placement, pasika/no-mixed-concerns"

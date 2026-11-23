@@ -1,12 +1,12 @@
 import { describe, ruleTester, srcFile } from "../rule-tester";
-import { constantSpacingRule } from "./constant-spacing";
+import { constantCasingRule } from "./constant-casing";
 
 const MESSAGE =
   "Consecutive related const declarations in a constants module must not have blank lines between them. " +
   "See docs/next-codebase-guide/rules/constants-rule.md";
 
 void describe("Consecutive related `const` declarations in a `constants/` module MUST NOT be separated by blank lines; comments and different declaration kinds MAY separate semantic groups.", () => {
-  ruleTester.run("constant-spacing", constantSpacingRule, {
+  ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
       {
         code: 'export const telegramProxyFileIdQuery = "?file_id=";\nexport const telegramProxyFileIdQueryKey = "file_id";',

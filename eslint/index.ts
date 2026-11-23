@@ -21,7 +21,6 @@ import { componentNestingRule } from "./rules/component-nesting";
 import { componentPlacementRule } from "./rules/component-placement";
 import { configExtractionRule } from "./rules/config-extraction";
 import { constantCasingRule } from "./rules/constant-casing";
-import { constantSpacingRule } from "./rules/constant-spacing";
 import { crossFeatureImportRule } from "./rules/cross-feature-import";
 import { cvaAppearancePropsRule } from "./rules/cva-appearance-props";
 import { cvaBooleanVariantsRule } from "./rules/cva-boolean-variants";
@@ -121,7 +120,6 @@ const pasikaNextjsAppRules = {
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,
   "constant-casing": constantCasingRule,
-  "constant-spacing": constantSpacingRule,
   "prefer-enum": preferEnumRule,
   "repeated-semantic-literal": repeatedSemanticLiteralRule,
   "prefer-object-destructuring": preferObjectDestructuringRule,

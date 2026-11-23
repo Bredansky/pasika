@@ -1,5 +1,5 @@
 ﻿/**
- * ESLint rule: pasika/constant-spacing
+ * Shared helper for pasika/constant-casing
  *
  * Keep adjacent, same-domain const declarations together in constants modules.
  * Do not infer a domain from filename or a single broad prefix; comments and
@@ -56,48 +56,34 @@ function compactBlankLines(gap: string): string {
   return newline + indentation;
 }
 
-export const constantSpacingRule: Rule.RuleModule = {
-  meta: {
-    schema: [],
-    type: "layout",
-    fixable: "whitespace",
-    docs: {
-      description: "Keep consecutive same-domain constants together without removing semantic section boundaries.",
-    },
-  },
-  create(context) {
-    const filename = context.filename.replaceAll("\\", "/");
-    if (!CONSTANTS_FILE.test(filename)) return {};
-    return {
-      Program() {
-        const statements = context.sourceCode.ast.body;
-        for (let index = 1; index < statements.length; index += 1) {
-          const previous = statements[index - 1];
-          const current = statements[index];
-          if (!previous || !current) continue;
+export function enforceConstantSpacing(context: Rule.RuleContext): void {
+  const filename = context.filename.replaceAll("\\", "/");
+  if (!CONSTANTS_FILE.test(filename)) return;
+  const statements = context.sourceCode.ast.body;
+  for (let index = 1; index < statements.length; index += 1) {
+    const previous = statements[index - 1];
+    const current = statements[index];
+    if (!previous || !current) continue;
 
-          const first = declaredConstant(previous);
-          const second = declaredConstant(current);
-          if (first === undefined || second === undefined) continue;
-          if (first.exported !== second.exported) continue;
-          if (!hasSharedDomain(first.name, second.name)) continue;
+    const first = declaredConstant(previous);
+    const second = declaredConstant(current);
+    if (first === undefined || second === undefined) continue;
+    if (first.exported !== second.exported) continue;
+    if (!hasSharedDomain(first.name, second.name)) continue;
 
-          const start = previous.range?.[1];
-          const end = current.range?.[0];
-          if (start === undefined || end === undefined) continue;
-          const gap = context.sourceCode.text.slice(start, end);
-          // Any comment acts as an explicit group boundary. Never touch it.
-          if (gap.trim() || !BLANK_LINE.test(gap)) continue;
+    const start = previous.range?.[1];
+    const end = current.range?.[0];
+    if (start === undefined || end === undefined) continue;
+    const gap = context.sourceCode.text.slice(start, end);
+    // Any comment acts as an explicit group boundary. Never touch it.
+    if (gap.trim() || !BLANK_LINE.test(gap)) continue;
 
-          context.report({
-            node: current,
-            message: MESSAGE,
-            fix(fixer) {
-              return fixer.replaceTextRange([start, end], compactBlankLines(gap));
-            },
-          });
-        }
+    context.report({
+      node: current,
+      message: MESSAGE,
+      fix(fixer) {
+        return fixer.replaceTextRange([start, end], compactBlankLines(gap));
       },
-    };
-  },
-};
+    });
+  }
+}
