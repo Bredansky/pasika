@@ -13,6 +13,7 @@ import type * as ESTree from "estree";
 import type { TsAsExpressionNode } from "../ast-types";
 import { sourceRootOf } from "./project-root";
 
+const DOC = "See docs/next-codebase-guide/rules/types-and-schemas-rule.md";
 const MESSAGE = `Do not use as const assertions; use an explicit type, satisfies, a named constant, or a TypeScript enum. ${DOC}`;
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
