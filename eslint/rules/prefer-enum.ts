@@ -6,6 +6,7 @@
  * at least two alternatives before requiring an enum.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
+ * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
  */
 import path from "node:path";
 import { definitionSyntax, lexer, parse } from "@eslint/css-tree";
@@ -676,7 +677,7 @@ export const preferEnumRule: Rule.RuleModule = {
           context.report({
             node,
             message:
-              "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/constants-rule.md",
+              "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
           });
           return;
         }

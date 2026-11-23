@@ -2,6 +2,8 @@
 
 Types and schemas are easy to bury in component files or scatter across the project. This rule keeps them close to one component and gives independently used ones a consistent location.
 
+- Application source MUST NOT use `as const` assertions; use an explicit type, `satisfies`, a named constant, or a TypeScript enum instead.
+- A type alias MUST NOT derive a union from an object's values through `(typeof value)[keyof typeof value]`; use an existing enum type or `typeof` a single named constant instead.
 - A type or schema declared in a component MUST stay in that component file until another file imports it without the component where it is defined.
 - A type or schema declared outside a component MUST stay in its file until another file needs it without using the code in that file.
 - Extracted types and schemas MUST live in their matching `types/` or `schemas/` folder at the CCF of their consumers.
@@ -30,10 +32,10 @@ src/
 
 ```tsx
 // src/features/billing/invoice.tsx
-import type { InvoiceStatus } from "./types";
+import type { InvoiceDetails } from "./types";
 
 // src/compositions/BillingDashboard.tsx
-import type { InvoiceStatus } from "@/features/billing/types";
+import type { InvoiceDetails } from "@/features/billing/types";
 ```
 
 Why: the feature and composition have `src/` as their CCF, but the type remains in the billing feature.
@@ -53,16 +55,18 @@ src/
 
 ```ts
 // src/types/index.ts
-export type InvoiceStatus = "draft" | "paid";
-export type PaymentMethod = "card" | "bank";
+export type InvoiceDetails = {
+  id: string;
+  totalCents: number;
+};
 ```
 
 ```tsx
 // src/features/billing/invoice.tsx
-import type { InvoiceStatus } from "@/types";
+import type { InvoiceDetails } from "@/types";
 
 // src/compositions/BillingDashboard.tsx
-import type { InvoiceStatus } from "@/types";
+import type { InvoiceDetails } from "@/types";
 ```
 
 Why: the feature and composition have `src/` as their CCF, so the type lives in `src/types/`.

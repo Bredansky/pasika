@@ -374,38 +374,44 @@ void describe("Known, fixed sets of two or more related string or numeric values
   });
 });
 
-void describe("A type alias MUST NOT derive a union from an object's values through (typeof value)[keyof typeof value]; use an existing enum type or typeof a single named constant instead.", () => {
-  ruleTester.run("prefer-enum", preferEnumRule, {
-    valid: [
-      { code: 'const column = "user_id"; type Column = typeof column;', filename: file("constants/user-accounts.ts") },
-      {
-        code: 'enum Column { UserId = "user_id" } type ColumnValue = Column;',
-        filename: file("constants/user-accounts.ts"),
-      },
-      { code: "type Values<T> = T[keyof T];", filename: file("types/values.ts") },
-      { code: "type Keys = keyof typeof columns;", filename: file("types/columns.ts") },
-    ],
-    invalid: [
-      {
-        code: 'const UserAccountColumnEnum = { UserId: "user_id" } as const; export type UserAccountColumnEnum = (typeof UserAccountColumnEnum)[keyof typeof UserAccountColumnEnum];',
-        filename: file("constants/user-accounts.ts"),
-        errors: [
-          {
-            message:
-              "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/constants-rule.md",
-          },
-        ],
-      },
-      {
-        code: "type Values = typeof columns[keyof typeof columns];",
-        filename: file("types/columns.ts"),
-        errors: [
-          {
-            message:
-              "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/constants-rule.md",
-          },
-        ],
-      },
-    ],
-  });
-});
+void describe(
+  "A type alias MUST NOT derive a union from an object's values through (typeof value)[keyof typeof value]; use an existing enum type or typeof a single named constant instead.",
+  () => {
+    ruleTester.run("prefer-enum", preferEnumRule, {
+      valid: [
+        {
+          code: 'const column = "user_id"; type Column = typeof column;',
+          filename: file("constants/user-accounts.ts"),
+        },
+        {
+          code: 'enum Column { UserId = "user_id" } type ColumnValue = Column;',
+          filename: file("constants/user-accounts.ts"),
+        },
+        { code: "type Values<T> = T[keyof T];", filename: file("types/values.ts") },
+        { code: "type Keys = keyof typeof columns;", filename: file("types/columns.ts") },
+      ],
+      invalid: [
+        {
+          code: 'const UserAccountColumnEnum = { UserId: "user_id" } as const; export type UserAccountColumnEnum = (typeof UserAccountColumnEnum)[keyof typeof UserAccountColumnEnum];',
+          filename: file("constants/user-accounts.ts"),
+          errors: [
+            {
+              message:
+                "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
+            },
+          ],
+        },
+        {
+          code: "type Values = typeof columns[keyof typeof columns];",
+          filename: file("types/columns.ts"),
+          errors: [
+            {
+              message:
+                "Do not derive an object-value union via (typeof value)[keyof typeof value]; use the enum type or typeof a single constant. See docs/next-codebase-guide/rules/types-and-schemas-rule.md",
+            },
+          ],
+        },
+      ],
+    });
+  },
+);

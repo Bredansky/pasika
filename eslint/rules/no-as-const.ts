@@ -5,7 +5,7 @@
  * Multi-member const-asserted enum objects are already reported by
  * pasika/prefer-enum, so avoid duplicate diagnostics for that shape.
  *
- * @see docs/next-codebase-guide/rules/constants-rule.md
+ * @see docs/next-codebase-guide/rules/types-and-schemas-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
@@ -13,7 +13,7 @@ import type * as ESTree from "estree";
 import type { TsAsExpressionNode } from "../ast-types";
 import { sourceRootOf } from "./project-root";
 
-const MESSAGE = `Do not use as const assertions; use an explicit type, satisfies, a named constant, or a TypeScript enum. See docs/next-codebase-guide/rules/constants-rule.md`;
+const MESSAGE = `Do not use as const assertions; use an explicit type, satisfies, a named constant, or a TypeScript enum. ${DOC}`;
 
 function isConstAssertion(node: TsAsExpressionNode): boolean {
   const annotation = node.typeAnnotation;
