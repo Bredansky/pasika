@@ -596,6 +596,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A generically named constants module with many exported values from distinct naming domains MUST be split into cohesive, domain-named modules.",
+      "hash": "c5bf3f7f9e",
+      "ref": "pasika/no-catch-all-constants"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.",
       "hash": "f1e5f5dde3",
       "ref": "pasika/import-through-index, pasika/support-folder-shape"

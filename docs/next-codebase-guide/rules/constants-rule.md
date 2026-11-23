@@ -14,6 +14,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.
 - A constant MAY stay in `src/config/<config-name>/` when it configures that module's behavior, even if other files consume it.
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
+- A generically named constants module with many exported values from distinct naming domains MUST be split into cohesive, domain-named modules.
 - A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.
 
 ## Incorrect — Inline Runtime Values
