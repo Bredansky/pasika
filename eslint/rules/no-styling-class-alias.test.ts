@@ -112,6 +112,58 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
   });
 });
 
+const STATIC_CVA_ALIAS_MESSAGE = `Do not define CVA wrappers without real variants in constants/ modules; keep static Tailwind classes with their styling owner. ${DOC}`;
+
+void describe("Static CVA class wrappers MUST NOT be exported from constants/ modules, regardless of naming.", () => {
+  ruleTester.run("no-styling-class-alias", noStylingClassAliasRule, {
+    valid: [
+      {
+        filename: srcFile("features/ui/button.tsx"),
+        code: 'import { cva } from "class-variance-authority"; const focus = "ring-2"; export const focusClasses = cva(focus);',
+      },
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import { cva } from "class-variance-authority"; export const buttonVariants = cva("rounded", { variants: { size: { sm: "px-2", lg: "px-4" } } });',
+      },
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import { cva } from "class-variance-authority"; const options = getVariants(); export const buttonVariants = cva("rounded", options);',
+      },
+      {
+        filename: srcFile("constants/display.ts"),
+        code: 'export const classNameText = "rounded p-4";',
+      },
+    ],
+    invalid: [
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import { cva } from "class-variance-authority"; const badgeFocusTokens = "focus-visible:ring-3"; export const badgeFocusClasses = cva(badgeFocusTokens); const buttonDisabledTokens = "disabled:opacity-50"; export const buttonDisabledClasses = cva(buttonDisabledTokens);',
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }, { message: STATIC_CVA_ALIAS_MESSAGE }],
+      },
+      {
+        filename: srcFile("features/editor/constants/index.ts"),
+        code: 'import { cva } from "class-variance-authority"; const token = "text-xs"; export const subButtonSmallClasses = cva(token);',
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }],
+      },
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import { cva as makeClasses } from "class-variance-authority"; export const whatever = makeClasses("p-4");',
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }],
+      },
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import * as Styles from "class-variance-authority"; export const whatever = Styles.cva("p-4", {});',
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }],
+      },
+      {
+        filename: srcFile("constants/ui-classes.ts"),
+        code: 'import { cva } from "class-variance-authority"; export const whatever = cva("p-4", { variants: {} });',
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }],
+      },
+    ],
+  });
+});
+
 test("Imported enums and class constants, including re-export barrels, are rejected only when used for styling", () => {
   const originalCwd = process.cwd();
   const root = mkdtempSync(path.join(tmpdir(), "pasika-class-alias-"));
