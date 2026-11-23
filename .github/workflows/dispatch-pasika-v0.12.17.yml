@@ -1,4 +1,4 @@
-name: Verify published Pasika v0.12.17 integrity
+name: Verify Pasika v0.12.17 tarball integrity
 
 on:
   push:
@@ -9,18 +9,33 @@ permissions:
   contents: read
 
 jobs:
-  metadata:
+  integrity:
     runs-on: ubuntu-latest
     steps:
-      - name: Read canonical npm registry integrity
+      - name: Check out exact published tag
+        uses: actions/checkout@v6
+        with:
+          ref: v0.12.17
+
+      - name: Set up publishing Node.js version
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Reproduce tarball and compare against published shasum
         run: |
           set -euo pipefail
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            if integrity="$(npm view pasika@0.12.17 dist.integrity --registry=https://registry.npmjs.org)"; then
-              echo "PACKAGE=pasika@0.12.17"
-              echo "INTEGRITY=$integrity"
-              exit 0
-            fi
-            sleep 10
-          done
-          exit 1
+          npm pack --json --pack-destination "$RUNNER_TEMP" > "$RUNNER_TEMP/pasika-pack.json"
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const pack = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/pasika-pack.json", "utf8"))[0];
+            console.log("SHASUM=" + pack.shasum);
+            console.log("INTEGRITY=" + pack.integrity);
+            if (pack.shasum !== "17a5aac4b6eb925f1dc23106d5c52cb12b320be3") {
+              throw new Error("Tarball shasum differs from npm publish log; do not reuse integrity");
+            }
+          '
