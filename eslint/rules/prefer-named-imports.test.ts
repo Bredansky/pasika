@@ -2,7 +2,7 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { preferNamedImportsRule } from "./prefer-named-imports";
 
 const MESSAGE =
-  "Use named imports instead of namespace imports. " + "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
+  "Use named imports instead of namespace imports. See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 void describe("Imports MUST use named imports instead of namespace imports.", () => {
   const filename = srcFile("features/editor/utils/example.tsx");

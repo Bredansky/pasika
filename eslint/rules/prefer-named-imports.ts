@@ -6,7 +6,7 @@
 import type { Rule } from "eslint";
 
 const MESSAGE =
-  "Use named imports instead of namespace imports. " + "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
+  "Use named imports instead of namespace imports. See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
 export const preferNamedImportsRule: Rule.RuleModule = {
   meta: {
