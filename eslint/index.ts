@@ -63,6 +63,7 @@ import { noUtilBarrelRule } from "./rules/no-util-barrel";
 import { noVitestEnvironmentDirectiveRule } from "./rules/no-vitest-environment-directive";
 import { repoPackageJsonRules, nextjsPackageJsonRules } from "./rules/package-json/index";
 import { preferEnumRule } from "./rules/prefer-enum";
+import { preferNamedImportsRule } from "./rules/prefer-named-imports";
 import { preferObjectDestructuringRule } from "./rules/prefer-object-destructuring";
 import { pureFunctionExtractRule } from "./rules/pure-function-extract";
 import { repeatedNumericValueRule } from "./rules/repeated-numeric-value";
@@ -107,6 +108,7 @@ const pasikaNextjsAppRules = {
   "import-boundaries": importBoundariesRule,
   "import-spacing": importSpacingRule,
   "named-exports": namedExportsRule,
+  "prefer-named-imports": preferNamedImportsRule,
   "support-file-placement": supportFilePlacementRule,
   "support-folder-shape": supportFolderShapeRule,
   "import-through-index": importThroughIndexRule,
