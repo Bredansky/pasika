@@ -9,6 +9,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
+- In constants modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.
 - A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.
 - Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.
 - A constant with no consumer outside `src/app/` MUST live under `src/features/<feature>/`. If no existing feature applies, it MUST introduce a new feature folder.

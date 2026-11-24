@@ -2,12 +2,31 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { constantCasingRule } from "./constant-casing";
 
 const MESSAGE =
-  "Consecutive const declarations in a constants module must not have blank lines between them. " +
+  "Consecutive single-line const declarations in a constants module must not have blank lines between them. " +
   "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Consecutive `const` declarations in a `constants/` module MUST NOT be separated by blank lines regardless of naming; comments and different declaration kinds MAY separate semantic groups.", () => {
+const MULTILINE_MESSAGE =
+  "Multiline const declarations in a constants module must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+
+void describe("In constants modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
+      {
+        code: "export const first = defineApiContract({\n  method: method,\n});\n\nexport const second = defineApiContract({\n  method: method,\n});",
+        filename: srcFile("constants/api-contracts.ts"),
+      },
+      {
+        code: "export const first = getQuery(\n  key,\n);\n\nexport const second = key;",
+        filename: srcFile("constants/api-contracts.ts"),
+      },
+      {
+        code: "export const first = key;\n\nexport const second = getQuery(\n  key,\n);",
+        filename: srcFile("constants/api-contracts.ts"),
+      },
+      {
+        code: "export const first = getQuery(\n  key,\n);\n// Another group\nexport const second = key;",
+        filename: srcFile("constants/api-contracts.ts"),
+      },
       {
         code: 'export const telegramProxyFileIdQuery = "?file_id=";\nexport const telegramProxyFileIdQueryKey = "file_id";',
         filename: srcFile("constants/telegram.ts"),
@@ -51,6 +70,31 @@ void describe("Consecutive `const` declarations in a `constants/` module MUST NO
       },
     ],
     invalid: [
+      {
+        code: "export const first = defineApiContract({\n  method: method,\n});\nexport const second = defineApiContract({\n  method: method,\n});",
+        output:
+          "export const first = defineApiContract({\n  method: method,\n});\n\nexport const second = defineApiContract({\n  method: method,\n});",
+        filename: srcFile("constants/api-contracts.ts"),
+        errors: [{ message: MULTILINE_MESSAGE }],
+      },
+      {
+        code: "export const first = getQuery(\n  key,\n);\nexport const second = key;",
+        output: "export const first = getQuery(\n  key,\n);\n\nexport const second = key;",
+        filename: srcFile("constants/api-contracts.ts"),
+        errors: [{ message: MULTILINE_MESSAGE }],
+      },
+      {
+        code: "export const first = key;\nexport const second = getQuery(\n  key,\n);",
+        output: "export const first = key;\n\nexport const second = getQuery(\n  key,\n);",
+        filename: srcFile("constants/api-contracts.ts"),
+        errors: [{ message: MULTILINE_MESSAGE }],
+      },
+      {
+        code: "const first = getQuery(\r\n  key,\r\n);\r\nexport const second = key;",
+        output: "const first = getQuery(\r\n  key,\r\n);\r\n\r\nexport const second = key;",
+        filename: srcFile("constants/api-contracts.ts"),
+        errors: [{ message: MULTILINE_MESSAGE }],
+      },
       {
         // Names have no bearing on spacing: unrelated exports are still adjacent const declarations.
         code: 'export const telegramProxyFileIdQuery = "?file_id=";\n\nexport const telegramRelativeUrlBase = "http://localhost";',
@@ -103,13 +147,6 @@ void describe("Consecutive `const` declarations in a `constants/` module MUST NO
       {
         code: '  const telegramProxyFileIdQuery = "?file_id=";\n  \n  const telegramProxyFileIdQueryKey = "file_id";',
         output: '  const telegramProxyFileIdQuery = "?file_id=";\n  const telegramProxyFileIdQueryKey = "file_id";',
-        filename: srcFile("constants/telegram.ts"),
-        errors: [{ message: MESSAGE }],
-      },
-      {
-        code: 'export const telegramProxyFileIdQuery = getQuery(\n  "file_id",\n);\n\nexport const telegramProxyFileIdQueryKey = "file_id";',
-        output:
-          'export const telegramProxyFileIdQuery = getQuery(\n  "file_id",\n);\nexport const telegramProxyFileIdQueryKey = "file_id";',
         filename: srcFile("constants/telegram.ts"),
         errors: [{ message: MESSAGE }],
       },
