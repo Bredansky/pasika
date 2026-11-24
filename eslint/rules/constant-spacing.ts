@@ -1,17 +1,19 @@
-﻿/**
+/**
  * Shared helper for pasika/constant-casing
  *
- * Keep adjacent single-const declarations together in constants modules,
- * regardless of their identifier names. Comments, different declaration kinds,
- * and export visibility are deliberate section boundaries.
+ * Group single-line constants and separate multiline constants in constants modules.
+ * Comments remain deliberate section boundaries.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import type { AST, Rule } from "eslint";
 
 const MESSAGE =
-  "Consecutive const declarations in a constants module must not have blank lines between them. " +
+  "Consecutive single-line const declarations in a constants module must not have blank lines between them. " +
   "See docs/next-codebase-guide/rules/constants-rule.md";
+
+const MULTILINE_MESSAGE =
+  "Multiline const declarations in a constants module must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 
 const CONSTANTS_FILE = /(?:^|\/)src\/(?:[^/]+\/)*constants\/[^/]+\.[cm]?[jt]sx?$/u;
 const BLANK_LINE = /\r?\n[\t ]*\r?\n/u;
@@ -26,10 +28,10 @@ function constantDeclarationExported(node: AST.Program["body"][number]): boolean
   return exported;
 }
 
-function compactBlankLines(gap: string): string {
+function spacing(gap: string, multiline: boolean): string {
   const newline = gap.includes("\r\n") ? "\r\n" : "\n";
   const indentation = /[\t ]*$/u.exec(gap)?.[0] ?? "";
-  return newline + indentation;
+  return (multiline ? newline + newline : newline) + indentation;
 }
 
 export function enforceConstantSpacing(context: Rule.RuleContext): void {
@@ -44,20 +46,22 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     const firstExported = constantDeclarationExported(previous);
     const secondExported = constantDeclarationExported(current);
     if (firstExported === undefined || secondExported === undefined) continue;
-    if (firstExported !== secondExported) continue;
+    const multiline =
+      previous.loc?.start.line !== previous.loc?.end.line || current.loc?.start.line !== current.loc?.end.line;
+    if (!multiline && firstExported !== secondExported) continue;
 
     const start = previous.range?.[1];
     const end = current.range?.[0];
     if (start === undefined || end === undefined) continue;
     const gap = context.sourceCode.text.slice(start, end);
     // Any comment acts as an explicit group boundary. Never touch it.
-    if (gap.trim() || !BLANK_LINE.test(gap)) continue;
+    if (gap.trim() || BLANK_LINE.test(gap) === multiline) continue;
 
     context.report({
       node: current,
-      message: MESSAGE,
+      message: multiline ? MULTILINE_MESSAGE : MESSAGE,
       fix(fixer) {
-        return fixer.replaceTextRange([start, end], compactBlankLines(gap));
+        return fixer.replaceTextRange([start, end], spacing(gap, multiline));
       },
     });
   }
