@@ -3,7 +3,7 @@
 Without consistent exports, import paths, and layer boundaries, it is harder to tell what a file contains and which files may depend on it. This rule gives each file a predictable export style and keeps imports consistent with the application structure.
 
 - A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.
-- An internal namespace import MUST use named imports instead when all references access statically known named exports.
+- Internal imports MUST use named imports when only specific named exports are needed.
 - An internal application export with no consumers MUST be removed or kept private when locally used.
 - A `constants/`, `types/`, or `schemas/` `index.ts` or `server.ts` MUST re-export local sibling modules with `export * from` or `export type * from`, not named re-exports.
 - An `index.ts` or support-folder `server.ts` MUST NOT re-export modules from outside its own folder.

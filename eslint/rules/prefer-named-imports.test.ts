@@ -5,7 +5,7 @@ const MESSAGE =
   "Import the referenced named exports directly instead of using a namespace import. " +
   "See docs/next-codebase-guide/rules/exports-and-imports-rule.md";
 
-void describe("An internal namespace import MUST use named imports instead when all references access statically known named exports.", () => {
+void describe("Internal imports MUST use named imports when only specific named exports are needed.", () => {
   const filename = srcFile("features/editor/utils/example.tsx");
 
   ruleTester.run("prefer-named-imports", preferNamedImportsRule, {

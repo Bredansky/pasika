@@ -614,8 +614,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
-      "text": "An internal namespace import MUST use named imports instead when all references access statically known named exports.",
-      "hash": "8a478b678a",
+      "text": "Internal imports MUST use named imports when only specific named exports are needed.",
+      "hash": "8ff4227395",
       "ref": "pasika/prefer-named-imports"
     },
     {
