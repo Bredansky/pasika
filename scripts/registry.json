@@ -566,12 +566,6 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "In constants modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.\r",
-      "hash": "08056e3017",
-      "ref": "pasika/constant-casing"
-    },
-    {
-      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.",
       "hash": "a5cdb54496",
       "ref": "pasika/value-extraction, pasika/enum-placement, pasika/no-mixed-concerns"
