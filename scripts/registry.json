@@ -554,6 +554,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "A named HTTP status-code constant MUST reuse the existing `HttpStatusCodeEnum` domain; add a missing member instead of declaring a standalone numeric status constant.",
+      "hash": "b7da078c31",
+      "ref": "pasika/repeated-semantic-literal"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "Repeated named numeric values in the same semantic slot across production files MUST share a constant.",
       "hash": "7d4a8beb3f",
       "ref": "pasika/repeated-numeric-value"

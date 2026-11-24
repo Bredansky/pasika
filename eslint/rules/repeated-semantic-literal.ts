@@ -148,6 +148,16 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
     const sharedConstants = index.canonicals.filter(
       (canonical) => !canonical.owner && canonical.file.startsWith(path.join(root, "constants") + path.sep),
     );
+    // Recognize a declared HTTP status-code domain even when a new status
+    // has not yet been added as an enum member (for example Forbidden = 403).
+    const httpStatusMembers = index.canonicals.filter(
+      (canonical) =>
+        canonical.owner === "HttpStatusCodeEnum" &&
+        canonical.kind === "number" &&
+        canonical.file.startsWith(path.join(root, "constants") + path.sep),
+    );
+    const httpStatusFiles = new Set(httpStatusMembers.map((member) => member.file));
+    const httpStatusFile = httpStatusFiles.size === 1 ? [...httpStatusFiles][0] : undefined;
     const recognized = new Set(imported.map((use) => `${String(use.line)}:${String(use.column)}`));
     return {
       VariableDeclarator(node) {
@@ -162,6 +172,22 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
           container.type === "Program" ||
           (container.type === "ExportNamedDeclaration" && container.parent.type === "Program");
         if (!moduleLevel) return;
+
+        if (
+          httpStatusFile &&
+          id.name.endsWith("StatusCode") &&
+          Number.isInteger(init.value) &&
+          init.value >= 100 &&
+          init.value <= 599
+        ) {
+          const relative = path.relative(root, httpStatusFile).replaceAll(path.sep, "/");
+          const member = httpStatusMembers.find((canonical) => canonical.value === init.value);
+          const instruction = member
+            ? `Reuse HttpStatusCodeEnum.${member.name} from src/${relative} instead of redefining ${String(init.value)}.`
+            : `Add HTTP status ${String(init.value)} to existing HttpStatusCodeEnum in src/${relative} and reuse that member instead of a standalone constant.`;
+          context.report({ node, message: `${instruction} ${DOC}` });
+          return;
+        }
 
         const candidates = sharedConstants.filter(
           (canonical) => canonical.file !== file && canonical.name === id.name && canonical.value === init.value,

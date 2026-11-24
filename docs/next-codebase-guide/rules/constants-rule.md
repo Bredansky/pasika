@@ -7,6 +7,7 @@ Unnamed runtime values hide their intent and make changes harder to audit. Keep 
 - A single named string or number value MUST be represented by a `const`, unless it belongs to a known, fixed domain with multiple possible values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
+- A named HTTP status-code constant MUST reuse the existing `HttpStatusCodeEnum` domain; add a missing member instead of declaring a standalone numeric status constant.
 - Repeated named numeric values in the same semantic slot across production files MUST share a constant.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 - A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.
