@@ -614,6 +614,12 @@
     },
     {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
+      "text": "An internal namespace import MUST use named imports instead when all references access statically known named exports.",
+      "hash": "8a478b678a",
+      "ref": "pasika/prefer-named-imports"
+    },
+    {
+      "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "An internal application export with no consumers MUST be removed or kept private when locally used.",
       "hash": "452c1aa1e3",
       "ref": "pasika/no-unused-app-exports"
