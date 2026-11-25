@@ -1,7 +1,7 @@
 /**
  * Shared helper for pasika/constant-casing
  *
- * Group single-line constants and separate multiline constants in source modules.
+ * Group single-line constants, separate multiline constants, and separate enums from constants in source modules.
  * Comments remain deliberate section boundaries.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
@@ -15,6 +15,9 @@ const MESSAGE =
 const MULTILINE_MESSAGE =
   "Multiline const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 
+const ENUM_MESSAGE =
+  "Const and enum declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+
 const BLANK_LINE = /\r?\n[\t ]*\r?\n/u;
 
 function constantDeclarationExported(node: AST.Program["body"][number]): boolean | undefined {
@@ -25,6 +28,12 @@ function constantDeclarationExported(node: AST.Program["body"][number]): boolean
   const binding = declaration.declarations[0]?.id;
   if (binding?.type !== "Identifier") return undefined;
   return exported;
+}
+
+function isEnumDeclaration(node: AST.Program["body"][number]): boolean {
+  const declaration = node.type === "ExportNamedDeclaration" ? node.declaration : node;
+  const type: string | undefined = declaration?.type;
+  return type === "TSEnumDeclaration";
 }
 
 function spacing(gap: string, multiline: boolean): string {
@@ -42,23 +51,27 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
 
     const firstExported = constantDeclarationExported(previous);
     const secondExported = constantDeclarationExported(current);
-    if (firstExported === undefined || secondExported === undefined) continue;
+    const enumBoundary =
+      (firstExported !== undefined && isEnumDeclaration(current)) ||
+      (secondExported !== undefined && isEnumDeclaration(previous));
+    if (!enumBoundary && (firstExported === undefined || secondExported === undefined)) continue;
     const multiline =
       previous.loc?.start.line !== previous.loc?.end.line || current.loc?.start.line !== current.loc?.end.line;
-    if (!multiline && firstExported !== secondExported) continue;
+    if (!enumBoundary && !multiline && firstExported !== secondExported) continue;
+    const needsBlankLine = enumBoundary || multiline;
 
     const start = previous.range?.[1];
     const end = current.range?.[0];
     if (start === undefined || end === undefined) continue;
     const gap = context.sourceCode.text.slice(start, end);
     // Any comment acts as an explicit group boundary. Never touch it.
-    if (gap.trim() || BLANK_LINE.test(gap) === multiline) continue;
+    if (gap.trim() || BLANK_LINE.test(gap) === needsBlankLine) continue;
 
     context.report({
       node: current,
-      message: multiline ? MULTILINE_MESSAGE : MESSAGE,
+      message: enumBoundary ? ENUM_MESSAGE : multiline ? MULTILINE_MESSAGE : MESSAGE,
       fix(fixer) {
-        return fixer.replaceTextRange([start, end], spacing(gap, multiline));
+        return fixer.replaceTextRange([start, end], spacing(gap, needsBlankLine));
       },
     });
   }

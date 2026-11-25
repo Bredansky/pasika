@@ -8,9 +8,28 @@ const MESSAGE =
 const MULTILINE_MESSAGE =
   "Multiline const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("In source modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.", () => {
+const ENUM_MESSAGE =
+  "Const and enum declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+
+void describe("In source modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; const and enum declarations MUST be separated by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
+      {
+        code: 'const selectTriggerSlot = "select-trigger";\n\nenum SelectTriggerSize {\n  Small = "sm",\n  Default = "default",\n}',
+        filename: srcFile("shared/select.tsx"),
+      },
+      {
+        code: 'enum SelectTriggerSize { Small = "sm" }\n\nconst selectTriggerSlot = "select-trigger";',
+        filename: srcFile("shared/select.tsx"),
+      },
+      {
+        code: 'const selectTriggerSlot = "select-trigger";\n// Size options\nenum SelectTriggerSize { Small = "sm" }',
+        filename: srcFile("shared/select.tsx"),
+      },
+      {
+        code: 'enum SelectTriggerSize { Small = "sm" }\nenum SelectContentSize { Large = "lg" }',
+        filename: srcFile("shared/select.tsx"),
+      },
       {
         code: "const first = 1;\nconst second = 2;",
         filename: srcFile("features/auth/utils/e2e-session.ts"),
@@ -77,6 +96,33 @@ void describe("In source modules, adjacent single-line constants with the same e
       },
     ],
     invalid: [
+      {
+        code: 'const selectTriggerSlot = "select-trigger";\nenum SelectTriggerSize {\n  Small = "sm",\n  Default = "default",\n}',
+        output:
+          'const selectTriggerSlot = "select-trigger";\n\nenum SelectTriggerSize {\n  Small = "sm",\n  Default = "default",\n}',
+        filename: srcFile("shared/select.tsx"),
+        errors: [{ message: ENUM_MESSAGE }],
+      },
+      {
+        code: 'enum SelectTriggerSize { Small = "sm" }\nconst selectTriggerSlot = "select-trigger";',
+        output: 'enum SelectTriggerSize { Small = "sm" }\n\nconst selectTriggerSlot = "select-trigger";',
+        filename: srcFile("shared/select.tsx"),
+        errors: [{ message: ENUM_MESSAGE }],
+      },
+      {
+        code: 'export const selectTriggerSlot = "select-trigger";\r\nexport enum SelectTriggerSize { Small = "sm" }',
+        output:
+          'export const selectTriggerSlot = "select-trigger";\r\n\r\nexport enum SelectTriggerSize { Small = "sm" }',
+        filename: srcFile("shared/select.tsx"),
+        errors: [{ message: ENUM_MESSAGE }],
+      },
+      {
+        code: 'const selectTriggerSlot = getSlot(\n  "select-trigger",\n);\nexport enum SelectTriggerSize { Small = "sm" }',
+        output:
+          'const selectTriggerSlot = getSlot(\n  "select-trigger",\n);\n\nexport enum SelectTriggerSize { Small = "sm" }',
+        filename: srcFile("shared/select.tsx"),
+        errors: [{ message: ENUM_MESSAGE }],
+      },
       {
         code: 'const e2eSessionCookieName = "next-auth.session-token";\n\nconst e2eSessionMaxAgeSeconds = 86_400;\n\nconst e2eSessionUserId = "test-user-id";\n\nconst e2eSessionJwtId = "test-jwt-id";\n\nconst e2eSessionCookieSameSite = "lax";',
         output:
