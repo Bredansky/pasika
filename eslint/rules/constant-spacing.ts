@@ -1,7 +1,7 @@
 /**
  * Shared helper for pasika/constant-casing
  *
- * Group single-line constants and separate multiline constants in constants modules.
+ * Group single-line constants and separate multiline constants in source modules.
  * Comments remain deliberate section boundaries.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
@@ -9,13 +9,12 @@
 import type { AST, Rule } from "eslint";
 
 const MESSAGE =
-  "Consecutive single-line const declarations in a constants module must not have blank lines between them. " +
+  "Consecutive single-line const declarations must not have blank lines between them. " +
   "See docs/next-codebase-guide/rules/constants-rule.md";
 
 const MULTILINE_MESSAGE =
-  "Multiline const declarations in a constants module must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+  "Multiline const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 
-const CONSTANTS_FILE = /(?:^|\/)src\/(?:[^/]+\/)*constants\/[^/]+\.[cm]?[jt]sx?$/u;
 const BLANK_LINE = /\r?\n[\t ]*\r?\n/u;
 
 function constantDeclarationExported(node: AST.Program["body"][number]): boolean | undefined {
@@ -35,8 +34,6 @@ function spacing(gap: string, multiline: boolean): string {
 }
 
 export function enforceConstantSpacing(context: Rule.RuleContext): void {
-  const filename = context.filename.replaceAll("\\", "/");
-  if (!CONSTANTS_FILE.test(filename)) return;
   const statements = context.sourceCode.ast.body;
   for (let index = 1; index < statements.length; index += 1) {
     const previous = statements[index - 1];

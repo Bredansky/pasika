@@ -2,15 +2,27 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { constantCasingRule } from "./constant-casing";
 
 const MESSAGE =
-  "Consecutive single-line const declarations in a constants module must not have blank lines between them. " +
+  "Consecutive single-line const declarations must not have blank lines between them. " +
   "See docs/next-codebase-guide/rules/constants-rule.md";
 
 const MULTILINE_MESSAGE =
-  "Multiline const declarations in a constants module must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+  "Multiline const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("In constants modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.", () => {
+void describe("In source modules, adjacent single-line constants with the same export visibility MUST have no blank line between them, and multiline constants MUST be separated from adjacent constants by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-casing", constantCasingRule, {
     valid: [
+      {
+        code: "const first = 1;\nconst second = 2;",
+        filename: srcFile("features/auth/utils/e2e-session.ts"),
+      },
+      {
+        code: "function run() {\n  const first = 1;\n\n  const second = 2;\n}",
+        filename: srcFile("features/auth/utils/e2e-session.ts"),
+      },
+      {
+        code: "const first = 1;\n\n// Separate group\nconst second = 2;",
+        filename: srcFile("features/auth/utils/e2e-session.ts"),
+      },
       {
         code: "export const first = defineApiContract({\n  method: method,\n});\n\nexport const second = defineApiContract({\n  method: method,\n});",
         filename: srcFile("constants/api-contracts.ts"),
@@ -51,11 +63,6 @@ void describe("In constants modules, adjacent single-line constants with the sam
         filename: srcFile("constants/telegram.ts"),
       },
       {
-        // Similar names in utility modules are not necessarily grouped constants.
-        code: 'const telegramProxyFileIdQuery = "?file_id=";\n\nconst telegramProxyFileIdQueryKey = "file_id";',
-        filename: srcFile("utils/telegram.ts"),
-      },
-      {
         // Multiple declarators and destructuring are deliberately excluded.
         code: 'export const telegramProxyFileIdQuery = "?file_id=", telegramProxyFileIdOther = "x";\n\nexport const telegramProxyFileIdQueryKey = "file_id";',
         filename: srcFile("constants/telegram.ts"),
@@ -70,6 +77,25 @@ void describe("In constants modules, adjacent single-line constants with the sam
       },
     ],
     invalid: [
+      {
+        code: 'const e2eSessionCookieName = "next-auth.session-token";\n\nconst e2eSessionMaxAgeSeconds = 86_400;\n\nconst e2eSessionUserId = "test-user-id";\n\nconst e2eSessionJwtId = "test-jwt-id";\n\nconst e2eSessionCookieSameSite = "lax";',
+        output:
+          'const e2eSessionCookieName = "next-auth.session-token";\nconst e2eSessionMaxAgeSeconds = 86_400;\nconst e2eSessionUserId = "test-user-id";\nconst e2eSessionJwtId = "test-jwt-id";\nconst e2eSessionCookieSameSite = "lax";',
+        filename: srcFile("features/auth/utils/e2e-session.ts"),
+        errors: Array.from({ length: 4 }, () => ({ message: MESSAGE })),
+      },
+      {
+        code: "const first = 1;\nconst second = {\n  value: 2,\n};",
+        output: "const first = 1;\n\nconst second = {\n  value: 2,\n};",
+        filename: srcFile("features/auth/hooks/use-session.ts"),
+        errors: [{ message: MULTILINE_MESSAGE }],
+      },
+      {
+        code: "const first = 1;\n\nconst second = 2;",
+        output: "const first = 1;\nconst second = 2;",
+        filename: srcFile("features/auth/session.tsx"),
+        errors: [{ message: MESSAGE }],
+      },
       {
         code: "export const first = defineApiContract({\n  method: method,\n});\nexport const second = defineApiContract({\n  method: method,\n});",
         output:
