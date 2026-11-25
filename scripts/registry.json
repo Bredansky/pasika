@@ -566,6 +566,18 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "In source modules, consecutive named const declarations MUST have no blank line between them regardless of line wrapping, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.",
+      "hash": "e237c76cd4",
+      "ref": "pasika/constant-casing"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Within safely reorderable module declaration groups, types and interfaces MUST precede enums, enums MUST precede constants, constants MUST precede functions, and local export lists MUST come last; independent literal constants MUST be sorted by name.",
+      "hash": "97851c4d96",
+      "ref": "pasika/declaration-order"
+    },
+    {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
       "text": "A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.",
       "hash": "a5cdb54496",
       "ref": "pasika/value-extraction, pasika/enum-placement, pasika/no-mixed-concerns"
