@@ -9,12 +9,9 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import { enforceConstantSpacing } from "./constant-spacing";
+import { enforceConstantSpacing, NEXTJS_ROUTE_HANDLER_NAMES } from "./constant-spacing";
 import { declarationOrderRule } from "./declaration-order";
 import { sourceRootOf } from "./project-root";
-
-/** Next.js App Router route handlers must be exported under these exact names. */
-const NEXTJS_ROUTE_HANDLER_NAMES = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
 function isScreamingSnakeCase(name: string): boolean {
   return /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/.test(name);
