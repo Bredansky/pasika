@@ -1,7 +1,7 @@
 /**
  * Declaration spacing shared by pasika/constant-casing.
  * Line wrapping alone is not a boundary; multiline object and array literals and
- * callable constants are separated, and comments remain intentional boundaries.
+ * callable constants are separated. Export visibility and comments also mark boundaries.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
@@ -17,13 +17,24 @@ const CALLABLE_MESSAGE =
   "Callable const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const STRUCTURED_MESSAGE =
   "Multiline object and array const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+const VISIBILITY_MESSAGE =
+  "Exported and non-exported const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const BLANK_LINE = /\r?\n[\t ]*\r?\n/u;
 const ROUTE_FILE = /\/app\/(?:.*\/)?route\.[cm]?[jt]sx?$/u;
 
 export const NEXTJS_ROUTE_HANDLER_NAMES = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
 type Statement = AST.Program["body"][number];
-type Group = "import" | "type" | "enum" | "const" | "structured" | "callable" | "function" | "export";
+type Group =
+  | "import"
+  | "type"
+  | "enum"
+  | "const"
+  | "exported-const"
+  | "structured"
+  | "callable"
+  | "function"
+  | "export";
 
 function isCallableConstant(context: Rule.RuleContext, node: Statement, binding: VariableDeclarator): boolean {
   if (binding.id.type !== "Identifier") return false;
@@ -78,7 +89,8 @@ function declarationGroup(context: Rule.RuleContext, node: Statement): Group | u
   const binding = declaration.declarations[0];
   if (declaration.declarations.length !== 1 || binding?.id.type !== "Identifier") return undefined;
   if (isCallableConstant(context, node, binding)) return "callable";
-  return isMultilineStructure(binding.init) ? "structured" : "const";
+  if (isMultilineStructure(binding.init)) return "structured";
+  return node.type === "ExportNamedDeclaration" ? "exported-const" : "const";
 }
 
 export function enforceConstantSpacing(context: Rule.RuleContext): void {
@@ -94,7 +106,11 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     if (
       !first ||
       !second ||
-      (first === second && first !== "const" && first !== "callable" && first !== "structured")
+      (first === second &&
+        first !== "const" &&
+        first !== "exported-const" &&
+        first !== "callable" &&
+        first !== "structured")
     ) {
       continue;
     }
@@ -107,7 +123,10 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     const gap = source.slice(start, end);
     if (gap.trim() || (BLANK_LINE.test(gap) === needsBlankLine && gap.includes("\n"))) continue;
 
-    const boundaryMessage = structuredBoundary ? STRUCTURED_MESSAGE : BOUNDARY_MESSAGE;
+    const visibilityBoundary =
+      (first === "const" && second === "exported-const") || (first === "exported-const" && second === "const");
+    const groupMessage = visibilityBoundary ? VISIBILITY_MESSAGE : BOUNDARY_MESSAGE;
+    const boundaryMessage = structuredBoundary ? STRUCTURED_MESSAGE : groupMessage;
     const message = needsBlankLine ? boundaryMessage : MESSAGE;
     context.report({
       node: current,
