@@ -76,6 +76,38 @@ function importsConstant(consumer: string, target: string, name: string, index: 
   );
 }
 
+/** API contracts must be exported and imported even for a single caller. */
+function apiContractNames(context: Rule.RuleContext): Set<string> {
+  const factoryNames = new Set<string>();
+  const contracts = new Set<string>();
+  for (const statement of context.sourceCode.ast.body) {
+    if (statement.type !== "ImportDeclaration" || statement.source.value !== "pasika/api-contract") continue;
+    for (const specifier of statement.specifiers) {
+      if (
+        specifier.type === "ImportSpecifier" &&
+        specifier.imported.type === "Identifier" &&
+        specifier.imported.name === "defineApiContract"
+      ) {
+        factoryNames.add(specifier.local.name);
+      }
+    }
+  }
+  for (const statement of context.sourceCode.ast.body) {
+    if (statement.type !== "ExportNamedDeclaration" || statement.declaration?.type !== "VariableDeclaration") continue;
+    for (const declaration of statement.declaration.declarations) {
+      if (
+        declaration.id.type === "Identifier" &&
+        declaration.init?.type === "CallExpression" &&
+        declaration.init.callee.type === "Identifier" &&
+        factoryNames.has(declaration.init.callee.name)
+      ) {
+        contracts.add(declaration.id.name);
+      }
+    }
+  }
+  return contracts;
+}
+
 export const supportFilePlacementRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -107,8 +139,9 @@ export const supportFilePlacementRule: Rule.RuleModule = {
       const exports = supportModule?.exports.filter((entry) => entry.kind === "constant") ?? [];
       const featureSegments = segmentsOf(supportFile, sourceRoot);
 
+      const contracts = apiContractNames(context);
       for (const entry of exports) {
-        if (supportModule?.localValueReferences.includes(entry.name)) continue;
+        if (contracts.has(entry.name) || supportModule?.localValueReferences.includes(entry.name)) continue;
         const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])].filter(
           (consumer) => !isTestConsumer(consumer),
         );
