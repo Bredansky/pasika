@@ -13,7 +13,7 @@ void describe("Multiline structural constants are separated, while ordinary line
       { code: "const a = { key: 1 };\nconst b = [1, 2];", filename },
       { code: "const a =\n  { key: 1 };\nconst b =\n  [1, 2];", filename },
       { code: 'const a =\n  "wrapped string";\nconst b = getValue(\n  { key: 1 },\n);', filename },
-      { code: "const a = getValue({\n  key: 1,\n});\nconst b = getOtherValue();", filename },
+      { code: "const a = getValue({\n  key: 1,\n});\n\nconst b = getOtherValue();", filename },
       { code: "const a = 1;\n\nconst b = {\n  key: a,\n};\n\nconst c = 2;", filename },
       { code: "const a = {\n  key: 1,\n};\n\nconst b = [\n  a,\n];", filename },
       { code: "const a = 1;\n// Intentional comment\nconst b = {\n  key: a,\n};", filename },

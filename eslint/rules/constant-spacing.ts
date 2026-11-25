@@ -1,6 +1,6 @@
 /**
  * Declaration spacing shared by pasika/constant-casing.
- * Line wrapping alone is not a boundary; multiline object and array literals and
+ * Line wrapping alone is not a boundary; multiline object and array literals (including call arguments) and
  * callable constants are separated. Export visibility and comments also mark boundaries.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
@@ -56,7 +56,9 @@ function isCallableConstant(context: Rule.RuleContext, node: Statement, binding:
 
 function isExpressionWrapper(node: Node): node is Node & { expression: Node } {
   return (
-    ["TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression"].includes(node.type) &&
+    ["TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression", "ChainExpression"].includes(
+      node.type,
+    ) &&
     "expression" in node &&
     typeof node.expression === "object" &&
     "type" in node.expression
@@ -68,6 +70,7 @@ function isMultilineStructure(node: Node | null | undefined): boolean {
   while (current && isExpressionWrapper(current)) {
     current = current.expression;
   }
+  if (current?.type === "CallExpression") return current.arguments.some(isMultilineStructure);
   return (
     (current?.type === "ObjectExpression" || current?.type === "ArrayExpression") &&
     Boolean(current.loc && current.loc.start.line !== current.loc.end.line)
