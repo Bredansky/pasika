@@ -36,6 +36,50 @@ type Group =
   | "function"
   | "export";
 
+function isVitestCall(context: Rule.RuleContext, node: Node | null | undefined, method: string): boolean {
+  if (node?.type !== "CallExpression") return false;
+  const callee = node.callee;
+  if (
+    callee.type !== "MemberExpression" ||
+    callee.computed ||
+    callee.property.type !== "Identifier" ||
+    callee.property.name !== method ||
+    callee.object.type !== "Identifier"
+  ) {
+    return false;
+  }
+
+  const receiver = callee.object;
+  const initialScope = context.sourceCode.getScope(receiver);
+  for (let scope: typeof initialScope | null = initialScope; scope !== null; scope = scope.upper) {
+    const variable = scope.set.get(receiver.name);
+    if (!variable) continue;
+    return variable.defs.some((definition) => {
+      if (
+        definition.type !== "ImportBinding" ||
+        definition.parent.source.value !== "vitest" ||
+        definition.node.type !== "ImportSpecifier"
+      ) {
+        return false;
+      }
+      const imported = definition.node.imported;
+      return imported.type === "Identifier" && (imported.name === "vi" || imported.name === "vitest");
+    });
+  }
+  return false;
+}
+
+function isVitestMock(context: Rule.RuleContext, node: Node | null | undefined): boolean {
+  if (isVitestCall(context, node, "fn")) return true;
+  if (node?.type !== "CallExpression" || !isVitestCall(context, node, "hoisted")) return false;
+  const factory = node.arguments[0];
+  return (
+    factory?.type === "ArrowFunctionExpression" &&
+    factory.body.type !== "BlockStatement" &&
+    isVitestCall(context, factory.body, "fn")
+  );
+}
+
 function isCallableConstant(context: Rule.RuleContext, node: Statement, binding: VariableDeclarator): boolean {
   if (binding.id.type !== "Identifier") return false;
   if (
@@ -45,6 +89,7 @@ function isCallableConstant(context: Rule.RuleContext, node: Statement, binding:
   ) {
     return true;
   }
+  if (isVitestMock(context, binding.init)) return false;
   if (binding.init?.type === "ArrowFunctionExpression" || binding.init?.type === "FunctionExpression") return true;
 
   const services = typedParserServices(context.sourceCode.parserServices);
