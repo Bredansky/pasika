@@ -67,9 +67,10 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     // Any comment acts as an explicit group boundary. Never touch it.
     if (gap.trim() || BLANK_LINE.test(gap) === needsBlankLine) continue;
 
+    const constantMessage = multiline ? MULTILINE_MESSAGE : MESSAGE;
     context.report({
       node: current,
-      message: enumBoundary ? ENUM_MESSAGE : multiline ? MULTILINE_MESSAGE : MESSAGE,
+      message: enumBoundary ? ENUM_MESSAGE : constantMessage,
       fix(fixer) {
         return fixer.replaceTextRange([start, end], spacing(gap, needsBlankLine));
       },
