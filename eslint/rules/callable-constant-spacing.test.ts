@@ -36,7 +36,7 @@ void describe("Callable constants are visually separated from adjacent declarati
       { code: "export const DELETE = 'delete';\nexport const PUT = 'put';", filename },
       { code: "const GET = 'get';\nconst POST = 'post';", filename: route },
       { code: "const first = getValue(\n  key,\n);\nconst second = 'value';", filename },
-      { code: "const first = {\n  nested: 1,\n};\nconst second = 'value';", filename },
+      { code: "const first = {\n  nested: 1,\n};\n\nconst second = 'value';", filename },
       { code: "const first = () => 1;\nconst second = () => 2;", filename: "scripts/build.ts" },
     ],
     invalid: [

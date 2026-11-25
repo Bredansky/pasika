@@ -8,6 +8,8 @@ const MESSAGE =
   "Consecutive const declarations must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
 const BOUNDARY_MESSAGE =
   "Different declaration groups must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
+const STRUCTURED_MESSAGE =
+  "Multiline object and array const declarations must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const filename = srcFile("features/auth/select.tsx");
 
 const spacingRule: Rule.RuleModule = {
@@ -22,12 +24,12 @@ const spacingRule: Rule.RuleModule = {
   },
 };
 
-void describe("In source modules, consecutive named const declarations MUST have no blank line between them regardless of line wrapping, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.", () => {
+void describe("In source modules, consecutive ordinary const declarations MUST have no blank line between them regardless of line wrapping; multiline object and array literals MUST be separated, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-spacing", spacingRule, {
     valid: [
       { code: "const first = 1;\nconst second = 2;", filename },
       { code: 'const badgeSecondaryClasses =\n  "long classes";\nconst badgeSlot = "badge";', filename },
-      { code: "const first = {\n  value: 2,\n};\nconst second = 3;", filename },
+      { code: "const first = {\n  value: 2,\n};\n\nconst second = 3;", filename },
       { code: "const first = 1;\nexport const second = 2;", filename },
       { code: "const first = 1;\n\n// Deliberate group\nconst second = 2;", filename },
       { code: "const first = 1;\n/* Deliberate group */\n\nconst second = 2;", filename },
@@ -59,10 +61,10 @@ void describe("In source modules, consecutive named const declarations MUST have
         errors: [{ message: MESSAGE }],
       },
       {
-        code: "const first = 1;\n\nconst second = {\n  value: 2,\n};",
-        output: "const first = 1;\nconst second = {\n  value: 2,\n};",
+        code: "const first = 1;\nconst second = {\n  value: 2,\n};",
+        output: "const first = 1;\n\nconst second = {\n  value: 2,\n};",
         filename,
-        errors: [{ message: MESSAGE }],
+        errors: [{ message: STRUCTURED_MESSAGE }],
       },
       {
         code: "export const first = getQuery(\n  key,\n);\n\nexport const second = getQuery(\n  key,\n);",
