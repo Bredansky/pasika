@@ -10,6 +10,10 @@ import { supportFilePlacementRule } from "./support-file-placement";
  * root from the working directory, exactly as it does in a repository.
  */
 const FIXTURE: Record<string, string> = {
+  "features/credentials/constants/single-api-contract.ts":
+    'import { defineApiContract } from "pasika/api-contract"; export const externalApiContract = defineApiContract({});',
+  "features/credentials/utils/external-api.ts":
+    'import { externalApiContract } from "../constants/single-api-contract"; export function callApi() { return externalApiContract; }',
   // Shineposter regression: a hook-local counter was extracted into a shared constants barrel.
   "features/credentials/constants/index.ts":
     "export const credentialCryptoIvLength = 16;\nexport const initialCredentialsRequestId = 0;\n",
@@ -378,7 +382,11 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
 
 void describe("A constant with only one runtime consumer must be declared in that consumer.", () => {
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
-    valid: [ok("features/credentials/constants/type-only.ts"), ok("features/credentials/constants/test-only.ts")],
+    valid: [
+      ok("features/credentials/constants/type-only.ts"),
+      ok("features/credentials/constants/test-only.ts"),
+      ok("features/credentials/constants/single-api-contract.ts"),
+    ],
     invalid: [
       {
         ...ok("features/credentials/constants/index.ts"),
