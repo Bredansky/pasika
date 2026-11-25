@@ -23,7 +23,7 @@ import {
   segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf";
-import { getProjectIndex, isTestConsumer, symbolKey } from "../project/index";
+import { getProjectIndex, isTestConsumer, type ProjectIndex, resolveSpecifier, symbolKey } from "../project/index";
 import type { ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
@@ -51,6 +51,31 @@ const REASON_TEXT: Record<string, string> = {
 const sameFolder = (left: string[], right: string[]): boolean =>
   left.length === right.length && left.every((segment, depth) => segment === right[depth]);
 
+/** A runtime named import can reach its declaration through one or more barrels. */
+function importsConstant(consumer: string, target: string, name: string, index: ProjectIndex): boolean {
+  const visited = new Set<string>();
+  const reachesTarget = (file: string): boolean => {
+    if (file === target) return true;
+    if (visited.has(file)) return false;
+    visited.add(file);
+    return (
+      index.modules.get(file)?.reexports.some((entry) => {
+        if (entry.names.length > 0 && !entry.names.includes(name)) return false;
+        if (entry.typeOnlyNames?.includes(name)) return false;
+        const next = resolveSpecifier(file, entry.specifier, index.sourceRoot);
+        return next !== undefined && reachesTarget(next);
+      }) ?? false
+    );
+  };
+  return (
+    index.modules.get(consumer)?.imports.some((entry) => {
+      if (!entry.names.includes(name) || entry.typeOnlyNames?.includes(name)) return false;
+      const imported = resolveSpecifier(consumer, entry.specifier, index.sourceRoot);
+      return imported !== undefined && reachesTarget(imported);
+    }) ?? false
+  );
+}
+
 export const supportFilePlacementRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -72,75 +97,91 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
-    // Inspect each constant independently, even when the module also exports
-    // unrelated values. A consumer importing the component alongside the value
-    // is not independent reuse; test-only and type-only imports do not establish
-    // runtime ownership.
-    if (supportFolder === "constants" && path.basename(supportFile) === "index.ts") {
-      const exports = index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === "constant") ?? [];
+    // Inspect exported constants individually. A single production consumer
+    // does not justify extraction, regardless of whether it is a component,
+    // hook or utility. Configuration-owned values and app entry points retain
+    // their existing placement exceptions.
+    const localFindings: { name: string; line: number; message: string }[] = [];
+    if (supportFolder === "constants" && !isConfigModule(segmentsOf(supportFile, sourceRoot))) {
+      const supportModule = index.modules.get(supportFile);
+      const exports = supportModule?.exports.filter((entry) => entry.kind === "constant") ?? [];
       const featureSegments = segmentsOf(supportFile, sourceRoot);
-      const findings: { name: string; component: string; owner: string; line: number }[] = [];
 
-      if (featureSegments[0] === "features") {
-        for (const entry of exports) {
-          const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])].filter(
-            (consumer) => !isTestConsumer(consumer),
-          );
-          if (consumers.length === 0) continue;
+      for (const entry of exports) {
+        if (supportModule?.localValueReferences.includes(entry.name)) continue;
+        const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])].filter(
+          (consumer) => !isTestConsumer(consumer),
+        );
+        if (consumers.length === 0) continue;
 
-          for (const owner of consumers) {
-            const ownerSegments = segmentsOf(owner, sourceRoot);
-            if (ownerSegments[0] !== "features" || ownerSegments[1] !== featureSegments[1]) continue;
-            const module = index.modules.get(owner);
-            if (!module) continue;
-
-            // A type-only use of an exported data object does not make that
-            // object an implementation detail of the importing component.
-            const runtimeImport = module.imports.some(
-              (imported) => imported.names.includes(entry.name) && !imported.typeOnlyNames?.includes(entry.name),
-            );
-            if (!runtimeImport) continue;
-
-            const component = module.exports
-              .filter((exported) => exported.kind === "component")
-              .find((exported) => {
-                const componentConsumers = index.symbolConsumers.get(symbolKey(owner, exported.name));
-                return consumers.every((consumer) => consumer === owner || componentConsumers?.has(consumer));
-              });
-            if (!component) continue;
-
-            findings.push({ name: entry.name, component: component.name, owner, line: entry.line });
-            break;
+        // Preserve component ownership detection, including consumers that
+        // import a constant alongside the component. Do this first to retain
+        // the existing diagnostic for component-owned values.
+        const componentOwner =
+          featureSegments[0] === "features" && path.basename(supportFile) === "index.ts"
+            ? consumers.find((owner) => {
+                const ownerSegments = segmentsOf(owner, sourceRoot);
+                if (ownerSegments[0] !== "features" || ownerSegments[1] !== featureSegments[1]) return false;
+                if (!importsConstant(owner, supportFile, entry.name, index)) return false;
+                return index.modules.get(owner)?.exports.some((exported) => {
+                  if (exported.kind !== "component") return false;
+                  const componentConsumers = index.symbolConsumers.get(symbolKey(owner, exported.name));
+                  return consumers.every((consumer) => consumer === owner || componentConsumers?.has(consumer));
+                });
+              })
+            : undefined;
+        if (componentOwner) {
+          const component = index.modules.get(componentOwner)?.exports.find((exported) => {
+            if (exported.kind !== "component") return false;
+            const componentConsumers = index.symbolConsumers.get(symbolKey(componentOwner, exported.name));
+            return consumers.every((consumer) => consumer === componentOwner || componentConsumers?.has(consumer));
+          });
+          if (component) {
+            localFindings.push({
+              name: entry.name,
+              line: entry.line,
+              message:
+                `${entry.name} is consumed only alongside ${component.name} (${describeConsumers([componentOwner], sourceRoot)}); ` +
+                "declare it beside its owning component instead of extracting a constants/ folder. " +
+                "See docs/next-codebase-guide/rules/constants-rule.md",
+            });
+            continue;
           }
         }
-      }
 
-      if (findings.length > 0) {
-        return {
-          Program(node) {
-            for (const finding of findings) {
-              context.report({
-                node,
-                loc: { line: finding.line, column: 0 },
-                message:
-                  `${finding.name} is consumed only alongside ${finding.component} (${describeConsumers(
-                    [finding.owner],
-                    sourceRoot,
-                  )}); ` +
-                  `declare it beside its owning component instead of extracting a constants/ folder. ` +
-                  `See docs/next-codebase-guide/rules/constants-rule.md`,
-              });
-            }
-          },
-        };
+        const [owner] = consumers;
+        if (consumers.length !== 1 || !owner || owner === supportFile) continue;
+        const ownerSegments = segmentsOf(owner, sourceRoot);
+        if (ownerSegments[0] === "app" || isConfigModule(ownerSegments)) continue;
+        if (!importsConstant(owner, supportFile, entry.name, index)) continue;
+        localFindings.push({
+          name: entry.name,
+          line: entry.line,
+          message:
+            `${entry.name} has only one production consumer (${describeConsumers([owner], sourceRoot)}); ` +
+            "declare it in that file instead of extracting a constants/ folder. " +
+            "See docs/next-codebase-guide/rules/constants-rule.md",
+        });
       }
     }
+
+    const reportLocal = (node: Parameters<NonNullable<Rule.RuleListener["Program"]>>[0]): void => {
+      for (const finding of localFindings) {
+        context.report({ node, loc: { line: finding.line, column: 0 }, message: finding.message });
+      }
+    };
 
     let placement = resolveSupportPlacement(supportFile, supportFolder, index);
     const groupedExportKind = EXPORT_KIND_BY_SUPPORT_FOLDER.get(supportFolder);
     if (groupedExportKind !== undefined) {
       const utilityExports =
-        index.modules.get(supportFile)?.exports.filter((entry) => entry.kind === groupedExportKind) ?? [];
+        index.modules
+          .get(supportFile)
+          ?.exports.filter(
+            (entry) =>
+              entry.kind === groupedExportKind && !localFindings.some((finding) => finding.name === entry.name),
+          ) ?? [];
+      if (utilityExports.length === 0 && localFindings.length > 0) return { Program: reportLocal };
       const placements = utilityExports
         .map((entry) => {
           const consumers = new Set(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? []);
@@ -166,6 +207,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
       if (folders.size > 1) {
         return {
           Program(node) {
+            reportLocal(node);
             context.report({
               node,
               loc: { line: 1, column: 0 },
@@ -176,9 +218,10 @@ export const supportFilePlacementRule: Rule.RuleModule = {
       }
       const [firstPlacement] = placements;
       if (firstPlacement !== undefined) placement = firstPlacement.placement;
+      else if (localFindings.length > 0) return { Program: reportLocal };
     }
 
-    if (!placement || sameFolder(currentFolder, placement.expectedFolder)) return {};
+    if (!placement || sameFolder(currentFolder, placement.expectedFolder)) return { Program: reportLocal };
 
     // A type or constant whose meaning comes from a configuration may stay with
     // it however widely it is used, so consumers outside the module cannot place
@@ -190,6 +233,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
 
     return {
       Program(node) {
+        reportLocal(node);
         context.report({
           node,
           loc: { line: 1, column: 0 },
