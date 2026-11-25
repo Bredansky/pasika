@@ -1,5 +1,5 @@
 /**
- * ESLint rule: pasika/declaration-order.
+ * Internal declaration ordering helper for pasika/constant-casing.
  * Sort only declarations whose evaluation is independent and side-effect free.
  * Imports, comments, computed initializers and other executable statements are barriers.
  *

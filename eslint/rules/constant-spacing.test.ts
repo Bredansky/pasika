@@ -1,5 +1,8 @@
+import path from "node:path";
+import type { Rule } from "eslint";
 import { describe, ruleTester, srcFile } from "../rule-tester";
-import { constantCasingRule } from "./constant-casing";
+import { enforceConstantSpacing } from "./constant-spacing";
+import { sourceRootOf } from "./project-root";
 
 const MESSAGE =
   "Consecutive const declarations must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
@@ -7,8 +10,20 @@ const BOUNDARY_MESSAGE =
   "Different declaration groups must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const filename = srcFile("features/auth/select.tsx");
 
+const spacingRule: Rule.RuleModule = {
+  meta: { schema: [], type: "layout", fixable: "whitespace" },
+  create(context) {
+    if (!path.resolve(context.filename).startsWith(sourceRootOf(context) + path.sep)) return {};
+    return {
+      Program() {
+        enforceConstantSpacing(context);
+      },
+    };
+  },
+};
+
 void describe("In source modules, consecutive named const declarations MUST have no blank line between them regardless of line wrapping, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.", () => {
-  ruleTester.run("constant-casing", constantCasingRule, {
+  ruleTester.run("constant-spacing", spacingRule, {
     valid: [
       { code: "const first = 1;\nconst second = 2;", filename },
       { code: 'const badgeSecondaryClasses =\n  "long classes";\nconst badgeSlot = "badge";', filename },

@@ -10,6 +10,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import { enforceConstantSpacing } from "./constant-spacing";
+import { declarationOrderRule } from "./declaration-order";
 import { sourceRootOf } from "./project-root";
 
 /** Next.js App Router route handlers must be exported under these exact names. */
@@ -23,9 +24,9 @@ export const constantCasingRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    fixable: "whitespace",
+    fixable: "code",
     docs: {
-      description: "Require camelCase module-level constants and format consecutive constant declarations.",
+      description: "Require camelCase module-level constants and safely order and format module declarations.",
     },
   },
   create(context) {
@@ -33,8 +34,11 @@ export const constantCasingRule: Rule.RuleModule = {
     const sourceRoot = sourceRootOf(context);
     if (!filename.startsWith(sourceRoot + path.sep)) return {};
 
+    const ordering = declarationOrderRule.create(context);
+
     return {
-      Program() {
+      Program(node) {
+        ordering.Program?.(node);
         enforceConstantSpacing(context);
       },
       VariableDeclarator(node) {

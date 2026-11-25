@@ -25,7 +25,6 @@ import { crossFeatureImportRule } from "./rules/cross-feature-import";
 import { cvaAppearancePropsRule } from "./rules/cva-appearance-props";
 import { cvaBooleanVariantsRule } from "./rules/cva-boolean-variants";
 import { dataComponentCaseRule } from "./rules/data-component-case";
-import { declarationOrderRule } from "./rules/declaration-order";
 import { documentationRules } from "./rules/documentation/index";
 import { enforceBarrelExportsRule } from "./rules/enforce-barrel-exports";
 import { enforceCnMergeRule } from "./rules/enforce-cn-merge";
@@ -125,7 +124,6 @@ const pasikaNextjsAppRules = {
   "config-extraction": configExtractionRule,
   "value-extraction": valueExtractionRule,
   "constant-casing": constantCasingRule,
-  "declaration-order": declarationOrderRule,
   "prefer-enum": preferEnumRule,
   "repeated-semantic-literal": repeatedSemanticLiteralRule,
   "prefer-object-destructuring": preferObjectDestructuringRule,

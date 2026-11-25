@@ -28,6 +28,12 @@ void describe("A constant's name MUST be `camelCase`, except when a framework re
     ],
     invalid: [
       {
+        code: "const z = 1;\nconst a = 2;",
+        output: "const a = 2;\nconst z = 1;",
+        filename: file("constants/index.ts"),
+        errors: [{ message: /Order independent declarations/ }],
+      },
+      {
         code: "export const MAX_FILE_SIZE = 20 * 1024 * 1024;",
         filename: file("constants/index.ts"),
         errors: [
