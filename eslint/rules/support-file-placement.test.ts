@@ -10,6 +10,32 @@ import { supportFilePlacementRule } from "./support-file-placement";
  * root from the working directory, exactly as it does in a repository.
  */
 const FIXTURE: Record<string, string> = {
+  // Shineposter regression: a hook-local counter was extracted into a shared constants barrel.
+  "features/credentials/constants/index.ts":
+    "export const credentialCryptoIvLength = 16;\nexport const initialCredentialsRequestId = 0;\n",
+  "features/credentials/hooks/use-credentials.ts":
+    'import { initialCredentialsRequestId } from "../constants"; export function useCredentials() { return initialCredentialsRequestId; }',
+  "features/credentials/utils/encrypt.ts":
+    'import { credentialCryptoIvLength } from "../constants"; export function encrypt() { return credentialCryptoIvLength; }',
+  "features/credentials/utils/decrypt.ts":
+    'import { credentialCryptoIvLength } from "../constants"; export function decrypt() { return credentialCryptoIvLength; }',
+  "features/credentials/hooks/use-credentials.test.ts":
+    'import { initialCredentialsRequestId } from "../constants"; export const observed = initialCredentialsRequestId;',
+  "features/credentials/constants/request.ts": "export const initialRequest = 0;",
+  "features/credentials/constants/barrel.ts": 'export * from "./request";',
+  "features/credentials/utils/request.ts":
+    'import { initialRequest } from "../constants/barrel"; export function request() { return initialRequest; }',
+  "features/credentials/constants/local-dependency.ts":
+    "export const initialValue = 0; export const initialState = { value: initialValue };",
+  "features/credentials/utils/state.ts":
+    'import { initialValue, initialState } from "../constants/local-dependency"; export function state() { return { initialValue, initialState }; }',
+  "features/credentials/constants/type-only.ts": "export const typeOnlyValue = { value: 0 };",
+  "features/credentials/types/derived.ts":
+    'import type { typeOnlyValue } from "../constants/type-only"; export type Derived = typeof typeOnlyValue;',
+  "features/credentials/constants/test-only.ts": "export const testOnlyValue = 0;",
+  "features/credentials/utils/test-only.test.ts":
+    'import { testOnlyValue } from "../constants/test-only"; export const observed = testOnlyValue;',
+
   // A root constants barrel re-exports a feature-local constant. The consumer
   // imports through the barrel, so the placement graph must follow the export.
   "constants/index.ts": 'export * from "./feature-only";\n',
@@ -75,7 +101,8 @@ const FIXTURE: Record<string, string> = {
   "features/billing/constants/invoice-status.ts": 'export enum InvoiceStatus { Draft = "draft", Ready = "ready" }\n',
   "features/billing/types/index.ts": "export type DateRange = { from: Date };\n",
   "features/billing/utils/calc-total.ts": "export function calcTotal() { return 0; }\n",
-  "features/billing/hooks/use-retry.ts": 'import { maxRetries } from "../constants";\nexport function useRetry() {}\n',
+  "features/billing/hooks/use-retry.ts":
+    'import { maxRetries } from "../constants";\nimport { InvoiceStatus } from "../constants/invoice-status";\nimport { billingConstant } from "../constants/mixed";\nimport { misplacedConstant } from "@/features/orders/constants/misplaced";\nimport { MisplacedStatus } from "@/features/orders/constants/misplaced-status";\nexport function useRetry() {}\n',
 
   // Consumed from two features, so no feature can own them.
   "features/orders/order.tsx": [
@@ -239,15 +266,30 @@ void describe("Shared constants and enums MUST live in `constants/` at their dir
     invalid: [
       {
         ...ok("features/orders/constants/misplaced.ts"),
-        errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/invoice.tsx"])],
+        errors: [
+          move("src/features/billing/constants/", REASONS.ccf, [
+            "features/billing/hooks/use-retry.ts",
+            "features/billing/invoice.tsx",
+          ]),
+        ],
       },
       {
         ...ok("features/orders/constants/misplaced-status.ts"),
-        errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/invoice.tsx"])],
+        errors: [
+          move("src/features/billing/constants/", REASONS.ccf, [
+            "features/billing/hooks/use-retry.ts",
+            "features/billing/invoice.tsx",
+          ]),
+        ],
       },
       {
         ...ok("constants/feature-only.ts"),
-        errors: [move("src/features/billing/constants/", REASONS.ccf, ["features/billing/root-consumer.tsx"])],
+        errors: [
+          {
+            message:
+              "featureOnlyConstant has only one production consumer (src/features/billing/root-consumer.tsx); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
       },
     ],
   });
@@ -327,6 +369,41 @@ void describe("A constant or enum MUST remain in its declaring file while it is 
               "RetroCardSurface is consumed only alongside RetroCard (src/features/home/retro-card.tsx); " +
               "declare it beside its owning component instead of extracting a constants/ folder. " +
               "See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
+    ],
+  });
+});
+
+void describe("A constant with only one runtime consumer must be declared in that consumer.", () => {
+  ruleTester.run("support-file-placement", supportFilePlacementRule, {
+    valid: [ok("features/credentials/constants/type-only.ts"), ok("features/credentials/constants/test-only.ts")],
+    invalid: [
+      {
+        ...ok("features/credentials/constants/index.ts"),
+        errors: [
+          {
+            message:
+              "initialCredentialsRequestId has only one production consumer (src/features/credentials/hooks/use-credentials.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
+      {
+        ...ok("features/credentials/constants/request.ts"),
+        errors: [
+          {
+            message:
+              "initialRequest has only one production consumer (src/features/credentials/utils/request.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
+      {
+        ...ok("features/credentials/constants/local-dependency.ts"),
+        errors: [
+          {
+            message:
+              "initialState has only one production consumer (src/features/credentials/utils/state.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
       },
