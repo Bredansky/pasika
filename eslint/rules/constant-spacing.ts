@@ -187,7 +187,8 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     const ordinaryBoundaryMessage = first === second && declarationBoundary ? DECLARATION_MESSAGE : BOUNDARY_MESSAGE;
     const groupMessage = visibilityBoundary ? VISIBILITY_MESSAGE : ordinaryBoundaryMessage;
     const boundaryMessage = structuredBoundary ? STRUCTURED_MESSAGE : groupMessage;
-    const message = needsBlankLine ? boundaryMessage : first === "type" ? TYPE_MESSAGE : MESSAGE;
+    const compactMessage = first === "type" ? TYPE_MESSAGE : MESSAGE;
+    const message = needsBlankLine ? boundaryMessage : compactMessage;
     context.report({
       node: current,
       message: callableBoundary ? CALLABLE_MESSAGE : message,
