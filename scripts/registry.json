@@ -596,8 +596,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A generically named constants module with many exported values from distinct naming domains MUST be split into cohesive, domain-named modules.",
-      "hash": "c5bf3f7f9e",
+      "text": "A constants module with exported values proven to belong to distinct semantic domains MUST be split into cohesive, domain-named modules.",
+      "hash": "418848926b",
       "ref": "pasika/no-catch-all-constants"
     },
     {
