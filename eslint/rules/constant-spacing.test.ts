@@ -45,7 +45,7 @@ void describe("In source modules, consecutive ordinary const declarations with t
       { code: "const first = 1, other = 2;\n\nconst second = 3;", filename },
       { code: "const { first } = config;\n\nconst second = 2;", filename },
       { code: "enum First { A = 1 }\nenum Second { B = 2 }", filename },
-      { code: "interface First {}\ninterface Second {}", filename },
+      { code: "interface First {}\n\ninterface Second {}", filename },
       { code: "function first() {}\n\nfunction second() {}", filename },
       { code: "const first = 1;\n\nconst second = 2;", filename: "scripts/build.ts" },
     ],
