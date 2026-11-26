@@ -7,6 +7,7 @@
 import path from "node:path";
 import type { Rule } from "eslint";
 import { exportedConstantOwner, getConstantDomains } from "../project/constant-domains";
+import { constantDomainFamily, hasConflictingDomains } from "../project/typed-constant-domains";
 import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
 
@@ -33,7 +34,7 @@ export const noCatchAllConstantsRule: Rule.RuleModule = {
         for (const item of evidence) {
           if (!exportedConstantOwner(item.owner)) continue;
           const name = item.owner.name.getText();
-          if (item.domains.size > 1) {
+          if (hasConflictingDomains(item.domains)) {
             context.report({
               node,
               message: `Constant ${item.declaration.name.getText()} is consumed in distinct semantic domains (${[
@@ -44,7 +45,7 @@ export const noCatchAllConstantsRule: Rule.RuleModule = {
             });
           }
           for (const domain of item.domains) {
-            const family = domain.split(":")[0] ?? domain;
+            const family = constantDomainFamily(domain);
             const names = families.get(family) ?? new Set<string>();
             names.add(name);
             families.set(family, names);
