@@ -9,6 +9,12 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
+import {
+  constantDeclarationKey,
+  constantDomainKey,
+  distinctKnownDomains,
+  getConstantDomains,
+} from "../project/constant-domains";
 import { getProjectIndex } from "../project/index";
 import { namedStringConstantsByKey } from "../project/repeated-named-strings";
 import {
@@ -18,6 +24,7 @@ import {
   type CanonicalLiteral,
   type SemanticLiteral,
 } from "../project/semantic-literals";
+import { typedParserServices } from "./contract-ownership";
 import { importedEnumLiteralUses } from "./imported-enum-literals";
 import { sourceRootOf } from "./project-root";
 
@@ -98,6 +105,8 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
     const project = getProjectIndex(root);
     if (!project?.modules.has(file)) return {};
     const index = getSemanticLiteralIndex(project);
+    const services = typedParserServices(context.sourceCode.parserServices);
+    const domains = services ? getConstantDomains(services.program, root) : undefined;
     const namedStrings = [...namedStringConstantsByKey(project).values()].filter((entries) =>
       entries.some((entry) => entry.file === file),
     );
@@ -205,8 +214,18 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
         for (const entries of namedStrings) {
           const matches = entries.filter((entry) => entry.file === file);
           for (const entry of matches) {
+            const entryDomains = domains?.atDeclaration.get(
+              constantDeclarationKey(entry.file, entry.line, entry.column),
+            );
             const canonical = sharedConstants
-              .filter((candidate) => candidate.value === entry.value)
+              .filter(
+                (candidate) =>
+                  candidate.value === entry.value &&
+                  !distinctKnownDomains(
+                    entryDomains,
+                    domains?.moduleConstants.get(constantDomainKey(candidate.file, candidate.name)),
+                  ),
+              )
               .sort((a, b) => a.file.localeCompare(b.file) || a.name.localeCompare(b.name))[0];
             // Keep one canonical definition, and flag every other declaration of its value.
             if (canonical) {
@@ -219,14 +238,21 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
               });
               continue;
             }
-            if (entries.length < 2) continue;
+            const compatibleEntries = entries.filter(
+              (peer) =>
+                !distinctKnownDomains(
+                  entryDomains,
+                  domains?.atDeclaration.get(constantDeclarationKey(peer.file, peer.line, peer.column)),
+                ),
+            );
+            if (compatibleEntries.length < 2) continue;
             // The existing semantic-role pass already reports this exact occurrence.
             const semantic = current.find((use) => use.line === entry.line && use.column === entry.column);
             if (semantic) {
               const key = `${semantic.kind}\u0000${String(semantic.value)}\u0000${semantic.role}`;
               if ((groups.get(key)?.length ?? 0) >= 2) continue;
             }
-            const count = new Set(entries.map((peer) => peer.file)).size;
+            const count = new Set(compatibleEntries.map((peer) => peer.file)).size;
             const placement =
               count === 1
                 ? "Declare one file-local const in an enclosing scope and reuse it."

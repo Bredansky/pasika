@@ -1,89 +1,65 @@
 /**
- * ESLint rule: pasika/no-catch-all-constants
- *
- * Prevents high-confidence mixed-concern constants bags. A generic filename
- * alone is not an error, and naming-prefix diversity alone is not proof:
- * require both before reporting a likely catch-all module.
+ * Detect proven mixed semantic domains in constants modules, including index.ts.
+ * No identifier-prefix or literal-equality heuristics.
  *
  * @see docs/next-codebase-guide/rules/constants-rule.md
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-
-/** Common bag names, optionally preceded by a qualifier (e.g. service-values). */
-const BAG_NAME = /^(?:(?:[a-z][a-z0-9]*-)+)?(?:values|constants|common|misc|miscellaneous|shared)$/u;
-const MIN_EXPORTS = 7;
-const MIN_DOMAINS = 5;
-
-function leadingDomain(name: string): string | undefined {
-  // Treat camelCase and PascalCase consistently; discard non-domain digits.
-  const words = name.match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])|[0-9]+/gu);
-  const first = words?.find((word) => /^[a-z]/iu.test(word));
-  return first?.toLowerCase();
-}
-
-function enumDeclarationName(node: unknown): string | undefined {
-  if (
-    node === null ||
-    typeof node !== "object" ||
-    !("type" in node) ||
-    node.type !== "TSEnumDeclaration" ||
-    !("id" in node)
-  ) {
-    return undefined;
-  }
-  const id = node.id;
-  if (id === null || typeof id !== "object" || !("name" in id) || typeof id.name !== "string") {
-    return undefined;
-  }
-  return id.name;
-}
+import { exportedConstantOwner, getConstantDomains } from "../project/constant-domains";
+import { typedParserServices } from "./contract-ownership";
+import { sourceRootOf } from "./project-root";
 
 export const noCatchAllConstantsRule: Rule.RuleModule = {
   meta: {
     schema: [],
     type: "problem",
-    docs: {
-      description: "Detect likely mixed-concern bags of exported constants in generically named support modules.",
-    },
+    docs: { description: "Detect constants used in unrelated, identifiable semantic domains." },
   },
   create(context) {
-    const filename = context.filename.replaceAll("\\", "/");
-    const basename = path.posix.basename(filename);
-    if (
-      !filename.includes("/src/") ||
-      !filename.includes("/constants/") ||
-      !basename.endsWith(".ts") ||
-      basename === "index.ts" ||
-      !BAG_NAME.test(basename.slice(0, -3))
-    ) {
+    const file = path.resolve(context.filename);
+    const root = sourceRootOf(context);
+    const relative = path.relative(root, file);
+    if (relative.startsWith("..") || path.isAbsolute(relative) || !relative.split(path.sep).includes("constants")) {
       return {};
     }
+    const services = typedParserServices(context.sourceCode.parserServices);
+    if (!services) return {};
 
-    const names: string[] = [];
     return {
-      ExportNamedDeclaration(node) {
-        const declaration = node.declaration;
-        if (!declaration) return;
-        if (declaration.type === "VariableDeclaration") {
-          for (const entry of declaration.declarations) {
-            if (entry.id.type === "Identifier") names.push(entry.id.name);
+      Program(node) {
+        const evidence = getConstantDomains(services.program, root).byFile.get(file) ?? [];
+        const families = new Map<string, Set<string>>();
+        for (const item of evidence) {
+          if (!exportedConstantOwner(item.owner)) continue;
+          const name = item.owner.name.getText();
+          if (item.domains.size > 1) {
+            context.report({
+              node,
+              message: `Constant ${item.declaration.name.getText()} is consumed in distinct semantic domains (${[
+                ...item.domains,
+              ]
+                .sort()
+                .join(", ")}). Use separate definitions. See docs/next-codebase-guide/rules/constants-rule.md`,
+            });
           }
-        } else {
-          const name = enumDeclarationName(declaration);
-          if (name) names.push(name);
+          for (const domain of item.domains) {
+            const family = domain.split(":")[0] ?? domain;
+            const names = families.get(family) ?? new Set<string>();
+            names.add(name);
+            families.set(family, names);
+          }
         }
-      },
-      "Program:exit"() {
-        if (names.length < MIN_EXPORTS) return;
-        const domains = [...new Set(names.map(leadingDomain).filter((part): part is string => part !== undefined))];
-        if (domains.length < MIN_DOMAINS) return;
+        // Require distinct exported owners. One misused value alone is not a bag.
+        if (families.size < 2 || new Set([...families.values()].flatMap((names) => [...names])).size < 2) return;
         context.report({
-          loc: { line: 1, column: 0 },
-          message:
-            `Likely catch-all constants module "${basename}": ${String(names.length)} exported values span ${String(domains.length)} naming domains (${domains.join(", ")}). ` +
-            "Split unrelated values into cohesive, domain-named constants files and preserve each export's consumer placement. " +
-            "See docs/next-codebase-guide/rules/constants-rule.md",
+          node,
+          message: `Mixed semantic domains in constants module: ${[...families]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([family, names]) => `${family} (${[...names].sort().join(", ")})`)
+            .join(
+              "; ",
+            )}. Split cohesive definitions while preserving consumer placement. See docs/next-codebase-guide/rules/constants-rule.md`,
         });
       },
     };
