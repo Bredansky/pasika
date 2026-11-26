@@ -64,7 +64,7 @@ void describe("A constants module with exported values proven to belong to disti
     expect(messages).toHaveLength(3);
     expect(messages.join("\n")).toContain("aria:role, component-marker:data-sidebar");
     expect(messages.join("\n")).toContain("clipboard:item-kind, html:input-type");
-    expect(messages.join("\n")).toContain("date-format (editorC)");
+    expect(messages.join("\n")).toContain("DateTimeFormatOptions");
   });
 
   it("accepts one proven domain regardless of divergent declaration names", () => {
@@ -170,5 +170,154 @@ void describe("Known distinct semantic domains must not be deduplicated by strin
         'import { role } from "./constants/aria"; import { marker } from "./features/sidebar/marker"; export const view = <div role={role}><div role={marker} /></div>;',
     };
     expect(lint(same, "features/sidebar/marker.ts", repeatedSemanticLiteralRule).join("\n")).toContain("Reuse role");
+  });
+});
+
+void describe("Typed domains are inferred from contracts without a manual API registry.", () => {
+  it("keeps structurally identical named aliases distinct across declarations", () => {
+    const messages = lint(
+      {
+        "constants/index.ts": 'export const first = "ready";\nexport const second = "waiting";',
+        "contracts.ts":
+          'export type JobState = "ready" | "waiting";\nexport type ConnectionState = "ready" | "waiting";',
+        "consumer.ts":
+          'import { first, second } from "./constants"; import type { JobState, ConnectionState } from "./contracts"; declare function job(x: JobState): void; declare function connection(x: ConnectionState): void; job(first); connection(second);',
+      },
+      "constants/index.ts",
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("JobState");
+    expect(messages[0]).toContain("ConnectionState");
+  });
+
+  it("detects one value reused across unrelated named domains", () => {
+    const messages = lint(
+      {
+        "constants/index.ts": 'export const value = "ready";',
+        "consumer.ts":
+          'import { value } from "./constants"; type JobState = "ready" | "waiting"; type ConnectionState = "ready" | "waiting"; declare function job(x: JobState): void; declare function connection(x: ConnectionState): void; job(value); connection(value);',
+      },
+      "constants/index.ts",
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("consumed in distinct semantic domains");
+  });
+
+  it("follows alias chains and recognizes interface properties and parameters as one named domain", () => {
+    expect(
+      lint(
+        {
+          "constants/index.ts": 'export const first = "ready";\nexport const second = "waiting";',
+          "contracts.ts":
+            'export type JobState = "ready" | "waiting"; export type Alias = JobState; export interface Job { status: JobState }',
+          "consumer.ts":
+            'import { first, second } from "./constants"; import type { Job, Alias } from "./contracts"; declare function use(x: Alias): void; use(first); export const job: Job = { status: second };',
+        },
+        "constants/index.ts",
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps independent inline interface contracts separate", () => {
+    const messages = lint(
+      {
+        "constants/index.ts": 'export const first = "ready";\nexport const second = "waiting";',
+        "consumer.ts":
+          'import { first, second } from "./constants"; interface Job { status: "ready" | "waiting" } interface Connection { status: "ready" | "waiting" } export const job: Job = { status: first }; export const connection: Connection = { status: second };',
+      },
+      "constants/index.ts",
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toContain("Job");
+    expect(messages[0]).toContain("Connection");
+  });
+
+  it("does not assume co-located enums are unrelated merely because they have distinct identities", () => {
+    const messages = lint(
+      {
+        "constants/index.ts":
+          'export enum Job { Ready = "ready", Waiting = "waiting" } export enum Connection { Ready = "ready", Waiting = "waiting" }',
+        "consumer.ts":
+          'import { Job, Connection } from "./constants"; declare function job(x: Job): void; declare function connection(x: Connection): void; job(Job.Ready); connection(Connection.Ready);',
+      },
+      "constants/index.ts",
+    );
+    expect(messages).toEqual([]);
+  });
+
+  it("does not infer a domain from generic inference, broad types, or unknown calls", () => {
+    expect(
+      lint(
+        {
+          "constants/index.ts": 'export const first = "ready";\nexport const second = "waiting";',
+          "consumer.ts":
+            'import { first, second } from "./constants"; declare function generic<T extends string>(x: T): void; declare function broad(x: string): void; generic(first); broad(second);',
+        },
+        "constants/index.ts",
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not deduplicate equal literals belonging to independent typed contracts", () => {
+    expect(
+      lint(
+        {
+          "constants/job.ts": 'export const readyJob = "ready";',
+          "features/connection/state.ts": 'export const readyConnection = "ready";',
+          "consumer.ts":
+            'import { readyJob } from "./constants/job"; import { readyConnection } from "./features/connection/state"; type JobState = "ready" | "waiting"; type ConnectionState = "ready" | "waiting"; declare function job(x: JobState): void; declare function connection(x: ConnectionState): void; job(readyJob); connection(readyConnection);',
+        },
+        "features/connection/state.ts",
+        repeatedSemanticLiteralRule,
+      ),
+    ).toEqual([]);
+  });
+});
+
+void describe("Typed contract identity preserves enum projections and does not confuse package ownership with identity.", () => {
+  it("recognizes enum projections as the original domain", () => {
+    expect(
+      lint(
+        {
+          "constants/index.ts":
+            'export enum Action { Expand = "expand", Shorten = "shorten", Translate = "translate" }',
+          "consumer.ts":
+            'import { Action } from "./constants"; type LimitAction = Action.Expand | Action.Shorten; type ExtendedAction = Action | "custom"; declare function use(x: Action): void; declare function limit(x: LimitAction): void; declare function extended(x: ExtendedAction): void; use(Action.Expand); limit(Action.Expand); extended(Action.Expand);',
+        },
+        "constants/index.ts",
+      ),
+    ).toEqual([]);
+  });
+
+  it("does not treat different views of a library vocabulary as a proven conflict", () => {
+    expect(
+      lint(
+        {
+          "constants/index.ts": 'export const first = "hex";\nexport const second = "utf8";',
+          "node_modules/example/index.d.ts":
+            'export type BinaryEncoding = "hex" | "base64"; export type Encoding = BinaryEncoding | "utf8"; export function binary(x: BinaryEncoding): void; export function text(x: Encoding): void;',
+          "consumer.ts":
+            'import { first, second } from "./constants"; import { binary, text } from "example"; binary(first); text(first); text(second);',
+        },
+        "constants/index.ts",
+      ),
+    ).toEqual([]);
+  });
+
+  it("still distinguishes library contract identities for literal deduplication", () => {
+    expect(
+      lint(
+        {
+          "constants/job.ts": 'export const readyJob = "ready";',
+          "features/connection/state.ts": 'export const readyConnection = "ready";',
+          "node_modules/example/index.d.ts":
+            'export type JobState = "ready" | "waiting"; export type ConnectionState = "ready" | "waiting"; export function job(x: JobState): void; export function connection(x: ConnectionState): void;',
+          "consumer.ts":
+            'import { readyJob } from "./constants/job"; import { readyConnection } from "./features/connection/state"; import { job, connection } from "example"; job(readyJob); connection(readyConnection);',
+        },
+        "features/connection/state.ts",
+        repeatedSemanticLiteralRule,
+      ),
+    ).toEqual([]);
   });
 });

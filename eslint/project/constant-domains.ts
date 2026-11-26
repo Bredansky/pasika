@@ -4,7 +4,9 @@
  */
 import path from "node:path";
 import ts from "typescript";
+import { comparisonDomain, intrinsicAttributeDomain, mimePrefix, propertyDomain } from "./constant-domain-fallbacks";
 import { isProductionSource } from "./semantic-literals";
+import { createTypedDomainResolver } from "./typed-constant-domains";
 
 interface DomainEvidence {
   declaration: ts.VariableDeclaration | ts.EnumMember;
@@ -70,58 +72,6 @@ function resolvedDeclaration(checker: ts.TypeChecker, node: ts.Expression): Doma
   return constDeclaration(symbol?.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol);
 }
 
-function intrinsicAttributeDomain(node: ts.JsxAttribute): string | undefined {
-  const element = node.parent.parent;
-  if (!ts.isIdentifier(element.tagName) || !/^[a-z]/u.test(element.tagName.text) || !ts.isIdentifier(node.name)) {
-    return undefined;
-  }
-  const tag = element.tagName.text;
-  const attribute = node.name.text;
-  if (attribute === "role") return "aria:role";
-  if (tag === "input" && attribute === "type") return "html:input-type";
-  if (tag === "button" && attribute === "type") return "html:button-type";
-  if (tag === "track" && attribute === "kind") return "html:track-kind";
-  if (tag === "input" && attribute === "accept") return "media:mime";
-  if (attribute === "data-sidebar" || attribute === "data-slot") return `component-marker:${attribute}`;
-  return undefined;
-}
-
-function platformProperty(program: ts.Program, symbol: ts.Symbol | undefined, owner: string): boolean {
-  return (
-    symbol?.declarations?.some(
-      (declaration) =>
-        program.isSourceFileDefaultLibrary(declaration.getSourceFile()) &&
-        ts.isInterfaceDeclaration(declaration.parent) &&
-        declaration.parent.name.text === owner,
-    ) ?? false
-  );
-}
-
-function propertyDomain(program: ts.Program, checker: ts.TypeChecker, node: ts.PropertyAssignment): string | undefined {
-  if (!ts.isObjectLiteralExpression(node.parent) || !ts.isIdentifier(node.name)) return undefined;
-  const type = checker.getContextualType(node.parent);
-  if (!type) return undefined;
-  const property = checker.getPropertyOfType(type, node.name.text);
-  if (platformProperty(program, property, "DateTimeFormatOptions")) return "date-format:options";
-  return undefined;
-}
-
-function comparisonDomain(program: ts.Program, checker: ts.TypeChecker, node: ts.Expression): string | undefined {
-  if (ts.isTypeOfExpression(node)) return "js-type:typeof";
-  if (!ts.isPropertyAccessExpression(node) || node.name.text !== "kind") return undefined;
-  return platformProperty(program, checker.getSymbolAtLocation(node.name), "DataTransferItem")
-    ? "clipboard:item-kind"
-    : undefined;
-}
-
-function mimePrefix(program: ts.Program, checker: ts.TypeChecker, node: ts.CallExpression): boolean {
-  if (!ts.isPropertyAccessExpression(node.expression) || node.expression.name.text !== "startsWith") return false;
-  const receiver = node.expression.expression;
-  if (!ts.isPropertyAccessExpression(receiver) || receiver.name.text !== "type") return false;
-  const symbol = checker.getSymbolAtLocation(receiver.name);
-  return platformProperty(program, symbol, "DataTransferItem") || platformProperty(program, symbol, "Blob");
-}
-
 export function constantDomainKey(file: string, name: string): string {
   return `${path.resolve(file)}\u0000${name}`;
 }
@@ -139,11 +89,13 @@ export function distinctKnownDomains(
 
 function build(program: ts.Program, root: string): ConstantDomains {
   const checker = program.getTypeChecker();
+  const inferDomain = createTypedDomainResolver(checker, root);
   const evidence = new Map<DomainEvidence["declaration"], DomainEvidence>();
-  function record(node: ts.Expression, domain: string | undefined): void {
-    if (!domain) return;
+  function record(node: ts.Expression, fallback: string | undefined): void {
     const declaration = resolvedDeclaration(checker, node);
     if (!declaration || !inSource(root, declaration.getSourceFile().fileName)) return;
+    const domain = inferDomain(node) ?? fallback;
+    if (!domain) return;
     const owner = ts.isEnumMember(declaration) ? declaration.parent : declaration;
     const item = evidence.get(declaration) ?? { declaration, owner, domains: new Set<string>() };
     item.domains.add(domain);
@@ -172,6 +124,8 @@ function build(program: ts.Program, root: string): ConstantDomains {
     if (ts.isCallExpression(node) && node.arguments[0] && mimePrefix(program, checker, node)) {
       record(node.arguments[0], "media:mime");
     }
+    // Direct references in declared call, property, JSX and variable contracts.
+    if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) record(node, undefined);
     ts.forEachChild(node, visit);
   }
   for (const source of program.getSourceFiles()) {
