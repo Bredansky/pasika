@@ -6,6 +6,8 @@ import { sourceRootOf } from "./project-root";
 
 const MESSAGE =
   "Consecutive const declarations must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
+const TYPE_MESSAGE =
+  "Consecutive type aliases must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
 const BOUNDARY_MESSAGE =
   "Different declaration groups must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const STRUCTURED_MESSAGE =
@@ -29,6 +31,11 @@ const spacingRule: Rule.RuleModule = {
 void describe("In source modules, consecutive ordinary const declarations with the same export visibility MUST have no blank line between them regardless of line wrapping; multiline object and array literals MUST be separated, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-spacing", spacingRule, {
     valid: [
+      {
+        code: 'export type MediaLayerData = Extract<Layer, { type: LayerType.Media }>;\nexport type Position = TextLayerData["position"];',
+        filename,
+      },
+      { code: "type A = string;\n\n// Separate group\ntype B = number;", filename },
       { code: "const first = 1;\nconst second = 2;", filename },
       { code: 'const badgeSecondaryClasses =\n  "long classes";\nconst badgeSlot = "badge";', filename },
       { code: "const first = {\n  value: 2,\n};\n\nconst second = 3;", filename },
@@ -50,6 +57,19 @@ void describe("In source modules, consecutive ordinary const declarations with t
       { code: "const first = 1;\n\nconst second = 2;", filename: "scripts/build.ts" },
     ],
     invalid: [
+      {
+        code: 'export type MediaLayerData = Extract<Layer, { type: LayerType.Media }>;\n\nexport type Position = TextLayerData["position"];',
+        output:
+          'export type MediaLayerData = Extract<Layer, { type: LayerType.Media }>;\nexport type Position = TextLayerData["position"];',
+        filename,
+        errors: [{ message: TYPE_MESSAGE }],
+      },
+      {
+        code: "type A = string;\r\n\r\ntype B = number;",
+        output: "type A = string;\r\ntype B = number;",
+        filename,
+        errors: [{ message: TYPE_MESSAGE }],
+      },
       {
         code: "const first = 1;\n\nconst second = 2;",
         output: "const first = 1;\nconst second = 2;",

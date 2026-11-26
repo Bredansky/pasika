@@ -11,6 +11,8 @@ import { typedParserServices } from "./contract-ownership";
 
 const MESSAGE =
   "Consecutive const declarations must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
+const TYPE_MESSAGE =
+  "Consecutive type aliases must not have blank lines between them. See docs/next-codebase-guide/rules/constants-rule.md";
 const BOUNDARY_MESSAGE =
   "Different declaration groups must be separated by a blank line. See docs/next-codebase-guide/rules/constants-rule.md";
 const CALLABLE_MESSAGE =
@@ -159,6 +161,7 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
       !first ||
       !second ||
       (first === second &&
+        first !== "type" &&
         first !== "const" &&
         first !== "exported-const" &&
         first !== "callable" &&
@@ -184,7 +187,7 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     const ordinaryBoundaryMessage = first === second && declarationBoundary ? DECLARATION_MESSAGE : BOUNDARY_MESSAGE;
     const groupMessage = visibilityBoundary ? VISIBILITY_MESSAGE : ordinaryBoundaryMessage;
     const boundaryMessage = structuredBoundary ? STRUCTURED_MESSAGE : groupMessage;
-    const message = needsBlankLine ? boundaryMessage : MESSAGE;
+    const message = needsBlankLine ? boundaryMessage : first === "type" ? TYPE_MESSAGE : MESSAGE;
     context.report({
       node: current,
       message: callableBoundary ? CALLABLE_MESSAGE : message,
