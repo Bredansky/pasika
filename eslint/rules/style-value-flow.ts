@@ -37,18 +37,54 @@ function isProjectDeclaration(node: ts.Node): boolean {
   return !source.isDeclarationFile && !source.fileName.replaceAll("\\", "/").includes("/node_modules/");
 }
 
+function isValueAssignment(node: ts.Node): node is ts.BinaryExpression {
+  return (
+    ts.isBinaryExpression(node) &&
+    [
+      ts.SyntaxKind.EqualsToken,
+      ts.SyntaxKind.PlusEqualsToken,
+      ts.SyntaxKind.BarBarEqualsToken,
+      ts.SyntaxKind.AmpersandAmpersandEqualsToken,
+      ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ].includes(node.operatorToken.kind) &&
+    ts.isIdentifier(node.left)
+  );
+}
+
+function executionScope(node: ts.Node): ts.Node {
+  let current = node.parent;
+  while (!ts.isFunctionLike(current) && !ts.isSourceFile(current)) current = current.parent;
+  return current;
+}
+
+/** A plain assignment in a containing statement list replaces earlier candidates. */
+function replacesEarlierValues(write: ts.BinaryExpression, read: ts.Identifier): boolean {
+  if (
+    write.operatorToken.kind !== ts.SyntaxKind.EqualsToken ||
+    !ts.isExpressionStatement(write.parent) ||
+    executionScope(write) !== executionScope(read)
+  ) {
+    return false;
+  }
+  const block = write.parent.parent;
+  if (!ts.isBlock(block) && !ts.isSourceFile(block)) return false;
+  let current: ts.Node = read;
+  while (!ts.isSourceFile(current)) {
+    if (current.parent === block) return write.parent.end <= current.getStart();
+    current = current.parent;
+  }
+  return false;
+}
+
 /** A class literal stored outside a composition call is a standalone alias. */
 function isStoredClass(node: ts.Node): boolean {
   let current = node;
   while (!ts.isSourceFile(current)) {
     const parent = current.parent;
     if (ts.isVariableDeclaration(parent)) {
-      return (
-        parent.initializer === current &&
-        ts.isVariableDeclarationList(parent.parent) &&
-        parent.parent.flags === ts.NodeFlags.Const
-      );
+      return parent.initializer === current && ts.isVariableDeclarationList(parent.parent);
     }
+    if (isValueAssignment(parent)) return parent.right === current;
     if (ts.isEnumMember(parent)) return parent.initializer === current;
     if (
       ts.isCallExpression(parent) ||
@@ -86,6 +122,45 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
   function symbolAt(node: ts.Node): ts.Symbol | undefined {
     const symbol = checker.getSymbolAtLocation(node);
     return symbol?.flags === ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+  }
+
+  // Index once per source, by symbol identity rather than variable names.
+  // This is a bounded candidate-write analysis, not a control-flow interpreter.
+  const assignmentCache = new Map<ts.SourceFile, Map<ts.Symbol, ts.BinaryExpression[]>>();
+
+  function assignmentsFor(
+    declaration: ts.VariableDeclaration,
+    symbol: ts.Symbol,
+    read: ts.Identifier,
+  ): ts.BinaryExpression[] {
+    const file = declaration.getSourceFile();
+    let index = assignmentCache.get(file);
+    if (!index) {
+      const entries = new Map<ts.Symbol, ts.BinaryExpression[]>();
+      function collect(node: ts.Node): void {
+        if (isValueAssignment(node)) {
+          const target = symbolAt(node.left);
+          if (target) {
+            const writes = entries.get(target) ?? [];
+            writes.push(node);
+            entries.set(target, writes);
+          }
+        }
+        ts.forEachChild(node, collect);
+      }
+      collect(file);
+      index = entries;
+      assignmentCache.set(file, index);
+    }
+    const readScope = executionScope(read);
+    const declarationScope = executionScope(declaration);
+    return (index.get(symbol) ?? []).filter((write) => {
+      const scope = executionScope(write);
+      return (
+        (scope === readScope || scope === declarationScope) &&
+        (file !== read.getSourceFile() || write.end <= read.getStart())
+      );
+    });
   }
 
   function helperName(node: ts.Expression): string | undefined {
@@ -167,13 +242,30 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
           }
           for (const declaration of symbol.declarations ?? []) {
             if (!isProjectDeclaration(declaration)) continue;
-            if (
-              ts.isVariableDeclaration(declaration) &&
-              declaration.initializer &&
-              ts.isVariableDeclarationList(declaration.parent) &&
-              declaration.parent.flags === ts.NodeFlags.Const
-            ) {
-              walk(declaration.initializer, path, bindings, true, lookup);
+            if (ts.isVariableDeclaration(declaration) && ts.isVariableDeclarationList(declaration.parent)) {
+              const start = values.length;
+              const writes =
+                declaration.parent.flags === ts.NodeFlags.Const ? [] : assignmentsFor(declaration, symbol, node);
+              let replacement = -1;
+              for (const [index, write] of writes.entries()) {
+                if (replacesEarlierValues(write, node)) replacement = index;
+              }
+              if (replacement < 0 && declaration.initializer) {
+                walk(declaration.initializer, path, bindings, true, lookup);
+              }
+              if (writes.length) {
+                for (const write of writes.slice(Math.max(0, replacement))) {
+                  walk(write.right, path, bindings, true, lookup);
+                }
+                const choices = values.slice(start).filter((value) => value.stored && value.text.trim());
+                const distinct = new Set(choices.map((value) => value.text));
+                if (
+                  distinct.size > 1 &&
+                  writes.some((write) => write.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken)
+                ) {
+                  for (const value of choices) value.lookup = true;
+                }
+              }
             }
             if (ts.isEnumMember(declaration) && declaration.initializer) {
               walk(declaration.initializer, path, bindings, true, lookup);
