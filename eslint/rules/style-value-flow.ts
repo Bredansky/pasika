@@ -6,6 +6,7 @@ import type { Rule } from "eslint";
 import ts from "typescript";
 import { typedParserServices } from "./contract-ownership";
 import { reactCreateElementClassValues } from "./react-create-element";
+import { tiptapEditorClassValues } from "./tiptap-editor";
 
 type Key = string | undefined;
 type Bindings = ReadonlyMap<ts.Symbol, ts.Expression>;
@@ -267,6 +268,9 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
                 }
               }
             }
+            if (ts.isBindingElement(declaration) && declaration.initializer) {
+              walk(declaration.initializer, path, bindings, true, lookup);
+            }
             if (ts.isEnumMember(declaration) && declaration.initializer) {
               walk(declaration.initializer, path, bindings, true, lookup);
             }
@@ -486,7 +490,10 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
       if (!ts.isCallExpression(expression) || !helperName(expression.expression)) trace(expression, "style");
     }
     if (ts.isCallExpression(node)) {
-      for (const value of reactCreateElementClassValues(context, node)) {
+      for (const value of [
+        ...reactCreateElementClassValues(context, node),
+        ...tiptapEditorClassValues(context, node),
+      ]) {
         const expression = unwrap(value);
         if (!ts.isCallExpression(expression) || !helperName(expression.expression)) trace(expression, "style");
       }

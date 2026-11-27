@@ -15,6 +15,7 @@ import { resolveSpecifier } from "../project/index";
 import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
 import { reactCreateElementClassValues } from "./react-create-element";
+import { tiptapEditorClassValues } from "./tiptap-editor";
 import { inspectStyleValueFlows } from "./style-value-flow";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
@@ -305,7 +306,8 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         if (expression.operatorToken.kind !== ts.SyntaxKind.AmpersandAmpersandToken) {
           if (
             expression.operatorToken.kind === ts.SyntaxKind.BarBarToken ||
-            expression.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+            expression.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken ||
+            expression.operatorToken.kind === ts.SyntaxKind.PlusToken
           ) {
             inspectStyle(expression.left);
           } else return;
@@ -352,7 +354,11 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     function visit(node: ts.Node): void {
       if (ts.isVariableStatement(node)) inspectCvaAlias(node);
       if (ts.isCallExpression(node)) {
-        for (const value of reactCreateElementClassValues(context, node)) inspectStyle(value);
+        for (const value of [
+          ...reactCreateElementClassValues(context, node),
+          ...tiptapEditorClassValues(context, node),
+        ])
+          inspectStyle(value);
       }
       if (ts.isJsxAttribute(node) && ts.isIdentifier(node.name) && node.name.text === "className") {
         if (node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
