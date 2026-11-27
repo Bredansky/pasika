@@ -11,7 +11,7 @@ import ts from "typescript";
 import { sourceRootOf } from "./project-root";
 
 const MESSAGE =
-  "Order independent declarations as types, enums, constants (alphabetically), functions, then local exports. See docs/next-codebase-guide/rules/constants-rule.md";
+  "Order independent declarations as types (private then exported, alphabetically), enums, constants (alphabetically), functions, then local exports. See docs/next-codebase-guide/rules/constants-rule.md";
 
 enum DeclarationKind {
   Type,
@@ -103,9 +103,21 @@ function entryFor(node: ts.Statement, overloadedNames: ReadonlySet<string>): Ent
   return undefined;
 }
 
+function isExportedType(entry: Entry): boolean {
+  return (
+    entry.kind === DeclarationKind.Type &&
+    ts.canHaveModifiers(entry.node) &&
+    Boolean(ts.getModifiers(entry.node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword))
+  );
+}
+
 function compareEntries(first: Entry, second: Entry): number {
   if (first.kind !== second.kind) return first.kind - second.kind;
-  if (first.kind !== DeclarationKind.Constant || first.name === second.name) return 0;
+  if (first.kind === DeclarationKind.Type) {
+    const visibility = Number(isExportedType(first)) - Number(isExportedType(second));
+    if (visibility) return visibility;
+  } else if (first.kind !== DeclarationKind.Constant) return 0;
+  if (first.name === second.name) return 0;
   return first.name < second.name ? -1 : 1;
 }
 
@@ -123,7 +135,10 @@ function checkGroup(context: Rule.RuleContext, file: ts.SourceFile, group: reado
   const replacement = ordered
     .map((entry, index) => {
       const previous = ordered[index - 1];
-      const separator = previous?.kind === entry.kind ? newline : newline + newline;
+      const sameGroup = previous?.kind === entry.kind && isExportedType(previous) === isExportedType(entry);
+      const interfaceBoundary =
+        ts.isInterfaceDeclaration(entry.node) || Boolean(previous && ts.isInterfaceDeclaration(previous.node));
+      const separator = sameGroup && !interfaceBoundary ? newline : newline + newline;
       return (index === 0 ? "" : separator) + source.text.slice(entry.node.getStart(file), entry.node.getEnd());
     })
     .join("");
@@ -141,7 +156,9 @@ export const declarationOrderRule: Rule.RuleModule = {
     schema: [],
     type: "layout",
     fixable: "code",
-    docs: { description: "Order safely movable module declarations and alphabetize independent literal constants." },
+    docs: {
+      description: "Order safely movable module declarations and alphabetize types and independent literal constants.",
+    },
   },
   create(context) {
     if (!path.resolve(context.filename).startsWith(sourceRootOf(context) + path.sep)) return {};

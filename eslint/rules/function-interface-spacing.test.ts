@@ -23,9 +23,9 @@ void describe("Module-level functions and interfaces have individual blank-line 
     ],
     invalid: [
       {
-        code: "type PlatformCredentialRow = ReturnType<typeof schema.parse>;\ninterface NewCredentialInput {\n  userAccountId: string;\n}\ninterface RenameCredentialInput {\n  credentialId: string;\n}",
+        code: "type CredentialRow = ReturnType<typeof schema.parse>;\ninterface NewCredentialInput {\n  userAccountId: string;\n}\ninterface RenameCredentialInput {\n  credentialId: string;\n}",
         output:
-          "type PlatformCredentialRow = ReturnType<typeof schema.parse>;\n\ninterface NewCredentialInput {\n  userAccountId: string;\n}\n\ninterface RenameCredentialInput {\n  credentialId: string;\n}",
+          "type CredentialRow = ReturnType<typeof schema.parse>;\n\ninterface NewCredentialInput {\n  userAccountId: string;\n}\n\ninterface RenameCredentialInput {\n  credentialId: string;\n}",
         filename,
         errors: [{ message: boundary }, { message }],
       },
