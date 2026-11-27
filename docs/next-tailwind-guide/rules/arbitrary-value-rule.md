@@ -1,6 +1,6 @@
 # Arbitrary Value Rule
 
-Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values.
+Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values. The same restriction applies when a class is reached through an alias, a lookup table, or a helper's return value.
 
 - Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.
 - Components MUST NOT use numeric fractional Tailwind utility classes such as `h-3.5` or `w-3.5`; they MUST use an integer utility or a named `@utility` that maps an explicit value.

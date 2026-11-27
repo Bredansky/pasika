@@ -13,6 +13,7 @@ import type { Rule } from "eslint";
 import ts from "typescript";
 import { resolveSpecifier } from "../project/index";
 import { sourceRootOf } from "./project-root";
+import { inspectStyleValueFlows } from "./style-value-flow";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
 const MESSAGE = `Do not use enum members or shared class-name constants to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
@@ -342,6 +343,22 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     return {
       Program() {
         visit(current);
+        inspectStyleValueFlows(context, ({ sink, kind, values }) => {
+          if (values.some((value) => value.lookup) || (kind === "variant" && values.some((value) => value.indirect))) {
+            // Parser services use a separate AST; locate the sink by its source offset.
+            const pos = sink.getStart();
+            if (reported.has(pos)) return;
+            reported.add(pos);
+            const location = current.getLineAndCharacterOfPosition(pos);
+            context.report({
+              node: context.sourceCode.ast,
+              loc: { line: location.line + 1, column: location.character },
+              message: values.some((value) => value.lookup)
+                ? `Do not select styling classes through handwritten lookup tables or helper functions; define visual choices with CVA. See docs/next-tailwind-guide/rules/component-variant-rule.md`
+                : MESSAGE,
+            });
+          }
+        });
       },
     };
   },

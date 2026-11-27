@@ -1,6 +1,6 @@
 # Component Variant Rule
 
-A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
+A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes. A handwritten class lookup table, even when wrapped in a helper function, is not a substitute for CVA variants; define the choices and their class strings directly in the CVA configuration.
 
 - A component that lets callers choose visual options MUST define them with `cva`.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
