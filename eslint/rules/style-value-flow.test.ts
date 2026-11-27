@@ -50,7 +50,7 @@ function lint(code: string, extra = ""): Linter.LintMessage[] {
   }
 }
 
-test("Styling values resolved through class aliases, lookup tables, or helper return values MUST obey the same arbitrary-value restrictions as direct class strings.", () => {
+test("traces arbitrary classes through imported lookup helpers without confusing unrelated map entries", () => {
   const result = lint(
     'import { getStatusClasses, Status } from "./styles"; declare const status: Status; const element = <div className={getStatusClasses(status, "text")} />;',
     `export enum Status { Draft = "draft", Ready = "ready" }
@@ -68,7 +68,7 @@ export function getStatusClasses(status: Status, property: "text" | "border") { 
   expect(result.some((item) => item.message.includes("handwritten lookup tables"))).toBe(true);
 });
 
-test("CVA variant class values MUST contain their class strings directly rather than reference class-string aliases.", () => {
+test("rejects class aliases in CVA variant values", () => {
   const result = lint(`import { cva as variants } from "class-variance-authority";
 const raw = "border-(--divider)";
 const valid = "text-muted-ink";
@@ -112,7 +112,7 @@ const card = <div className={cn("rounded", getStatusClasses(Status.Draft))} />;`
   expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
 });
 
-test("Visual choices selected through handwritten class lookup tables or helpers returning alternative class treatments MUST use cva instead.", () => {
+test("Components MUST define alternative visual treatments using CVA with directly specified Tailwind classes instead of class-name aliases, handwritten lookup tables, or custom class-returning helpers.", () => {
   const result = lint(`function choose(active: boolean) { return active ? "bg-primary" : "bg-danger"; }
 function optional(active: boolean) { return active ? "animate-pulse" : ""; }
 declare const active: boolean;
