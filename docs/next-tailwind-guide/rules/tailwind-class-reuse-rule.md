@@ -42,24 +42,16 @@ export const panelClassName = "rounded-md border p-4";
 // src/features/home/home-summary.tsx
 import { panelClassName } from "@/constants";
 
-export function HomeSummary(): React.JSX.Element {
-  return (
-    <section className={panelClassName}>
-      <HomeDetails />
-    </section>
-  );
-}
+<section className={panelClassName}>
+  <HomeDetails />
+</section>;
 
 // src/features/merch/merch-summary.tsx
 import { panelClassName } from "@/constants";
 
-export function MerchSummary(): React.JSX.Element {
-  return (
-    <section className={panelClassName}>
-      <MerchDetails />
-    </section>
-  );
-}
+<section className={panelClassName}>
+  <MerchDetails />
+</section>;
 ```
 
 Why: two components share the same visual treatment only through a class-name constant, so the markup and appearance can drift independently.
@@ -75,24 +67,16 @@ export function Panel({ children }: { children: React.ReactNode }): React.JSX.El
 // src/features/home/home-summary.tsx
 import { Panel } from "@/shared/panel";
 
-export function HomeSummary(): React.JSX.Element {
-  return (
-    <Panel>
-      <HomeDetails />
-    </Panel>
-  );
-}
+<Panel>
+  <HomeDetails />
+</Panel>;
 
 // src/features/merch/merch-summary.tsx
 import { Panel } from "@/shared/panel";
 
-export function MerchSummary(): React.JSX.Element {
-  return (
-    <Panel>
-      <MerchDetails />
-    </Panel>
-  );
-}
+<Panel>
+  <MerchDetails />
+</Panel>;
 ```
 
 Why: the shared component owns the element and its appearance, while each consumer supplies only its own content.
@@ -132,10 +116,10 @@ Why: the full six-class set has one owner while the content remains independent.
 ## Incorrect — Local Tailwind Class Alias
 
 ```tsx
-const layout = "inline-flex items-center gap-2";
-const typography = "text-sm font-medium";
+const layout = "inline-flex items-center";
+const highlight = "ring-2";
 
-<button className={cn(layout, typography)} />;
+<button className={cn(layout, active && highlight)} />;
 ```
 
 Why: even local constants separate the class strings from their styling owner.
@@ -143,10 +127,8 @@ Why: even local constants separate the class strings from their styling owner.
 ## Correct — Direct Class Composition
 
 ```tsx
-<button className="inline-flex items-center gap-2 text-sm font-medium" />;
-
 const buttonClasses = cn("inline-flex items-center", active && "ring-2");
 <button className={buttonClasses} />;
 ```
 
-Why: literal classes stay in their styling positions, while the named composition result represents computed styling.
+Why: the class strings stay inside `cn()`, and the constant stores the computed composition rather than raw class aliases.
