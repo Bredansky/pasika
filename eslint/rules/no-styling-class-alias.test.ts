@@ -8,17 +8,13 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noStylingClassAliasRule } from "./no-styling-class-alias";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
-const MESSAGE = `Do not use enum members or shared class-name constants to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
+const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
 const file = srcFile("features/editor/button.tsx");
 
-void describe("Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.", () => {
+void describe("Tailwind class strings used for styling MUST NOT be extracted into standalone constants, enums, or other aliases. Strings used solely as display text are exempt.", () => {
   ruleTester.run("no-styling-class-alias", noStylingClassAliasRule, {
     valid: [
       { filename: file, code: 'function Card() { return <div className="border-2 p-4" />; }' },
-      {
-        filename: file,
-        code: 'const localClassName = "text-sm"; function Card() { return <p className={localClassName} />; }',
-      },
       {
         filename: file,
         code: 'enum PrimitiveCssClass { FireBar = ".h-3px", Hover = ".hover\\\\:shadow-glow" }; const docs = [{ className: PrimitiveCssClass.FireBar }]; render(<code>{docs[0].className}</code>);',
@@ -32,7 +28,15 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
         filename: file,
         code: 'enum Mode { Compact = "compact", Spacious = "spacious" }; const display = Mode.Compact;',
       },
-      { filename: file, code: 'const localClassName = "p-4"; const variant = cva(localClassName);' },
+      {
+        filename: file,
+        code: 'const classes = cn("text-sm", active && "ring-2"); const view = <p className={classes} />;',
+      },
+      { filename: file, code: 'const classes = "text-sm"; const view = <code>{classes}</code>;' },
+      {
+        filename: file,
+        code: 'const classes = "text-sm"; function Card(classes: string) { return <p className={classes} />; }',
+      },
       {
         filename: file,
         code: 'enum Surface { Card = "card", Gradient = "gradient" }; const view = <div className={cn("p-2", surface === Surface.Gradient ? "bg-blue" : "bg-red")} />;',
@@ -63,6 +67,21 @@ void describe("Class-name aliases MUST NOT be used for styling. Strings used sol
       },
     ],
     invalid: [
+      {
+        filename: file,
+        code: 'const localClassName = "text-sm"; function Card() { return <p className={localClassName} />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'function Card() { const layout = "p-4"; return <div className={cn(layout, "flex")} />; }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'const layout = ("p-4" as const); const variants = cva(layout, { variants: { compact: { true: "h-8", false: "h-10" } } });',
+        errors: [{ message: MESSAGE }],
+      },
       {
         filename: file,
         code: 'enum PrimitiveCssClass { FireBar = "h-3px" }; const view = <div className={PrimitiveCssClass.FireBar} />;',
@@ -119,7 +138,7 @@ void describe("Static CVA class wrappers MUST NOT be exported from constants/ mo
     valid: [
       {
         filename: srcFile("features/ui/button.tsx"),
-        code: 'import { cva } from "class-variance-authority"; const focus = "ring-2"; export const focusClasses = cva(focus);',
+        code: 'import { cva } from "class-variance-authority"; export const focusClasses = cva("ring-2", { variants: { active: { true: "block", false: "hidden" } } });',
       },
       {
         filename: srcFile("constants/ui-classes.ts"),
@@ -138,12 +157,17 @@ void describe("Static CVA class wrappers MUST NOT be exported from constants/ mo
       {
         filename: srcFile("constants/ui-classes.ts"),
         code: 'import { cva } from "class-variance-authority"; const badgeFocusTokens = "focus-visible:ring-3"; export const badgeFocusClasses = cva(badgeFocusTokens); const buttonDisabledTokens = "disabled:opacity-50"; export const buttonDisabledClasses = cva(buttonDisabledTokens);',
-        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }, { message: STATIC_CVA_ALIAS_MESSAGE }],
+        errors: [
+          { message: STATIC_CVA_ALIAS_MESSAGE },
+          { message: MESSAGE },
+          { message: STATIC_CVA_ALIAS_MESSAGE },
+          { message: MESSAGE },
+        ],
       },
       {
         filename: srcFile("features/editor/constants/index.ts"),
         code: 'import { cva } from "class-variance-authority"; const token = "text-xs"; export const subButtonSmallClasses = cva(token);',
-        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }],
+        errors: [{ message: STATIC_CVA_ALIAS_MESSAGE }, { message: MESSAGE }],
       },
       {
         filename: srcFile("constants/ui-classes.ts"),

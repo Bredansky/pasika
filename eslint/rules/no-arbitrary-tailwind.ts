@@ -8,6 +8,7 @@
 
 import type { Rule } from "eslint";
 import type * as ESTree from "estree";
+import { inspectStyleValueFlows, reportStyleFlow } from "./style-value-flow";
 
 const ARBITRARY_VALUE_RE = /\[[^\]]+\]/;
 const CUSTOM_PROPERTY_VALUE_RE = /\((?:[a-z][a-z0-9-]*:)?--[^)]+\)/;
@@ -183,6 +184,27 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
     }
 
     return {
+      Program() {
+        const reported = new Set<string>();
+        inspectStyleValueFlows(context, ({ sink, values }) => {
+          for (const value of values) {
+            if (!value.indirect) continue;
+            for (const className of value.text.split(/\s+/)) {
+              if (!className) continue;
+              const utility = rawValueUtility(className);
+              const base = baseUtility(className);
+              if (!utility && !FRACTIONAL_VALUE_RE.test(base)) continue;
+              const key = `${value.node.getSourceFile().fileName}:${String(value.node.pos)}:${className}`;
+              if (reported.has(key)) continue;
+              reported.add(key);
+              const message = utility
+                ? `Tailwind raw-value class "${utility}" is not allowed. Define and use a named utility instead. See docs/next-tailwind-guide/rules/arbitrary-value-rule.md`
+                : `Fractional Tailwind class "${base}" is not allowed. Use an integer scale value or a named @utility for the exact value. See docs/next-tailwind-guide/rules/arbitrary-value-rule.md`;
+              reportStyleFlow(context, sink, message);
+            }
+          }
+        });
+      },
       JSXAttribute(node: JsxAttributeNode) {
         const attributeName = node.name?.name;
         if (attributeName !== "className" && attributeName !== "class") return;

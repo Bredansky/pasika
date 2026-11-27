@@ -3,12 +3,35 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
-const STATIC_CLASS_ALIAS_MESSAGE = `Do not extract static Tailwind class strings into named class aliases; write the classes at the JSX className use site. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in JSX `className`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
+      {
+        filename: file,
+        code: 'import { cn as combine } from "pasika/cn"; const classes = combine("flex", active && "ring-2");',
+      },
+      {
+        filename: file,
+        code: 'import { cva as variants } from "class-variance-authority"; enum Tone { Solid = "solid" }; const style = variants("flex", { variants: { tone: { [Tone.Solid]: ["bg-primary", "text-primary-ink"] } }, compoundVariants: [{ tone: Tone.Solid, className: "font-medium" }], defaultVariants: { tone: Tone.Solid } });',
+      },
+      {
+        filename: file,
+        code: 'import * as Variants from "class-variance-authority"; const style = Variants.cva("flex", { variants: { compact: { true: "h-8", false: "h-10" } } });',
+      },
+      {
+        filename: file,
+        code: 'import compose from "clsx"; const classes = compose(active ? "block" : "hidden");',
+      },
+      {
+        filename: srcFile("constants/display.ts"),
+        code: 'export const exampleClasses = "text-sm"; render(exampleClasses);',
+      },
+      {
+        filename: file,
+        code: 'const classes = cn("flex", ["text-sm"], (active ? "block" : "hidden") as string);',
+      },
       {
         filename: file,
         code: 'const View = () => <div className={active ? "h-35" : "h-20"} />;',
@@ -114,19 +137,24 @@ void describe("Every runtime string or numeric value MUST be represented by a na
     ],
     invalid: [
       {
-        filename: srcFile("constants/milestone-classes.ts"),
-        code: 'export const milestoneContentClassName = "h-35";',
-        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+        filename: file,
+        code: 'import { cva } from "class-variance-authority"; const style = cva("flex", { variants: { tone: { solid: "text-primary" } }, defaultVariants: { tone: "solid" } });',
+        errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("features/editor/constants/button-classes.ts"),
-        code: 'const buttonClasses = "flex items-center gap-2";',
-        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+        filename: file,
+        code: 'function cn(value: string) { return value; } cn("ordinary data");',
+        errors: [{ message: MESSAGE }],
       },
       {
-        filename: srcFile("features/editor/constants/nav-classes.ts"),
-        code: "const navClassName = `text-sm`;",
-        errors: [{ message: STATIC_CLASS_ALIAS_MESSAGE }],
+        filename: file,
+        code: 'import { cn } from "unrelated"; cn("ordinary data");',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'cn(active === "active" ? "block" : "hidden");',
+        errors: [{ message: MESSAGE }],
       },
       {
         filename: file,

@@ -1,8 +1,8 @@
 # Constants Rule
 
-Unnamed runtime values hide their intent and make changes harder to audit. Keep single-use named constants near their consumers and share them at the common ancestor when reused; static Tailwind class aliases do not belong in `src/**/constants/` folders, while component-local class fragments and CVA variants remain valid.
+Unnamed runtime values hide their intent and make changes harder to audit.
 
-- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
+- Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in JSX `className`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
 - When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, unless it belongs to a known, fixed domain with multiple possible values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
@@ -32,7 +32,7 @@ const dimensions = { width: 360, height: 640 };
 
 Why: UI copy, API URLs, storage keys and numeric values are runtime values, even when they are used only once. This includes `-1`, `0`, and `1`.
 
-## Correct — Named Values And JSX Class Names
+## Correct — Named Runtime Values and Direct Class Strings
 
 ```tsx
 const draftTitle = "Draft";
@@ -46,10 +46,21 @@ enum ApiRoute {
   Post = "/api/post",
 }
 
-function Card() {
+const cardVariants = cva("border p-4", {
+  variants: {
+    selected: {
+      true: "border-primary",
+      false: "border-divider",
+    },
+  },
+});
+
+type CardProps = VariantProps<typeof cardVariants> & { loading: boolean };
+
+function Card({ selected, loading }: CardProps) {
   return (
-    <section className="p-4" title={draftTitle}>
-      {draftTitle}
+    <section className={cn(cardVariants({ selected }), loading && "opacity-50")} title={draftTitle}>
+      <span className="font-medium">{draftTitle}</span>
     </section>
   );
 }
@@ -60,7 +71,7 @@ setTimeout(refresh, refreshDelayMs);
 const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
-Why: runtime values need meaningful names and shared definitions; syntax, JSX `className`, and locale strings are exceptions.
+Why: runtime data has named definitions, while the styling literals remain directly in JSX, `cn()`, and CVA.
 
 ## Incorrect — Extracting Next.js Font Loader Options
 

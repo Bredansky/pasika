@@ -1,8 +1,8 @@
 # Component Variant Rule
 
-A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
+Visual treatments scattered across prop unions, lookup tables, and conditional classes obscure the ownership of a component's appearance choices.
 
-- A component that lets callers choose visual options MUST define them with `cva`.
+- Components MUST define alternative visual treatments using CVA.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
 - A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
@@ -40,32 +40,22 @@ enum ButtonSize {
   Large = "lg",
 }
 
-enum ButtonTone {
-  Primary = "primary",
-  Danger = "danger",
-}
-
 const buttonVariants = cva("inline-flex items-center", {
   variants: {
     size: {
       [ButtonSize.Small]: "h-8 px-3",
       [ButtonSize.Large]: "h-11 px-5",
     },
-    tone: {
-      [ButtonTone.Primary]: "bg-primary-canvas text-primary-ink",
-      [ButtonTone.Danger]: "bg-danger-canvas text-danger-ink",
-    },
   },
   defaultVariants: {
     size: ButtonSize.Small,
-    tone: ButtonTone.Primary,
   },
 });
 
 type ButtonProps = React.ComponentProps<"button"> & VariantProps<typeof buttonVariants>;
 
-export function Button({ size, tone, className, ...props }: ButtonProps): React.JSX.Element {
-  return <button className={cn(buttonVariants({ size, tone }), className)} {...props} />;
+export function Button({ size, className, ...props }: ButtonProps): React.JSX.Element {
+  return <button className={cn(buttonVariants({ size }), className)} {...props} />;
 }
 ```
 
@@ -89,7 +79,7 @@ Why: one boolean variant merely adds a standalone treatment and has no compound 
 ## Correct — Standalone Boolean Variant Uses `cn`
 
 ```tsx
-<button className={cn(buttonVariants({ size, tone }), elevated && "shadow-md", className)} />
+<button className={cn(buttonVariants({ size }), elevated && "shadow-md", className)} />
 ```
 
 Why: the named appearance choices stay in CVA while the independent boolean variant remains a direct conditional class.
@@ -105,7 +95,7 @@ enum ButtonSize {
 <button
   className={cn(
     buttonVariants({ size }),
-    square && "justify-center",
+    square ? "justify-center" : "justify-start",
     square && size === ButtonSize.Small && "w-8 px-0",
     square && size === ButtonSize.Large && "w-11 px-0",
   )}
@@ -149,3 +139,38 @@ const buttonVariants = cva("inline-flex", {
 ```
 
 Why: both boolean values have explicit treatment and the square appearance changes by size, so CVA owns the complete styling matrix.
+
+## Incorrect — Handwritten Status Styling Map
+
+```tsx
+enum Status {
+  Draft = "draft",
+  Ready = "ready",
+}
+
+const statusClasses = {
+  [Status.Draft]: "border-divider",
+  [Status.Ready]: "border-primary",
+};
+
+<div className={statusClasses[status]} />;
+```
+
+Why: the lookup table defines alternative visual treatments outside CVA.
+
+## Correct — CVA Status Variants
+
+```tsx
+const statusVariants = cva(null, {
+  variants: {
+    status: {
+      [Status.Draft]: "border-divider",
+      [Status.Ready]: "border-primary",
+    },
+  },
+});
+
+<div className={statusVariants({ status })} />;
+```
+
+Why: the CVA definition owns the visual choices and their classes.
