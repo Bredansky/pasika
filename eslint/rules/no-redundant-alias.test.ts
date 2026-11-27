@@ -39,6 +39,60 @@ const typedRuleTester = new CwdAwareRuleTester({
   },
 });
 void describe("A `const` variable MUST NOT introduce a new name for another variable or object property, unless Next.js requires a specific exported name.", () => {
+  const artificialObjectMessage = `Do not create a temporary object only to destructure its fields. Use the original expressions or a real object boundary. ${doc}`;
+  ruleTester.run("no-redundant-alias:artificial-object-binding", noRedundantAliasRule, {
+    valid: [
+      {
+        code: "export const mock = { apiRoutePath: textEditApiContract.path, handlePost };",
+        filename: srcFile("features/mocks/utils/ai-text-edit-mock.ts"),
+      },
+      "const { id, name } = source;",
+      "const { id } = { ...defaults, ...source };",
+      "const { id = fallback } = { id: source.id };",
+      "const { id, ...rest } = { id: source.id, name: source.name };",
+      "const { nested: { id } } = { nested: source };",
+      "const { id } = { get id() { return source.id; } };",
+      "const { id } = { [key]: source.id };",
+      "const { id } = { id: source.id, other: run() };",
+      "const { id } = { id: first, id: second };",
+    ],
+    invalid: [
+      {
+        code: "export const { apiRoutePath } = { apiRoutePath: textEditApiContract.path };",
+        filename: srcFile("features/mocks/utils/ai-text-edit-mock.ts"),
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { alias } = { alias: source.value };",
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { first, second } = { first: source.a, second: source.b };",
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: 'const { "alias": alias } = { "alias": source.value };',
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { value } = ({ value: source.id } as { value: string });",
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { value } = ({ value: source.id } satisfies { value: string });",
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { value } = ({ value: source.id })!;",
+        errors: [{ message: artificialObjectMessage }],
+      },
+      {
+        code: "const { value } = { value };",
+        errors: [{ message: artificialObjectMessage }],
+      },
+    ],
+  });
+
   ruleTester.run("no-redundant-alias:variables", noRedundantAliasRule, {
     valid: [
       {

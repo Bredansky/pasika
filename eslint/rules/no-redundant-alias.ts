@@ -219,6 +219,46 @@ function contractMappingViolation(
   return semanticMappingMessage(propertyName, sourcePropertyName);
 }
 
+function isExpressionWrapper(node: EstreeNode): node is EstreeNode & { expression: EstreeNode } {
+  return (
+    ["TSAsExpression", "TSSatisfiesExpression", "TSTypeAssertion", "TSNonNullExpression"].includes(node.type) &&
+    "expression" in node &&
+    typeof node.expression === "object" &&
+    "type" in node.expression
+  );
+}
+
+function isArtificialObjectBinding(node: VariableDeclarator): boolean {
+  if (node.id.type !== "ObjectPattern") return false;
+
+  let initializer: EstreeNode | null | undefined = node.init;
+  while (initializer && isExpressionWrapper(initializer)) {
+    initializer = initializer.expression;
+  }
+  if (initializer?.type !== "ObjectExpression" || node.id.properties.length === 0) return false;
+
+  // Real object merges, defaults, rest bindings and nested patterns may have
+  // semantics beyond introducing names for expressions. Leave those alone.
+  const sourceKeys = new Set<string>();
+  for (const property of initializer.properties) {
+    if (property.type !== "Property" || property.computed || property.kind !== "init" || property.method) return false;
+    const key = property.key;
+    if (key.type === "Identifier") sourceKeys.add(key.name);
+    else if (key.type === "Literal" && typeof key.value === "string") sourceKeys.add(key.value);
+    else return false;
+  }
+  if (sourceKeys.size !== initializer.properties.length || sourceKeys.size !== node.id.properties.length) return false;
+
+  return node.id.properties.every((property) => {
+    if (property.type !== "Property" || property.computed || property.value.type !== "Identifier") return false;
+    const key = property.key;
+    let name: unknown;
+    if (key.type === "Identifier") name = key.name;
+    if (key.type === "Literal") name = key.value;
+    return typeof name === "string" && name === property.value.name && sourceKeys.has(name);
+  });
+}
+
 export const noRedundantAliasRule: Rule.RuleModule = {
   meta: {
     schema: [],
@@ -233,10 +273,20 @@ export const noRedundantAliasRule: Rule.RuleModule = {
 
     return {
       VariableDeclarator(node) {
-        if (node.id.type !== "Identifier" || !node.init) return;
+        if (!node.init) return;
 
         const declaration = node.parent;
         if (declaration.type !== "VariableDeclaration" || declaration.kind !== "const") return;
+
+        if (isArtificialObjectBinding(node)) {
+          context.report({
+            node,
+            message: `Do not create a temporary object only to destructure its fields. Use the original expressions or a real object boundary. ${DOC}`,
+          });
+          return;
+        }
+
+        if (node.id.type !== "Identifier") return;
 
         if (node.init.type === "Identifier") {
           const exported = declaration.parent.type === "ExportNamedDeclaration";

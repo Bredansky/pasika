@@ -41,6 +41,22 @@ use(file.previewUrl);
 
 Why: each value is read directly, without another name.
 
+## Incorrect — Artificial Object Boundary
+
+```ts
+export const { apiRoutePath } = { apiRoutePath: textEditApiContract.path };
+```
+
+Why: the temporary object is immediately unpacked and only hides an alias, rather than establishing a real mapping boundary. This also applies when multiple explicitly initialized fields are unpacked into same-named bindings.
+
+## Correct — Real Object Boundary
+
+```ts
+export const mock = { apiRoutePath: textEditApiContract.path, handlePost };
+```
+
+Why: the mapped field is part of the actual exported object rather than a disposable wrapper. If the consumer already knows the route path, read the shared contract directly instead of exporting it again.
+
 ## Incorrect — Single Webhook Secret Binding
 
 ```ts
