@@ -344,3 +344,67 @@ const conditional = <div className={other} />;`);
   expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
   expect(result.some((item) => item.message.includes("gap-2.5"))).toBe(false);
 });
+
+test("traces TipTap editor styling aliases through concatenation and destructuring defaults", () => {
+  const result = lint(`import { useEditor } from "@tiptap/react";
+const prefix = "text-sm p-4 ";
+const defaultClass = "min-h-[200px]";
+function Editor(options: { className?: string }) {
+  const { className = defaultClass } = options;
+  return useEditor({ editorProps: { attributes: { class: prefix + className, role: "textbox" } } });
+}`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(1);
+  expect(result.some((item) => item.message.includes("min-h-[200px]"))).toBe(true);
+});
+
+test("recognizes TipTap aliases and namespace imports without treating metadata as styling", () => {
+  const result = lint(`import { useEditor as createEditor } from "@tiptap/react";
+import * as Tiptap from "@tiptap/react";
+const style = "p-[13px]";
+createEditor({ "editorProps": { "attributes": { "class": style } } });
+Tiptap.useEditor({ editorProps: { attributes: { class: style } } });
+const docs = { editorProps: { attributes: { class: style } } };
+function unrelated(createEditor: Function) { createEditor({ editorProps: { attributes: { class: style } } }); }
+function shadow(Tiptap: any) { Tiptap.useEditor({ editorProps: { attributes: { class: style } } }); }`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(2);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(1);
+});
+
+test("accepts TipTap inline named utilities and cn composition with inline defaults", () => {
+  const result = lint(`import { useEditor } from "@tiptap/react";
+import { cn } from "pasika/cn";
+function Editor(options: { className?: string }) {
+  const { className = "min-height-200px" } = options;
+  return useEditor({ editorProps: { attributes: { class: cn("text-sm p-4", className) } } });
+}
+useEditor({ editorProps: { attributes: { class: "text-sm p-4" } } });`);
+  expect(result).toEqual([]);
+});
+
+test("rejects direct arbitrary values in concatenated TipTap classes", () => {
+  const result = lint(`import { useEditor } from "@tiptap/react";
+useEditor({ editorProps: { attributes: { class: "p-[13px] " + dynamic } } });`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(1);
+});
+
+test("recognizes TipTap class aliases from destructuring defaults even without a prefix", () => {
+  const result = lint(`import { useEditor } from "@tiptap/react";
+const fallback = "min-height-200px";
+function Editor(options: { className?: string }) {
+  const { className = fallback } = options;
+  return useEditor({ editorProps: { attributes: { class: className } } });
+}`);
+  expect(result.map((item) => item.ruleId)).toEqual(["pasika/no-styling-class-alias"]);
+});
+
+test("handles wrapped TipTap options and skips incomplete or unrelated options", () => {
+  const result = lint(`import { useEditor } from "@tiptap/react";
+const classes = "p-4";
+useEditor(({ editorProps: ({ attributes: ({ class: classes } as const) } satisfies object) }!));
+useEditor();
+useEditor({ editorProps: {} });
+useEditor({ editorProps: { attributes: { role: classes } } });
+useEditor({ editorProps: { attributes: externalAttributes } });`);
+  expect(result.map((item) => item.ruleId)).toEqual(["pasika/no-styling-class-alias"]);
+});

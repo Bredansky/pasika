@@ -118,6 +118,12 @@ export const noArbitraryTailwindRule: Rule.RuleModule = {
         return;
       }
 
+      if (expression.type === "BinaryExpression" && expression.operator === "+") {
+        checkExpression(node, expression.left);
+        checkExpression(node, expression.right);
+        return;
+      }
+
       if (expression.type === "LogicalExpression") {
         checkExpression(node, expression.left);
         checkExpression(node, expression.right);
