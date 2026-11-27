@@ -257,3 +257,90 @@ createElement(Icon, { label });`);
   expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
   expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(2);
 });
+
+test("finds the menu-bar alignment aliases through conditional mutable assignments", () => {
+  const result = lint(`import { cn } from "pasika/cn";
+enum RowAlign { Between = "between", Left = "left", Right = "right" }
+const menuBarAlignClassBetween = "justify-between";
+const menuBarAlignClassLeft = "justify-start";
+const menuBarAlignClassRight = "justify-end";
+function MenuBar(rows: { align: RowAlign }[]) {
+  return rows.map((row) => {
+    let alignClass = menuBarAlignClassLeft;
+    if (row.align === RowAlign.Between) alignClass = menuBarAlignClassBetween;
+    if (row.align === RowAlign.Right) alignClass = menuBarAlignClassRight;
+    return <div className={cn("flex items-center gap-2", alignClass)} />;
+  });
+}`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.some((item) => item.message.includes("define visual choices with CVA"))).toBe(true);
+});
+
+test("traces raw and fractional classes through mutable writes and a local return value", () => {
+  const result = lint(`function choose(active: boolean) {
+  let classes: string;
+  classes = "border-(--divider)";
+  if (active) classes = "gap-2.5";
+  return classes;
+}
+const element = <div className={choose(active)} />;`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(2);
+  expect(result.some((item) => item.message.includes("border-(--divider)"))).toBe(true);
+  expect(result.some((item) => item.message.includes("gap-2.5"))).toBe(true);
+});
+
+test("tracks mutable initializers and logical or compound assignment class fragments", () => {
+  const result = lint(`import { createElement } from "react";
+let classes = "size-4";
+classes += " gap-2.5";
+classes ||= "text-(--missing)";
+classes &&= "p-[13px]";
+classes ??= "m-1.5";
+createElement(Icon, { className: classes });`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(4);
+});
+
+test("uses lexical identity and ignores future writes, unrelated functions and selector predicates", () => {
+  const result = lint(`import { cn } from "pasika/cn";
+const raw = "gap-2.5";
+let classes = cn("size-4", active && "text-danger");
+function unrelated() { classes = raw; }
+function shadow() { let classes = raw; return classes; }
+let condition = "text-(--selector)";
+const element = <div className={cn(classes, condition === "text-(--selector)" && "ring-2")} />;
+classes = raw;`);
+  expect(result).toEqual([]);
+});
+
+test("allows computed mutable composition results and real CVA alignment variants", () => {
+  const result = lint(`import { cva } from "class-variance-authority";
+import { cn } from "pasika/cn";
+enum RowAlign { Between = "between", Left = "left", Right = "right" }
+const rowVariants = cva("flex items-center gap-2", { variants: { align: {
+  [RowAlign.Between]: "justify-between",
+  [RowAlign.Left]: "justify-start",
+  [RowAlign.Right]: "justify-end",
+} }, defaultVariants: { align: RowAlign.Left } });
+let classes = cn("size-4", active && "text-danger");
+if (selected) classes = cn(classes, "ring-2");
+const element = <div className={classes} />;
+const row = <div className={rowVariants({ align: RowAlign.Right })} />;`);
+  expect(result).toEqual([]);
+});
+
+test("ignores definitively overwritten styling values without ignoring conditional alternatives", () => {
+  const result = lint(`import { cn } from "pasika/cn";
+let classes = "gap-2.5";
+classes = cn("size-4");
+if (selected) classes = cn(classes, "ring-2");
+const element = <div className={classes} />;
+let other = "text-(--missing)";
+if (selected) other = cn("size-4");
+const conditional = <div className={other} />;`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(1);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
+  expect(result.some((item) => item.message.includes("gap-2.5"))).toBe(false);
+});
