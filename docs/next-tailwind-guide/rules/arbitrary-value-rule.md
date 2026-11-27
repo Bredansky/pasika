@@ -1,9 +1,10 @@
 # Arbitrary Value Rule
 
-Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values. The same restriction applies when a class is reached through an alias, a lookup table, or a helper's return value.
+Raw arbitrary values and CSS-variable references hide the project's styling API in component code. Components should consume named Tailwind utilities while custom utilities own the mapping to otherwise unnamed values.
 
 - Components MUST NOT use Tailwind arbitrary values, arbitrary properties, or custom property (CSS variable) syntax for project styling. They MUST use a named utility that maps the value instead.
 - Components MUST NOT use numeric fractional Tailwind utility classes such as `h-3.5` or `w-3.5`; they MUST use an integer utility or a named `@utility` that maps an explicit value.
+- Styling values resolved through class aliases, lookup tables, or helper return values MUST obey the same arbitrary-value restrictions as direct class strings.
 
 ## Incorrect — Literal Arbitrary Radius
 
@@ -130,3 +131,21 @@ Why: the numeric fraction creates a hidden, non-integer scale choice in the comp
 ```
 
 Why: the integer scale remains explicit, and a named utility holds the exact 14px mapping when required.
+
+## Incorrect — Arbitrary Value Hidden in a Local Alias
+
+```tsx
+const cardInk = "text-(--highlight)";
+
+<div className={cardInk} />;
+```
+
+Why: moving the custom-property reference into a constant does not make it a named Tailwind utility.
+
+## Correct — Named Theme Utility
+
+```tsx
+<div className="text-primary-ink" />
+```
+
+Why: the component consumes a named color utility instead of a raw CSS-variable reference.

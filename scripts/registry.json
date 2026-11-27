@@ -1219,6 +1219,12 @@
       "ref": "pasika/no-arbitrary-tailwind"
     },
     {
+      "doc": "next-tailwind-guide/rules/arbitrary-value-rule.md",
+      "text": "Styling values resolved through class aliases, lookup tables, or helper return values MUST obey the same arbitrary-value restrictions as direct class strings.",
+      "hash": "5c2953bf23",
+      "ref": "pasika/no-arbitrary-tailwind"
+    },
+    {
       "doc": "next-tailwind-guide/rules/class-composition-rule.md",
       "text": "Components MUST use `cn` for conditional classes and a `className` passed to the component.",
       "hash": "74cedd90d0",
@@ -1271,6 +1277,12 @@
       "text": "A component that lets callers choose visual options MUST define them with `cva`.",
       "hash": "8162f16933",
       "ref": "pasika/cva-appearance-props"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/component-variant-rule.md",
+      "text": "Visual choices selected through handwritten class lookup tables or helpers returning alternative class treatments MUST use `cva` instead.",
+      "hash": "ec0f5b9e31",
+      "ref": "pasika/no-styling-class-alias"
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
@@ -1366,6 +1378,12 @@
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
       "text": "Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.",
       "hash": "d6aa368e6c",
+      "ref": "pasika/no-styling-class-alias"
+    },
+    {
+      "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
+      "text": "CVA variant class values MUST contain their class strings directly rather than reference class-string aliases.",
+      "hash": "d75126334a",
       "ref": "pasika/no-styling-class-alias"
     },
     {

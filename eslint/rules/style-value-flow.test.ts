@@ -50,7 +50,7 @@ function lint(code: string, extra = ""): Linter.LintMessage[] {
   }
 }
 
-test("traces imported helper returns through computed nested status maps without inspecting selector values", () => {
+test("Styling values resolved through class aliases, lookup tables, or helper return values MUST obey the same arbitrary-value restrictions as direct class strings.", () => {
   const result = lint(
     'import { getStatusClasses, Status } from "./styles"; declare const status: Status; const element = <div className={getStatusClasses(status, "text")} />;',
     `export enum Status { Draft = "draft", Ready = "ready" }
@@ -68,7 +68,7 @@ export function getStatusClasses(status: Status, property: "text" | "border") { 
   expect(result.some((item) => item.message.includes("handwritten lookup tables"))).toBe(true);
 });
 
-test("checks local raw aliases and rejects aliases in CVA variant values", () => {
+test("CVA variant class values MUST contain their class strings directly rather than reference class-string aliases.", () => {
   const result = lint(`import { cva as variants } from "class-variance-authority";
 const raw = "border-(--divider)";
 const valid = "text-muted-ink";
@@ -112,7 +112,7 @@ const card = <div className={cn("rounded", getStatusClasses(Status.Draft))} />;`
   expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
 });
 
-test("rejects hidden two-way decisions but permits a helper that adds one standalone treatment", () => {
+test("Visual choices selected through handwritten class lookup tables or helpers returning alternative class treatments MUST use cva instead.", () => {
   const result = lint(`function choose(active: boolean) { return active ? "bg-primary" : "bg-danger"; }
 function optional(active: boolean) { return active ? "animate-pulse" : ""; }
 declare const active: boolean;
@@ -139,4 +139,48 @@ const display = "text-(--display)";
 const element = <div className={combine(...fragment)}>{display}</div>;`);
   expect(result).toHaveLength(1);
   expect(result[0]?.message).toContain("text-(--missing)");
+});
+
+test("resolves shorthand and spread object values while ignoring unrelated members", () => {
+  const result = lint(`const text = "text-(--missing)";
+const base = { text, unrelated: "bg-(--unused)" };
+const styles = { ...base, border: "border-divider" };
+const element = <div className={styles.text} />;`);
+  expect(result).toHaveLength(1);
+  expect(result[0]?.message).toContain("text-(--missing)");
+});
+
+test("resolves default arguments, concise helper bodies, and array projections", () => {
+  const result = lint(`const values = ["text-primary", "text-(--missing)"] as const;
+const choose = (index = 1) => values[index];
+const element = <div className={choose(1)} />;`);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
+  expect(result.some((item) => item.ruleId === "pasika/no-styling-class-alias")).toBe(false);
+  const defaultResult = lint(`const choose = (value = "text-(--default)") => value;
+const element = <div className={choose()} />;`);
+  expect(defaultResult.some((item) => item.message.includes("text-(--default)"))).toBe(true);
+});
+
+test("checks conditional class object keys and fractional aliases through default and namespace imports", () => {
+  const result = lint(`import compose from "clsx";
+import * as Merge from "tailwind-merge";
+declare const enabled: boolean;
+const raw = "text-(--missing)";
+const keys = { [raw]: enabled, "h-3.5": enabled };
+const element = <div className={compose(keys)} />;
+const space = "gap-2.5";
+const other = <div className={Merge.twMerge(space)} />;`);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
+  expect(result.some((item) => item.message.includes("h-3.5"))).toBe(true);
+  expect(result.some((item) => item.message.includes("gap-2.5"))).toBe(true);
+});
+
+test("traces enum members and logical fallback values without scanning conditions", () => {
+  const result = lint(`enum Example { Raw = "text-(--enum)" }
+declare const condition: boolean;
+const fallback = "border-(--fallback)";
+const selected = condition && Example.Raw;
+const element = <div className={selected || fallback} />;`);
+  expect(result.some((item) => item.message.includes("text-(--enum)"))).toBe(true);
+  expect(result.some((item) => item.message.includes("border-(--fallback)"))).toBe(true);
 });

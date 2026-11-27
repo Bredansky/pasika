@@ -1,8 +1,9 @@
 # Component Variant Rule
 
-A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes. A handwritten class lookup table, even when wrapped in a helper function, is not a substitute for CVA variants; define the choices and their class strings directly in the CVA configuration.
+A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
 
 - A component that lets callers choose visual options MUST define them with `cva`.
+- Visual choices selected through handwritten class lookup tables or helpers returning alternative class treatments MUST use `cva` instead.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
 - A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
@@ -149,3 +150,42 @@ const buttonVariants = cva("inline-flex", {
 ```
 
 Why: both boolean values have explicit treatment and the square appearance changes by size, so CVA owns the complete styling matrix.
+
+## Incorrect — Handwritten Status Styling Map
+
+```tsx
+enum Status {
+  Draft = "draft",
+  Ready = "ready",
+}
+
+const statusClasses = {
+  [Status.Draft]: "border-divider",
+  [Status.Ready]: "border-primary",
+};
+
+function getStatusClasses(status: Status): string {
+  return statusClasses[status];
+}
+
+<div className={getStatusClasses(status)} />;
+```
+
+Why: the helper hides the styling choices in an ordinary lookup table.
+
+## Correct — CVA Status Variants
+
+```tsx
+const statusVariants = cva(null, {
+  variants: {
+    status: {
+      [Status.Draft]: "border-divider",
+      [Status.Ready]: "border-primary",
+    },
+  },
+});
+
+<div className={statusVariants({ status })} />;
+```
+
+Why: the CVA definition owns the visual choices and their classes.

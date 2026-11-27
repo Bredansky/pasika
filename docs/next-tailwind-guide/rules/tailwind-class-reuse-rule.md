@@ -1,8 +1,9 @@
 # Tailwind Class Reuse Rule
 
-Shared class-name constants separate reusable visual styling from its markup. Repeated static class sets across native JSX elements also duplicate styling ownership. CVA variant values should contain their classes directly rather than referencing class-string aliases. Component-local fragments used for ordinary class composition remain distinct from visual variant choices. Indirect styling values are checked at their actual styling consumers, not at unrelated display strings.
+Shared class-name constants separate reusable visual styling from its markup. Repeated static class sets across native JSX elements also duplicate styling ownership.
 
 - Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.
+- CVA variant class values MUST contain their class strings directly rather than reference class-string aliases.
 - Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.
 
 ## Incorrect — Enum Used As A Styling Alias
@@ -128,3 +129,33 @@ function Panel({ children }: { children: React.ReactNode }): React.JSX.Element {
 ```
 
 Why: the full six-class set has one owner while the content remains independent.
+
+## Incorrect — CVA Variant References a Class Alias
+
+```tsx
+const readyClasses = "border-primary";
+
+const statusVariants = cva(null, {
+  variants: {
+    status: {
+      ready: readyClasses,
+    },
+  },
+});
+```
+
+Why: the constant separates the variant's classes from the styling definition.
+
+## Correct — Classes Defined in the CVA Variant
+
+```tsx
+const statusVariants = cva(null, {
+  variants: {
+    status: {
+      ready: "border-primary",
+    },
+  },
+});
+```
+
+Why: the variant directly owns the class string.
