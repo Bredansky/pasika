@@ -16,7 +16,6 @@ Unnamed runtime values hide their intent and make changes harder to audit.
 - A `constants/` file MUST split exported constants whose direct consumers have different CCFs.
 - A constants module with exported values proven to belong to distinct semantic domains MUST be split into cohesive, domain-named modules.
 - A `constants/` folder MUST expose shared constants through `index.ts`, defining them there when it has at most one public sibling file and re-exporting grouped public constants otherwise; imports between sibling files MUST be direct.
-- Within safely reorderable module declaration groups, private type declarations MUST precede exported type declarations, both sorted alphabetically by name; consecutive type aliases with the same export visibility MUST be adjacent, and different export visibility MUST be separated by a blank line.
 
 ## Incorrect — Inline Runtime Values
 
@@ -73,29 +72,6 @@ const dimensions = { width: previewWidth, height: previewHeight };
 ```
 
 Why: runtime data has named definitions, while the styling literals remain directly in JSX, `cn()`, and CVA.
-
-## Incorrect — Interleaved Type Aliases
-
-```ts
-type Payload = TelegramPost["apiPayload"];
-export type VideoParams = Extract<Payload, { video: string }>;
-type Media = MediaGroupParams["media"][number];
-export type MediaGroupParams = Extract<Payload, { media: unknown[] }>;
-```
-
-Why: Private and exported aliases are interleaved rather than grouped by visibility and name.
-
-## Correct — Alphabetical Type Groups
-
-```ts
-type Media = MediaGroupParams["media"][number];
-type Payload = TelegramPost["apiPayload"];
-
-export type MediaGroupParams = Extract<Payload, { media: unknown[] }>;
-export type VideoParams = Extract<Payload, { video: string }>;
-```
-
-Why: Type aliases can refer to later declarations, so private helpers and exported aliases can each be sorted by name.
 
 ## Incorrect — Extracting Next.js Font Loader Options
 

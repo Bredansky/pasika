@@ -5,7 +5,7 @@ const filename = srcFile("features/credentials/SettingsPage/badge.tsx");
 const MESSAGE =
   "Order independent declarations as types (private then exported, alphabetically), enums, constants (alphabetically), functions, then local exports. See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Within safely reorderable module declaration groups, private type declarations MUST precede exported type declarations, both sorted alphabetically by name; consecutive type aliases with the same export visibility MUST be adjacent, and different export visibility MUST be separated by a blank line.", () => {
+void describe("Order safely movable module declarations, grouping private and exported types alphabetically.", () => {
   ruleTester.run("declaration-order", declarationOrderRule, {
     valid: [
       { code: "type A = Z;\ntype Z = string;\n\nexport type B = A;\nexport type C = Z;", filename },
