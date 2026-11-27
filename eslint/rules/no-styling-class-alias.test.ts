@@ -8,12 +8,33 @@ import { describe, ruleTester, srcFile } from "../rule-tester";
 import { noStylingClassAliasRule } from "./no-styling-class-alias";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
-const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
+const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/createElement/cn/CVA use site or extract a component. ${DOC}`;
 const file = srcFile("features/editor/button.tsx");
 
 void describe("Tailwind class strings used for styling MUST NOT be extracted into standalone constants, enums, or other aliases. Strings used solely as display text are exempt.", () => {
   ruleTester.run("no-styling-class-alias", noStylingClassAliasRule, {
     valid: [
+      { filename: file, code: 'import { createElement } from "react"; createElement(Icon, { className: "size-4" });' },
+      {
+        filename: file,
+        code: 'import { createElement } from "other"; const classes = "size-4"; createElement(Icon, { className: classes });',
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; const classes = "size-4"; function render(createElement: Factory) { return createElement(Icon, { className: classes }); }',
+      },
+      {
+        filename: file,
+        code: 'import React from "react"; const classes = "size-4"; function render(React: Factory) { return React.createElement(Icon, { className: classes }); }',
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; const classes = "size-4"; createElement(Icon, { metadata: { className: classes } }, classes);',
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; const classes = cn("size-4"); createElement(Icon, { className: classes });',
+      },
       { filename: file, code: 'function Card() { return <div className="border-2 p-4" />; }' },
       {
         filename: file,
@@ -67,6 +88,31 @@ void describe("Tailwind class strings used for styling MUST NOT be extracted int
       },
     ],
     invalid: [
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; const toolbarIconClasses = "size-4"; createElement(Languages, { className: toolbarIconClasses });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement as element } from "react"; const classes = "size-4"; element(Icon, { "className": classes });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import React from "react"; const classes = "size-4"; React.createElement(Icon, { className: classes } as Props);',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import * as R from "react"; const className = "size-4"; R.createElement(Icon, { className });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; enum Style { Destructive = "text-danger size-4" }; createElement(Trash2, { className: Style.Destructive });',
+        errors: [{ message: MESSAGE }],
+      },
       {
         filename: file,
         code: 'const localClassName = "text-sm"; function Card() { return <p className={localClassName} />; }',

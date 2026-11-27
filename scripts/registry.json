@@ -524,8 +524,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in JSX `className`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.",
-      "hash": "c39c098169",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in `className` props of JSX and React `createElement`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.",
+      "hash": "f83e414b21",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {

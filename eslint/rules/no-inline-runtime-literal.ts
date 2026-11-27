@@ -19,7 +19,7 @@ import { sourceRootOf } from "./project-root";
 import { isStyleCompositionLiteral } from "./style-composition-literals";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/createElement/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.

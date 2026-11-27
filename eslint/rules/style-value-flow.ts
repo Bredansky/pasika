@@ -5,6 +5,7 @@
 import type { Rule } from "eslint";
 import ts from "typescript";
 import { typedParserServices } from "./contract-ownership";
+import { reactCreateElementClassValues } from "./react-create-element";
 
 type Key = string | undefined;
 type Bindings = ReadonlyMap<ts.Symbol, ts.Expression>;
@@ -155,7 +156,9 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
           return;
         }
         if (ts.isIdentifier(node)) {
-          const symbol = symbolAt(node);
+          const symbol = ts.isShorthandPropertyAssignment(node.parent)
+            ? checker.getShorthandAssignmentValueSymbol(node.parent)
+            : symbolAt(node);
           if (!symbol) return;
           const argument = bindings.get(symbol);
           if (argument) {
@@ -391,6 +394,10 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
       if (!ts.isCallExpression(expression) || !helperName(expression.expression)) trace(expression, "style");
     }
     if (ts.isCallExpression(node)) {
+      for (const value of reactCreateElementClassValues(context, node)) {
+        const expression = unwrap(value);
+        if (!ts.isCallExpression(expression) || !helperName(expression.expression)) trace(expression, "style");
+      }
       const helper = helperName(node.expression);
       if (helper === "cva") {
         if (node.arguments[0]) trace(node.arguments[0], "style");

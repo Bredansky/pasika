@@ -4,6 +4,7 @@
  * CVA class positions from variant selectors.
  */
 import type { Rule } from "eslint";
+import { isReactCreateElementReference } from "./react-create-element";
 
 interface SyntaxNode {
   type: string;
@@ -20,6 +21,7 @@ interface SyntaxNode {
   left?: unknown;
   right?: unknown;
   operator?: unknown;
+  computed?: unknown;
 }
 
 const compositionNames = new Set(["cn", "clsx", "twMerge", "twJoin", "cva"]);
@@ -29,6 +31,26 @@ function nameOf(node: unknown): string | undefined {
   if (node.type === "Identifier" && "name" in node && typeof node.name === "string") return node.name;
   if (node.type === "Literal" && "value" in node && typeof node.value === "string") return node.value;
   return undefined;
+}
+
+function referenceStart(node: unknown): number | undefined {
+  if (typeof node !== "object" || node === null || !("range" in node) || !Array.isArray(node.range)) return undefined;
+  const start: unknown = node.range[0];
+  return typeof start === "number" ? start : undefined;
+}
+
+function isReactElementFactory(callee: unknown, context: Rule.RuleContext): boolean {
+  if (typeof callee !== "object" || callee === null || !("type" in callee)) return false;
+  if (callee.type === "Identifier") return isReactCreateElementReference(context, referenceStart(callee));
+  return (
+    callee.type === "MemberExpression" &&
+    "object" in callee &&
+    "property" in callee &&
+    "computed" in callee &&
+    !callee.computed &&
+    nameOf(callee.property) === "createElement" &&
+    isReactCreateElementReference(context, referenceStart(callee.object), "createElement")
+  );
 }
 
 function isStylingModule(module: string, name: string): boolean {
@@ -70,9 +92,13 @@ function compositionName(callee: unknown, node: Rule.Node, context: Rule.RuleCon
 export function isStyleCompositionLiteral(node: Rule.Node, context: Rule.RuleContext): boolean {
   let current: SyntaxNode = node;
   const properties: (string | undefined)[] = [];
+  let reactProps: SyntaxNode | undefined;
   while (current.parent) {
     const parent = current.parent;
     if (parent.type === "CallExpression" && Array.isArray(parent.arguments)) {
+      if (isReactElementFactory(parent.callee, context)) {
+        return parent.arguments[1] === current && current === reactProps && properties.length === 1;
+      }
       const helper = compositionName(parent.callee, node, context);
       if (!helper) return false;
       if (helper !== "cva") return properties.length === 0 && parent.arguments.includes(current);
@@ -87,6 +113,16 @@ export function isStyleCompositionLiteral(node: Rule.Node, context: Rule.RuleCon
     }
     if (parent.type === "Property" && parent.value === current) {
       properties.push(nameOf(parent.key));
+      if (!parent.computed && nameOf(parent.key) === "className" && parent.parent?.type === "ObjectExpression") {
+        reactProps = parent.parent;
+        while (
+          reactProps.parent &&
+          ["TSAsExpression", "TSSatisfiesExpression", "TSNonNullExpression"].includes(reactProps.parent.type) &&
+          reactProps.parent.expression === reactProps
+        ) {
+          reactProps = reactProps.parent;
+        }
+      }
     } else if (
       (parent.type === "ArrayExpression" && Array.isArray(parent.elements) && parent.elements.includes(current)) ||
       (parent.type === "ObjectExpression" && Array.isArray(parent.properties) && parent.properties.includes(current)) ||

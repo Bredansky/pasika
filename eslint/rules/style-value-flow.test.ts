@@ -212,3 +212,48 @@ const result = combine(style({ compact: active }), active && "ring-2");
 const element = <div className={result}>{displayClasses}</div>;`);
   expect(result).toEqual([]);
 });
+
+test("traces React createElement className aliases through named, default, and namespace imports", () => {
+  const result = lint(
+    `import { createElement, createElement as element } from "react";
+import React from "react";
+import * as R from "react";
+import { shared } from "./styles";
+const destructiveEditorIconClassName = "text-danger size-4";
+const toolbarIconClasses = "size-4";
+const className = "gap-2.5";
+createElement(Trash2, { className: destructiveEditorIconClassName });
+element(Languages, { className: toolbarIconClasses });
+React.createElement(Icon, { className: shared });
+R.createElement(Icon, { className });`,
+    'export const shared = "text-(--missing)";',
+  );
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(4);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(2);
+  expect(result.some((item) => item.message.includes("gap-2.5"))).toBe(true);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
+});
+
+test("accepts direct class strings and genuine compositions in React createElement", () => {
+  const result = lint(`import React from "react";
+import { cn } from "pasika/cn";
+const classes = cn("size-4", active && "text-danger");
+React.createElement(Icon, { className: classes });
+React.createElement(Icon, { className: "size-4" });
+const metadata = "text-danger";
+React.createElement(Icon, { label: metadata });
+function render(React: Factory) { return React.createElement(Icon, { className: metadata }); }`);
+  expect(result).toEqual([]);
+});
+
+test("rejects raw direct React styling and follows class-producing helpers, not selector data", () => {
+  const result = lint(`import { createElement } from "react";
+const choose = (active: boolean) => active ? "bg-primary" : "bg-danger";
+createElement(Icon, { className: choose(active) });
+createElement(Icon, { className: "size-[13px]" });
+createElement(Icon, { className: active && "gap-2.5" });
+const label = "w-[unused]";
+createElement(Icon, { label });`);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.filter((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toHaveLength(2);
+});
