@@ -3,11 +3,21 @@ import { noInlineRuntimeLiteralRule } from "./no-inline-runtime-literal";
 
 const file = srcFile("features/editor/screen.tsx");
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/createElement/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
-void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in JSX `className`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
+void describe("Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in `className` props of JSX and React `createElement`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.", () => {
   ruleTester.run("no-inline-runtime-literal", noInlineRuntimeLiteralRule, {
     valid: [
+      { filename: file, code: 'import { createElement } from "react"; createElement(Icon, { className: "size-4" });' },
+      {
+        filename: file,
+        code: 'import { createElement as element } from "react"; element(Icon, { "className": active ? "size-4" : "size-6" });',
+      },
+      {
+        filename: file,
+        code: 'import React from "react"; React.createElement(Icon, { className: active && "text-danger" } as Props);',
+      },
+      { filename: file, code: 'import * as R from "react"; R.createElement(Icon, { className: `size-4` });' },
       {
         filename: file,
         code: 'import { cn as combine } from "pasika/cn"; const classes = combine("flex", active && "ring-2");',
@@ -136,6 +146,41 @@ void describe("Every runtime string or numeric value MUST be represented by a na
       },
     ],
     invalid: [
+      {
+        filename: file,
+        code: 'import { createElement } from "other"; createElement(Icon, { className: "size-4" });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; function render(createElement: Factory) { return createElement(Icon, { className: "size-4" }); }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import React from "react"; function render(React: Factory) { return React.createElement(Icon, { className: "size-4" }); }',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; createElement(Icon, { className: "size-4", label: "Display" });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; createElement(Icon, { metadata: { className: "size-4" } });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; createElement(Icon, { className: active === "ready" ? "size-4" : "size-6" });',
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        filename: file,
+        code: 'import { createElement } from "react"; createElement(Icon, {}, { className: "size-4" });',
+        errors: [{ message: MESSAGE }],
+      },
       {
         filename: file,
         code: 'import { cva } from "class-variance-authority"; const style = cva("flex", { variants: { tone: { solid: "text-primary" } }, defaultVariants: { tone: "solid" } });',

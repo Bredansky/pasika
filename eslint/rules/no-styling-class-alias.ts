@@ -14,10 +14,11 @@ import ts from "typescript";
 import { resolveSpecifier } from "../project/index";
 import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
+import { reactCreateElementClassValues } from "./react-create-element";
 import { inspectStyleValueFlows } from "./style-value-flow";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
-const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
+const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/createElement/cn/CVA use site or extract a component. ${DOC}`;
 const STATIC_CVA_ALIAS_MESSAGE = `Do not define CVA wrappers without real variants in constants/ modules; keep static Tailwind classes with their styling owner. ${DOC}`;
 
 interface Binding {
@@ -350,6 +351,9 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
 
     function visit(node: ts.Node): void {
       if (ts.isVariableStatement(node)) inspectCvaAlias(node);
+      if (ts.isCallExpression(node)) {
+        for (const value of reactCreateElementClassValues(context, node)) inspectStyle(value);
+      }
       if (ts.isJsxAttribute(node) && ts.isIdentifier(node.name) && node.name.text === "className") {
         if (node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
           inspectStyle(node.initializer.expression);
