@@ -2,7 +2,7 @@
 
 A component's variants can be spread across handwritten prop unions and conditional classes, leaving no single owner for the visual options the component accepts. This rule decides which appearance choices belong in `cva` and which stay conditional classes.
 
-- Components MUST define alternative visual treatments using CVA with directly specified Tailwind classes instead of class-name aliases, handwritten lookup tables, or custom class-returning helpers.
+- Components MUST define alternative visual treatments using CVA.
 - A component's CVA variant props MUST be typed from its `cva` definition with `VariantProps` rather than manually duplicated unions.
 - A statically unused CVA choice MUST NOT remain in an application component.
 - A boolean prop that changes appearance MUST use conditional `cn()` when it only adds or removes one standalone class treatment.
@@ -158,10 +158,9 @@ enum Status {
   Ready = "ready",
 }
 
-const readyClasses = "border-primary";
 const statusClasses = {
   [Status.Draft]: "border-divider",
-  [Status.Ready]: readyClasses,
+  [Status.Ready]: "border-primary",
 };
 
 function getStatusClasses(status: Status): string {
@@ -171,7 +170,7 @@ function getStatusClasses(status: Status): string {
 <div className={getStatusClasses(status)} />;
 ```
 
-Why: the helper hides the styling choices behind a class alias and an ordinary lookup table.
+Why: the helper defines visual choices in a handwritten lookup table instead of CVA.
 
 ## Correct — CVA Status Variants
 

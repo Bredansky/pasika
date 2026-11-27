@@ -1268,8 +1268,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/component-variant-rule.md",
-      "text": "Components MUST define alternative visual treatments using CVA with directly specified Tailwind classes instead of class-name aliases, handwritten lookup tables, or custom class-returning helpers.",
-      "hash": "83028596c9",
+      "text": "Components MUST define alternative visual treatments using CVA.",
+      "hash": "33605e5496",
       "ref": "pasika/cva-appearance-props, pasika/no-styling-class-alias"
     },
     {

@@ -112,7 +112,7 @@ const card = <div className={cn("rounded", getStatusClasses(Status.Draft))} />;`
   expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
 });
 
-test("Components MUST define alternative visual treatments using CVA with directly specified Tailwind classes instead of class-name aliases, handwritten lookup tables, or custom class-returning helpers.", () => {
+test("Components MUST define alternative visual treatments using CVA.", () => {
   const result = lint(`function choose(active: boolean) { return active ? "bg-primary" : "bg-danger"; }
 function optional(active: boolean) { return active ? "animate-pulse" : ""; }
 declare const active: boolean;
