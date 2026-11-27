@@ -12,6 +12,7 @@ type SinkKind = "style" | "variant";
 
 interface ClassValue {
   text: string;
+  stored: boolean;
   node: ts.Node;
   indirect: boolean;
   lookup: boolean;
@@ -33,6 +34,32 @@ function propertyName(name: ts.PropertyName): string | undefined {
 function isProjectDeclaration(node: ts.Node): boolean {
   const source = node.getSourceFile();
   return !source.isDeclarationFile && !source.fileName.replaceAll("\\", "/").includes("/node_modules/");
+}
+
+/** A class literal stored outside a composition call is a standalone alias. */
+function isStoredClass(node: ts.Node): boolean {
+  let current = node;
+  while (!ts.isSourceFile(current)) {
+    const parent = current.parent;
+    if (ts.isVariableDeclaration(parent)) {
+      return (
+        parent.initializer === current &&
+        ts.isVariableDeclarationList(parent.parent) &&
+        parent.parent.flags === ts.NodeFlags.Const
+      );
+    }
+    if (ts.isEnumMember(parent)) return parent.initializer === current;
+    if (
+      ts.isCallExpression(parent) ||
+      ts.isFunctionLike(parent) ||
+      ts.isJsxAttribute(parent) ||
+      ts.isStatement(parent)
+    ) {
+      return false;
+    }
+    current = parent;
+  }
+  return false;
 }
 
 function unwrap(expression: ts.Expression): ts.Expression {
@@ -124,7 +151,7 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
       active.add(node);
       try {
         if (ts.isStringLiteralLike(node)) {
-          if (!path.length) values.push({ text: node.text, node, indirect, lookup });
+          if (!path.length) values.push({ text: node.text, node, indirect, lookup, stored: isStoredClass(node) });
           return;
         }
         if (ts.isIdentifier(node)) {
@@ -179,7 +206,9 @@ export function inspectStyleValueFlows(context: Rule.RuleContext, report: (flow:
                 walk(property.name.expression, [], bindings, indirect, lookup);
               } else {
                 const text = propertyName(property.name);
-                if (text !== undefined) values.push({ text, node: property.name, indirect, lookup });
+                if (text !== undefined) {
+                  values.push({ text, node: property.name, indirect, lookup, stored: isStoredClass(property.name) });
+                }
               }
             }
             return;

@@ -1,7 +1,7 @@
 /**
  * ESLint rule: pasika/no-styling-class-alias
  *
- * Class-name enums and shared string constants are documentation metadata at
+ * Class-name enums and standalone string constants are documentation metadata at
  * most: styling must own its Tailwind utilities at the JSX/cn/CVA use site.
  * An enum used only for display text is intentionally allowed.
  *
@@ -12,24 +12,28 @@ import path from "node:path";
 import type { Rule } from "eslint";
 import ts from "typescript";
 import { resolveSpecifier } from "../project/index";
+import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
 import { inspectStyleValueFlows } from "./style-value-flow";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
-const MESSAGE = `Do not use enum members or shared class-name constants to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
+const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/cn/CVA use site or extract a component. ${DOC}`;
 const STATIC_CVA_ALIAS_MESSAGE = `Do not define CVA wrappers without real variants in constants/ modules; keep static Tailwind classes with their styling owner. ${DOC}`;
 
 interface Binding {
   kind: "enum" | "const";
-  origin: string;
-  exported?: boolean;
   members?: Set<string>;
 }
 
 function isStaticString(expression: ts.Expression | undefined): boolean {
   if (!expression) return false;
   if (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) return true;
-  if (ts.isAsExpression(expression) || ts.isSatisfiesExpression(expression)) {
+  if (
+    ts.isParenthesizedExpression(expression) ||
+    ts.isAsExpression(expression) ||
+    ts.isSatisfiesExpression(expression) ||
+    ts.isNonNullExpression(expression)
+  ) {
     return isStaticString(expression.expression);
   }
   return false;
@@ -46,10 +50,11 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Do not style JSX or cn/CVA compositions through enum members or shared class-name constants.",
+      description: "Do not style JSX or cn/CVA compositions through standalone class-name aliases.",
     },
   },
   create(context) {
+    const typed = typedParserServices(context.sourceCode.parserServices);
     const root = sourceRootOf(context);
     const file = path.resolve(context.filename);
     if (!isProductionFile(file, root)) return {};
@@ -58,6 +63,35 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
     const sourceCache = new Map<string, ts.SourceFile | undefined>([[file, current]]);
     const lookupCache = new Map<string, Binding | undefined>();
     const visited = new Set<string>();
+    const localBindings = new Map<number, boolean>();
+    if (!typed) {
+      const aliases = new Set<number>();
+      function collect(node: ts.Node): void {
+        if (
+          ts.isVariableDeclaration(node) &&
+          ts.isVariableDeclarationList(node.parent) &&
+          node.parent.flags === ts.NodeFlags.Const &&
+          isStaticString(node.initializer)
+        ) {
+          aliases.add(node.getStart(current));
+        }
+        ts.forEachChild(node, collect);
+      }
+      collect(current);
+      for (const scope of context.sourceCode.scopeManager.scopes) {
+        for (const reference of scope.references) {
+          const definitions = reference.resolved?.defs ?? [];
+          const start = reference.identifier.range?.[0];
+          if (start === undefined || !definitions.some((definition) => definition.type !== "ImportBinding")) continue;
+          localBindings.set(
+            start,
+            definitions.some(
+              (definition) => definition.type === "Variable" && aliases.has(definition.node.range?.[0] ?? -1),
+            ),
+          );
+        }
+      }
+    }
 
     // Resolve CVA by its import, not by variable or class-name prefixes.
     const cvaImports = new Set<string>();
@@ -112,7 +146,6 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         if (ts.isEnumDeclaration(statement) && statement.name.text === name) {
           found = {
             kind: "enum",
-            origin: target,
             members: new Set(
               statement.members
                 .filter((member) => isStaticString(member.initializer))
@@ -125,11 +158,8 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         if (ts.isVariableStatement(statement)) {
           for (const declaration of statement.declarationList.declarations) {
             if (!ts.isIdentifier(declaration.name) || declaration.name.text !== name) continue;
-            if (isStaticString(declaration.initializer)) {
-              const exported = (ts.getModifiers(statement) ?? []).some(
-                (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
-              );
-              found = { kind: "const", origin: target, exported };
+            if (statement.declarationList.flags === ts.NodeFlags.Const && isStaticString(declaration.initializer)) {
+              found = { kind: "const" };
             }
             break;
           }
@@ -260,13 +290,9 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         return;
       }
       if (ts.isIdentifier(expression)) {
-        const binding = lookup(file, expression.text);
-        if (binding?.kind === "const" && (binding.origin !== file || binding.exported)) {
-          // no-inline-runtime-literal already reports constants/ declarations.
-          if (binding.origin !== file || !path.relative(root, file).split(path.sep).includes("constants")) {
-            report(expression);
-          }
-        }
+        if (typed) return;
+        const local = localBindings.get(expression.getStart(current));
+        if (local ?? lookup(file, expression.text)?.kind === "const") report(expression);
         return;
       }
       if (ts.isConditionalExpression(expression)) {
@@ -344,7 +370,10 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
       Program() {
         visit(current);
         inspectStyleValueFlows(context, ({ sink, kind, values }) => {
-          if (values.some((value) => value.lookup) || (kind === "variant" && values.some((value) => value.indirect))) {
+          if (
+            values.some((value) => value.lookup || (value.indirect && value.stored)) ||
+            (kind === "variant" && values.some((value) => value.indirect))
+          ) {
             // Parser services use a separate AST; locate the sink by its source offset.
             const pos = sink.getStart();
             if (reported.has(pos)) return;

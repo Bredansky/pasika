@@ -524,8 +524,8 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. JSX `className` values, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.",
-      "hash": "00f45c96c9",
+      "text": "Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in JSX `className`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.",
+      "hash": "c39c098169",
       "ref": "pasika/no-inline-runtime-literal"
     },
     {
@@ -1364,8 +1364,8 @@
     },
     {
       "doc": "next-tailwind-guide/rules/tailwind-class-reuse-rule.md",
-      "text": "Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.",
-      "hash": "d6aa368e6c",
+      "text": "Tailwind class strings used for styling MUST NOT be extracted into standalone constants, enums, or other aliases. Strings used solely as display text are exempt.",
+      "hash": "bb02af4e02",
       "ref": "pasika/no-styling-class-alias"
     },
     {

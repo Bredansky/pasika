@@ -1,8 +1,8 @@
 # Tailwind Class Reuse Rule
 
-Shared class-name constants separate reusable visual styling from its markup. Repeated static class sets across native JSX elements also duplicate styling ownership.
+Standalone class-name aliases separate visual styling from its owner. Repeated static class sets across native JSX elements also duplicate styling ownership.
 
-- Class-name aliases MUST NOT be used for styling. Strings used solely as display text are exempt.
+- Tailwind class strings used for styling MUST NOT be extracted into standalone constants, enums, or other aliases. Strings used solely as display text are exempt.
 - Native JSX elements in different source files MUST share a component when they either have the same tag and identical static sets of at least five classes or use the same exported static class set of at least two classes.
 
 ## Incorrect — Enum Used As A Styling Alias
@@ -128,3 +128,25 @@ function Panel({ children }: { children: React.ReactNode }): React.JSX.Element {
 ```
 
 Why: the full six-class set has one owner while the content remains independent.
+
+## Incorrect — Local Tailwind Class Alias
+
+```tsx
+const layout = "inline-flex items-center gap-2";
+const typography = "text-sm font-medium";
+
+<button className={cn(layout, typography)} />;
+```
+
+Why: even local constants separate the class strings from their styling owner.
+
+## Correct — Direct Class Composition
+
+```tsx
+<button className="inline-flex items-center gap-2 text-sm font-medium" />;
+
+const buttonClasses = cn("inline-flex items-center", active && "ring-2");
+<button className={buttonClasses} />;
+```
+
+Why: literal classes stay in their styling positions, while the named composition result represents computed styling.

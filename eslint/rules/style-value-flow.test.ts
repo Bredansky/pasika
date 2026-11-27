@@ -78,9 +78,9 @@ const element = <div className={style({ status: "draft" })} />;`);
   expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(2);
 });
 
-test("leaves direct CVA variants, local static fragments, unrelated display data and shadowed helpers alone", () => {
+test("leaves direct CVA variants, computed composition results, unrelated display data and shadowed helpers alone", () => {
   const result = lint(`import { cva } from "class-variance-authority";
-const fragment = "text-muted-ink";
+const fragment = cn("text-muted-ink", active && "ring-2");
 const examples = { label: "text-(--example)" };
 const style = cva(null, { variants: { status: { draft: "border-divider", ready: "border-primary" } } });
 function unrelated(cn: (value: string) => string) { return cn(examples.label); }
@@ -91,7 +91,7 @@ const other = <div className={style({ status: "draft" })} />;`);
 
 test("resolves declarations by identity rather than names and stops on recursive helpers", () => {
   const result = lint(`const fragment = "text-(--outside)";
-function Card() { const fragment = "text-primary"; return <div className={fragment} />; }
+function Card() { const fragment = cn("text-primary", active && "ring-2"); return <div className={fragment} />; }
 function recursive(): string { return recursive(); }
 const other = <div className={recursive()} />;`);
   expect(result).toEqual([]);
@@ -129,7 +129,7 @@ const variant = Variants.cva(null, { variants: { status: { draft: [raw], ready: 
 const fragment = ["border-divider", raw] as const;
 const element = <div className={combine(...fragment)} />;`);
   expect(result.some((item) => item.ruleId === "pasika/no-arbitrary-tailwind")).toBe(true);
-  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(2);
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(3);
 });
 
 test("checks spread class fragments without treating unrelated display values as classes", () => {
@@ -137,8 +137,8 @@ test("checks spread class fragments without treating unrelated display values as
 const fragment = ["border-divider", "text-(--missing)"] as const;
 const display = "text-(--display)";
 const element = <div className={combine(...fragment)}>{display}</div>;`);
-  expect(result).toHaveLength(1);
-  expect(result[0]?.message).toContain("text-(--missing)");
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
 });
 
 test("resolves shorthand and spread object values while ignoring unrelated members", () => {
@@ -146,8 +146,8 @@ test("resolves shorthand and spread object values while ignoring unrelated membe
 const base = { text, unrelated: "bg-(--unused)" };
 const styles = { ...base, border: "border-divider" };
 const element = <div className={styles.text} />;`);
-  expect(result).toHaveLength(1);
-  expect(result[0]?.message).toContain("text-(--missing)");
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(1);
+  expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
 });
 
 test("resolves default arguments, concise helper bodies, and array projections", () => {
@@ -155,7 +155,7 @@ test("resolves default arguments, concise helper bodies, and array projections",
 const choose = (index = 1) => values[index];
 const element = <div className={choose(1)} />;`);
   expect(result.some((item) => item.message.includes("text-(--missing)"))).toBe(true);
-  expect(result.some((item) => item.ruleId === "pasika/no-styling-class-alias")).toBe(false);
+  expect(result.some((item) => item.ruleId === "pasika/no-styling-class-alias")).toBe(true);
   const defaultResult = lint(`const choose = (value = "text-(--default)") => value;
 const element = <div className={choose()} />;`);
   expect(defaultResult.some((item) => item.message.includes("text-(--default)"))).toBe(true);
@@ -183,4 +183,32 @@ const selected = condition && Example.Raw;
 const element = <div className={selected || fallback} />;`);
   expect(result.some((item) => item.message.includes("text-(--enum)"))).toBe(true);
   expect(result.some((item) => item.message.includes("border-(--fallback)"))).toBe(true);
+});
+
+test("rejects local and imported aliases reached through direct consumers and alias chains", () => {
+  const result = lint(
+    `import { fragment as imported } from "./styles";
+import { cn as combine } from "pasika/cn";
+const base = "inline-flex";
+const layout = base;
+function Card() {
+  const padding = "p-4";
+  return <div className={combine(layout, padding, imported)} />;
+}
+const classes = ["text-sm", "font-medium"] as const;
+const element = <span className={combine(...classes)} />;`,
+    'export const fragment = "text-primary";',
+  );
+  expect(result.filter((item) => item.ruleId === "pasika/no-styling-class-alias")).toHaveLength(4);
+});
+
+test("accepts genuine CVA definitions and direct cn results while retaining display strings", () => {
+  const result = lint(`import { cn as combine } from "pasika/cn";
+import { cva as variants } from "class-variance-authority";
+const displayClasses = "text-sm";
+const style = variants("flex", { variants: { compact: { true: "h-8", false: "h-10" } } });
+declare const active: boolean;
+const result = combine(style({ compact: active }), active && "ring-2");
+const element = <div className={result}>{displayClasses}</div>;`);
+  expect(result).toEqual([]);
 });

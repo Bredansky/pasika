@@ -16,10 +16,10 @@ import type * as ESTree from "estree";
 import { isProductionSource } from "../project/semantic-literals";
 import { isStaticNextFontLiteral } from "./next-font-literals";
 import { sourceRootOf } from "./project-root";
+import { isStyleCompositionLiteral } from "./style-composition-literals";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
-const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Inline JSX className/data-component, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
-const STATIC_CLASS_ALIAS_MESSAGE = `Do not extract static Tailwind class strings into named class aliases; write the classes at the JSX className use site. ${DOC}`;
+const MESSAGE = `Every runtime string or numeric value must use a named constant or enum member, including single-use values. Tailwind class strings in JSX/cn/CVA, static data-component markers, canonical locale strings, and static Next.js matchers are exempt. ${DOC}`;
 
 // ESLint's core Node type excludes parser-specific JSX and TS ancestors.
 // Traverse only the structural fields needed to inspect them without casting.
@@ -149,29 +149,6 @@ function isNamedValue(node: AncestorNode): boolean {
   );
 }
 
-/** Static class-name aliases hide utilities that can be inlined at JSX call sites. */
-function isStaticClassAlias(node: AncestorNode, file: string, root: string): boolean {
-  if (!path.relative(root, file).split(path.sep).includes("constants")) return false;
-  let current = node;
-  while (current.parent?.type === "TSAsExpression" || current.parent?.type === "TSSatisfiesExpression") {
-    current = current.parent;
-  }
-  const declaration = current.parent;
-  if (declaration?.type !== "VariableDeclarator" || declaration.init !== current) return false;
-  const identifier = declaration.id;
-  return (
-    declaration.parent?.type === "VariableDeclaration" &&
-    declaration.parent.kind === "const" &&
-    typeof identifier === "object" &&
-    identifier !== null &&
-    "type" in identifier &&
-    identifier.type === "Identifier" &&
-    "name" in identifier &&
-    typeof identifier.name === "string" &&
-    /(?:^className$|ClassName$|ClassNames$|Classes$)/.test(identifier.name)
-  );
-}
-
 function isSyntacticString(node: AncestorNode): boolean {
   const parent = node.parent;
   if (!parent) return false;
@@ -276,13 +253,10 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         ) {
           return;
         }
-        if (typeof node.value === "string" && isStaticClassAlias(node, file, root)) {
-          context.report({ node, message: STATIC_CLASS_ALIAS_MESSAGE });
-          return;
-        }
         if (
           (typeof node.value === "string" &&
             (isClassNameProp(node) ||
+              isStyleCompositionLiteral(node, context) ||
               isStaticDataComponentMarker(node) ||
               isCanonicalLocaleString(node, root, file))) ||
           isStaticMatcherValue(node, root, file) ||
@@ -295,12 +269,9 @@ export const noInlineRuntimeLiteralRule: Rule.RuleModule = {
         context.report({ node, message: MESSAGE });
       },
       TemplateLiteral(node: Rule.Node & ESTree.TemplateLiteral) {
-        if (node.expressions.length === 0 && isStaticClassAlias(node, file, root)) {
-          context.report({ node, message: STATIC_CLASS_ALIAS_MESSAGE });
-          return;
-        }
         if (
           isClassNameProp(node) ||
+          isStyleCompositionLiteral(node, context) ||
           isNamedValue(node) ||
           (node.expressions.length === 0 && isCanonicalLocaleString(node, root, file))
         ) {
