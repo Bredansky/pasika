@@ -15,8 +15,8 @@ import { resolveSpecifier } from "../project/index";
 import { typedParserServices } from "./contract-ownership";
 import { sourceRootOf } from "./project-root";
 import { reactCreateElementClassValues } from "./react-create-element";
-import { tiptapEditorClassValues } from "./tiptap-editor";
 import { inspectStyleValueFlows } from "./style-value-flow";
+import { tiptapEditorClassValues } from "./tiptap-editor";
 
 const DOC = "See docs/next-tailwind-guide/rules/tailwind-class-reuse-rule.md";
 const MESSAGE = `Do not use standalone class-name aliases to style elements; keep Tailwind classes at the JSX/createElement/cn/CVA use site or extract a component. ${DOC}`;
@@ -357,8 +357,9 @@ export const noStylingClassAliasRule: Rule.RuleModule = {
         for (const value of [
           ...reactCreateElementClassValues(context, node),
           ...tiptapEditorClassValues(context, node),
-        ])
+        ]) {
           inspectStyle(value);
+        }
       }
       if (ts.isJsxAttribute(node) && ts.isIdentifier(node.name) && node.name.text === "className") {
         if (node.initializer && ts.isJsxExpression(node.initializer) && node.initializer.expression) {
