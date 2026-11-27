@@ -32,6 +32,7 @@ type Statement = AST.Program["body"][number];
 type Group =
   | "import"
   | "type"
+  | "exported-type"
   | "interface"
   | "enum"
   | "const"
@@ -136,7 +137,7 @@ function declarationGroup(context: Rule.RuleContext, node: Statement): Group | u
     node.type === "ExportNamedDeclaration" || node.type === "ExportDefaultDeclaration" ? node.declaration : node;
   const type: string | undefined = declaration?.type;
   if (type === "TSInterfaceDeclaration") return "interface";
-  if (type === "TSTypeAliasDeclaration") return "type";
+  if (type === "TSTypeAliasDeclaration") return node.type === "ExportNamedDeclaration" ? "exported-type" : "type";
   if (type === "TSEnumDeclaration") return "enum";
   if (declaration?.type === "FunctionDeclaration") return "function";
   if (declaration?.type !== "VariableDeclaration" || declaration.kind !== "const") return undefined;
@@ -162,6 +163,7 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
       !second ||
       (first === second &&
         first !== "type" &&
+        first !== "exported-type" &&
         first !== "const" &&
         first !== "exported-const" &&
         first !== "callable" &&
@@ -187,7 +189,7 @@ export function enforceConstantSpacing(context: Rule.RuleContext): void {
     const ordinaryBoundaryMessage = first === second && declarationBoundary ? DECLARATION_MESSAGE : BOUNDARY_MESSAGE;
     const groupMessage = visibilityBoundary ? VISIBILITY_MESSAGE : ordinaryBoundaryMessage;
     const boundaryMessage = structuredBoundary ? STRUCTURED_MESSAGE : groupMessage;
-    const compactMessage = first === "type" ? TYPE_MESSAGE : MESSAGE;
+    const compactMessage = first === "type" || first === "exported-type" ? TYPE_MESSAGE : MESSAGE;
     const message = needsBlankLine ? boundaryMessage : compactMessage;
     context.report({
       node: current,

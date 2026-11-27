@@ -3,11 +3,15 @@ import { declarationOrderRule } from "./declaration-order";
 
 const filename = srcFile("features/credentials/SettingsPage/badge.tsx");
 const MESSAGE =
-  "Order independent declarations as types, enums, constants (alphabetically), functions, then local exports. See docs/next-codebase-guide/rules/constants-rule.md";
+  "Order independent declarations as types (private then exported, alphabetically), enums, constants (alphabetically), functions, then local exports. See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Within safely reorderable module declaration groups, types and interfaces MUST precede enums, enums MUST precede constants, constants MUST precede functions, and local export lists MUST come last; independent literal constants MUST be sorted by name.", () => {
+void describe("Within safely reorderable module declaration groups, private type declarations MUST precede exported type declarations, both sorted alphabetically by name; consecutive type aliases with the same export visibility MUST be adjacent, and different export visibility MUST be separated by a blank line.", () => {
   ruleTester.run("declaration-order", declarationOrderRule, {
     valid: [
+      { code: "type A = Z;\ntype Z = string;\n\nexport type B = A;\nexport type C = Z;", filename },
+      { code: "export type Z = string;\n\n// Separate group\ntype A = number;", filename },
+      { code: "interface A { first: string }\n\ninterface A { second: number }", filename },
+      { code: "type Z = string;\nsetup();\ntype A = number;", filename },
       { code: "const alpha = 1;\nconst beta = 2;", filename },
       { code: "type T = string;\nenum E { A, B }\nconst a = 1;\nfunction f() {}\nexport { f };", filename },
       { code: "const z = load();\nconst a = load();", filename },
@@ -33,6 +37,25 @@ void describe("Within safely reorderable module declaration groups, types and in
       { code: "const z = 1;\nconst a = 2;", filename: "scripts/build.ts" },
     ],
     invalid: [
+      {
+        code: 'import type { TelegramPost } from "@/types";\n\ntype TelegramApiPayload = TelegramPost["apiPayload"];\n\nexport type TelegramPhotoParams = Extract<TelegramApiPayload, { photo: string }>;\nexport type TelegramVideoParams = Extract<TelegramApiPayload, { video: string }>;\nexport type TelegramTextParams = Extract<TelegramApiPayload, { text: string }>;\nexport type TelegramMediaGroupParams = Extract<TelegramApiPayload, { media: unknown[] }>;\n\ntype InputMedia = TelegramMediaGroupParams["media"][number];\n\nexport type InputMediaPhoto = Extract<InputMedia, { type: "photo" }>;\nexport type InputMediaVideo = Extract<InputMedia, { type: "video" }>;',
+        output:
+          'import type { TelegramPost } from "@/types";\n\ntype InputMedia = TelegramMediaGroupParams["media"][number];\ntype TelegramApiPayload = TelegramPost["apiPayload"];\n\nexport type InputMediaPhoto = Extract<InputMedia, { type: "photo" }>;\nexport type InputMediaVideo = Extract<InputMedia, { type: "video" }>;\nexport type TelegramMediaGroupParams = Extract<TelegramApiPayload, { media: unknown[] }>;\nexport type TelegramPhotoParams = Extract<TelegramApiPayload, { photo: string }>;\nexport type TelegramTextParams = Extract<TelegramApiPayload, { text: string }>;\nexport type TelegramVideoParams = Extract<TelegramApiPayload, { video: string }>;',
+        filename,
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        code: "export type A = B;\r\ntype Z = A;\r\ntype B = string;",
+        output: "type B = string;\r\ntype Z = A;\r\n\r\nexport type A = B;",
+        filename,
+        errors: [{ message: MESSAGE }],
+      },
+      {
+        code: "export interface A {}\ninterface Z {}\ninterface B {}",
+        output: "interface B {}\n\ninterface Z {}\n\nexport interface A {}",
+        filename,
+        errors: [{ message: MESSAGE }],
+      },
       {
         code: 'const badgeFocusBorderClass = "focus";\nexport enum BadgeChoice { Default = "default", Secondary = "secondary", Destructive = "destructive" }\nconst badgeSlot = "badge";\nconst badgeSecondaryClasses =\n  "long classes";\nconst badgeVariants = cva(badgeSlot);\nfunction Badge() {}\nexport { Badge };',
         output:

@@ -607,6 +607,12 @@
       "ref": "pasika/import-through-index, pasika/support-folder-shape"
     },
     {
+      "doc": "next-codebase-guide/rules/constants-rule.md",
+      "text": "Within safely reorderable module declaration groups, private type declarations MUST precede exported type declarations, both sorted alphabetically by name; consecutive type aliases with the same export visibility MUST be adjacent, and different export visibility MUST be separated by a blank line.",
+      "hash": "3423cabbb2",
+      "ref": "pasika/constant-casing"
+    },
+    {
       "doc": "next-codebase-guide/rules/exports-and-imports-rule.md",
       "text": "A file that exports values MUST use named exports unless a framework or third-party package requires a different export style for that file.",
       "hash": "b330b4c859",

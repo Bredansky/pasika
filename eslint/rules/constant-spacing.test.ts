@@ -31,6 +31,7 @@ const spacingRule: Rule.RuleModule = {
 void describe("In source modules, consecutive ordinary const declarations with the same export visibility MUST have no blank line between them regardless of line wrapping; multiline object and array literals MUST be separated, and different declaration groups MUST be separated by a blank line; comments MAY separate groups.", () => {
   ruleTester.run("constant-spacing", spacingRule, {
     valid: [
+      { code: "type A = string;\ntype B = number;\n\nexport type C = A;\nexport type D = B;", filename },
       {
         code: 'export type MediaLayerData = Extract<Layer, { type: LayerType.Media }>;\nexport type Position = TextLayerData["position"];',
         filename,
@@ -57,6 +58,18 @@ void describe("In source modules, consecutive ordinary const declarations with t
       { code: "const first = 1;\n\nconst second = 2;", filename: "scripts/build.ts" },
     ],
     invalid: [
+      {
+        code: "type A = string;\nexport type B = A;",
+        output: "type A = string;\n\nexport type B = A;",
+        filename,
+        errors: [{ message: BOUNDARY_MESSAGE }],
+      },
+      {
+        code: "export type A = string;\r\ntype B = A;",
+        output: "export type A = string;\r\n\r\ntype B = A;",
+        filename,
+        errors: [{ message: BOUNDARY_MESSAGE }],
+      },
       {
         code: 'export type MediaLayerData = Extract<Layer, { type: LayerType.Media }>;\n\nexport type Position = TextLayerData["position"];',
         output:
