@@ -12,7 +12,7 @@ const FIXTURE: Record<string, string> = {
     'import { Divider, DividerVariant } from "@/shared/divider"; export default function Page() { return <Divider variant={DividerVariant.Diamonds} />; }',
 
   "shared/divider-variant.test.ts":
-    'import { DividerVariant } from "./divider"; export const values = Object.values(DividerVariant);',
+    'import { Divider, DividerVariant } from "./divider"; export const values = [Divider, ...Object.values(DividerVariant)];',
   "shared/with-extracted.test.ts":
     'import { extractedVariant } from "@/constants"; export const observed = extractedVariant;',
 
@@ -22,14 +22,18 @@ const FIXTURE: Record<string, string> = {
   "features/home/support-section.tsx":
     'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export function SupportSection() { return <RetroCard />; }',
   "features/home/retro-card-surface.test.ts":
-    'import { RetroCardSurface } from "./constants"; export const surfaces = Object.values(RetroCardSurface);',
+    'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export const surfaces = [RetroCard, ...Object.values(RetroCardSurface)];',
   "features/home/local-card.tsx":
     'export enum LocalCardSurface { Card = "card", Gradient = "gradient" }; export function LocalCard() { return <div>{LocalCardSurface.Card}</div>; }',
   "features/home/local-support.tsx":
     'import { LocalCardSurface, LocalCard } from "./local-card"; export function LocalSupport() { return <LocalCard />; }',
   "features/home/local-card.test.ts":
-    'import { LocalCardSurface } from "./local-card"; export const surfaces = Object.values(LocalCardSurface);',
+    'import { LocalCard, LocalCardSurface } from "./local-card"; export const surfaces = [LocalCard, ...Object.values(LocalCardSurface)];',
 
+  "shared/test-owned-enum.tsx":
+    'export enum TestOwnedVariant { A = "a", B = "b" }; export function TestOwned() { return <span />; }',
+  "features/independent-enum.test.ts":
+    'import { TestOwnedVariant } from "@/shared/test-owned-enum"; export const choice = TestOwnedVariant.A;',
   "shared/standalone.tsx":
     'export enum StandaloneVariant { A = "a", B = "b" }; export function Standalone() { return <span />; }',
   "features/unrelated.ts":
@@ -42,6 +46,11 @@ const FIXTURE: Record<string, string> = {
   "app/with-extracted/page.tsx":
     'import { WithExtracted } from "@/shared/with-extracted"; import { extractedVariant } from "@/constants"; export default function Page() { return <WithExtracted />; }',
 
+  "shared/test-harness.test.tsx":
+    'import { fixtureSize } from "@/constants/fixtures"; function Harness() { return <span>{fixtureSize}</span>; }',
+  "constants/fixtures.ts": "export const fixtureSize = 100;",
+  "shared/fixture-reader.test.ts":
+    'import { fixtureSize } from "@/constants/fixtures"; export const observed = fixtureSize;',
   "shared/form.tsx":
     'import { formSchema } from "@/schemas"; import type { FormState } from "@/types"; export function Form({ state }: { state?: FormState }) { return <form />; }',
   "schemas/index.ts": "export const formSchema = {};",
@@ -91,6 +100,8 @@ void describe("A constant, enum, type, or schema imported only by a component an
   ruleTester.run("no-mixed-concerns:component-owned-support", noMixedConcernsRule, {
     valid: [
       fixture("shared/divider.tsx"),
+      fixture("shared/with-extracted.tsx"),
+      fixture("shared/test-harness.test.tsx"),
       fixture("shared/independent-value.tsx"),
       fixture("shared/owned-type.tsx"),
       fixture("features/merch/merch-product-card.tsx"),
@@ -98,10 +109,6 @@ void describe("A constant, enum, type, or schema imported only by a component an
       fixture("app/merch/page.tsx"),
     ],
     invalid: [
-      {
-        ...fixture("shared/with-extracted.tsx"),
-        errors: [{ message: message("constant", "extractedVariant", "WithExtracted") }],
-      },
       {
         ...fixture("features/home/retro-card.tsx"),
         errors: [{ message: message("constant", "RetroCardSurface", "RetroCard") }],
@@ -121,6 +128,15 @@ void describe("An enum colocated with its component MUST NOT require extraction 
   ruleTester.run("enum-placement:component-owned", enumPlacementRule, {
     valid: [fixture("shared/divider.tsx"), fixture("features/home/local-card.tsx")],
     invalid: [
+      {
+        ...fixture("shared/test-owned-enum.tsx"),
+        errors: [
+          {
+            message:
+              "An enum imported independently of its component must live in constants/ at its CCF; keep component-owned enums beside their component. See docs/next-codebase-guide/rules/constants-rule.md",
+          },
+        ],
+      },
       {
         ...fixture("shared/standalone.tsx"),
         errors: [
