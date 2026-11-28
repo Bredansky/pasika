@@ -1,7 +1,7 @@
 /**
  * ESLint rule: pasika/repeated-semantic-literal
  *
- * Index meaningful string and numeric literals across production modules.
+ * Index meaningful string and numeric literals across all indexed source modules.
  * Reuse unique canonical definitions even when not imported, otherwise suggest
  * local or shared extraction only for high-confidence repeated semantic roles.
  *
@@ -20,7 +20,6 @@ import { namedStringConstantsByKey } from "../project/repeated-named-strings";
 import {
   featureOf,
   getSemanticLiteralIndex,
-  isProductionSource,
   type CanonicalLiteral,
   type SemanticLiteral,
 } from "../project/semantic-literals";
@@ -84,7 +83,7 @@ function messageFor(
       ? "a shared enum for this closed route domain"
       : "one shared const";
   return (
-    `The ${kind} literal ${formatValue(use)} repeats in ${String(count)} production files ` +
+    `The ${kind} literal ${formatValue(use)} repeats in ${String(count)} source files ` +
     `for the same semantic role. Extract ${placement} at the consumers' CCF and import it. ${DOC}`
   );
 }
@@ -100,13 +99,12 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
   create(context) {
     const root = sourceRootOf(context);
     const file = path.resolve(context.filename);
-    if (!isProductionSource(file, root)) return {};
 
     const project = getProjectIndex(root);
     if (!project?.modules.has(file)) return {};
     const index = getSemanticLiteralIndex(project);
     const services = typedParserServices(context.sourceCode.parserServices);
-    const domains = services ? getConstantDomains(services.program, root) : undefined;
+    const domains = services ? getConstantDomains(services.program, root, "all") : undefined;
     const namedStrings = [...namedStringConstantsByKey(project).values()].filter((entries) =>
       entries.some((entry) => entry.file === file),
     );
@@ -256,7 +254,7 @@ export const repeatedSemanticLiteralRule: Rule.RuleModule = {
             const placement =
               count === 1
                 ? "Declare one file-local const in an enclosing scope and reuse it."
-                : `Extract one shared const at the consumers' CCF and import it across ${String(count)} production files.`;
+                : `Extract one shared const at the consumers' CCF and import it across ${String(count)} source files.`;
             context.report({
               node,
               loc: { line: entry.line, column: entry.column },

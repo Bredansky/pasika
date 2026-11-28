@@ -43,7 +43,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Repeated named numeric values in the same semantic slot across production files MUST share a constant.", () => {
+void describe("Repeated named numeric values in the same semantic slot across src/ MUST share a constant.", () => {
   ruleTester.run("repeated-numeric-value", repeatedNumericValueRule, {
     valid: [
       {
@@ -55,10 +55,6 @@ void describe("Repeated named numeric values in the same semantic slot across pr
         filename: file("features/editor/identity.ts"),
       },
       {
-        code: read("features/editor/thumbnail.ts"),
-        filename: file("features/editor/thumbnail.ts"),
-      },
-      {
         code: read("features/editor/font.ts"),
         filename: file("features/editor/font.ts"),
       },
@@ -66,28 +62,31 @@ void describe("Repeated named numeric values in the same semantic slot across pr
         code: read("features/editor/icon.ts"),
         filename: file("features/editor/icon.ts"),
       },
-      {
-        code: read("features/editor/thumbnail.test.ts"),
-        filename: file("features/editor/thumbnail.test.ts"),
-      },
-      {
-        code: read("features/mocks/thumbnail.ts"),
-        filename: file("features/mocks/thumbnail.ts"),
-      },
     ],
     invalid: [
+      ...["features/editor/thumbnail.ts", "features/editor/thumbnail.test.ts", "features/mocks/thumbnail.ts"].map(
+        (relative) => ({
+          code: read(relative),
+          filename: file(relative),
+          errors: [
+            {
+              message: `The numeric value 320 is repeated for the "width" semantic slot in 3 source files. Extract one constant at their CCF and import it instead. ${DOC}`,
+            },
+          ],
+        }),
+      ),
       {
         code: read("features/editor/numeric-boundaries-a.ts"),
         filename: file("features/editor/numeric-boundaries-a.ts"),
         errors: [
           {
-            message: `The numeric value 0 is repeated for the "first index" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
+            message: `The numeric value 0 is repeated for the "first index" semantic slot in 2 source files. Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
-            message: `The numeric value 1 is repeated for the "retry count" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
+            message: `The numeric value 1 is repeated for the "retry count" semantic slot in 2 source files. Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
-            message: `The numeric value -1 is repeated for the "missing index" semantic slot in 2 production files. Extract one constant at their CCF and import it instead. ${DOC}`,
+            message: `The numeric value -1 is repeated for the "missing index" semantic slot in 2 source files. Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
       },
@@ -97,12 +96,12 @@ void describe("Repeated named numeric values in the same semantic slot across pr
         errors: [
           {
             message:
-              'The numeric value 360 is repeated for the "width" semantic slot in 2 production files. ' +
+              'The numeric value 360 is repeated for the "width" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
-              'The numeric value 640 is repeated for the "height" semantic slot in 2 production files. ' +
+              'The numeric value 640 is repeated for the "height" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
@@ -113,7 +112,7 @@ void describe("Repeated named numeric values in the same semantic slot across pr
         errors: [
           {
             message:
-              'The numeric value 300 is repeated for the "duration" semantic slot in 2 production files. ' +
+              'The numeric value 300 is repeated for the "duration" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],
@@ -124,17 +123,17 @@ void describe("Repeated named numeric values in the same semantic slot across pr
         errors: [
           {
             message:
-              'The numeric value 1080 is repeated for the "width" semantic slot in 2 production files. ' +
+              'The numeric value 1080 is repeated for the "width" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
-              'The numeric value 1920 is repeated for the "height" semantic slot in 2 production files. ' +
+              'The numeric value 1920 is repeated for the "height" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
           {
             message:
-              'The numeric value 30 is repeated for the "fps" semantic slot in 2 production files. ' +
+              'The numeric value 30 is repeated for the "fps" semantic slot in 2 source files. ' +
               `Extract one constant at their CCF and import it instead. ${DOC}`,
           },
         ],

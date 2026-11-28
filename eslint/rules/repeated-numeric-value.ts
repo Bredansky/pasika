@@ -2,7 +2,7 @@
  * ESLint rule: pasika/repeated-numeric-value
  *
  * A raw numeric value MUST NOT be repeated under the same semantic slot across
- * production files. A single reused numeric value needs a constant, not an enum.
+ * source files. A single reused numeric value needs a constant, not an enum.
  * Exact names form a semantic slot; common rendering
  * measurements/timing additionally normalize `compositionWidth`, `baseWidth`,
  * object/JSX `width` (and corresponding height/fps/duration names) together.
@@ -14,17 +14,6 @@ import type { Rule } from "eslint";
 import { getProjectIndex } from "../project/index";
 import type { NamedNumericLiteral } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
-
-function isNonProductionFile(file: string, sourceRoot: string): boolean {
-  const relative = path.relative(sourceRoot, file);
-  const segments = relative.split(path.sep);
-  const basename = path.basename(file);
-
-  return (
-    /\.(?:test|spec|mock)\.[^.]+$/.test(basename) ||
-    segments.some((segment) => segment === "__tests__" || segment === "__mocks__" || segment === "mocks")
-  );
-}
 
 function isCanonicalConstantFile(file: string, sourceRoot: string): boolean {
   const segments = path.relative(sourceRoot, file).split(path.sep);
@@ -40,13 +29,13 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
     schema: [],
     type: "problem",
     docs: {
-      description: "Require repeated named numeric values across production files to use one shared constant.",
+      description: "Require repeated named numeric values across source files to use one shared constant.",
     },
   },
   create(context) {
     const sourceRoot = sourceRootOf(context);
     const file = path.resolve(context.filename);
-    if (isNonProductionFile(file, sourceRoot) || isCanonicalConstantFile(file, sourceRoot)) return {};
+    if (isCanonicalConstantFile(file, sourceRoot)) return {};
 
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
@@ -56,8 +45,6 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
 
     const filesByGroup = new Map<string, Set<string>>();
     for (const [moduleFile, parsedModule] of index.modules) {
-      if (isNonProductionFile(moduleFile, sourceRoot)) continue;
-
       for (const literal of parsedModule.namedNumericLiterals) {
         const key = groupKey(literal);
         const files = filesByGroup.get(key) ?? new Set<string>();
@@ -83,7 +70,7 @@ export const repeatedNumericValueRule: Rule.RuleModule = {
             loc: { line: literal.line, column: 0 },
             message:
               `The numeric value ${String(literal.value)} is repeated for the "${literal.semanticName}" semantic slot ` +
-              `in ${String(files.size)} production files. Extract one constant at their CCF and import it instead. ` +
+              `in ${String(files.size)} source files. Extract one constant at their CCF and import it instead. ` +
               "See docs/next-codebase-guide/rules/constants-rule.md",
           });
         }

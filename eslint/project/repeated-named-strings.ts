@@ -1,7 +1,6 @@
 /** Repeated named strings grouped by their literal value, regardless of identifier. */
 import { readFileSync } from "node:fs";
 import ts from "typescript";
-import { isProductionSource } from "./semantic-literals";
 import type { ProjectIndex } from "./index";
 
 export interface NamedStringConstant {
@@ -74,7 +73,6 @@ export function namedStringConstantsByKey(index: ProjectIndex): Map<string, Name
   if (previous) return previous;
   const groups = new Map<string, NamedStringConstant[]>();
   for (const file of index.modules.keys()) {
-    if (!isProductionSource(file, index.sourceRoot)) continue;
     try {
       for (const entry of declarations(file)) {
         const key = JSON.stringify(entry.value);

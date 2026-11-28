@@ -30,7 +30,7 @@ file(
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   ruleTester.run("repeated-semantic-literal: HTTP status enum", repeatedSemanticLiteralRule, {
     valid: [
       file("features/render/constants/index.ts", "export const canvasWidth = 403;"),

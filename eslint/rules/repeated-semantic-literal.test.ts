@@ -19,7 +19,7 @@ const reused = (name: string, value: string, source: string): string =>
 const redefined = (name: string, value: string, source: string): string =>
   `Reuse ${name} from src/${source} instead of redefining ${value}. ${DOC}`;
 const across = (kind: string, value: string, count: number, variant: string): string =>
-  `The ${kind} literal ${value} repeats in ${String(count)} production files for the same semantic role. Extract ${variant} at the consumers' CCF and import it. ${DOC}`;
+  `The ${kind} literal ${value} repeats in ${String(count)} source files for the same semantic role. Extract ${variant} at the consumers' CCF and import it. ${DOC}`;
 const addRoute = (value: string): string =>
   `The route ${value} repeats; add a member to existing ApiRoute in src/constants/routes.ts and reuse it. ${DOC}`;
 const local = (kind: string, value: string): string =>
@@ -84,7 +84,7 @@ file(
   "features/social/nested-link.ts",
   'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
 );
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   void describe("Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.", () => {
     ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
       valid: [
@@ -95,9 +95,12 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
         file("features/publishing/unrelated.ts", 'const onlyOnce = "unique-value";'),
         file("features/payments/status.ts", 'export const payment = { status: "queued" };'),
         file("features/publishing/copy.ts", 'const message = "user not found"; const label = "success";'),
-        file("features/publishing/example.test.ts", 'fetch("/api/publish");'),
       ],
       invalid: [
+        {
+          ...file("features/publishing/example.test.ts", 'fetch("/api/publish");'),
+          errors: [{ message: addRoute('"/api/publish"') }],
+        },
         {
           filename: path.join(root, "src/features/social/other-link.ts"),
           code: 'const externalLinkTarget = "_self"; const otherLinkRel = "noopener noreferrer";',

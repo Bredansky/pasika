@@ -47,7 +47,7 @@ put("features/__mocks__/hidden.ts", 'fetch("/api/test-only");');
 put("features/mocks/hidden.ts", 'fetch("/api/test-only");');
 
 void describe("Semantic literal project indexing", () => {
-  it("indexes only production files and resolves their feature scope", () => {
+  it("classifies production files separately from source indexing and resolves feature scope", () => {
     expect(isProductionSource(path.join(src, "features/editor/uses.ts"), src)).toBe(true);
     for (const relative of [
       "features/editor/uses.test.ts",
@@ -84,7 +84,7 @@ void describe("Semantic literal project indexing", () => {
     expect(getSemanticLiteralIndex(project)).toBe(index);
   });
 
-  it("excludes UI, external, framework and test literals without losing canonical definitions", () => {
+  it("includes test and mock files while excluding UI, external and framework literals", () => {
     const project = getProjectIndex(src);
     expect(project).toBeDefined();
     if (!project) return;
@@ -97,7 +97,6 @@ void describe("Semantic literal project indexing", () => {
       "clamp",
       "has spaces",
       "computed-value",
-      "/api/test-only",
       "not-exported",
       -1,
       0,
@@ -105,6 +104,7 @@ void describe("Semantic literal project indexing", () => {
     ]) {
       expect(values).not.toContain(excluded);
     }
+    expect(index.uses.filter((use) => use.value === "/api/test-only")).toHaveLength(6);
     expect(index.canonicals).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ owner: "ApiRoute", name: "One", value: "/api/one" }),

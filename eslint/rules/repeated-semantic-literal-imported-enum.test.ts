@@ -66,7 +66,7 @@ function diagnostic(member: string, raw: string, slot: string): string {
   return `Reuse ${member} from src/${slot} instead of raw ${JSON.stringify(raw)}. ${doc}`;
 }
 
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   typedTester.run("repeated-semantic-literal: imported enums", repeatedSemanticLiteralRule, {
     valid: [
       file(
@@ -106,16 +106,21 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
           'query.eq("/api/post", "x");',
         ].join("\n"),
       ),
-      file(
-        "features/publishing/draft.test.ts",
-        [
-          'import { DraftColumnEnum } from "@/constants";',
-          "declare const query: { eq: (name: string, value: string) => unknown };",
-          'query.eq("channel_source_id", "x");',
-        ].join("\n"),
-      ),
     ],
     invalid: [
+      {
+        ...file(
+          "features/publishing/draft.test.ts",
+          [
+            'import { DraftColumnEnum } from "@/constants";',
+            "declare const query: { eq: (name: string, value: string) => unknown };",
+            'query.eq("channel_source_id", "x");',
+          ].join("\n"),
+        ),
+        errors: [
+          { message: diagnostic("DraftColumnEnum.ChannelSourceId", "channel_source_id", "constants/draft-columns.ts") },
+        ],
+      },
       {
         ...file(
           "features/publishing/not-imported.ts",

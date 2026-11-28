@@ -87,7 +87,7 @@ export function distinctKnownDomains(
   return Boolean(first?.size && second?.size && [...first].every((domain) => !second.has(domain)));
 }
 
-function build(program: ts.Program, root: string): ConstantDomains {
+function build(program: ts.Program, root: string, scope: "production" | "all"): ConstantDomains {
   const checker = program.getTypeChecker();
   const inferDomain = createTypedDomainResolver(checker, root);
   const evidence = new Map<DomainEvidence["declaration"], DomainEvidence>();
@@ -129,7 +129,11 @@ function build(program: ts.Program, root: string): ConstantDomains {
     ts.forEachChild(node, visit);
   }
   for (const source of program.getSourceFiles()) {
-    if (source.isDeclarationFile || !inSource(root, source.fileName) || !isProductionSource(source.fileName, root)) {
+    if (
+      source.isDeclarationFile ||
+      !inSource(root, source.fileName) ||
+      (scope === "production" && !isProductionSource(source.fileName, root))
+    ) {
       continue;
     }
     visit(source);
@@ -156,13 +160,18 @@ function build(program: ts.Program, root: string): ConstantDomains {
   return { byFile, atDeclaration, moduleConstants };
 }
 
-export function getConstantDomains(program: ts.Program, root: string): ConstantDomains {
+export function getConstantDomains(
+  program: ts.Program,
+  root: string,
+  scope: "production" | "all" = "production",
+): ConstantDomains {
   const resolvedRoot = path.resolve(root);
   const roots = cache.get(program) ?? new Map<string, ConstantDomains>();
-  const existing = roots.get(resolvedRoot);
+  const key = `${resolvedRoot}\u0000${scope}`;
+  const existing = roots.get(key);
   if (existing) return existing;
-  const result = build(program, resolvedRoot);
-  roots.set(resolvedRoot, result);
+  const result = build(program, resolvedRoot, scope);
+  roots.set(key, result);
   cache.set(program, roots);
   return result;
 }
