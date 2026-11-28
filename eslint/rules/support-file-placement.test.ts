@@ -14,7 +14,7 @@ const FIXTURE: Record<string, string> = {
     'import { defineApiContract } from "pasika/api-contract"; export const externalApiContract = defineApiContract({});',
   "features/credentials/utils/external-api.ts":
     'import { externalApiContract } from "../constants/single-api-contract"; export function callApi() { return externalApiContract; }',
-  // Shineposter regression: a hook-local counter was extracted into a shared constants barrel.
+  // A shared constant is independently consumed by a hook and a test.
   "features/credentials/constants/index.ts":
     "export const credentialCryptoIvLength = 16;\nexport const initialCredentialsRequestId = 0;\n",
   "features/credentials/hooks/use-credentials.ts":
@@ -39,6 +39,14 @@ const FIXTURE: Record<string, string> = {
   "features/credentials/constants/test-only.ts": "export const testOnlyValue = 0;",
   "features/credentials/utils/test-only.test.ts":
     'import { testOnlyValue } from "../constants/test-only"; export const observed = testOnlyValue;',
+
+  "constants/shared-fixtures.ts": 'export const fixtureUuid = "00000000-0000-4000-8000-000000000004";',
+  "features/mocks/utils/credentials-mock.ts":
+    'import { fixtureUuid } from "@/constants/shared-fixtures"; export function credentialsMock() { return fixtureUuid; }',
+  "features/credentials/credentials.test.ts":
+    'import { fixtureUuid } from "@/constants/shared-fixtures"; export const observed = fixtureUuid;',
+  "utils/fixtures.test.ts":
+    'import { fixtureUuid } from "@/constants/shared-fixtures"; export const observed = fixtureUuid;',
 
   // A root constants barrel re-exports a feature-local constant. The consumer
   // imports through the barrel, so the placement graph must follow the export.
@@ -88,7 +96,7 @@ const FIXTURE: Record<string, string> = {
   "features/home/support-section.tsx":
     'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export function SupportSection() { return <RetroCard />; }',
   "features/home/retro-card-surface.test.ts":
-    'import { RetroCardSurface } from "./constants"; export const values = Object.values(RetroCardSurface);',
+    'import { RetroCardSurface } from "./constants"; import { RetroCard } from "./retro-card"; export const values = [RetroCard, ...Object.values(RetroCardSurface)];',
   "features/archive/constants/index.ts": 'export enum ArchiveSurface { Card = "card", Gradient = "gradient" }',
   "features/archive/card.tsx":
     'import { ArchiveSurface } from "./constants"; export function ArchiveCard() { return <div>{ArchiveSurface.Card}</div>; }',
@@ -291,7 +299,7 @@ void describe("Shared constants and enums MUST live in `constants/` at their dir
         errors: [
           {
             message:
-              "featureOnlyConstant has only one production consumer (src/features/billing/root-consumer.tsx); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+              "featureOnlyConstant has only one source consumer (src/features/billing/root-consumer.tsx); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
       },
@@ -384,16 +392,17 @@ void describe("A constant with only one runtime consumer must be declared in tha
   ruleTester.run("support-file-placement", supportFilePlacementRule, {
     valid: [
       ok("features/credentials/constants/type-only.ts"),
-      ok("features/credentials/constants/test-only.ts"),
+      ok("features/credentials/constants/index.ts"),
+      ok("constants/shared-fixtures.ts"),
       ok("features/credentials/constants/single-api-contract.ts"),
     ],
     invalid: [
       {
-        ...ok("features/credentials/constants/index.ts"),
+        ...ok("features/credentials/constants/test-only.ts"),
         errors: [
           {
             message:
-              "initialCredentialsRequestId has only one production consumer (src/features/credentials/hooks/use-credentials.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+              "testOnlyValue has only one source consumer (src/features/credentials/utils/test-only.test.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
       },
@@ -402,7 +411,7 @@ void describe("A constant with only one runtime consumer must be declared in tha
         errors: [
           {
             message:
-              "initialRequest has only one production consumer (src/features/credentials/utils/request.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+              "initialRequest has only one source consumer (src/features/credentials/utils/request.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
       },
@@ -411,7 +420,7 @@ void describe("A constant with only one runtime consumer must be declared in tha
         errors: [
           {
             message:
-              "initialState has only one production consumer (src/features/credentials/utils/state.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
+              "initialState has only one source consumer (src/features/credentials/utils/state.ts); declare it in that file instead of extracting a constants/ folder. See docs/next-codebase-guide/rules/constants-rule.md",
           },
         ],
       },
@@ -425,7 +434,7 @@ void describe("Each exported value in a multi-export constants/index.ts MUST be 
     invalid: [
       {
         ...ok("features/merch/constants/index.ts"),
-        errors: ["starOrdinals", "cardImageSizes"].map((name) => ({
+        errors: ["cardImageSizes"].map((name) => ({
           message:
             `${name} is consumed only alongside MerchProductCard (src/features/merch/merch-product-card.tsx); ` +
             `declare it beside its owning component instead of extracting a constants/ folder. ` +

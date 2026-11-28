@@ -23,7 +23,7 @@ import {
   segmentsOf,
   SUPPORT_FOLDERS,
 } from "../project/ccf";
-import { getProjectIndex, isTestConsumer, type ProjectIndex, resolveSpecifier, symbolKey } from "../project/index";
+import { getProjectIndex, type ProjectIndex, resolveSpecifier, symbolKey } from "../project/index";
 import type { ExportKind } from "../project/parse-module";
 import { sourceRootOf } from "./project-root";
 
@@ -129,7 +129,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
     const index = getProjectIndex(sourceRoot);
     if (!index) return {};
 
-    // Inspect exported constants individually. A single production consumer
+    // Inspect exported constants individually. A single source consumer
     // does not justify extraction, regardless of whether it is a component,
     // hook or utility. Configuration-owned values and app entry points retain
     // their existing placement exceptions.
@@ -142,9 +142,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
       const contracts = apiContractNames(context);
       for (const entry of exports) {
         if (contracts.has(entry.name) || supportModule?.localValueReferences.includes(entry.name)) continue;
-        const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])].filter(
-          (consumer) => !isTestConsumer(consumer),
-        );
+        const consumers = [...(index.symbolConsumers.get(symbolKey(supportFile, entry.name)) ?? [])];
         if (consumers.length === 0) continue;
 
         // Preserve component ownership detection, including consumers that
@@ -191,7 +189,7 @@ export const supportFilePlacementRule: Rule.RuleModule = {
           name: entry.name,
           line: entry.line,
           message:
-            `${entry.name} has only one production consumer (${describeConsumers([owner], sourceRoot)}); ` +
+            `${entry.name} has only one source consumer (${describeConsumers([owner], sourceRoot)}); ` +
             "declare it in that file instead of extracting a constants/ folder. " +
             "See docs/next-codebase-guide/rules/constants-rule.md",
         });

@@ -123,7 +123,13 @@ export const noMixedConcernsRule: Rule.RuleModule = {
               ]);
               if (!consumers.has(file)) continue;
               const independentlyUsed = [...consumers].some((consumer) => {
-                if (consumer === file || isTestConsumer(consumer) || componentConsumers.has(consumer)) return false;
+                if (
+                  consumer === file ||
+                  (support.kind !== "constant" && isTestConsumer(consumer)) ||
+                  componentConsumers.has(consumer)
+                ) {
+                  return false;
+                }
                 // Re-export barrels forward the symbol but do not independently use it.
                 const isForwarder = index.modules
                   .get(consumer)
@@ -161,8 +167,11 @@ export const noMixedConcernsRule: Rule.RuleModule = {
           const consumers = index?.symbolConsumers.get(symbolKey(file, name));
           if (!consumers) return;
 
+          const isConstant = index?.modules
+            .get(file)
+            ?.exports.some((entry) => entry.name === name && entry.kind === "constant");
           const independent = [...consumers].filter(
-            (consumer) => !isTestConsumer(consumer) && !componentConsumers.has(consumer),
+            (consumer) => (isConstant === true || !isTestConsumer(consumer)) && !componentConsumers.has(consumer),
           );
           if (independent.length > 0) {
             context.report({

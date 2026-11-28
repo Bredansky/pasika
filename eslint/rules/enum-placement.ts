@@ -9,7 +9,7 @@
  */
 import path from "node:path";
 import type { Rule } from "eslint";
-import { getProjectIndex, isTestConsumer, symbolKey } from "../project/index";
+import { getProjectIndex, symbolKey } from "../project/index";
 import { typedParserServices } from "./contract-ownership";
 import { isPlatformPropertyEnum } from "./prefer-enum";
 import { sourceRootOf } from "./project-root";
@@ -65,9 +65,7 @@ export const enumPlacementRule: Rule.RuleModule = {
         }
         const consumers = index?.symbolConsumers.get(symbolKey(filename, enumName));
         if (inConstantsFolder || !consumers || consumers.size === 0) return;
-        const productionConsumers = [...consumers].filter((consumer) => !isTestConsumer(consumer));
-        if (productionConsumers.length === 0) return;
-        if (component && productionConsumers.every((consumer) => componentConsumers?.has(consumer))) return;
+        if (component && [...consumers].every((consumer) => componentConsumers?.has(consumer))) return;
         context.report({
           node,
           message:
