@@ -132,46 +132,6 @@ showName(fullName);
 
 Why: the constant stores its final value without unnecessary concatenation.
 
-## Incorrect — Duplicate Runtime Constant in a Mock
-
-```ts
-// src/constants/index.ts
-export const functionTypeName = "function";
-```
-
-```ts
-// src/features/editor/utils/is-state-updater.ts
-import { functionTypeName } from "@/constants";
-
-export function isStateUpdater(value: unknown): boolean {
-  return typeof value === functionTypeName;
-}
-```
-
-```ts
-// src/features/mocks/utils/is-mock-handler.ts
-const functionType = "function";
-
-export function isMockHandler(value: unknown): boolean {
-  return typeof value === functionType;
-}
-```
-
-Why: the mock introduces another definition of the same JavaScript type name despite an existing shared constant.
-
-## Correct — Reuse the Existing Constant in a Mock
-
-```ts
-// src/features/mocks/utils/is-mock-handler.ts
-import { functionTypeName } from "@/constants";
-
-export function isMockHandler(value: unknown): boolean {
-  return typeof value === functionTypeName;
-}
-```
-
-Why: both consumers use the same constant regardless of their file locations.
-
 ## Incorrect — Repeated Named Numeric Value Across Files
 
 ```ts
