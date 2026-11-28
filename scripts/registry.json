@@ -548,14 +548,14 @@
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
-      "hash": "dd5da63697",
+      "text": "Throughout src/, including mocks, tests, and fixtures, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.",
+      "hash": "7137d15655",
       "ref": "pasika/repeated-semantic-literal"
     },
     {
       "doc": "next-codebase-guide/rules/constants-rule.md",
-      "text": "Repeated named numeric values in the same semantic slot across source files MUST share a constant.",
-      "hash": "4a4ced322b",
+      "text": "Repeated named numeric values in the same semantic slot across src/ MUST share a constant.",
+      "hash": "4cf43145de",
       "ref": "pasika/repeated-numeric-value"
     },
     {

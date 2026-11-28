@@ -19,7 +19,7 @@ const two = fixture("features/second/blank.ts", 'const emptyText = ""; consume(e
 const message =
   'The named string "emptyText" repeats as "". Extract one shared const at the consumers\' CCF and import it across 2 source files. See docs/next-codebase-guide/rules/constants-rule.md';
 
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, including mocks, tests, and fixtures, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
     valid: [],
     invalid: [

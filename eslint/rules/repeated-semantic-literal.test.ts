@@ -84,7 +84,7 @@ file(
   "features/social/nested-link.ts",
   'function getLink() { const externalLinkTarget = "_blank"; return externalLinkTarget; }',
 );
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, including mocks, tests, and fixtures, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   void describe("Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.", () => {
     ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
       valid: [

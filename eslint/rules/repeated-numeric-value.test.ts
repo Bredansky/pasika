@@ -43,7 +43,7 @@ const read = (relativePath: string): string => FIXTURE[relativePath] ?? "";
 
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 
-void describe("Repeated named numeric values in the same semantic slot across source files MUST share a constant.", () => {
+void describe("Repeated named numeric values in the same semantic slot across src/ MUST share a constant.", () => {
   ruleTester.run("repeated-numeric-value", repeatedNumericValueRule, {
     valid: [
       {

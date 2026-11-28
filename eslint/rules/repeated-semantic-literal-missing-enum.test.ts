@@ -25,7 +25,7 @@ file("features/news/unique-routes.ts", 'const contracts = [{ path: "/api/unique-
 file("features/news/ui.ts", 'const options = { variant: "default", label: "publish" };');
 file("features/news/ui-other.ts", 'const options = { variant: "default", label: "publish" };');
 
-void describe("A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, including mocks, tests, and fixtures, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   ruleTester.run("repeated-semantic-literal: missing enum", repeatedSemanticLiteralRule, {
     valid: [file("features/news/ui.ts", 'const options = { variant: "default", label: "publish" };')],
     invalid: [
