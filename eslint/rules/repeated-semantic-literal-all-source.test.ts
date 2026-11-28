@@ -30,7 +30,7 @@ const reused = file(
 );
 const outside = file("tests/outside.test.ts", 'const emptyText = ""; use(emptyText);');
 
-void describe("Throughout src/, including mocks, tests, and fixtures, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
+void describe("Throughout src/, a string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.", () => {
   ruleTester.run("repeated-semantic-literal: all source files", repeatedSemanticLiteralRule, {
     valid: [canonical, reused, outside],
     invalid: duplicates.map((entry) => ({
