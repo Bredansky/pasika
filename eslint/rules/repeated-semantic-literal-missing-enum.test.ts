@@ -14,7 +14,7 @@ const file = (name: string, code: string): { filename: string; code: string } =>
 };
 const DOC = "See docs/next-codebase-guide/rules/constants-rule.md";
 const shared = (value: string): string =>
-  `The string literal ${value} repeats in 2 production files for the same semantic role. Extract a shared enum for this closed route domain at the consumers' CCF and import it. ${DOC}`;
+  `The string literal ${value} repeats in 2 source files for the same semantic role. Extract a shared enum for this closed route domain at the consumers' CCF and import it. ${DOC}`;
 const local = (value: string): string =>
   `The string literal ${value} repeats in the same semantic role in this file. Extract a file-local const. ${DOC}`;
 

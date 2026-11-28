@@ -258,6 +258,21 @@ void describe("Typed domains are inferred from contracts without a manual API re
     ).toEqual([]);
   });
 
+  it("preserves independent typed domains when the consumer is a test or a mock", () => {
+    expect(
+      lint(
+        {
+          "constants/job.ts": 'export const readyJob = "ready";',
+          "features/mocks/connection.ts": 'export const readyConnection = "ready";',
+          "consumer.test.ts":
+            'import { readyJob } from "./constants/job"; import { readyConnection } from "./features/mocks/connection"; type JobState = "ready" | "waiting"; type ConnectionState = "ready" | "waiting"; declare function job(x: JobState): void; declare function connection(x: ConnectionState): void; job(readyJob); connection(readyConnection);',
+        },
+        "features/mocks/connection.ts",
+        repeatedSemanticLiteralRule,
+      ),
+    ).toEqual([]);
+  });
+
   it("does not deduplicate equal literals belonging to independent typed contracts", () => {
     expect(
       lint(

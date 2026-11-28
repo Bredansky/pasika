@@ -106,16 +106,21 @@ void describe("A string or numeric literal MUST reuse a uniquely matching existi
           'query.eq("/api/post", "x");',
         ].join("\n"),
       ),
-      file(
-        "features/publishing/draft.test.ts",
-        [
-          'import { DraftColumnEnum } from "@/constants";',
-          "declare const query: { eq: (name: string, value: string) => unknown };",
-          'query.eq("channel_source_id", "x");',
-        ].join("\n"),
-      ),
     ],
     invalid: [
+      {
+        ...file(
+          "features/publishing/draft.test.ts",
+          [
+            'import { DraftColumnEnum } from "@/constants";',
+            "declare const query: { eq: (name: string, value: string) => unknown };",
+            'query.eq("channel_source_id", "x");',
+          ].join("\n"),
+        ),
+        errors: [
+          { message: diagnostic("DraftColumnEnum.ChannelSourceId", "channel_source_id", "constants/draft-columns.ts") },
+        ],
+      },
       {
         ...file(
           "features/publishing/not-imported.ts",

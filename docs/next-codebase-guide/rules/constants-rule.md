@@ -1,13 +1,13 @@
 # Constants Rule
 
-Unnamed runtime values hide their intent and make changes harder to audit.
+Unnamed runtime values hide their intent and make changes harder to audit. Constant reuse applies throughout `src/`, including mocks, tests, and fixtures; the semantic context, not the file name, determines whether values are equivalent.
 
 - Every runtime string or numeric value MUST be represented by a named constant or enum member, regardless of how many times it is used. Tailwind class strings in `className` props of JSX and React `createElement`, `cn()` compositions, and CVA class positions, static `data-component` markers, and direct strings in named `src/locales/` dictionaries are exempt.
 - When specified, static Next.js [`config.matcher`](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#matcher) values and string or numeric options passed directly to [`next/font/google`](https://nextjs.org/docs/app/api-reference/components/font#google-fonts) or [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#local-fonts) loaders MUST be written as inline literals for build-time analysis; these compiler-required literals are exempt from the named-constants requirement.
 - A single named string or number value MUST be represented by a `const`, unless it belongs to a known, fixed domain with multiple possible values.
 - Known, fixed sets of two or more related string or numeric values MUST use a shared TypeScript `enum`, even if each value appears only once.
 - A string or numeric literal MUST reuse a uniquely matching existing constant or enum; repeated literals representing the same semantic value MUST share one canonical definition.
-- Repeated named numeric values in the same semantic slot across production files MUST share a constant.
+- Repeated named numeric values in the same semantic slot across source files MUST share a constant.
 - A constant's name MUST be `camelCase`, except when a framework requires an exact export name.
 - A constant or enum MUST remain in its declaring file while it is only used locally or imported together with its owning component; only independent consumers require extraction.
 - Shared constants and enums MUST live in `constants/` at their direct consumers' CCF, using `src/constants/` when the CCF is `src/features/`.
@@ -144,7 +144,7 @@ const compositionWidth = 360;
 generatePreview({ width: 360 });
 ```
 
-Why: `compositionWidth` and `width` share the semantic slot `width`, so repeating the same numeric value across production files creates two sources of truth.
+Why: `compositionWidth` and `width` share the semantic slot `width`, so repeating the same numeric value across source files creates two sources of truth.
 
 ## Correct — Shared Numeric Constant
 

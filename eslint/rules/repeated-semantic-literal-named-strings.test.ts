@@ -16,7 +16,7 @@ function file(relative: string, code: string): { filename: string; code: string 
 
 const doc = "See docs/next-codebase-guide/rules/constants-rule.md";
 const shared = (name: string, value: string, files: number): string =>
-  `The named string ${JSON.stringify(name)} repeats as ${JSON.stringify(value)}. Extract one shared const at the consumers' CCF and import it across ${String(files)} production files. ${doc}`;
+  `The named string ${JSON.stringify(name)} repeats as ${JSON.stringify(value)}. Extract one shared const at the consumers' CCF and import it across ${String(files)} source files. ${doc}`;
 
 const first = file("features/home/empty-text.ts", 'const emptyText = ""; use(emptyText);');
 const second = file("features/editor/empty-text.ts", 'const emptyText = ""; use(emptyText);');
@@ -57,31 +57,32 @@ const newlineB = file("features/editor/newline.ts", 'const lineBreak = "\\n"; us
 
 void describe("Named string constants with identical values MUST reuse one definition, regardless of name or length.", () => {
   ruleTester.run("repeated-semantic-literal", repeatedSemanticLiteralRule, {
-    valid: [canonical, differentA, differentB, mutable, fixture],
+    valid: [canonical, differentA, differentB, mutable],
     invalid: [
-      { ...first, errors: [{ message: shared("emptyText", "", 11) }] },
-      { ...second, errors: [{ message: shared("emptyText", "", 11) }] },
+      { ...fixture, errors: [{ message: shared("emptyText", "", 12) }] },
+      { ...first, errors: [{ message: shared("emptyText", "", 12) }] },
+      { ...second, errors: [{ message: shared("emptyText", "", 12) }] },
       { ...shortA, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
       { ...shortB, errors: [{ message: shared("tinyModeMarker", "x", 2) }] },
       {
         ...localDuplicates,
-        errors: [{ message: shared("localBlank", "", 11) }, { message: shared("localBlank", "", 11) }],
+        errors: [{ message: shared("localBlank", "", 12) }, { message: shared("localBlank", "", 12) }],
       },
-      { ...wrappedA, errors: [{ message: shared("sharedBlank", "", 11) }] },
-      { ...wrappedB, errors: [{ message: shared("sharedBlank", "", 11) }] },
-      { ...tsxA, errors: [{ message: shared("emptyCardLabel", "", 11) }] },
-      { ...tsxB, errors: [{ message: shared("emptyCardLabel", "", 11) }] },
-      { ...unrelatedA, errors: [{ message: shared("emptyPrompt", "", 11) }] },
-      { ...unrelatedB, errors: [{ message: shared("emptyCaption", "", 11) }] },
-      { ...genericA, errors: [{ message: shared("value", "", 11) }] },
-      { ...genericB, errors: [{ message: shared("value", "", 11) }] },
+      { ...wrappedA, errors: [{ message: shared("sharedBlank", "", 12) }] },
+      { ...wrappedB, errors: [{ message: shared("sharedBlank", "", 12) }] },
+      { ...tsxA, errors: [{ message: shared("emptyCardLabel", "", 12) }] },
+      { ...tsxB, errors: [{ message: shared("emptyCardLabel", "", 12) }] },
+      { ...unrelatedA, errors: [{ message: shared("emptyPrompt", "", 12) }] },
+      { ...unrelatedB, errors: [{ message: shared("emptyCaption", "", 12) }] },
+      { ...genericA, errors: [{ message: shared("value", "", 12) }] },
+      { ...genericB, errors: [{ message: shared("value", "", 12) }] },
       { ...newlineA, errors: [{ message: shared("newline", "\n", 2) }] },
       { ...newlineB, errors: [{ message: shared("lineBreak", "\n", 2) }] },
       {
         ...semanticA,
         errors: [
           {
-            message: `The string literal "draft:created" repeats in 2 production files for the same semantic role. Extract one shared const at the consumers' CCF and import it. ${doc}`,
+            message: `The string literal "draft:created" repeats in 2 source files for the same semantic role. Extract one shared const at the consumers' CCF and import it. ${doc}`,
           },
         ],
       },
@@ -89,7 +90,7 @@ void describe("Named string constants with identical values MUST reuse one defin
         ...semanticB,
         errors: [
           {
-            message: `The string literal "draft:created" repeats in 2 production files for the same semantic role. Extract one shared const at the consumers' CCF and import it. ${doc}`,
+            message: `The string literal "draft:created" repeats in 2 source files for the same semantic role. Extract one shared const at the consumers' CCF and import it. ${doc}`,
           },
         ],
       },

@@ -224,7 +224,6 @@ function isExported(node: ts.Node): boolean {
 }
 
 function parse(file: string, root: string, output: SemanticLiteralIndex): void {
-  if (!isProductionSource(file, root)) return;
   const source = ts.createSourceFile(
     file,
     readFileSync(file, "utf8"),
